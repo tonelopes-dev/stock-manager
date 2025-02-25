@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model MenuCategory {
+  id           String     @id
+  name         String
+  restaurantId String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  Restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  Product      Product[]
+}
+
+model Order {
+  id                Int               @id @default(autoincrement())
+  total             Float
+  status            OrderStatus
+  consumptionMethod ConsumptionMethod
+  restaurantId      String
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  customerName      String
+  customerCpf       String
+  customerPhone     String
+  Restaurant        Restaurant        @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  OrderProduct      OrderProduct[]
+}
+
+model OrderProduct {
+  id        String   @id
+  productId String
+  orderId   Int
+  quantity  Int
+  price     Float
+  date      DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  Product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Product {
+  id             String         @id
+  name           String
+  description    String
+  price          Float
+  stock          Float
+  imageUrl       String
+  ingredients    String[]
+  restaurantId   String
+  menuCategoryId String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  OrderProduct   OrderProduct[]
+  MenuCategory   MenuCategory   @relation(fields: [menuCategoryId], references: [id], onDelete: Cascade)
+  Restaurant     Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+}
+
+model Restaurant {
+  id             String         @id
+  name           String
+  slug           String         @unique
+  description    String
+  avatarImageUrl String
+  coverImageUrl  String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  MenuCategory   MenuCategory[]
+  Order          Order[]
+  Product        Product[]
+}
+
+enum ConsumptionMethod {
+  TAKEAWAY
+  DINE_IN
+}
+
+enum OrderStatus {
+  PENDING
+  IN_PREPARATION
+  FINISHED
+}
