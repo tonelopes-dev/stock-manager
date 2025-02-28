@@ -1,4 +1,11 @@
+"use client";
+import { LayoutDashboard, PackageIcon, ShoppingBag } from "lucide-react";
+
+import { usePathname } from "next/navigation";
+import SidebarButton from "./sidebar-button";
+
 const Sidebar = () => {
+  const pathname = usePathname();
   return (
     <div className="w-64 bg-white">
       {/* IMAGE */}
@@ -7,9 +14,20 @@ const Sidebar = () => {
       </div>
       {/* BOTOES */}
       <div className="flex flex-col gap-2 p-2">
-        <button className="px-6 py-3">Dashboard</button>
-        <button className="px-6 py-3">Produtos</button>
-        <button className="px-6 py-3">Vendas</button>
+        <SidebarButton href="/">
+          <LayoutDashboard size={20} />
+          Dashboard
+        </SidebarButton>
+
+        <SidebarButton href="/products">
+          <PackageIcon size={20} />
+          Produtos
+        </SidebarButton>
+
+        <SidebarButton href="/sales">
+          <ShoppingBag size={20} />
+          Vendas
+        </SidebarButton>
       </div>
     </div>
   );
