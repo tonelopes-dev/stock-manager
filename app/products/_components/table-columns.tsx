@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@/app/_components/ui/badge";
-import { Product } from "@prisma/client";
+import { Product } from "@/app/_lib/prisma";
 import { ColumnDef } from "@tanstack/react-table";
 
 const getStatusLabel = (status: string) => {
@@ -19,10 +19,21 @@ export const productsTableColumns: ColumnDef<Product>[] = [
   {
     accessorKey: "price",
     header: "Valor Unitário",
+    cell: (row) => {
+      const price = row.getValue() as number;
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(price);
+    },
   },
   {
     accessorKey: "stock",
     header: "Estoque",
+    cell: (row) => {
+      const stock = row.getValue() as number;
+      return stock === 1 ? `${stock} unidade` : `${stock} unidades`;
+    },
   },
   {
     accessorKey: "status",

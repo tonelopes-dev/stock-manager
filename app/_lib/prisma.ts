@@ -1,10 +1,14 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Product as PrismaProduct } from "@prisma/client";
 
 declare global {
-  var cachedPrisma: ReturnType<typeof createPrismaCliente>;
+  var cachedPrisma: ReturnType<typeof createPrismaClient>;
 }
 
-const createPrismaCliente = () => {
+type Product = PrismaProduct & {
+  status: "in-stock" | "out-of-stock";
+};
+
+const createPrismaClient = () => {
   return new PrismaClient().$extends({
     result: {
       product: {
@@ -24,14 +28,15 @@ const createPrismaCliente = () => {
   });
 };
 
-let prisma: ReturnType<typeof createPrismaCliente>;
+let prisma: ReturnType<typeof createPrismaClient>;
 if (process.env.NODE_ENV === "production") {
-  prisma = createPrismaCliente();
+  prisma = createPrismaClient();
 } else {
   if (!global.cachedPrisma) {
-    global.cachedPrisma = createPrismaCliente();
+    global.cachedPrisma = createPrismaClient();
   }
   prisma = global.cachedPrisma;
 }
 
 export const db = prisma;
+export type { Product };
