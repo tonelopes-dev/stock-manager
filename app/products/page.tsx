@@ -5,7 +5,11 @@ import { productsTableColumns } from "./_components/table-columns";
 import { getProducts } from "../_data-access/product/get-products";
 
 const ProductsPage = async () => {
-  const products = await getProducts();
+  const response = await fetch("http://localhost:3000/api/products", {
+    cache: "no-cache",
+  });
+  const products = await response.json();
+
   return (
     <div className="ml-1 w-full space-y-8 bg-white pb-8 pl-6 pr-8 pt-8">
       <div className="flex w-full items-center justify-between">
