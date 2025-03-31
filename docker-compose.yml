@@ -1,0 +1,30 @@
+services:
+  stockly-db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: stockly
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  stockly-backend:
+    build: . # Diretório com o Dockerfile do backend
+    ports:
+      - "3000:3000"
+    networks:
+      - backend
+    depends_on:
+      - stockly-db
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  backend:
+    driver: bridge
