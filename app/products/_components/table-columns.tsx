@@ -19,6 +19,19 @@ import {
   MoreHorizontalIcon,
   TrashIcon,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/app/_components/ui/alert-dialog";
+import { Dialog } from "@/app/_components/ui/dialog";
+import AlertDeleteDialog from "./delete-dialog";
 
 const statusLabels = {
   "in-stock": "Em estoque",
@@ -68,31 +81,40 @@ export const productsTableColumns: ColumnDef<Product>[] = [
     cell: (row) => {
       const product = row.row.original;
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost">
-              <MoreHorizontalIcon size={16} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuLabel>Ações</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(product.id)}
-            >
-              <ClipboardCopyIcon className="mr-2 h-4 w-4" />
-              Copiar ID
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <EditIcon className="mr-2 h-4 w-4" />
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <TrashIcon className="mr-2 h-4 w-4" />
-              Deletar
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <AlertDialog>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost">
+                <MoreHorizontalIcon size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Ações</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => navigator.clipboard.writeText(product.id)}
+              >
+                <ClipboardCopyIcon className="mr-2 h-4 w-4" />
+                Copiar ID
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <EditIcon className="mr-2 h-4 w-4" />
+                Editar
+              </DropdownMenuItem>
+              {/* DELETE BUTTON ACTION */}
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem>
+                  <Button>
+                    <TrashIcon className="mr-2 h-4 w-4" />
+                    Excluir
+                  </Button>
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {/* CONTENT BUTTON DIALOG DELETE */}
+          <AlertDeleteDialog productId={product.id} />
+        </AlertDialog>
       );
     },
   },

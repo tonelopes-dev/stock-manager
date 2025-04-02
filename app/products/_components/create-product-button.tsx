@@ -27,6 +27,7 @@ import {
   CreateProductSchema,
 } from "@/app/_actions/product/create-product";
 import { createProductSchema } from "@/app/_actions/product/create-product/schema";
+import { toast } from "sonner";
 
 const CreateProductButton = () => {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
@@ -44,8 +45,10 @@ const CreateProductButton = () => {
     try {
       await createProduct(data);
       setDialogIsOpen(false);
+      toast.success("Produto cadastrado com sucesso!");
     } catch (e) {
       console.log(e);
+      toast.error("Erro ao cadastrar produto!");
     }
   };
   return (
