@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       status: 200,
     });
   }
-  // apenas para valores igual a 20
+  // apenas para valores menores ou igual a 20
 
   const products = await db.product.findMany({
     where: {
