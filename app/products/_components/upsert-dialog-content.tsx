@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import { Button } from "@/app/_components/ui/button";
 import { DialogHeader } from "@/app/_components/ui/dialog";
 import {
@@ -37,7 +38,6 @@ const UpsertProductDialogContent = ({
   onSucess,
 }: UpsertProductDialogContentProps) => {
   const form = useForm<UpsertProductSchema>({
-    shouldUnregister: true,
     resolver: zodResolver(upsertProductSchema),
     defaultValues: defaultValues ?? {
       name: "",
@@ -45,6 +45,14 @@ const UpsertProductDialogContent = ({
       stock: 1,
     },
   });
+
+  useEffect(() => {
+    if (!defaultValues) {
+      form.reset();
+    } else {
+      form.reset(defaultValues);
+    }
+  }, [defaultValues, form]);
   const isEditing = !!defaultValues;
   const onSubmit = async (data: UpsertProductSchema) => {
     try {
