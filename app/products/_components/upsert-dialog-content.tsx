@@ -19,35 +19,36 @@ import { Input } from "@/app/_components/ui/input";
 import { NumericFormat } from "react-number-format";
 import { Form } from "@/app/_components/ui/form";
 import {
-  CreateProductSchema,
-  createProduct,
-} from "@/app/_actions/product/create-product";
+  UpsertProductSchema,
+  upsertProduct,
+} from "@/app/_actions/product/upsert-product";
 import { toast } from "sonner";
-import { createProductSchema } from "@/app/_actions/product/create-product/schema";
+import { upsertProductSchema } from "@/app/_actions/product/upsert-product/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 interface UpsertProductDialogContentProps {
+  defaultValues?: UpsertProductSchema;
   onSucess?: () => void;
 }
 
 const UpsertProductDialogContent = ({
+  defaultValues,
   onSucess,
 }: UpsertProductDialogContentProps) => {
-  const [dialogIsOpen, setDialogIsOpen] = useState(false);
-  const form = useForm<CreateProductSchema>({
+  const form = useForm<UpsertProductSchema>({
     shouldUnregister: true,
-    resolver: zodResolver(createProductSchema),
-    defaultValues: {
+    resolver: zodResolver(upsertProductSchema),
+    defaultValues: defaultValues ?? {
       name: "",
       price: 0,
       stock: 1,
     },
   });
-  const onSubmit = async (data: CreateProductSchema) => {
+  const isEditing = !!defaultValues;
+  const onSubmit = async (data: UpsertProductSchema) => {
     try {
-      await createProduct(data);
+      await upsertProduct({ ...data, id: defaultValues?.id });
       onSucess?.();
       toast.success("Produto cadastrado com sucesso!");
     } catch (e) {
@@ -60,7 +61,7 @@ const UpsertProductDialogContent = ({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <DialogHeader>
-            <DialogTitle>Cadastrar Novo Produto</DialogTitle>
+            <DialogTitle>{isEditing ? "Editar" : "Novo"} Produto</DialogTitle>
             <DialogDescription>
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
