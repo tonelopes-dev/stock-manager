@@ -35,7 +35,7 @@ import { ProductDto } from "@/app/_data-access/product/get-products";
 import { SaleDto } from "@/app/_data-access/sale/get-sales";
 
 interface SalesTableDropdownMenuProps {
-  sale: Pick<SaleDto, "id" | "saleProducts">;
+  sale: Pick<SaleDto, "id" | "saleProducts" | "date">;
   productOptions: ComboboxOption[];
   products: ProductDto[];
 }
@@ -111,6 +111,7 @@ const SalesTableDropdownMenu = ({
 
       <UpsertSheetContent
         saleId={sale.id}
+        saleDate={sale.date}
         isOpen={upsertSheetIsOpen}
         productOptions={productOptions}
         products={products}

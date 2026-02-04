@@ -11,6 +11,7 @@ import {
   FormMessage,
 } from "@/app/_components/ui/form";
 import { Input } from "@/app/_components/ui/input";
+import { Label } from "@/app/_components/ui/label";
 import {
   SheetContent,
   SheetDescription,
@@ -60,6 +61,7 @@ interface SelectedProduct {
 interface UpsertSheetContentProps {
   isOpen: boolean;
   saleId?: string;
+  saleDate?: Date;
   products: ProductDto[];
   productOptions: ComboboxOption[];
   setSheetIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -69,6 +71,7 @@ interface UpsertSheetContentProps {
 const UpsertSheetContent = ({
   isOpen,
   saleId,
+  saleDate,
   products,
   productOptions,
   setSheetIsOpen,
@@ -77,13 +80,17 @@ const UpsertSheetContent = ({
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>(
     defaultSelectedProducts ?? [],
   );
+  const [date, setDate] = useState<string>(
+    saleDate ? new Date(saleDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]
+  );
+
   const { execute: executeUpsertSale } = useAction(upsertSale, {
     onError: ({ error: { validationErrors, serverError } }) => {
       const flattenedErrors = flattenValidationErrors(validationErrors);
       toast.error(serverError ?? flattenedErrors.formErrors[0]);
     },
     onSuccess: () => {
-      toast.success("Venda realizada com sucesso.");
+      toast.success(saleId ? "Venda atualizada com sucesso." : "Venda realizada com sucesso.");
       setSheetIsOpen(false);
     },
   });
@@ -97,11 +104,13 @@ const UpsertSheetContent = ({
   useEffect(() => {
     if (isOpen) {
       setSelectedProducts(defaultSelectedProducts ?? []);
+      setDate(saleDate ? new Date(saleDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]);
     } else {
       form.reset();
       setSelectedProducts([]);
     }
-  }, [form, isOpen, defaultSelectedProducts]);
+  }, [form, isOpen, defaultSelectedProducts, saleDate]);
+
   const onSubmit = (data: FormSchema) => {
     const selectedProduct = products.find(
       (product) => product.id === data.productId,
@@ -163,6 +172,7 @@ const UpsertSheetContent = ({
   const onSubmitSale = async () => {
     executeUpsertSale({
       id: saleId,
+      date: date ? new Date(date) : undefined,
       products: selectedProducts.map((product) => ({
         id: product.id,
         quantity: product.quantity,
@@ -170,58 +180,72 @@ const UpsertSheetContent = ({
     });
   };
   return (
-    <SheetContent className="!max-w-[700px]">
+    <SheetContent className="!max-w-[700px] overflow-y-auto">
       <SheetHeader>
-        <SheetTitle>{saleId ? "Editar" : "Nova"} venda</SheetTitle>
+        <SheetTitle>{saleId ? `Editar venda` : "Nova venda"}</SheetTitle>
         <SheetDescription>
-          Insira as informações da venda abaixo.
+          {saleId ? "Edite as informações da venda abaixo." : "Insira as informações da venda abaixo."}
         </SheetDescription>
       </SheetHeader>
 
-      <Form {...form}>
-        <form className="space-y-6 py-6" onSubmit={form.handleSubmit(onSubmit)}>
-          <FormField
-            control={form.control}
-            name="productId"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Produto</FormLabel>
-                <FormControl>
-                  <Combobox
-                    placeholder="Selecione um produto"
-                    options={productOptions}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+      <div className="space-y-6 py-6">
+        <div className="w-full space-y-2">
+          <Label>Data da Venda</Label>
+          <Input 
+            type="date" 
+            value={date} 
+            onChange={(e) => setDate(e.target.value)}
           />
+        </div>
 
-          <FormField
-            control={form.control}
-            name="quantity"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Quantidade</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Digite a quantidade"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <div className="rounded-lg border border-dashed p-4 space-y-4">
+          <div className="text-sm font-medium">Adicionar Produtos</div>
+          <Form {...form}>
+            <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+              <FormField
+                control={form.control}
+                name="productId"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Produto</FormLabel>
+                    <FormControl>
+                      <Combobox
+                        placeholder="Selecione um produto"
+                        options={productOptions}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <Button type="submit" className="w-full gap-2" variant="secondary">
-            <PlusIcon size={20} />
-            Adicionar produto à venda
-          </Button>
-        </form>
-      </Form>
+              <FormField
+                control={form.control}
+                name="quantity"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Quantidade</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Digite a quantidade"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button type="submit" className="w-full gap-2" variant="secondary">
+                <PlusIcon size={20} />
+                Adicionar produto
+              </Button>
+            </form>
+          </Form>
+        </div>
+      </div>
 
       <Table>
         <TableCaption>Lista dos produtos adicionados à venda.</TableCaption>
@@ -237,7 +261,7 @@ const UpsertSheetContent = ({
         <TableBody>
           {selectedProducts.map((product) => (
             <TableRow key={product.id}>
-              <TableCell>{product.name}</TableCell>
+              <TableCell className="max-w-[200px] truncate">{product.name}</TableCell>
               <TableCell>{formatCurrency(product.price)}</TableCell>
               <TableCell>{product.quantity}</TableCell>
               <TableCell>
@@ -268,7 +292,7 @@ const UpsertSheetContent = ({
           onClick={onSubmitSale}
         >
           <CheckIcon size={20} />
-          Finalizar venda
+          {saleId ? "Salvar alterações" : "Finalizar venda"}
         </Button>
       </SheetFooter>
     </SheetContent>
