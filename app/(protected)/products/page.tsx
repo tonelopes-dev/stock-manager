@@ -1,13 +1,13 @@
-import { DataTable } from "../_components/ui/data-table";
+import { DataTable } from "../../_components/ui/data-table";
 import { productTableColumns } from "./_components/table-columns";
-import { getProducts } from "../_data-access/product/get-products";
+import { getProducts } from "../../_data-access/product/get-products";
 import AddProductButton from "./_components/create-product-button";
 import Header, {
   HeaderLeft,
   HeaderRight,
   HeaderSubtitle,
   HeaderTitle,
-} from "../_components/header";
+} from "../../_components/header";
 
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";

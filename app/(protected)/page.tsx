@@ -10,11 +10,12 @@ import TodayRevenueCard from "./_components/today-revenue-card";
 import TotalSalesCard from "./_components/total-sales-card";
 import TotalInStockCard from "./_components/total-in-stock-card";
 import TotalProductsCard from "./_components/total-products-card";
-import Last14DaysRevenueCard from "./_components/last-14-days-revenue-card";
+import { Last14DaysRevenueCard } from "./_components/last-14-days-revenue-card";
 import { Skeleton } from "../_components/ui/skeleton";
 import MostSoldProducts, {
   MostSoldProductsSkeleton,
 } from "./_components/most-sold-products";
+import { getLast14DaysRevenue } from "../_data-access/dashboard/get-last-14-days-revenue";
 
 // Essa página será montada do zero a cada acesso (SSR)
 export const dynamic = "force-dynamic";
@@ -60,7 +61,7 @@ const Home = async () => {
             </Skeleton>
           }
         >
-          <Last14DaysRevenueCard />
+          <Last14DaysRevenueCardWrapper />
         </Suspense>
         <Suspense fallback={<MostSoldProductsSkeleton />}>
           <MostSoldProducts />
@@ -68,6 +69,11 @@ const Home = async () => {
       </div>
     </div>
   );
+};
+
+const Last14DaysRevenueCardWrapper = async () => {
+  const data = await getLast14DaysRevenue();
+  return <Last14DaysRevenueCard data={data} />;
 };
 
 export default Home;

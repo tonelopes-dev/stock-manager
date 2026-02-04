@@ -3,11 +3,11 @@ import Header, {
   HeaderRight,
   HeaderSubtitle,
   HeaderTitle,
-} from "../_components/header";
-import { ComboboxOption } from "../_components/ui/combobox";
-import { DataTable } from "../_components/ui/data-table";
-import { getProducts } from "../_data-access/product/get-products";
-import { getSales } from "../_data-access/sale/get-sales";
+} from "../../_components/header";
+import { ComboboxOption } from "../../_components/ui/combobox";
+import { DataTable } from "../../_components/ui/data-table";
+import { getProducts } from "../../_data-access/product/get-products";
+import { getSales } from "../../_data-access/sale/get-sales";
 import UpsertSaleButton from "./_components/create-sale-button";
 import { saleTableColumns } from "./_components/table-columns";
 
