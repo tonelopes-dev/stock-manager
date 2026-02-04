@@ -11,7 +11,7 @@ export const deleteSale = actionClient
   .action(async ({ parsedInput: { id } }) => {
     const companyId = await getCurrentCompanyId();
     await db.$transaction(async (trx) => {
-      const sale = await trx.sale.findUnique({
+      const sale = await trx.sale.findFirst({
         where: {
           id,
           companyId, // Ensure sale belongs to current company

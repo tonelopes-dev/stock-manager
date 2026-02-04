@@ -95,14 +95,13 @@ const UpsertSheetContent = ({
     },
   });
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      setSelectedProducts(defaultSelectedProducts ?? []);
+    } else {
       form.reset();
       setSelectedProducts([]);
     }
-  }, [form, isOpen]);
-  useEffect(() => {
-    setSelectedProducts(defaultSelectedProducts ?? []);
-  }, [defaultSelectedProducts]);
+  }, [form, isOpen, defaultSelectedProducts]);
   const onSubmit = (data: FormSchema) => {
     const selectedProduct = products.find(
       (product) => product.id === data.productId,
@@ -173,7 +172,7 @@ const UpsertSheetContent = ({
   return (
     <SheetContent className="!max-w-[700px]">
       <SheetHeader>
-        <SheetTitle>Nova venda</SheetTitle>
+        <SheetTitle>{saleId ? "Editar" : "Nova"} venda</SheetTitle>
         <SheetDescription>
           Insira as informações da venda abaixo.
         </SheetDescription>

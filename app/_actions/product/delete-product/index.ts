@@ -10,10 +10,14 @@ export const deleteProduct = actionClient
   .schema(deleteProductSchema)
   .action(async ({ parsedInput: { id } }) => {
     const companyId = await getCurrentCompanyId();
+    // Verify ownership first because delete() requires a unique identifier
+    const product = await db.product.findFirst({
+      where: { id, companyId },
+    });
+    if (!product) return;
     await db.product.delete({
       where: {
         id,
-        companyId, // Ensure product belongs to current company
       },
     });
     revalidatePath("/", "layout");

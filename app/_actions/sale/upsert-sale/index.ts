@@ -14,7 +14,7 @@ export const upsertSale = actionClient
     const isUpdate = Boolean(id);
     await db.$transaction(async (trx) => {
       if (isUpdate) {
-        const existingSale = await trx.sale.findUnique({
+        const existingSale = await trx.sale.findFirst({
           where: { id, companyId },
           include: { saleProducts: true },
         });
