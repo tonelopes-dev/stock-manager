@@ -1,79 +1,40 @@
 "use client";
 
-import { useState } from "react";
-import { Badge } from "@/app/_components/ui/badge";
-import { Product } from "@/app/_lib/prisma";
 import { ColumnDef } from "@tanstack/react-table";
-import { formatCurrency } from "@/app/_utils/currency";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/app/_components/ui/dropdown-menu";
-import { Button } from "@/app/_components/ui/button";
-import {
-  ClipboardCopyIcon,
-  EditIcon,
-  MoreHorizontalIcon,
-  TrashIcon,
-} from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogTrigger,
-} from "@/app/_components/ui/alert-dialog";
-import { Dialog, DialogTrigger } from "@/app/_components/ui/dialog";
-import AlertDeleteDialog from "./delete-dialog";
-import UpsertProductDialogContent from "./upsert-dialog-content";
-import { TableDropdrownMenu } from "./table-dropdrown-menu";
+import ProductTableDropdownMenu from "./table-dropdown-menu";
+import { ProductDto } from "@/app/_data-access/product/get-products";
+import ProductStatusBadge from "@/app/_components/product-status-badge";
 
-const statusLabels = {
-  "in-stock": "Em estoque",
-  "out-of-stock": "Sem estoque",
-};
-
-export const productsTableColumns: ColumnDef<Product>[] = [
+export const productTableColumns: ColumnDef<ProductDto>[] = [
   {
     accessorKey: "name",
     header: "Produto",
   },
   {
     accessorKey: "price",
-    header: "Valor Unitário",
+    header: "Valor unitário",
     cell: (row) => {
-      const price = row.getValue() as number;
-      return formatCurrency(price);
+      const product = row.row.original;
+      return Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }).format(Number(product.price));
     },
   },
   {
     accessorKey: "stock",
     header: "Estoque",
-    cell: (row) => {
-      const stock = row.getValue() as number;
-      return stock === 1 ? `${stock} unidade` : `${stock} unidades`;
-    },
   },
   {
     accessorKey: "status",
     header: "Status",
-    cell: (row) => {
-      const product = row.row.original;
-      const label = statusLabels[product.status] || "Status desconhecido";
-      return (
-        <Badge
-          className={`${product.status === "in-stock" ? "text-green-500 hover:text-green-600" : "text-red-500 hover:text-red-600"}`}
-          variant="outline"
-        >
-          {label}
-        </Badge>
-      );
+    cell: ({ row: { original: product } }) => {
+      return <ProductStatusBadge status={product.status} />;
     },
   },
   {
     accessorKey: "actions",
-    header: "Ações",
-    cell: (row) => <TableDropdrownMenu product={row.row.original} />,
+    header: "Ações",
+    cell: (row) => <ProductTableDropdownMenu product={row.row.original} />,
   },
 ];
