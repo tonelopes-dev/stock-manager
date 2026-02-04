@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 
 const Home = async () => {
   return (
-    <div className="m-8 flex w-full flex-col space-y-8 rounded-lg">
+    <div className="flex flex-col space-y-8 p-8">
       <Header>
         <HeaderLeft>
           <HeaderSubtitle>Visão geral dos dados</HeaderSubtitle>
