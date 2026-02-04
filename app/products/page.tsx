@@ -1,29 +1,31 @@
 import { DataTable } from "../_components/ui/data-table";
-import { productsTableColumns } from "./_components/table-columns";
+import { productTableColumns } from "./_components/table-columns";
 import { getProducts } from "../_data-access/product/get-products";
+import AddProductButton from "./_components/create-product-button";
+import Header, {
+  HeaderLeft,
+  HeaderRight,
+  HeaderSubtitle,
+  HeaderTitle,
+} from "../_components/header";
 
-import CreateProductButton from "./_components/create-product-button";
+// Essa página será montada uma vez e reutilizada (SSG), podendo ser incrementada de forma regenerativa (ISR)
+export const dynamic = "force-static";
 
 const ProductsPage = async () => {
   const products = await getProducts();
-
   return (
-    <div className="ml-1 w-full space-y-8 bg-white pb-8 pl-6 pr-8 pt-8">
-      <div className="flex w-full items-center justify-between">
-        <div className="space-y-1">
-          <span className="text-sx font-semibold text-slate-500">
-            Gestão de Produtos
-          </span>
-          <h2 className="text-xl font-semibold">Produtos</h2>
-        </div>
-
-        <CreateProductButton />
-      </div>
-
-      <DataTable
-        columns={productsTableColumns}
-        data={JSON.parse(JSON.stringify(products))}
-      />
+    <div className="m-8 w-full space-y-8 overflow-auto rounded-lg bg-white p-8">
+      <Header>
+        <HeaderLeft>
+          <HeaderSubtitle>Gestão de Produtos</HeaderSubtitle>
+          <HeaderTitle>Produtos</HeaderTitle>
+        </HeaderLeft>
+        <HeaderRight>
+          <AddProductButton />
+        </HeaderRight>
+      </Header>
+      <DataTable columns={productTableColumns} data={products} />
     </div>
   );
 };
