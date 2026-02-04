@@ -2,18 +2,15 @@ import { z } from "zod";
 
 export const upsertProductSchema = z.object({
   id: z.string().uuid().optional(),
-  name: z.string().min(1, "O nome é obrigatório").trim(),
-  price: z
-    .number({
-      message: "Digite um número válido",
-    })
-    .min(0.01, "O valor é obrigatório"),
-  stock: z
-    .number({
-      message: "Digite um número válido",
-    })
-    .positive({ message: "O estoque não pode ser zero ou negativo" })
-    .min(1, "O estoque é obrigatório"),
+  name: z.string().trim().min(1, {
+    message: "O nome do produto é obrigatório.",
+  }),
+  price: z.number().min(0.01, {
+    message: "O preço do produto é obrigatório.",
+  }),
+  stock: z.coerce.number().int().min(0, {
+    message: "A quantidade em estoque é obrigatória.",
+  }),
 });
 
 export type UpsertProductSchema = z.infer<typeof upsertProductSchema>;
