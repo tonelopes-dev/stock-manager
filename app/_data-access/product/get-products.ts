@@ -2,6 +2,7 @@ import "server-only";
 
 import { db } from "@/app/_lib/prisma";
 import { Product } from "@prisma/client";
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
 export type ProductStatusDto = "IN_STOCK" | "OUT_OF_STOCK";
 
@@ -11,7 +12,10 @@ export interface ProductDto extends Omit<Product, "price"> {
 }
 
 export const getProducts = async (): Promise<ProductDto[]> => {
-  const products = await db.product.findMany({});
+  const companyId = await getCurrentCompanyId();
+  const products = await db.product.findMany({
+    where: { companyId },
+  });
   return products.map((product) => ({
     ...product,
     price: Number(product.price),

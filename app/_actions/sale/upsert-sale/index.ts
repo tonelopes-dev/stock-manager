@@ -5,15 +5,17 @@ import { upsertSaleSchema } from "./schema";
 import { revalidatePath } from "next/cache";
 import { actionClient } from "@/app/_lib/safe-action";
 import { returnValidationErrors } from "next-safe-action";
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
 export const upsertSale = actionClient
   .schema(upsertSaleSchema)
   .action(async ({ parsedInput: { products, id } }) => {
+    const companyId = await getCurrentCompanyId();
     const isUpdate = Boolean(id);
     await db.$transaction(async (trx) => {
       if (isUpdate) {
         const existingSale = await trx.sale.findUnique({
-          where: { id },
+          where: { id, companyId },
           include: { saleProducts: true },
         });
         if (!existingSale) return;
@@ -34,6 +36,7 @@ export const upsertSale = actionClient
       const sale = await trx.sale.create({
         data: {
           date: new Date(),
+          companyId,
         },
       });
       for (const product of products) {

@@ -1,6 +1,7 @@
 import "server-only";
 import { ProductStatusDto } from "../product/get-products";
 import { db } from "@/app/_lib/prisma";
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
 export interface MostSoldProductDto {
   productId: string;
@@ -11,11 +12,13 @@ export interface MostSoldProductDto {
 }
 
 export const getMostSoldProducts = async (): Promise<MostSoldProductDto[]> => {
+  const companyId = await getCurrentCompanyId();
   await new Promise((resolve) => setTimeout(resolve, 3000));
   const mostSoldProductsQuery = `
     SELECT "Product"."name", SUM("SaleProduct"."quantity") as "totalSold", "Product"."price", "Product"."stock", "Product"."id" as "productId"
     FROM "SaleProduct"
     JOIN "Product" ON "SaleProduct"."productId" = "Product"."id"
+    WHERE "Product"."companyId" = $1
     GROUP BY "Product"."name", "Product"."price", "Product"."stock", "Product"."id"
     ORDER BY "totalSold" DESC
     LIMIT 5;
@@ -28,7 +31,7 @@ export const getMostSoldProducts = async (): Promise<MostSoldProductDto[]> => {
       stock: number;
       price: number;
     }[]
-  >(mostSoldProductsQuery);
+  >(mostSoldProductsQuery, companyId);
   return mostSoldProducts.map((product) => ({
     ...product,
     totalSold: Number(product.totalSold),

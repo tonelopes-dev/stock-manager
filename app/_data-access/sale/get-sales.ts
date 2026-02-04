@@ -1,6 +1,7 @@
 import "server-only";
 
 import { db } from "@/app/_lib/prisma";
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
 interface SaleProductDto {
   productId: string;
@@ -19,7 +20,9 @@ export interface SaleDto {
 }
 
 export const getSales = async (): Promise<SaleDto[]> => {
+  const companyId = await getCurrentCompanyId();
   const sales = await db.sale.findMany({
+    where: { companyId },
     include: {
       saleProducts: {
         include: { product: true },

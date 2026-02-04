@@ -4,6 +4,24 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { db } from "./prisma";
 
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      email: string;
+      name: string;
+      companyId: string;
+    };
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+    companyId: string;
+  }
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(db),
   session: {
@@ -54,11 +72,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
       }
+      // Always ensure companyId is in token
+      if (token.id && !token.companyId) {
+        const userCompany = await db.userCompany.findFirst({
+          where: { userId: token.id as string },
+          select: { companyId: true },
+        });
+        token.companyId = userCompany?.companyId ?? "";
+      }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
+        session.user.companyId = token.companyId as string;
       }
       return session;
     },

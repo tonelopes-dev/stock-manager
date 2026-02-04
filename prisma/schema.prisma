@@ -18,6 +18,8 @@ model Product {
   name         String
   price        Decimal       @db.Decimal(10, 2)
   stock        Int
+  companyId    String
+  company      Company       @relation(fields: [companyId], references: [id])
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   saleProducts SaleProduct[]
@@ -26,6 +28,8 @@ model Product {
 model Sale {
   id           String        @id @default(uuid())
   date         DateTime
+  companyId    String
+  company      Company       @relation(fields: [companyId], references: [id])
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   saleProducts SaleProduct[]
@@ -105,6 +109,8 @@ model Company {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   userCompanies UserCompany[]
+  products      Product[]
+  sales         Sale[]
 }
 
 model UserCompany {

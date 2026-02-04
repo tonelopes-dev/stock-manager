@@ -9,8 +9,8 @@ import Header, {
   HeaderTitle,
 } from "../_components/header";
 
-// Essa página será montada uma vez e reutilizada (SSG), podendo ser incrementada de forma regenerativa (ISR)
-export const dynamic = "force-static";
+// Page requires session for company filtering
+export const dynamic = "force-dynamic";
 
 const ProductsPage = async () => {
   const products = await getProducts();
