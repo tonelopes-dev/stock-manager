@@ -9,7 +9,7 @@ import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
 export const upsertSale = actionClient
   .schema(upsertSaleSchema)
-  .action(async ({ parsedInput: { products, id } }) => {
+  .action(async ({ parsedInput: { products, id, date } }) => {
     const companyId = await getCurrentCompanyId();
     const isUpdate = Boolean(id);
     await db.$transaction(async (trx) => {
@@ -19,9 +19,8 @@ export const upsertSale = actionClient
           include: { saleProducts: true },
         });
         if (!existingSale) return;
-        await trx.sale.delete({
-          where: { id },
-        });
+
+        // Revert stock for existing products in the sale
         for (const product of existingSale.saleProducts) {
           await trx.product.update({
             where: { id: product.productId },
@@ -32,13 +31,33 @@ export const upsertSale = actionClient
             },
           });
         }
+
+        // Delete existing sale products
+        await trx.saleProduct.deleteMany({
+          where: { saleId: id },
+        });
+
+        // Update sale date if provided
+        await trx.sale.update({
+          where: { id },
+          data: {
+            date: date || existingSale.date,
+          },
+        });
       }
-      const sale = await trx.sale.create({
-        data: {
-          date: new Date(),
-          companyId,
-        },
-      });
+
+      let sale;
+      if (isUpdate) {
+        sale = { id };
+      } else {
+        sale = await trx.sale.create({
+          data: {
+            date: date || new Date(),
+            companyId,
+          },
+        });
+      }
+
       for (const product of products) {
         const productFromDb = await trx.product.findUnique({
           where: {
@@ -58,7 +77,7 @@ export const upsertSale = actionClient
         }
         await trx.saleProduct.create({
           data: {
-            saleId: sale.id,
+            saleId: sale.id as string,
             productId: product.id,
             quantity: product.quantity,
             unitPrice: productFromDb.price,
@@ -78,3 +97,4 @@ export const upsertSale = actionClient
     });
     revalidatePath("/", "layout");
   });
+
