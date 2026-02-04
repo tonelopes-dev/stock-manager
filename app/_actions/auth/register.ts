@@ -47,12 +47,32 @@ export async function register(
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  await db.user.create({
-    data: {
-      name,
-      email,
-      password: hashedPassword,
-    },
+  // Create user with company in a transaction
+  await db.$transaction(async (tx) => {
+    // Create the user
+    const user = await tx.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+      },
+    });
+
+    // Create company for the user
+    const company = await tx.company.create({
+      data: {
+        name: `${name}'s Company`,
+      },
+    });
+
+    // Link user to company as OWNER
+    await tx.userCompany.create({
+      data: {
+        userId: user.id,
+        companyId: company.id,
+        role: "OWNER",
+      },
+    });
   });
 
   return { success: true };
