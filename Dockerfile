@@ -14,7 +14,13 @@ RUN npm install
 COPY . .
 
 # Gere o cliente do Prisma
-RUN npm run prisma:generate
+RUN npx prisma generate
 
-# Resto do Dockerfile (build do Next.js, exposição da porta, etc.)
-# ...
+# Build da aplicação Next.js
+RUN npm run build
+
+# Expõe a porta 3000
+EXPOSE 3000
+
+# Comando para iniciar a aplicação
+CMD ["npm", "run", "start"]
