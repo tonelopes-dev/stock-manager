@@ -15,9 +15,10 @@ import {
 import { Badge } from "@/app/_components/ui/badge";
 import { getCompanyPlan } from "@/app/_data-access/company/get-company-plan";
 import PlanActions from "./_components/plan-actions";
+import { SubscriptionStatus } from "./_components/subscription-status";
 
 const PlansPage = async () => {
-  const { plan, stripeSubscriptionId } = (await getCompanyPlan()) as any;
+  const { plan } = (await getCompanyPlan()) as any;
 
   const plans = [
     {
@@ -57,7 +58,10 @@ const PlansPage = async () => {
       <Header>
         <HeaderLeft>
           <HeaderSubtitle>Gerencie sua assinatura e limites</HeaderSubtitle>
-          <HeaderTitle>Planos</HeaderTitle>
+          <div className="flex items-center gap-4">
+            <HeaderTitle>Planos</HeaderTitle>
+            <SubscriptionStatus initialPlan={plan} />
+          </div>
         </HeaderLeft>
       </Header>
 
