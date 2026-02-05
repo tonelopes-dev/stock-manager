@@ -1,4 +1,5 @@
 import { db } from "./prisma";
+import { BusinessError } from "./errors";
 
 export async function checkProductLimit(companyId: string) {
   const company = await db.company.findUnique({
@@ -16,7 +17,7 @@ export async function checkProductLimit(companyId: string) {
   });
 
   if (productCount >= (company as any).maxProducts) {
-    throw new Error(`Seu plano atingiu o limite de ${(company as any).maxProducts} produtos. Faça upgrade para adicionar mais.`);
+    throw new BusinessError(`Seu plano atingiu o limite de ${(company as any).maxProducts} produtos. Faça upgrade para adicionar mais.`);
   }
 }
 
@@ -38,6 +39,6 @@ export async function verifyPlanLimit(companyId: string, limitKey: "maxProducts"
   const limit = (company as any)[limitKey];
   if (currentCount >= limit) {
     const featureName = limitKey === "maxProducts" ? "produtos" : "usuários";
-    throw new Error(`Seu plano atingiu o limite de ${limit} ${featureName}. Faça upgrade para continuar crescendo.`);
+    throw new BusinessError(`Seu plano atingiu o limite de ${limit} ${featureName}. Faça upgrade para continuar crescendo.`);
   }
 }

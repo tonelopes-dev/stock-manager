@@ -1,5 +1,7 @@
 import { db } from "./prisma";
 import { StockMovementType, Prisma } from "@prisma/client";
+import * as Sentry from "@sentry/nextjs";
+import { BusinessError } from "./errors";
 
 interface RecordStockMovementParams {
   productId: string;
@@ -37,7 +39,7 @@ export const recordStockMovement = async (
 
     // 2. Validate negative stock AFTER update
     if (stockAfter < 0 && !updatedProduct.company.allowNegativeStock) {
-      throw new Error("Estoque insuficiente. A empresa não permite estoque negativo.");
+      throw new BusinessError("Estoque insuficiente. A empresa não permite estoque negativo.");
     }
 
     // 3. Create movement record
@@ -55,9 +57,26 @@ export const recordStockMovement = async (
     });
   };
 
-  if (trx) {
-    return await execute(trx);
-  }
+  try {
+    if (trx) {
+      return await execute(trx);
+    }
 
-  return await db.$transaction(execute);
+    return await db.$transaction(execute);
+  } catch (error) {
+    if (error instanceof BusinessError) {
+      throw error;
+    }
+
+    Sentry.captureException(error, {
+      tags: {
+        feature: "inventory",
+        action: "record_movement",
+      },
+      extra: { 
+        payload: params 
+      },
+    });
+    throw error;
+  }
 };
