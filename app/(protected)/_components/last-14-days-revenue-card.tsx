@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ChartConfig,
   ChartContainer,
@@ -30,7 +32,7 @@ export const Last14DaysRevenueCard = ({ data }: Last14DaysRevenueCardProps) => {
         margin={{
           left: 0,
           right: 0,
-          top: 10,
+          top: 20,
           bottom: 0
         }}
       >
@@ -39,7 +41,7 @@ export const Last14DaysRevenueCard = ({ data }: Last14DaysRevenueCardProps) => {
             <stop
               offset="5%"
               stopColor="var(--color-revenue)"
-              stopOpacity={0.3}
+              stopOpacity={0.4}
             />
             <stop
               offset="95%"
@@ -55,13 +57,15 @@ export const Last14DaysRevenueCard = ({ data }: Last14DaysRevenueCardProps) => {
           axisLine={false}
           tickMargin={12}
           minTickGap={32}
-          tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
+          tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 700 }}
         />
         <YAxis 
             hide
+            domain={['auto', 'auto']}
+            padding={{ top: 20, bottom: 20 }}
         />
         <ChartTooltip
-          cursor={false}
+          cursor={{ stroke: '#e2e8f0', strokeWidth: 1 }}
           content={
             <ChartTooltipContent
               className="w-[180px] border-slate-100 shadow-xl"
@@ -71,12 +75,15 @@ export const Last14DaysRevenueCard = ({ data }: Last14DaysRevenueCardProps) => {
         />
         <Area
           dataKey="revenue"
-          type="natural"
+          type="monotone"
           fill="url(#fillRevenue)"
           fillOpacity={1}
           stroke="var(--color-revenue)"
-          strokeWidth={3}
-          stackId="a"
+          strokeWidth={4}
+          activeDot={{
+            r: 6,
+            style: { fill: "var(--color-revenue)", opacity: 1 },
+          }}
         />
       </AreaChart>
     </ChartContainer>
