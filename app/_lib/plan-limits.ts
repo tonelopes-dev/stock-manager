@@ -3,7 +3,7 @@ import { db } from "./prisma";
 export async function checkProductLimit(companyId: string) {
   const company = await db.company.findUnique({
     where: { id: companyId },
-    select: { maxProducts: true },
+    select: { maxProducts: true } as any,
   });
 
   if (!company) throw new Error("Company not found");
@@ -15,8 +15,8 @@ export async function checkProductLimit(companyId: string) {
     },
   });
 
-  if (productCount >= company.maxProducts) {
-    throw new Error(`Seu plano atingiu o limite de ${company.maxProducts} produtos. Faça upgrade para adicionar mais.`);
+  if (productCount >= (company as any).maxProducts) {
+    throw new Error(`Seu plano atingiu o limite de ${(company as any).maxProducts} produtos. Faça upgrade para adicionar mais.`);
   }
 }
 

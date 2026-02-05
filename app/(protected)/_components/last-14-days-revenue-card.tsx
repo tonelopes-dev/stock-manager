@@ -11,7 +11,7 @@ import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
 interface Last14DaysRevenueCardProps {
   data: {
-    date: string;
+    day: string;
     totalRevenue: number;
   }[];
 }
@@ -44,31 +44,17 @@ export const Last14DaysRevenueCard = ({ data }: Last14DaysRevenueCardProps) => {
           >
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="date"
+              dataKey="day"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
               minTickGap={32}
-              tickFormatter={(value) => {
-                const date = new Date(value);
-                return date.toLocaleDateString("pt-BR", {
-                  month: "short",
-                  day: "numeric",
-                });
-              }}
             />
             <ChartTooltip
               content={
                 <ChartTooltipContent
                   className="w-[150px]"
                   nameKey="totalRevenue"
-                  labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString("pt-BR", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    });
-                  }}
                 />
               }
             />

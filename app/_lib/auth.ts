@@ -13,9 +13,11 @@ declare module "next-auth" {
       companyId: string;
     };
   }
-}
 
-declare module "next-auth/jwt" {
+  interface User {
+    companyId?: string;
+  }
+
   interface JWT {
     id: string;
     companyId: string;

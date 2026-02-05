@@ -12,7 +12,7 @@ export const getPlanUsage = async (): Promise<PlanUsageDto> => {
 
   const company = await db.company.findUnique({
     where: { id: companyId },
-    select: { maxProducts: true },
+    select: { maxProducts: true } as any,
   });
 
   if (!company) {
@@ -28,7 +28,7 @@ export const getPlanUsage = async (): Promise<PlanUsageDto> => {
 
   return {
     productCount,
-    maxProducts: company.maxProducts,
-    percentage: Math.min(Math.round((productCount / company.maxProducts) * 100), 100),
+    maxProducts: (company as any).maxProducts,
+    percentage: Math.min(Math.round((productCount / (company as any).maxProducts) * 100), 100),
   };
 };
