@@ -3,17 +3,22 @@ import {
   LayoutGridIcon,
   PackageIcon,
   ShoppingBasketIcon,
+  UsersIcon,
 } from "lucide-react";
 import SidebarButton from "./sidebar-button";
 import LogoutButton from "./logout-button";
 import PlanUsageWidget from "./plan-usage-widget";
+import { UserSidebarProfile } from "./user-sidebar-profile";
 
 const Sidebar = () => {
   return (
     <div className="flex w-64 flex-col border-r border-gray-200 bg-white">
+      {/* USER PROFILE */}
+      <UserSidebarProfile />
+
       {/* LOGO */}
-      <div className="px-8 py-6">
-        <h1 className="text-2xl font-bold tracking-tight text-primary">
+      <div className="px-8 py-4">
+        <h1 className="text-xl font-black tracking-tighter text-primary italic">
           STOCKLY
         </h1>
       </div>
@@ -37,6 +42,13 @@ const Sidebar = () => {
         <SidebarButton href="/plans">
           <CreditCardIcon size={20} />
           Planos
+        </SidebarButton>
+
+        <div className="my-2 border-t border-gray-100" />
+
+        <SidebarButton href="/settings/team">
+          <UsersIcon size={20} />
+          Equipe
         </SidebarButton>
       </div>
 

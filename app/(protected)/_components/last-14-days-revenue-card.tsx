@@ -1,67 +1,91 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/app/_components/ui/chart";
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { formatCurrency } from "@/app/_lib/utils";
 
 interface Last14DaysRevenueCardProps {
   data: {
-    day: string;
-    totalRevenue: number;
+    date: string;
+    revenue: number;
   }[];
 }
 
 const chartConfig = {
-  totalRevenue: {
+  revenue: {
     label: "Receita",
-    color: "#2563eb",
+    color: "hsl(var(--primary))",
   },
 } satisfies ChartConfig;
 
 export const Last14DaysRevenueCard = ({ data }: Last14DaysRevenueCardProps) => {
   return (
-    <Card className="flex flex-col">
-      <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
-          <CardTitle>Receita</CardTitle>
-          <p className="text-sm text-muted-foreground">Últimos 14 dias</p>
-        </div>
-      </CardHeader>
-      <CardContent className="px-2 sm:p-6">
-        <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
-          <BarChart
-            accessibilityLayer
-            data={data}
-            margin={{
-              left: 12,
-              right: 12,
-            }}
-          >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="day"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              minTickGap={32}
+    <ChartContainer config={chartConfig} className="h-full w-full">
+      <AreaChart
+        accessibilityLayer
+        data={data}
+        margin={{
+          left: 0,
+          right: 0,
+          top: 20,
+          bottom: 0
+        }}
+      >
+        <defs>
+          <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
+            <stop
+              offset="5%"
+              stopColor="var(--color-revenue)"
+              stopOpacity={0.4}
             />
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  className="w-[150px]"
-                  nameKey="totalRevenue"
-                />
-              }
+            <stop
+              offset="95%"
+              stopColor="var(--color-revenue)"
+              stopOpacity={0.01}
             />
-            <Bar dataKey="totalRevenue" fill="var(--color-totalRevenue)" radius={4} />
-          </BarChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+          </linearGradient>
+        </defs>
+        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#f1f5f9" />
+        <XAxis
+          dataKey="date"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={12}
+          minTickGap={32}
+          tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 700 }}
+        />
+        <YAxis 
+            hide
+            domain={['auto', 'auto']}
+            padding={{ top: 20, bottom: 20 }}
+        />
+        <ChartTooltip
+          cursor={{ stroke: '#e2e8f0', strokeWidth: 1 }}
+          content={
+            <ChartTooltipContent
+              className="w-[180px] border-slate-100 shadow-xl"
+              formatter={(value) => formatCurrency(Number(value))}
+            />
+          }
+        />
+        <Area
+          dataKey="revenue"
+          type="monotone"
+          fill="url(#fillRevenue)"
+          fillOpacity={1}
+          stroke="var(--color-revenue)"
+          strokeWidth={4}
+          activeDot={{
+            r: 6,
+            style: { fill: "var(--color-revenue)", opacity: 1 },
+          }}
+        />
+      </AreaChart>
+    </ChartContainer>
   );
 };

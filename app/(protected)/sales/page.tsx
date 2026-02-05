@@ -14,11 +14,17 @@ import { ShoppingCartIcon } from "lucide-react";
 import { EmptyState } from "../../_components/empty-state";
 import { Suspense } from "react";
 import { SaleTableSkeleton } from "./_components/table-skeleton";
+import { DataExportButton } from "@/app/_components/data-export-button";
+import { PeriodFilter } from "@/app/_components/period-filter";
 
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";
 
-const SalesPage = async () => {
+interface HomeProps {
+  searchParams: { from?: string; to?: string; range?: string };
+}
+
+const SalesPage = async ({ searchParams }: HomeProps) => {
   const products = await getProducts();
   const productOptions: ComboboxOption[] = products.map((product) => ({
     label: product.name,
@@ -28,11 +34,15 @@ const SalesPage = async () => {
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
       <Header>
-        <HeaderLeft>
-          <HeaderSubtitle>Gestão de Vendas</HeaderSubtitle>
-          <HeaderTitle>Vendas</HeaderTitle>
+        <HeaderLeft className="flex items-center gap-6">
+          <div className="space-y-1">
+            <HeaderSubtitle>Gestão de Vendas</HeaderSubtitle>
+            <HeaderTitle>Vendas</HeaderTitle>
+          </div>
+          <PeriodFilter />
         </HeaderLeft>
-        <HeaderRight>
+        <HeaderRight className="flex items-center gap-3">
+          <DataExportButton />
           <UpsertSaleButton
             products={products}
             productOptions={productOptions}
@@ -41,7 +51,12 @@ const SalesPage = async () => {
       </Header>
 
       <Suspense fallback={<SaleTableSkeleton />}>
-        <SalesTableWrapper productOptions={productOptions} products={products} />
+        <SalesTableWrapper 
+            productOptions={productOptions} 
+            products={products} 
+            from={searchParams.from} 
+            to={searchParams.to} 
+        />
       </Suspense>
     </div>
   );
@@ -49,12 +64,16 @@ const SalesPage = async () => {
 
 const SalesTableWrapper = async ({ 
   productOptions, 
-  products 
+  products,
+  from,
+  to
 }: { 
   productOptions: ComboboxOption[], 
-  products: any[] 
+  products: any[],
+  from?: string,
+  to?: string
 }) => {
-  const sales = await getSales();
+  const sales = await getSales({ from, to });
   
   const tableData = sales.map((sale) => ({
     ...sale,

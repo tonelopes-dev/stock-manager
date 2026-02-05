@@ -5,7 +5,7 @@ export const inviteUserSchema = z.object({
   email: z.string().email({
     message: "Email inválido.",
   }),
-  role: z.nativeEnum(UserRole).default(UserRole.EMPLOYEE),
+  role: z.nativeEnum(UserRole).default(UserRole.MEMBER),
 });
 
 export type InviteUserSchema = z.infer<typeof inviteUserSchema>;

@@ -5,6 +5,8 @@ export interface PlanUsageDto {
   productCount: number;
   maxProducts: number;
   percentage: number;
+  stripeCustomerId: string | null;
+  plan: string;
 }
 
 export const getPlanUsage = async (): Promise<PlanUsageDto> => {
@@ -12,8 +14,12 @@ export const getPlanUsage = async (): Promise<PlanUsageDto> => {
 
   const company = await db.company.findUnique({
     where: { id: companyId },
-    select: { maxProducts: true } as any,
-  });
+    select: { 
+        maxProducts: true,
+        stripeCustomerId: true,
+        plan: true
+    },
+  }) as any;
 
   if (!company) {
     throw new Error("Company not found");
@@ -28,7 +34,9 @@ export const getPlanUsage = async (): Promise<PlanUsageDto> => {
 
   return JSON.parse(JSON.stringify({
     productCount,
-    maxProducts: (company as any).maxProducts,
-    percentage: Math.min(Math.round((productCount / (company as any).maxProducts) * 100), 100),
+    maxProducts: company.maxProducts,
+    percentage: Math.min(Math.round((productCount / company.maxProducts) * 100), 100),
+    stripeCustomerId: company.stripeCustomerId,
+    plan: company.plan,
   }));
 };

@@ -11,12 +11,24 @@ export const HeaderSubtitle = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const HeaderLeft = ({ children }: { children: ReactNode }) => {
-  return <div className="space-y-1">{children}</div>;
+export const HeaderLeft = ({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) => {
+  return <div className={cn("space-y-1", className)}>{children}</div>;
 };
 
-export const HeaderRight = ({ children }: { children: ReactNode }) => {
-  return <div>{children}</div>;
+export const HeaderRight = ({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) => {
+  return <div className={cn("flex items-center", className)}>{children}</div>;
 };
 
 const Header = ({

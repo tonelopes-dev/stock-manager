@@ -2,78 +2,124 @@ import Header, {
   HeaderLeft,
   HeaderSubtitle,
   HeaderTitle,
+  HeaderRight,
 } from "@/app/_components/header";
-import { SummaryCardSkeleton } from "@/app/(protected)/_components/summary-card";
-import TotalRevenueCard from "@/app/(protected)/_components/total-revenue-card";
+import { SummaryCard, SummaryCardSkeleton } from "@/app/(protected)/_components/summary-card";
 import { Suspense } from "react";
-import TodayRevenueCard from "@/app/(protected)/_components/today-revenue-card";
-import TotalSalesCard from "@/app/(protected)/_components/total-sales-card";
-import TotalInStockCard from "@/app/(protected)/_components/total-in-stock-card";
-import TotalProductsCard from "@/app/(protected)/_components/total-products-card";
+import { 
+    DollarSignIcon, 
+    ShoppingBasketIcon, 
+    TrendingUpIcon, 
+    PackageIcon
+} from "lucide-react";
 import { Last14DaysRevenueCard } from "@/app/(protected)/_components/last-14-days-revenue-card";
-import { Skeleton } from "@/app/_components/ui/skeleton";
 import MostSoldProducts, {
   MostSoldProductsSkeleton,
 } from "@/app/(protected)/_components/most-sold-products";
-import { getLast14DaysRevenue } from "@/app/_data-access/dashboard/get-last-14-days-revenue";
+import LowStockAlerts, { 
+  LowStockAlertsSkeleton 
+} from "@/app/(protected)/_components/low-stock-alerts";
+import { getDashboardAnalytics, DashboardRange } from "@/app/_data-access/dashboard/get-dashboard-analytics";
+import { PeriodFilter } from "@/app/_components/period-filter";
+import { DataExportButton } from "@/app/_components/data-export-button";
+import { formatCurrency } from "@/app/_lib/utils";
 
-// Essa página será montada do zero a cada acesso (SSR)
 export const dynamic = "force-dynamic";
 
-const Home = async () => {
+interface HomeProps {
+    searchParams: { from?: string; to?: string; range?: string };
+}
+
+const Home = async ({ searchParams }: HomeProps) => {
+  const range = (searchParams.range as DashboardRange) || 
+                ((searchParams.from && searchParams.to) ? "custom" : "7d");
+
   return (
     <div className="flex flex-col space-y-8 p-8">
       <Header>
-        <HeaderLeft>
-          <HeaderSubtitle>Visão geral dos dados</HeaderSubtitle>
-          <HeaderTitle>Dashboard</HeaderTitle>
+        <HeaderLeft className="flex items-center gap-6">
+          <div className="space-y-1">
+            <HeaderSubtitle>Visão geral dos dados</HeaderSubtitle>
+            <HeaderTitle>Dashboard</HeaderTitle>
+          </div>
+          <PeriodFilter />
         </HeaderLeft>
+        <HeaderRight className="flex items-center gap-3">
+            <DataExportButton label="Exportar Relatório" />
+        </HeaderRight>
       </Header>
 
-      <div className="grid grid-cols-2 gap-6">
-        <Suspense fallback={<SummaryCardSkeleton />}>
-          <TotalRevenueCard />
-        </Suspense>
-        <Suspense fallback={<SummaryCardSkeleton />}>
-          <TodayRevenueCard />
-        </Suspense>
-      </div>
-      <div className="grid grid-cols-3 gap-6">
-        <Suspense fallback={<SummaryCardSkeleton />}>
-          <TotalSalesCard />
-        </Suspense>
-        <Suspense fallback={<SummaryCardSkeleton />}>
-          <TotalInStockCard />
-        </Suspense>
-        <Suspense fallback={<SummaryCardSkeleton />}>
-          <TotalProductsCard />
-        </Suspense>
-      </div>
+      <Suspense fallback={<DashboardLoadingSkeleton />}>
+        <DashboardContent range={range} />
+      </Suspense>
 
-      <div className="grid min-h-0 grid-cols-[minmax(0,2.5fr),minmax(0,1fr)] gap-6">
-        <Suspense
-          fallback={
-            <Skeleton className="bg-white p-6">
-              <div className="space-y-2">
-                <div className="h-5 w-[86.26px] rounded-md bg-gray-200" />
-                <div className="h-4 w-48 rounded-md bg-gray-200" />
-              </div>
-            </Skeleton>
-          }
-        >
-          <Last14DaysRevenueCardWrapper />
-        </Suspense>
-        <Suspense fallback={<MostSoldProductsSkeleton />}>
-          <MostSoldProducts />
-        </Suspense>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Suspense fallback={<LowStockAlertsSkeleton />}>
+            <LowStockAlerts />
+          </Suspense>
+          <Suspense fallback={<MostSoldProductsSkeleton />}>
+            <MostSoldProducts />
+          </Suspense>
       </div>
     </div>
   );
 };
 
-const Last14DaysRevenueCardWrapper = async () => {
-  const data = await getLast14DaysRevenue();
-  return <Last14DaysRevenueCard data={data} />;
+const DashboardContent = async ({ range }: { range: DashboardRange }) => {
+    const data = await getDashboardAnalytics(range);
+
+    return (
+        <div className="space-y-8">
+            {/* KPI CARDS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <SummaryCard title="Receita Bruta" icon={DollarSignIcon} trend={data.totalRevenue.trend}>
+                    <p className="text-2xl font-black text-slate-900 leading-none tracking-tight">
+                        {formatCurrency(data.totalRevenue.value)}
+                    </p>
+                </SummaryCard>
+
+                <SummaryCard title="Vendas" icon={ShoppingBasketIcon} trend={data.totalSales.trend}>
+                    <p className="text-2xl font-black text-slate-900 leading-none tracking-tight">
+                        {data.totalSales.value}
+                    </p>
+                </SummaryCard>
+
+                <SummaryCard title="Ticket Médio" icon={TrendingUpIcon} trend={data.averageTicket.trend}>
+                    <p className="text-2xl font-black text-slate-900 leading-none tracking-tight">
+                        {formatCurrency(data.averageTicket.value)}
+                    </p>
+                </SummaryCard>
+
+                <SummaryCard title="Lucro Bruto" icon={PackageIcon} trend={data.totalProfit.trend}>
+                    <p className="text-2xl font-black text-slate-900 leading-none tracking-tight">
+                        {formatCurrency(data.totalProfit.value)}
+                    </p>
+                </SummaryCard>
+            </div>
+
+            {/* CHART SECTION */}
+            <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+                <div className="mb-6">
+                    <h3 className="text-lg font-black text-slate-900 italic tracking-tighter">Performance de Receita</h3>
+                    <p className="text-xs font-medium text-slate-500">Visualização detalhada da receita dia a dia no período selecionado.</p>
+                </div>
+                <div className="h-[300px] w-full">
+                    <Last14DaysRevenueCard data={data.revenueTimeSeries} />
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const DashboardLoadingSkeleton = () => {
+    return (
+        <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map(i => <SummaryCardSkeleton key={i} />)}
+            </div>
+            <div className="h-[400px] w-full bg-white border border-slate-100 rounded-xl animate-pulse" />
+        </div>
+    );
 };
 
 export default Home;
