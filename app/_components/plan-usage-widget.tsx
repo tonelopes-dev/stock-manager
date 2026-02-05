@@ -1,0 +1,37 @@
+import { getPlanUsage } from "../_data-access/company/get-plan-usage";
+import Link from "next/link";
+
+const PlanUsageWidget = async () => {
+  const { productCount, maxProducts, percentage } = await getPlanUsage();
+
+  return (
+    <div className="rounded-lg bg-gray-50 p-4">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-xs font-semibold text-gray-600">
+          Uso de Produtos
+        </span>
+        <span className="text-xs font-medium text-gray-500">
+          {productCount} / {maxProducts}
+        </span>
+      </div>
+      <div className="h-2 w-full rounded-full bg-gray-200">
+        <div
+          className={`h-2 rounded-full transition-all ${
+            percentage > 90 ? "bg-red-500" : "bg-primary"
+          }`}
+          style={{ width: `${percentage}%` }}
+        ></div>
+      </div>
+      <div className="mt-3 flex items-center justify-between">
+         <p className="text-[10px] text-gray-500">
+            {percentage >= 80 ? "Limite próximo" : "Plano Free"}
+         </p>
+         <Link href="/plans" className="text-[10px] font-semibold text-primary hover:underline">
+            Ver Planos
+         </Link>
+      </div>
+    </div>
+  );
+};
+
+export default PlanUsageWidget;
