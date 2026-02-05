@@ -1,14 +1,7 @@
-import * as Sentry from "@sentry/nextjs";
+const Sentry = require("@sentry/nextjs");
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-
-  // Adjust this value in production, or use tracesSampler for greater control
-  tracesSampleRate: 1,
-
-  // Setting this option to true will print useful information to the console while you're setting up Sentry.
+  tracesSampleRate: 1.0,
   debug: false,
-  
-  // Uncomment the line below to enable Sentry Prisma integration
-  // integrations: [new Sentry.Integrations.Prisma({ client: db })],
 });

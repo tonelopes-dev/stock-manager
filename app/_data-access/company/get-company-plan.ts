@@ -17,5 +17,5 @@ export const getCompanyPlan = async () => {
     throw new Error("Company not found");
   }
 
-  return company;
+  return JSON.parse(JSON.stringify(company));
 };

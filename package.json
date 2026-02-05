@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "stripe:dev": "concurrently \"next dev\" \"npm run stripe:listen\"",
+    "stripe:listen": "npx -y @stripe/stripe-cli listen --forward-to localhost:3000/api/webhooks/stripe",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -50,6 +52,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "concurrently": "^9.2.1",
     "eslint": "^8",
     "eslint-config-next": "14.2.10",
     "postcss": "^8",

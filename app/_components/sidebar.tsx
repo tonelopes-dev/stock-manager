@@ -19,7 +19,7 @@ const Sidebar = () => {
       </div>
       {/* BOTÕES */}
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <SidebarButton href="/">
+        <SidebarButton href="/dashboard">
           <LayoutGridIcon size={20} />
           Dashboard
         </SidebarButton>

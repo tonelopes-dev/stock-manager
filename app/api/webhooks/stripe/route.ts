@@ -1,6 +1,5 @@
 import { stripe } from "@/app/_lib/stripe";
 import { db } from "@/app/_lib/prisma";
-import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
@@ -16,8 +15,13 @@ const getPlanLimits = (status: Stripe.Subscription.Status) => {
 };
 
 export async function POST(req: Request) {
-  const body = await req.text();
-  const signature = headers().get("Stripe-Signature") as string;
+  const body = Buffer.from(await req.arrayBuffer());
+  const signature = req.headers.get("stripe-signature");
+
+  if (!signature) {
+    console.error("❌ No Stripe signature found in headers");
+    return new NextResponse("No signature", { status: 400 });
+  }
 
   let event: Stripe.Event;
 
@@ -27,18 +31,24 @@ export async function POST(req: Request) {
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
+    console.log(`🔔 Webhook received: ${event.type}`);
   } catch (error: any) {
-    console.error(`Webhook Error: ${error.message}`);
+    console.error(`❌ Webhook Signature Verification Error: ${error.message}`);
+    console.debug(`Secret Prefix: ${process.env.STRIPE_WEBHOOK_SECRET?.slice(0, 10)}...`);
     return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 });
   }
 
   // 1. Map Company to Customer on Checkout Completion
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
+    console.log(`💳 Checkout completed for session: ${session.id}`);
     
     if (!session?.metadata?.companyId) {
+      console.error("❌ Company ID not found in checkout session metadata");
       return new NextResponse("Company ID not found in metadata", { status: 400 });
     }
+
+    console.log(`🔗 Linking company ${session.metadata.companyId} to Stripe Customer ${session.customer}`);
 
     await db.company.update({
       where: { id: session.metadata.companyId },
@@ -70,16 +80,19 @@ export async function POST(req: Request) {
     });
 
     if (company) {
+      console.log(`✅ Updating company ${company.id} to plan ${plan}`);
       await db.company.update({
         where: { id: company.id },
         data: {
           stripeSubscriptionId: subscription.id,
           stripePriceId: subscription.items.data[0].price.id,
-          stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          stripeCurrentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
           plan,
           ...limits,
         } as any,
       });
+    } else {
+      console.warn(`⚠️ Company not found for subscription ${subscription.id} or customer ${subscription.customer}`);
     }
   }
 

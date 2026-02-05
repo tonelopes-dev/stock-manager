@@ -20,11 +20,15 @@ export async function checkPlanStatus() {
       } as any,
     });
 
-    return {
-      plan: (company as any)?.plan ?? "FREE",
-      stripeSubscriptionId: (company as any)?.stripeSubscriptionId,
-      stripeCurrentPeriodEnd: (company as any)?.stripeCurrentPeriodEnd,
-    };
+    console.log(`🔍 Checking plan status for ${companyId}: ${(company as any)?.plan}`);
+
+    return JSON.parse(
+      JSON.stringify({
+        plan: (company as any)?.plan ?? "FREE",
+        stripeSubscriptionId: (company as any)?.stripeSubscriptionId,
+        stripeCurrentPeriodEnd: (company as any)?.stripeCurrentPeriodEnd,
+      }),
+    );
   } catch (error) {
     console.error("Failed to check plan status:", error);
     return { plan: "FREE" as const };

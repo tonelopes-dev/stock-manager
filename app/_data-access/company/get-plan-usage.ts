@@ -26,9 +26,9 @@ export const getPlanUsage = async (): Promise<PlanUsageDto> => {
     },
   });
 
-  return {
+  return JSON.parse(JSON.stringify({
     productCount,
     maxProducts: (company as any).maxProducts,
     percentage: Math.min(Math.round((productCount / (company as any).maxProducts) * 100), 100),
-  };
+  }));
 };

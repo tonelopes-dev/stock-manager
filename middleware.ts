@@ -6,20 +6,27 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
 
   // Public routes that don't require authentication
-  const publicRoutes = ["/login", "/register"];
-  const isPublicRoute = publicRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
+  const publicRoutes = ["/", "/login", "/register"];
+  const isPublicRoute = publicRoutes.includes(pathname);
   const isAuthApiRoute = pathname.startsWith("/api/auth");
+  const isWebhookRoute = pathname.startsWith("/api/webhooks");
 
-  // Allow access to auth API routes
-  if (isAuthApiRoute) {
+  // Allow access to auth API routes and webhooks
+  if (isAuthApiRoute || isWebhookRoute) {
+    return NextResponse.next();
+  }
+
+  // Handle root route
+  if (pathname === "/") {
+    if (isLoggedIn) {
+      return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
+    }
     return NextResponse.next();
   }
 
   // Redirect logged-in users away from login/register pages
-  if (isLoggedIn && isPublicRoute) {
-    return NextResponse.redirect(new URL("/", req.nextUrl.origin));
+  if (isLoggedIn && (pathname === "/login" || pathname === "/register")) {
+    return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
   }
 
   // Redirect non-logged-in users to login page
@@ -31,5 +38,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api/webhooks|api/auth|_next/static|_next/image|favicon.ico).*)"],
 };

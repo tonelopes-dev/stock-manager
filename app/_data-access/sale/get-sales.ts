@@ -29,28 +29,32 @@ export const getSales = async (): Promise<SaleDto[]> => {
       },
     },
   });
-  return sales.map((sale) => ({
-    id: sale.id,
-    date: sale.date,
-    productNames: sale.saleProducts
-      .map((saleProduct) => saleProduct.product.name)
-      .join(" • "),
-    totalAmount: sale.saleProducts.reduce(
-      (acc, saleProduct) =>
-        acc + saleProduct.quantity * Number(saleProduct.unitPrice),
-      0,
+  return JSON.parse(
+    JSON.stringify(
+      sales.map((sale) => ({
+        id: sale.id,
+        date: sale.date,
+        productNames: sale.saleProducts
+          .map((saleProduct) => saleProduct.product.name)
+          .join(" • "),
+        totalAmount: sale.saleProducts.reduce(
+          (acc, saleProduct) =>
+            acc + saleProduct.quantity * Number(saleProduct.unitPrice),
+          0,
+        ),
+        totalProducts: sale.saleProducts.reduce(
+          (acc, saleProduct) => acc + saleProduct.quantity,
+          0,
+        ),
+        saleProducts: sale.saleProducts.map(
+          (saleProduct): SaleProductDto => ({
+            productId: saleProduct.productId,
+            productName: saleProduct.product.name,
+            quantity: saleProduct.quantity,
+            unitPrice: Number(saleProduct.unitPrice),
+          }),
+        ),
+      })),
     ),
-    totalProducts: sale.saleProducts.reduce(
-      (acc, saleProduct) => acc + saleProduct.quantity,
-      0,
-    ),
-    saleProducts: sale.saleProducts.map(
-      (saleProduct): SaleProductDto => ({
-        productId: saleProduct.productId,
-        productName: saleProduct.product.name,
-        quantity: saleProduct.quantity,
-        unitPrice: Number(saleProduct.unitPrice),
-      }),
-    ),
-  }));
+  );
 };

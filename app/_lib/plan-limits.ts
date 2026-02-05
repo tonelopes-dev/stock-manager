@@ -17,7 +17,7 @@ export async function checkProductLimit(companyId: string) {
   });
 
   if (productCount >= (company as any).maxProducts) {
-    throw new BusinessError(`Seu plano atingiu o limite de ${(company as any).maxProducts} produtos. Faça upgrade para adicionar mais.`);
+    throw new BusinessError(`Limite de produtos alcançado (${(company as any).maxProducts}). Faça upgrade para o plano Pro e desbloqueie o crescimento do seu estoque!`);
   }
 }
 
@@ -39,6 +39,6 @@ export async function verifyPlanLimit(companyId: string, limitKey: "maxProducts"
   const limit = (company as any)[limitKey];
   if (currentCount >= limit) {
     const featureName = limitKey === "maxProducts" ? "produtos" : "usuários";
-    throw new BusinessError(`Seu plano atingiu o limite de ${limit} ${featureName}. Faça upgrade para continuar crescendo.`);
+    throw new BusinessError(`Você atingiu o limite de ${featureName} do seu plano. O plano Pro permite gerenciar muito mais! Vamos fazer o upgrade?`);
   }
 }

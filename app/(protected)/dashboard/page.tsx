@@ -2,20 +2,20 @@ import Header, {
   HeaderLeft,
   HeaderSubtitle,
   HeaderTitle,
-} from "../_components/header";
-import { SummaryCardSkeleton } from "./_components/summary-card";
-import TotalRevenueCard from "./_components/total-revenue-card";
+} from "@/app/_components/header";
+import { SummaryCardSkeleton } from "@/app/(protected)/_components/summary-card";
+import TotalRevenueCard from "@/app/(protected)/_components/total-revenue-card";
 import { Suspense } from "react";
-import TodayRevenueCard from "./_components/today-revenue-card";
-import TotalSalesCard from "./_components/total-sales-card";
-import TotalInStockCard from "./_components/total-in-stock-card";
-import TotalProductsCard from "./_components/total-products-card";
-import { Last14DaysRevenueCard } from "./_components/last-14-days-revenue-card";
-import { Skeleton } from "../_components/ui/skeleton";
+import TodayRevenueCard from "@/app/(protected)/_components/today-revenue-card";
+import TotalSalesCard from "@/app/(protected)/_components/total-sales-card";
+import TotalInStockCard from "@/app/(protected)/_components/total-in-stock-card";
+import TotalProductsCard from "@/app/(protected)/_components/total-products-card";
+import { Last14DaysRevenueCard } from "@/app/(protected)/_components/last-14-days-revenue-card";
+import { Skeleton } from "@/app/_components/ui/skeleton";
 import MostSoldProducts, {
   MostSoldProductsSkeleton,
-} from "./_components/most-sold-products";
-import { getLast14DaysRevenue } from "../_data-access/dashboard/get-last-14-days-revenue";
+} from "@/app/(protected)/_components/most-sold-products";
+import { getLast14DaysRevenue } from "@/app/_data-access/dashboard/get-last-14-days-revenue";
 
 // Essa página será montada do zero a cada acesso (SSR)
 export const dynamic = "force-dynamic";

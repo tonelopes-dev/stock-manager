@@ -12,22 +12,19 @@ import UpsertSaleButton from "./_components/create-sale-button";
 import { saleTableColumns } from "./_components/table-columns";
 import { ShoppingCartIcon } from "lucide-react";
 import { EmptyState } from "../../_components/empty-state";
+import { Suspense } from "react";
+import { SaleTableSkeleton } from "./_components/table-skeleton";
 
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";
 
 const SalesPage = async () => {
-  const sales = await getSales();
   const products = await getProducts();
   const productOptions: ComboboxOption[] = products.map((product) => ({
     label: product.name,
     value: product.id,
   }));
-  const tableData = sales.map((sale) => ({
-    ...sale,
-    products,
-    productOptions,
-  }));
+
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
       <Header>
@@ -42,18 +39,41 @@ const SalesPage = async () => {
           />
         </HeaderRight>
       </Header>
-      <DataTable 
-        columns={saleTableColumns} 
-        data={tableData} 
-        emptyMessage={
-          <EmptyState
-            icon={ShoppingCartIcon}
-            title="Nenhuma venda encontrada"
-            description="Você ainda não realizou nenhuma venda. Que tal começar agora?"
-          />
-        }
-      />
+
+      <Suspense fallback={<SaleTableSkeleton />}>
+        <SalesTableWrapper productOptions={productOptions} products={products} />
+      </Suspense>
     </div>
+  );
+};
+
+const SalesTableWrapper = async ({ 
+  productOptions, 
+  products 
+}: { 
+  productOptions: ComboboxOption[], 
+  products: any[] 
+}) => {
+  const sales = await getSales();
+  
+  const tableData = sales.map((sale) => ({
+    ...sale,
+    products,
+    productOptions,
+  }));
+
+  return (
+    <DataTable 
+      columns={saleTableColumns} 
+      data={tableData} 
+      emptyMessage={
+        <EmptyState
+          icon={ShoppingCartIcon}
+          title="Nenhuma venda encontrada"
+          description="Você ainda não realizou nenhuma venda. Que tal começar agora?"
+        />
+      }
+    />
   );
 };
 

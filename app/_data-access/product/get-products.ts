@@ -34,23 +34,35 @@ export const getProducts = async (slowMovingDays = 30): Promise<ProductDto[]> =>
     },
   });
 
-  return products.map((product) => {
-    const isOutOfStock = product.stock <= 0;
-    const isLowStock = product.stock <= product.minStock;
-    const isSlowMoving = product.saleProducts.length === 0 && !isOutOfStock;
+  return JSON.parse(
+    JSON.stringify(
+      products.map((product) => {
+        const isOutOfStock = product.stock <= 0;
+        const isLowStock = product.stock <= product.minStock;
+        const isSlowMoving = product.saleProducts.length === 0 && !isOutOfStock;
 
-    return {
-      ...product,
-      price: Number(product.price),
-      cost: Number(product.cost),
-      margin: calculateMargin(product.price, product.cost),
-      status: isOutOfStock
-        ? "OUT_OF_STOCK"
-        : isLowStock
-        ? "LOW_STOCK"
-        : isSlowMoving
-        ? "SLOW_MOVING"
-        : "IN_STOCK",
-    };
-  });
+        return {
+          id: product.id,
+          name: product.name,
+          sku: product.sku,
+          stock: product.stock,
+          minStock: product.minStock,
+          isActive: product.isActive,
+          companyId: product.companyId,
+          createdAt: product.createdAt,
+          updatedAt: product.updatedAt,
+          price: Number(product.price),
+          cost: Number(product.cost),
+          margin: calculateMargin(product.price, product.cost),
+          status: isOutOfStock
+            ? "OUT_OF_STOCK"
+            : isLowStock
+            ? "LOW_STOCK"
+            : isSlowMoving
+            ? "SLOW_MOVING"
+            : "IN_STOCK",
+        } as ProductDto;
+      }),
+    ),
+  );
 };
