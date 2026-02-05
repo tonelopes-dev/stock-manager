@@ -13,7 +13,7 @@ export const adjustStock = actionClient
   .schema(adjustStockSchema)
   .action(async ({ parsedInput: { id, quantity, reason } }) => {
     const companyId = await getCurrentCompanyId();
-    await authorizeAction(companyId, ["OWNER", "ADMIN"]);
+    await authorizeAction(["OWNER", "ADMIN"]);
     const session = await auth();
     const userId = session?.user?.id;
 

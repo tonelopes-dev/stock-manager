@@ -13,7 +13,7 @@ export const cancelSale = actionClient
   .schema(cancelSaleSchema)
   .action(async ({ parsedInput: { id } }) => {
     const companyId = await getCurrentCompanyId();
-    await authorizeAction(companyId, ["OWNER", "ADMIN"]);
+    await authorizeAction(["OWNER", "ADMIN"]);
     const session = await auth();
     const userId = session?.user?.id;
 

@@ -11,7 +11,7 @@ export const deleteProduct = actionClient
   .schema(deleteProductSchema)
   .action(async ({ parsedInput: { id } }) => {
     const companyId = await getCurrentCompanyId();
-    await authorizeAction(companyId, ["OWNER", "ADMIN"]);
+    await authorizeAction(["OWNER", "ADMIN"]);
 
     // Verify ownership and check for sales history
     const product = await db.product.findFirst({

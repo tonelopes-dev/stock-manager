@@ -3,6 +3,7 @@ import {
   LayoutGridIcon,
   PackageIcon,
   ShoppingBasketIcon,
+  UsersIcon,
 } from "lucide-react";
 import SidebarButton from "./sidebar-button";
 import LogoutButton from "./logout-button";
@@ -41,6 +42,13 @@ const Sidebar = () => {
         <SidebarButton href="/plans">
           <CreditCardIcon size={20} />
           Planos
+        </SidebarButton>
+
+        <div className="my-2 border-t border-gray-100" />
+
+        <SidebarButton href="/settings/team">
+          <UsersIcon size={20} />
+          Equipe
         </SidebarButton>
       </div>
 
