@@ -1,28 +1,23 @@
-"use client";
-
 import {
   LayoutGridIcon,
-  LogOutIcon,
   PackageIcon,
   ShoppingBasketIcon,
 } from "lucide-react";
 import SidebarButton from "./sidebar-button";
-import { signOut } from "next-auth/react";
-import { Button } from "./ui/button";
+import LogoutButton from "./logout-button";
+import PlanUsageWidget from "./plan-usage-widget";
 
 const Sidebar = () => {
-  const handleLogout = async () => {
-    await signOut({ callbackUrl: "/login" });
-  };
-
   return (
-    <div className="flex w-64 flex-col bg-white">
-      {/* IMAGEM */}
+    <div className="flex w-64 flex-col border-r border-gray-200 bg-white">
+      {/* LOGO */}
       <div className="px-8 py-6">
-        <h1 className="text-2xl font-bold">STOCKLY</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-primary">
+          STOCKLY
+        </h1>
       </div>
       {/* BOTÕES */}
-      <div className="flex flex-1 flex-col gap-2 p-2">
+      <div className="flex flex-1 flex-col gap-2 p-4">
         <SidebarButton href="/">
           <LayoutGridIcon size={20} />
           Dashboard
@@ -38,16 +33,13 @@ const Sidebar = () => {
           Vendas
         </SidebarButton>
       </div>
-      {/* LOGOUT */}
-      <div className="p-2">
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-2 text-red-500 hover:bg-red-50 hover:text-red-600"
-          onClick={handleLogout}
-        >
-          <LogOutIcon size={20} />
-          Sair
-        </Button>
+
+      <div className="mt-auto flex flex-col gap-4 p-4">
+        {/* USAGE WIDGET */}
+        <PlanUsageWidget />
+
+        {/* LOGOUT */}
+        <LogoutButton />
       </div>
     </div>
   );

@@ -151,9 +151,18 @@ model StockMovement {
   updatedAt   DateTime          @updatedAt
 }
 
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
 model Company {
   id             String          @id @default(cuid())
   name           String
+  plan           Plan            @default(FREE)
+  maxProducts    Int             @default(20)
+  maxUsers       Int             @default(1)
   allowNegativeStock Boolean     @default(false)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
