@@ -47,41 +47,22 @@ export const getDashboardMetrics = async (): Promise<DashboardMetricsDto> => {
   const dailyProfit = dailyTotals.revenue - dailyTotals.cost;
   const averageTicket = dailyTotals.salesCount > 0 ? dailyRevenue / dailyTotals.salesCount : 0;
 
-  // 2. Fetch Top Selling Products using GroupBy
-  const topSellingAggregation = await db.saleProduct.groupBy({
-    by: ["productId"],
-    _sum: {
-      quantity: true,
-    },
-    where: {
-      sale: {
-        companyId,
-        status: "ACTIVE",
-      },
-    },
-    orderBy: {
-      _sum: {
-        quantity: "desc",
-      },
-    },
-    take: 5,
-  });
-
-  // Fetch product metadata for the top 5
-  const topProducts = await Promise.all(
-    topSellingAggregation.map(async (agg) => {
-      const product = await db.product.findUnique({
-        where: { id: agg.productId },
-        select: { name: true, price: true },
-      });
-      return {
-        id: agg.productId,
-        name: product?.name || "Desconhecido",
-        quantitySold: agg._sum.quantity || 0,
-        revenue: (Number(product?.price) || 0) * (agg._sum.quantity || 0),
-      };
-    })
-  );
+  // 2. Fetch Top Selling Products (By REVENUE, using historical prices and single query)
+  const topProducts = await db.$queryRaw<any[]>`
+    SELECT 
+      p.id, 
+      p.name, 
+      SUM(sp.quantity)::int as "quantitySold",
+      SUM(sp."unitPrice" * sp.quantity)::float as revenue
+    FROM "SaleProduct" sp
+    JOIN "Sale" s ON s.id = sp."saleId"
+    JOIN "Product" p ON p.id = sp."productId"
+    WHERE s."companyId" = ${companyId}
+      AND s.status = 'ACTIVE'
+    GROUP BY p.id, p.name
+    ORDER BY revenue DESC
+    LIMIT 5
+  `;
 
   // 3. Low Stock Products (Database level comparison)
   const lowStockProducts = await db.$queryRaw<any[]>`
@@ -98,7 +79,12 @@ export const getDashboardMetrics = async (): Promise<DashboardMetricsDto> => {
     dailyRevenue,
     dailyProfit,
     averageTicket,
-    topSellingProducts: topProducts,
+    topSellingProducts: topProducts.map(p => ({
+      id: p.id,
+      name: p.name,
+      quantitySold: p.quantitySold,
+      revenue: p.revenue
+    })),
     lowStockProducts: lowStockProducts.map(p => ({
       id: p.id,
       name: p.name,
