@@ -26,99 +26,108 @@ export const getDashboardMetrics = async (): Promise<DashboardMetricsDto> => {
   const companyId = await getCurrentCompanyId();
   const today = new Date();
   
-  // 1. Fetch Today's Sales for Metrics
-  const dailySales = await db.sale.findMany({
+  // 1. Fetch Today's aggregated metrics
+  const saleProductsToday = await db.saleProduct.findMany({
     where: {
-      companyId,
-      status: "ACTIVE",
-      date: {
-        gte: startOfDay(today),
-        lte: endOfDay(today),
+      sale: {
+        companyId,
+        status: "ACTIVE",
+        date: {
+          gte: startOfDay(today),
+          lte: endOfDay(today),
+        },
       },
     },
-    include: {
-      saleProducts: true,
+    select: {
+      quantity: true,
+      unitPrice: true,
+      baseCost: true,
     },
   });
 
   let dailyRevenue = 0;
-  let dailyCost = 0;
+  let dailyProfit = 0;
+  let totalSalesToday = new Set();
 
-  for (const sale of dailySales) {
-    for (const item of sale.saleProducts) {
-      dailyRevenue += Number(item.unitPrice) * item.quantity;
-      dailyCost += Number(item.baseCost) * item.quantity;
-    }
+  // Still calculate daily metrics via loop as it's usually a small dataset per day, 
+  // but we fetched only the necessary decimal fields.
+  for (const item of saleProductsToday) {
+    const revenue = Number(item.unitPrice) * item.quantity;
+    const cost = Number(item.baseCost) * item.quantity;
+    dailyRevenue += revenue;
+    dailyProfit += (revenue - cost);
   }
 
-  const dailyProfit = dailyRevenue - dailyCost;
-  const averageTicket = dailySales.length > 0 ? dailyRevenue / dailySales.length : 0;
-
-  // 2. Fetch Top Selling Products (All time or last 30 days - let's do top 5 all time active for now)
-  const productPerformance = await db.product.findMany({
-    where: { 
-      companyId,
-      isActive: true,
-    },
-    select: {
-      id: true,
-      name: true,
-      saleProducts: {
-        where: {
-          sale: {
-            status: "ACTIVE"
-          }
-        },
-        select: {
-          quantity: true,
-          unitPrice: true,
-        },
-      },
-    },
-  });
-
-  const topSellingProducts = productPerformance
-    .map((p) => {
-      const quantitySold = p.saleProducts.reduce((acc, curr) => acc + curr.quantity, 0);
-      const revenue = p.saleProducts.reduce((acc, curr) => acc + (Number(curr.unitPrice) * curr.quantity), 0);
-      return { id: p.id, name: p.name, quantitySold, revenue };
-    })
-    .filter(p => p.quantitySold > 0)
-    .sort((a, b) => b.revenue - a.revenue)
-    .slice(0, 5);
-
-  // 3. Fetch Low Stock Products
-  const lowStockProductsFromDb = await db.product.findMany({
+  // Count unique sales today for average ticket
+  const salesCountToday = await db.sale.count({
     where: {
       companyId,
-      isActive: true,
-      stock: {
-        lte: db.product.fields.minStock // Note: Prisma fields comparison might need raw query or handle in JS
-      }
-    },
-    select: {
-      id: true,
-      name: true,
-      stock: true,
-      minStock: true,
-    },
-  });
-  
-  // Refined low stock query as Prisma doesn't support field vs field natively in 'where' easily without $where or raw
-  const allActiveProducts = await db.product.findMany({
-    where: { companyId, isActive: true },
-    select: { id: true, name: true, stock: true, minStock: true }
+      status: "ACTIVE",
+      date: { gte: startOfDay(today), lte: endOfDay(today) },
+    }
   });
 
-  const lowStockProducts = allActiveProducts
-    .filter(p => p.stock <= p.minStock)
-    .slice(0, 5);
+  const averageTicket = salesCountToday > 0 ? dailyRevenue / salesCountToday : 0;
+
+  // 2. Fetch Top Selling Products using GroupBy (MUCH FASTER)
+  const topSellingAggregation = await db.saleProduct.groupBy({
+    by: ["productId"],
+    _sum: {
+      quantity: true,
+    },
+    where: {
+      sale: {
+        companyId,
+        status: "ACTIVE",
+      },
+    },
+    orderBy: {
+      _sum: {
+        quantity: "desc",
+      },
+    },
+    take: 5,
+  });
+
+  // Fetch names and prices for these top products
+  const topProducts = await Promise.all(
+    topSellingAggregation.map(async (agg) => {
+      const product = await db.product.findUnique({
+        where: { id: agg.productId },
+        select: { name: true, price: true },
+      });
+      return {
+        id: agg.productId,
+        name: product?.name || "Desconhecido",
+        quantitySold: agg._sum.quantity || 0,
+        revenue: (Number(product?.price) || 0) * (agg._sum.quantity || 0),
+      };
+    })
+  );
+
+  // 3. Fetch Low Stock Products with raw SQL or targeted findMany
+  // Since Prisma doesn't support 'stock <= minStock' in where comfortably:
+  const lowStockProducts = await db.$queryRaw<any[]>`
+    SELECT id, name, stock, "minStock"
+    FROM "Product"
+    WHERE "companyId" = ${companyId} 
+      AND "isActive" = true 
+      AND "stock" <= "minStock"
+      AND "stock" < 1000 -- Sanity check
+    ORDER BY "stock" ASC
+    LIMIT 5
+  `.then(rows => rows.map(r => ({
+    id: r.id,
+    name: r.name,
+    stock: r.stock,
+    minStock: r.minStock
+  })));
 
   return {
     dailyRevenue,
     dailyProfit,
     averageTicket,
-    topSellingProducts,
+    topSellingProducts: topProducts,
     lowStockProducts,
   };
 };

@@ -33,30 +33,44 @@ export const recordStockMovement = async (
     throw new Error("Product not found");
   }
 
-  const stockBefore = product.stock;
-  const stockAfter = stockBefore + params.quantity;
+  // Perform update and create movement in a transaction to ensure integrity
+  return await client.$transaction(async (innerTrx: Prisma.TransactionClient) => {
+    // 1. Update product and return state AFTER update to get stockAfter correctly
+    const updatedProduct = await innerTrx.product.update({
+      where: { id: params.productId },
+      data: {
+        stock: {
+          increment: params.quantity,
+        },
+      },
+      select: {
+        stock: true,
+        company: {
+          select: { allowNegativeStock: true },
+        },
+      },
+    });
 
-  if (stockAfter < 0 && !product.company.allowNegativeStock) {
-    throw new Error("Insufficient stock and negative stock is not allowed for this company.");
-  }
+    const stockAfter = updatedProduct.stock;
+    const stockBefore = stockAfter - params.quantity;
 
-  // Update product stock
-  await client.product.update({
-    where: { id: params.productId },
-    data: { stock: stockAfter },
-  });
+    // 2. Validate negative stock AFTER update
+    if (stockAfter < 0 && !updatedProduct.company.allowNegativeStock) {
+      throw new Error("Estoque insuficiente. A empresa não permite estoque negativo.");
+    }
 
-  // Create movement record
-  return await client.stockMovement.create({
-    data: {
-      productId: params.productId,
-      companyId: params.companyId,
-      userId: params.userId,
-      type: params.type,
-      saleId: params.saleId,
-      reason: params.reason,
-      stockBefore,
-      stockAfter,
-    },
+    // 3. Create movement record
+    return await innerTrx.stockMovement.create({
+      data: {
+        productId: params.productId,
+        companyId: params.companyId,
+        userId: params.userId,
+        type: params.type,
+        saleId: params.saleId,
+        reason: params.reason,
+        stockBefore,
+        stockAfter,
+      },
+    });
   });
 };
