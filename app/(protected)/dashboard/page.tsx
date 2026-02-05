@@ -27,11 +27,12 @@ import { formatCurrency } from "@/app/_lib/utils";
 export const dynamic = "force-dynamic";
 
 interface HomeProps {
-    searchParams: { from?: string; to?: string };
+    searchParams: { from?: string; to?: string; range?: string };
 }
 
 const Home = async ({ searchParams }: HomeProps) => {
-  const range = (searchParams.from && searchParams.to) ? "custom" : "7d";
+  const range = (searchParams.range as DashboardRange) || 
+                ((searchParams.from && searchParams.to) ? "custom" : "7d");
 
   return (
     <div className="flex flex-col space-y-8 p-8">

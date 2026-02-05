@@ -21,7 +21,7 @@ import { PeriodFilter } from "@/app/_components/period-filter";
 export const dynamic = "force-dynamic";
 
 interface HomeProps {
-  searchParams: { from?: string; to?: string };
+  searchParams: { from?: string; to?: string; range?: string };
 }
 
 const SalesPage = async ({ searchParams }: HomeProps) => {

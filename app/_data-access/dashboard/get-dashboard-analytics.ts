@@ -11,7 +11,7 @@ import {
   isSameDay
 } from "date-fns";
 
-export type DashboardRange = "7d" | "14d" | "30d" | "month" | "custom";
+export type DashboardRange = "today" | "7d" | "14d" | "30d" | "month" | "custom";
 
 export interface AnalyticsMetric {
     value: number;
@@ -37,6 +37,7 @@ export const getDashboardAnalytics = async (range: DashboardRange = "7d"): Promi
     const endOfCurrent = endOfDay(now);
     
     let daysCount = 7;
+    if (range === "today") daysCount = 1;
     if (range === "14d") daysCount = 14;
     if (range === "30d") daysCount = 30;
     if (range === "month") {

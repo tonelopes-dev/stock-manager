@@ -6,6 +6,7 @@ import { CalendarIcon, ClockIcon } from "lucide-react";
 import { cn } from "@/app/_lib/utils";
 
 const filters = [
+  { label: "Hoje", value: "today" },
   { label: "7 Dias", value: "7d" },
   { label: "14 Dias", value: "14d" },
   { label: "30 Dias", value: "30d" },
@@ -25,7 +26,9 @@ export const PeriodFilter = () => {
     const now = new Date();
     let fromDate: Date | null = null;
     
-    if (value === "7d") {
+    if (value === "today") {
+        fromDate = new Date();
+    } else if (value === "7d") {
         fromDate = new Date(now.setDate(now.getDate() - 7));
     } else if (value === "14d") {
         fromDate = new Date(now.setDate(now.getDate() - 14));
