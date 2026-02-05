@@ -165,7 +165,10 @@ model Company {
   maxUsers       Int             @default(1)
   allowNegativeStock Boolean     @default(false)
   createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  stripePriceId          String?
+  stripeCurrentPeriodEnd DateTime?
   userCompanies  UserCompany[]
   products       Product[]
   sales          Sale[]

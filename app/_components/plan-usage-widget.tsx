@@ -1,4 +1,5 @@
 import { getPlanUsage } from "../_data-access/company/get-plan-usage";
+import Link from "next/link";
 
 const PlanUsageWidget = async () => {
   const { productCount, maxProducts, percentage } = await getPlanUsage();
@@ -21,11 +22,14 @@ const PlanUsageWidget = async () => {
           style={{ width: `${percentage}%` }}
         ></div>
       </div>
-      {percentage >= 80 && (
-        <p className="mt-2 text-[10px] text-gray-500">
-          Você está quase atingindo seu limite.
-        </p>
-      )}
+      <div className="mt-3 flex items-center justify-between">
+         <p className="text-[10px] text-gray-500">
+            {percentage >= 80 ? "Limite próximo" : "Plano Free"}
+         </p>
+         <Link href="/plans" className="text-[10px] font-semibold text-primary hover:underline">
+            Ver Planos
+         </Link>
+      </div>
     </div>
   );
 };
