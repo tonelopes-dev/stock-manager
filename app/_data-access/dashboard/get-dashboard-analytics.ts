@@ -11,7 +11,7 @@ import {
   isSameDay
 } from "date-fns";
 
-export type DashboardRange = "7d" | "14d" | "30d" | "month";
+export type DashboardRange = "7d" | "14d" | "30d" | "month" | "custom";
 
 export interface AnalyticsMetric {
     value: number;

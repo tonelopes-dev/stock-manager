@@ -20,27 +20,31 @@ import LowStockAlerts, {
   LowStockAlertsSkeleton 
 } from "@/app/(protected)/_components/low-stock-alerts";
 import { getDashboardAnalytics, DashboardRange } from "@/app/_data-access/dashboard/get-dashboard-analytics";
-import { DashboardFilter } from "./_components/dashboard-filter";
+import { PeriodFilter } from "@/app/_components/period-filter";
+import { DataExportButton } from "@/app/_components/data-export-button";
 import { formatCurrency } from "@/app/_lib/utils";
 
 export const dynamic = "force-dynamic";
 
 interface HomeProps {
-    searchParams: { range?: string };
+    searchParams: { from?: string; to?: string };
 }
 
 const Home = async ({ searchParams }: HomeProps) => {
-  const range = (searchParams.range as DashboardRange) || "7d";
+  const range = (searchParams.from && searchParams.to) ? "custom" : "7d";
 
   return (
     <div className="flex flex-col space-y-8 p-8">
       <Header>
-        <HeaderLeft>
-          <HeaderSubtitle>Visão geral dos dados</HeaderSubtitle>
-          <HeaderTitle>Dashboard</HeaderTitle>
+        <HeaderLeft className="flex items-center gap-6">
+          <div className="space-y-1">
+            <HeaderSubtitle>Visão geral dos dados</HeaderSubtitle>
+            <HeaderTitle>Dashboard</HeaderTitle>
+          </div>
+          <PeriodFilter />
         </HeaderLeft>
-        <HeaderRight>
-            <DashboardFilter />
+        <HeaderRight className="flex items-center gap-3">
+            <DataExportButton label="Exportar Relatório" />
         </HeaderRight>
       </Header>
 

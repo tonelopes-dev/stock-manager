@@ -19,10 +19,21 @@ export interface SaleDto {
   saleProducts: SaleProductDto[];
 }
 
-export const getSales = async (): Promise<SaleDto[]> => {
+export interface GetSalesParams {
+    from?: string;
+    to?: string;
+}
+
+export const getSales = async (params: GetSalesParams = {}): Promise<SaleDto[]> => {
   const companyId = await getCurrentCompanyId();
   const sales = await db.sale.findMany({
-    where: { companyId },
+    where: { 
+        companyId,
+        date: {
+            gte: params.from ? new Date(params.from) : undefined,
+            lte: params.to ? new Date(params.to) : undefined,
+        }
+    },
     include: {
       saleProducts: {
         include: { product: true },

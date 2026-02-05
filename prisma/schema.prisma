@@ -39,6 +39,8 @@ model Sale {
   status       SaleStatus    @default(ACTIVE)
   companyId    String
   company      Company       @relation(fields: [companyId], references: [id])
+  userId       String?
+  user         User?          @relation(fields: [userId], references: [id])
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   saleProducts SaleProduct[]
@@ -69,6 +71,7 @@ model User {
   accounts       Account[]
   sessions       Session[]
   userCompanies  UserCompany[]
+  sales          Sale[]
   stockMovements StockMovement[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt

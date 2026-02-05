@@ -59,6 +59,7 @@ export const SaleService = {
             where: { id },
             data: {
               date: date || existingSale.date,
+              userId,
             },
           });
         }
@@ -72,6 +73,7 @@ export const SaleService = {
             data: {
               date: date || new Date(),
               companyId,
+              userId,
             },
           });
         }
