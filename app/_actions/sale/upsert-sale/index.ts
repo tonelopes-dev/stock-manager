@@ -6,11 +6,20 @@ import { revalidatePath } from "next/cache";
 import { actionClient } from "@/app/_lib/safe-action";
 import { returnValidationErrors } from "next-safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { auth } from "@/app/_lib/auth";
+import { recordStockMovement } from "@/app/_lib/stock";
 
 export const upsertSale = actionClient
   .schema(upsertSaleSchema)
   .action(async ({ parsedInput: { products, id, date } }) => {
     const companyId = await getCurrentCompanyId();
+    const session = await auth();
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+
     const isUpdate = Boolean(id);
     await db.$transaction(async (trx) => {
       if (isUpdate) {
@@ -20,16 +29,23 @@ export const upsertSale = actionClient
         });
         if (!existingSale) return;
 
+        if (existingSale.status === "CANCELED") {
+          throw new Error("Cannot update a canceled sale.");
+        }
+
         // Revert stock for existing products in the sale
         for (const product of existingSale.saleProducts) {
-          await trx.product.update({
-            where: { id: product.productId },
-            data: {
-              stock: {
-                increment: product.quantity,
-              },
+          await recordStockMovement(
+            {
+              productId: product.productId,
+              companyId,
+              userId,
+              type: "CANCEL",
+              quantity: product.quantity,
+              saleId: existingSale.id,
             },
-          });
+            trx
+          );
         }
 
         // Delete existing sale products
@@ -58,6 +74,11 @@ export const upsertSale = actionClient
         });
       }
 
+      const company = await trx.company.findUnique({
+        where: { id: companyId },
+        select: { allowNegativeStock: true },
+      });
+
       for (const product of products) {
         const productFromDb = await trx.product.findUnique({
           where: {
@@ -70,9 +91,9 @@ export const upsertSale = actionClient
           });
         }
         const productIsOutOfStock = product.quantity > productFromDb.stock;
-        if (productIsOutOfStock) {
+        if (productIsOutOfStock && !company?.allowNegativeStock) {
           returnValidationErrors(upsertSaleSchema, {
-            _errors: ["Product out of stock."],
+            _errors: [`Estoque insuficiente para o produto ${productFromDb.name}.`],
           });
         }
         await trx.saleProduct.create({
@@ -83,16 +104,17 @@ export const upsertSale = actionClient
             unitPrice: productFromDb.price,
           },
         });
-        await trx.product.update({
-          where: {
-            id: product.id,
+        await recordStockMovement(
+          {
+            productId: product.id,
+            companyId,
+            userId,
+            type: "SALE",
+            quantity: -product.quantity,
+            saleId: sale.id as string,
           },
-          data: {
-            stock: {
-              decrement: product.quantity,
-            },
-          },
-        });
+          trx
+        );
       }
     });
     revalidatePath("/", "layout");

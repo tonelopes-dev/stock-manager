@@ -1,15 +1,15 @@
 "use server";
 
-import { actionClient } from "@/app/_lib/safe-action";
-import { deleteSaleSchema } from "./schema";
 import { db } from "@/app/_lib/prisma";
 import { revalidatePath } from "next/cache";
+import { cancelSaleSchema } from "./schema";
+import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { auth } from "@/app/_lib/auth";
 import { recordStockMovement } from "@/app/_lib/stock";
 
-export const deleteSale = actionClient
-  .schema(deleteSaleSchema)
+export const cancelSale = actionClient
+  .schema(cancelSaleSchema)
   .action(async ({ parsedInput: { id } }) => {
     const companyId = await getCurrentCompanyId();
     const session = await auth();
@@ -21,20 +21,23 @@ export const deleteSale = actionClient
 
     await db.$transaction(async (trx) => {
       const sale = await trx.sale.findFirst({
-        where: {
-          id,
-          companyId, // Ensure sale belongs to current company
-        },
-        include: {
-          saleProducts: true,
-        },
+        where: { id, companyId },
+        include: { saleProducts: true },
       });
-      if (!sale) return;
-      await trx.sale.delete({
-        where: {
-          id,
-        },
+
+      if (!sale) {
+        throw new Error("Sale not found.");
+      }
+
+      if (sale.status === "CANCELED") {
+        throw new Error("Sale is already canceled.");
+      }
+
+      await trx.sale.update({
+        where: { id },
+        data: { status: "CANCELED" },
       });
+
       for (const product of sale.saleProducts) {
         await recordStockMovement(
           {
@@ -44,10 +47,13 @@ export const deleteSale = actionClient
             type: "CANCEL",
             quantity: product.quantity,
             saleId: sale.id,
+            reason: "Sale cancellation",
           },
           trx
         );
       }
     });
-    revalidatePath("/", "layout");
+
+    revalidatePath("/sales", "page");
+    revalidatePath("/");
   });
