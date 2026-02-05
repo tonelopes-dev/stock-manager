@@ -90,6 +90,11 @@ export const upsertSale = actionClient
             _errors: ["Product not found."],
           });
         }
+        if (!productFromDb.isActive) {
+          returnValidationErrors(upsertSaleSchema, {
+            _errors: [`O produto ${productFromDb.name} está desativado e não pode ser vendido.`],
+          });
+        }
         const productIsOutOfStock = product.quantity > productFromDb.stock;
         if (productIsOutOfStock && !company?.allowNegativeStock) {
           returnValidationErrors(upsertSaleSchema, {

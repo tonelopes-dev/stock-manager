@@ -179,8 +179,14 @@ const UpsertProductDialogContent = ({
                       type="number"
                       placeholder="Quantidade atual"
                       {...field}
+                      disabled={isEditing}
                     />
                   </FormControl>
+                  {isEditing && (
+                    <p className="text-[10px] text-muted-foreground">
+                      Para alterar o estoque de um produto existente, utilize a opção &quot;Ajustar Estoque&quot; no menu de ações.
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

@@ -19,36 +19,51 @@ export const upsertProduct = actionClient
       throw new Error("User not authenticated");
     }
 
-    await db.$transaction(async (trx) => {
-      const { stock, ...rest } = data;
-      let stockDiff = stock;
-
-      if (id) {
-        const existingProduct = await trx.product.findUnique({
-          where: { id },
-        });
-        if (existingProduct) {
-          stockDiff = stock - existingProduct.stock;
-        }
-      }
-
-      const product = await trx.product.upsert({
-        where: { id: id ?? "" },
-        update: rest,
-        create: { ...rest, companyId, stock: 0 },
+    // Business Validation: SKU Uniqueness per company
+    const { sku } = data;
+    if (sku) {
+      const productWithSameSku = await db.product.findFirst({
+        where: { 
+          sku, 
+          companyId,
+          NOT: id ? { id } : undefined 
+        },
       });
 
-      if (stockDiff !== 0) {
-        await recordStockMovement(
-          {
-            productId: product.id,
-            companyId,
-            userId,
-            type: "MANUAL",
-            quantity: stockDiff,
-          },
-          trx
-        );
+      if (productWithSameSku) {
+        throw new Error("Este SKU já está em uso por outro produto da sua empresa.");
+      }
+    }
+
+    await db.$transaction(async (trx) => {
+      const { stock, ...rest } = data;
+
+      if (id) {
+        // Update product metadata only, ignore stock field from form
+        await trx.product.update({
+          where: { id, companyId },
+          data: rest,
+        });
+      } else {
+        // Create new product with 0 stock initially
+        const product = await trx.product.create({
+          data: { ...rest, companyId, stock: 0 },
+        });
+
+        // Set initial stock via movement for auditability
+        if (stock > 0) {
+          await recordStockMovement(
+            {
+              productId: product.id,
+              companyId,
+              userId,
+              type: "MANUAL",
+              quantity: stock,
+              reason: "Estoque inicial",
+            },
+            trx
+          );
+        }
       }
     });
 

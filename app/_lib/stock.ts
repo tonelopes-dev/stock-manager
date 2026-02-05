@@ -15,28 +15,9 @@ export const recordStockMovement = async (
   params: RecordStockMovementParams,
   trx?: Prisma.TransactionClient
 ) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const client = (trx as any) || db;
-
-  // Fetch product and company settings
-  const product = await client.product.findUnique({
-    where: { id: params.productId },
-    select: { 
-      stock: true,
-      company: {
-        select: { allowNegativeStock: true }
-      }
-    },
-  });
-
-  if (!product) {
-    throw new Error("Product not found");
-  }
-
-  // Perform update and create movement in a transaction to ensure integrity
-  return await client.$transaction(async (innerTrx: Prisma.TransactionClient) => {
+  const execute = async (t: Prisma.TransactionClient) => {
     // 1. Update product and return state AFTER update to get stockAfter correctly
-    const updatedProduct = await innerTrx.product.update({
+    const updatedProduct = await t.product.update({
       where: { id: params.productId },
       data: {
         stock: {
@@ -60,7 +41,7 @@ export const recordStockMovement = async (
     }
 
     // 3. Create movement record
-    return await innerTrx.stockMovement.create({
+    return await t.stockMovement.create({
       data: {
         productId: params.productId,
         companyId: params.companyId,
@@ -72,5 +53,11 @@ export const recordStockMovement = async (
         stockAfter,
       },
     });
-  });
+  };
+
+  if (trx) {
+    return await execute(trx);
+  }
+
+  return await db.$transaction(execute);
 };
