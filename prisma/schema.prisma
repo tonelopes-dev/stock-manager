@@ -105,11 +105,17 @@ enum SaleStatus {
   CANCELED
 }
 
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 // Multi-tenant Models
 enum UserRole {
   OWNER
   ADMIN
-  MEMBER
+  EMPLOYEE
 }
 
 enum StockMovementType {
@@ -147,6 +153,7 @@ model Company {
   products       Product[]
   sales          Sale[]
   stockMovements StockMovement[]
+  invitations    CompanyInvitation[]
 }
 
 model UserCompany {
@@ -155,9 +162,22 @@ model UserCompany {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   companyId String
   company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  role      UserRole @default(MEMBER)
+  role      UserRole @default(EMPLOYEE)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([userId, companyId])
+}
+
+model CompanyInvitation {
+  id        String           @id @default(uuid())
+  email     String
+  role      UserRole         @default(EMPLOYEE)
+  status    InvitationStatus @default(PENDING)
+  companyId String
+  company   Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@unique([email, companyId, status])
 }
