@@ -56,7 +56,10 @@ const UpsertProductDialogContent = ({
       id: "",
       name: "",
       price: 0,
+      cost: 0,
+      sku: "",
       stock: 1,
+      minStock: 0,
     },
   });
 
@@ -88,49 +91,118 @@ const UpsertProductDialogContent = ({
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
-            name="price"
+            name="sku"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Preço</FormLabel>
-                <FormControl>
-                  <NumericFormat
-                    thousandSeparator="."
-                    decimalSeparator=","
-                    fixedDecimalScale
-                    decimalScale={2}
-                    prefix="R$ "
-                    allowNegative={false}
-                    customInput={Input}
-                    onValueChange={(values) =>
-                      field.onChange(values.floatValue)
-                    }
-                    {...field}
-                    onChange={() => {}}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="stock"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Estoque</FormLabel>
+                <FormLabel>SKU</FormLabel>
                 <FormControl>
                   <Input
-                    type="number"
-                    placeholder="Digite o estoque do produto"
+                    placeholder="Digite o SKU do produto"
                     {...field}
+                    value={field.value || ""}
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="price"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Preço</FormLabel>
+                  <FormControl>
+                    <NumericFormat
+                      thousandSeparator="."
+                      decimalSeparator=","
+                      fixedDecimalScale
+                      decimalScale={2}
+                      prefix="R$ "
+                      allowNegative={false}
+                      customInput={Input}
+                      onValueChange={(values) =>
+                        field.onChange(values.floatValue)
+                      }
+                      {...field}
+                      onChange={() => {}}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="cost"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Custo</FormLabel>
+                  <FormControl>
+                    <NumericFormat
+                      thousandSeparator="."
+                      decimalSeparator=","
+                      fixedDecimalScale
+                      decimalScale={2}
+                      prefix="R$ "
+                      allowNegative={false}
+                      customInput={Input}
+                      onValueChange={(values) =>
+                        field.onChange(values.floatValue)
+                      }
+                      {...field}
+                      onChange={() => {}}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="stock"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Estoque Atual</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Quantidade atual"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="minStock"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Estoque Mínimo</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Alerta de estoque baixo"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <DialogFooter>
             <DialogClose asChild>

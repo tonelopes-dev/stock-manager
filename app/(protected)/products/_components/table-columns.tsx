@@ -11,6 +11,10 @@ export const productTableColumns: ColumnDef<ProductDto>[] = [
     header: "Produto",
   },
   {
+    accessorKey: "sku",
+    header: "SKU",
+  },
+  {
     accessorKey: "price",
     header: "Valor unitário",
     cell: (row) => {
@@ -19,6 +23,14 @@ export const productTableColumns: ColumnDef<ProductDto>[] = [
         style: "currency",
         currency: "BRL",
       }).format(Number(product.price));
+    },
+  },
+  {
+    accessorKey: "margin",
+    header: "Margem",
+    cell: (row) => {
+      const product = row.row.original;
+      return `${product.margin}%`;
     },
   },
   {

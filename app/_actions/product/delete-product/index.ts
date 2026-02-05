@@ -13,15 +13,27 @@ export const deleteProduct = actionClient
     const companyId = await getCurrentCompanyId();
     await authorizeAction(companyId, ["OWNER", "ADMIN"]);
 
-    // Verify ownership first because delete() requires a unique identifier
+    // Verify ownership and check for sales history
     const product = await db.product.findFirst({
       where: { id, companyId },
+      include: {
+        _count: {
+          select: { saleProducts: true }
+        }
+      }
     });
-    if (!product) return;
-    await db.product.delete({
-      where: {
-        id,
-      },
+
+    if (!product) {
+      throw new Error("Produto não encontrado.");
+    }
+
+    if (product._count.saleProducts > 0) {
+      throw new Error("Este produto possui histórico de vendas e não pode ser excluído. Recomendamos desativá-lo.");
+    }
+
+    await db.product.update({
+      where: { id },
+      data: { isActive: false }
     });
     revalidatePath("/", "layout");
   });
