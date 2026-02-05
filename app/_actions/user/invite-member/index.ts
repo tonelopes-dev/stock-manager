@@ -10,7 +10,7 @@ import { revalidatePath } from "next/cache";
 
 const inviteMemberSchema = z.object({
   email: z.string().email("E-mail inválido"),
-  role: z.enum(["ADMIN", "EMPLOYEE"]),
+  role: z.enum(["ADMIN", "MEMBER"]),
 });
 
 export const inviteMember = actionClient

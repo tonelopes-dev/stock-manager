@@ -66,8 +66,15 @@ model User {
   name           String?
   email          String          @unique
   emailVerified  DateTime?
+  phone          String?
   password       String?
   image          String?
+  
+  // Security
+  needsPasswordChange Boolean     @default(false)
+  resetPasswordToken  String?     @unique
+  resetPasswordExpires DateTime?
+
   accounts       Account[]
   sessions       Session[]
   userCompanies  UserCompany[]
@@ -126,7 +133,7 @@ enum InvitationStatus {
 enum UserRole {
   OWNER
   ADMIN
-  EMPLOYEE
+  MEMBER
 }
 
 enum StockMovementType {
@@ -185,7 +192,7 @@ model UserCompany {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   companyId String
   company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  role      UserRole @default(EMPLOYEE)
+  role      UserRole         @default(MEMBER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -195,7 +202,7 @@ model UserCompany {
 model CompanyInvitation {
   id        String           @id @default(uuid())
   email     String
-  role      UserRole         @default(EMPLOYEE)
+  role      UserRole         @default(MEMBER)
   status    InvitationStatus @default(PENDING)
   companyId String
   company   Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)

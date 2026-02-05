@@ -18,8 +18,10 @@ export const getUserProfile = async () => {
     include: {
       user: {
         select: {
+          id: true,
           name: true,
           email: true,
+          phone: true,
         },
       },
       company: {
@@ -35,6 +37,7 @@ export const getUserProfile = async () => {
   }
 
   return {
+    id: userWithCompany.user.id,
     name: userWithCompany.user.name,
     email: userWithCompany.user.email,
     role: userWithCompany.role,

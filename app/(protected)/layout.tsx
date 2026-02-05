@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { getCurrentCompanyId } from "../_lib/get-current-company";
 import { getOnboardingStatus } from "../_data-access/onboarding/get-onboarding-status";
 import { OnboardingModal } from "./_components/onboarding-modal";
+import { getUserSecurityStatus } from "../_data-access/user/get-user-security-status";
+import { PasswordResetModal } from "./_components/password-reset-modal";
 
 export default async function ProtectedLayout({
   children,
@@ -22,6 +24,9 @@ export default async function ProtectedLayout({
   // Check onboarding status
   const { needsOnboarding } = await getOnboardingStatus();
 
+  // Check security status
+  const { needsPasswordChange } = await getUserSecurityStatus();
+
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -29,6 +34,7 @@ export default async function ProtectedLayout({
         {children}
       </main>
       <OnboardingModal isOpen={needsOnboarding} />
+      <PasswordResetModal isOpen={needsPasswordChange} />
       <Toaster />
     </div>
   );
