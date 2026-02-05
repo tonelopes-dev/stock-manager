@@ -15,6 +15,9 @@ import { Skeleton } from "@/app/_components/ui/skeleton";
 import MostSoldProducts, {
   MostSoldProductsSkeleton,
 } from "@/app/(protected)/_components/most-sold-products";
+import LowStockAlerts, { 
+  LowStockAlertsSkeleton 
+} from "@/app/(protected)/_components/low-stock-alerts";
 import { getLast14DaysRevenue } from "@/app/_data-access/dashboard/get-last-14-days-revenue";
 
 // Essa página será montada do zero a cada acesso (SSR)
@@ -38,6 +41,11 @@ const Home = async () => {
           <TodayRevenueCard />
         </Suspense>
       </div>
+
+      <Suspense fallback={<LowStockAlertsSkeleton />}>
+        <LowStockAlerts />
+      </Suspense>
+
       <div className="grid grid-cols-3 gap-6">
         <Suspense fallback={<SummaryCardSkeleton />}>
           <TotalSalesCard />
