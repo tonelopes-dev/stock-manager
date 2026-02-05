@@ -20,8 +20,6 @@ export async function checkPlanStatus() {
       } as any,
     });
 
-    console.log(`🔍 Checking plan status for ${companyId}: ${(company as any)?.plan}`);
-
     return JSON.parse(
       JSON.stringify({
         plan: (company as any)?.plan ?? "FREE",

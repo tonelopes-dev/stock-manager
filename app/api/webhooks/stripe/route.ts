@@ -31,24 +31,22 @@ export async function POST(req: Request) {
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
-    console.log(`🔔 Webhook received: ${event.type}`);
+    console.log(`🔔 Webhook: ${event.type}`);
   } catch (error: any) {
-    console.error(`❌ Webhook Signature Verification Error: ${error.message}`);
-    console.debug(`Secret Prefix: ${process.env.STRIPE_WEBHOOK_SECRET?.slice(0, 10)}...`);
+    console.error(`❌ Webhook Error: ${error.message}`);
     return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 });
   }
 
   // 1. Map Company to Customer on Checkout Completion
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    console.log(`💳 Checkout completed for session: ${session.id}`);
     
     if (!session?.metadata?.companyId) {
       console.error("❌ Company ID not found in checkout session metadata");
       return new NextResponse("Company ID not found in metadata", { status: 400 });
     }
 
-    console.log(`🔗 Linking company ${session.metadata.companyId} to Stripe Customer ${session.customer}`);
+    console.log(`🔗 Company ${session.metadata.companyId} matched with Stripe Customer`);
 
     await db.company.update({
       where: { id: session.metadata.companyId },

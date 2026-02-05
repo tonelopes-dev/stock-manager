@@ -58,7 +58,7 @@ const PlanActions = ({ planName, isPro, isCurrent, actionLabel, externalProcessi
     checkoutAction.status === "executing" || 
     portalAction.status === "executing" ||
     externalProcessing ||
-    isRedirectingSuccess;
+    (isRedirectingSuccess && !isPro);
 
   if (isCurrent && planName === "Free") {
     return (

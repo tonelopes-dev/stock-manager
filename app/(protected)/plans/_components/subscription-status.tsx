@@ -17,28 +17,11 @@ export const SubscriptionStatus = ({ initialPlan }: SubscriptionStatusProps) => 
   const router = useRouter();
   const [currentPlan, setCurrentPlan] = useState(initialPlan);
   const [isProcessing, setIsProcessing] = useState(searchParams.get("success") === "true" && initialPlan === "FREE");
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [showSyncButton, setShowSyncButton] = useState(false);
-
-  const handleSync = async () => {
-    setIsSyncing(true);
-    const { plan } = await checkPlanStatus();
-    if (plan === "PRO") {
-      setCurrentPlan("PRO");
-      setIsProcessing(false);
-      router.refresh();
-    }
-    setIsSyncing(false);
-  };
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    let timeout: NodeJS.Timeout;
 
     if (isProcessing) {
-      // Show sync button as fallback after 5 seconds
-      timeout = setTimeout(() => setShowSyncButton(true), 5000);
-
       interval = setInterval(async () => {
         const { plan } = await checkPlanStatus();
         if (plan === "PRO") {
@@ -51,7 +34,6 @@ export const SubscriptionStatus = ({ initialPlan }: SubscriptionStatusProps) => 
 
     return () => {
       if (interval) clearInterval(interval);
-      if (timeout) clearTimeout(timeout);
     };
   }, [isProcessing, router]);
 
@@ -110,26 +92,9 @@ export const SubscriptionStatus = ({ initialPlan }: SubscriptionStatusProps) => 
       </Badge>
       
       {status === "PROCESSING" && (
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground italic">
-             Estamos aguardando a confirmação do Stripe...
-          </span>
-          
-          {showSyncButton && (
-            <button
-              onClick={handleSync}
-              disabled={isSyncing}
-              className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
-            >
-              {isSyncing ? (
-                <Loader2Icon className="h-3 w-3 animate-spin" />
-              ) : (
-                <CheckCircle2Icon className="h-3 w-3" />
-              )}
-              Verificar agora
-            </button>
-          )}
-        </div>
+        <span className="text-xs text-muted-foreground italic">
+           Confirmando sua assinatura...
+        </span>
       )}
     </div>
   );
