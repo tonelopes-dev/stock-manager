@@ -52,6 +52,7 @@ model SaleProduct {
   productId String
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   unitPrice Decimal  @db.Decimal(10, 2)
+  baseCost  Decimal  @db.Decimal(10, 2) @default(0)
   quantity  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

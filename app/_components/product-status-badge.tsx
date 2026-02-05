@@ -8,6 +8,9 @@ const getStatusLabel = (status: string) => {
   if (status === "LOW_STOCK") {
     return "Estoque baixo";
   }
+  if (status === "SLOW_MOVING") {
+    return "Sem saída";
+  }
   return "Fora de estoque";
 };
 
@@ -22,11 +25,17 @@ const ProductStatusBadge = ({ status }: ProductStatusBadgeProps) => {
       variant={
         status === "IN_STOCK"
           ? "default"
-          : status === "LOW_STOCK"
+          : status === "LOW_STOCK" || status === "SLOW_MOVING"
           ? "destructive"
           : "outline"
       }
-      className={`gap-1.5 ${status === "LOW_STOCK" ? "bg-orange-500 hover:bg-orange-600 border-none text-white" : ""}`}
+      className={`gap-1.5 ${
+        status === "LOW_STOCK"
+          ? "bg-orange-500 hover:bg-orange-600 border-none text-white"
+          : status === "SLOW_MOVING"
+          ? "bg-blue-500 hover:bg-blue-600 border-none text-white"
+          : ""
+      }`}
     >
       {label}
     </Badge>

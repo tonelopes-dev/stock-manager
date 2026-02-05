@@ -102,6 +102,7 @@ export const upsertSale = actionClient
             productId: product.id,
             quantity: product.quantity,
             unitPrice: productFromDb.price,
+            baseCost: productFromDb.cost,
           },
         });
         await recordStockMovement(
