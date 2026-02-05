@@ -1,10 +1,11 @@
 import { getTotalInStock } from "@/app/_data-access/dashboard/get-total-in-stock";
 import { SummaryCard } from "./summary-card";
+import { PackageIcon } from "lucide-react";
 
 const TotalInStockCard = async () => {
   const totalInStock = await getTotalInStock();
   return (
-    <SummaryCard title="Itens em Estoque">
+    <SummaryCard title="Itens em Estoque" icon={PackageIcon}>
       <p className="text-3xl font-bold">{totalInStock}</p>
     </SummaryCard>
   );

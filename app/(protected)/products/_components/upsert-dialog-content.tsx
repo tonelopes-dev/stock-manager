@@ -45,8 +45,9 @@ const UpsertProductDialogContent = ({
       toast.success("Produto salvo com sucesso.");
       setDialogIsOpen(false);
     },
-    onError: () => {
-      toast.error("Ocorreu um erro ao salvar o produto.");
+    onError: ({ error: { serverError, validationErrors } }) => {
+      const firstError = validationErrors?._errors?.[0] || serverError;
+      toast.error(firstError || "Ocorreu um erro ao salvar o produto.");
     },
   });
   const form = useForm<UpsertProductSchema>({

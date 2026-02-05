@@ -15,15 +15,20 @@ import {
   TableHeader,
   TableRow,
 } from "./table";
+import { Skeleton } from "./skeleton";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  isLoading?: boolean;
+  emptyMessage?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  isLoading,
+  emptyMessage,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -53,7 +58,17 @@ export function DataTable<TData, TValue>({
           ))}
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows?.length ? (
+          {isLoading ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <TableRow key={i}>
+                {columns.map((_, j) => (
+                  <TableCell key={j}>
+                    <Skeleton className="h-6 w-full" />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
@@ -69,7 +84,7 @@ export function DataTable<TData, TValue>({
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+                {emptyMessage || "Nenhum resultado encontrado."}
               </TableCell>
             </TableRow>
           )}

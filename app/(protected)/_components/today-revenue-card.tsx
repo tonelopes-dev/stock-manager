@@ -1,10 +1,11 @@
 import { getTodayRevenue } from "@/app/_data-access/dashboard/get-today-revenue";
 import { SummaryCard } from "./summary-card";
+import { CalendarIcon } from "lucide-react";
 
 const TodayRevenueCard = async () => {
   const todayRevenue = await getTodayRevenue();
   return (
-    <SummaryCard title="Receita Hoje">
+    <SummaryCard title="Receita Hoje" icon={CalendarIcon}>
       <p className="text-3xl font-bold">
         {Intl.NumberFormat("pt-BR", {
           style: "currency",

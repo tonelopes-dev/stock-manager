@@ -69,7 +69,10 @@ const ProductTableDropdownMenu = ({
             id: product.id,
             name: product.name,
             price: Number(product.price),
+            cost: Number(product.cost),
+            sku: product.sku || "",
             stock: product.stock,
+            minStock: product.minStock,
           }}
           setDialogIsOpen={setEditDialogIsOpen}
         />

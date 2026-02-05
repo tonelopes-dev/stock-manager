@@ -10,6 +10,8 @@ import { getProducts } from "../../_data-access/product/get-products";
 import { getSales } from "../../_data-access/sale/get-sales";
 import UpsertSaleButton from "./_components/create-sale-button";
 import { saleTableColumns } from "./_components/table-columns";
+import { ShoppingCartIcon } from "lucide-react";
+import { EmptyState } from "../../_components/empty-state";
 
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";
@@ -40,7 +42,17 @@ const SalesPage = async () => {
           />
         </HeaderRight>
       </Header>
-      <DataTable columns={saleTableColumns} data={tableData} />
+      <DataTable 
+        columns={saleTableColumns} 
+        data={tableData} 
+        emptyMessage={
+          <EmptyState
+            icon={ShoppingCartIcon}
+            title="Nenhuma venda encontrada"
+            description="Você ainda não realizou nenhuma venda. Que tal começar agora?"
+          />
+        }
+      />
     </div>
   );
 };

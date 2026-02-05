@@ -10,20 +10,26 @@ const MostSoldProducts = async () => {
         <CardTitle>Produtos mais vendidos</CardTitle>
       </CardHeader>
       <CardContent className="space-y-7 overflow-y-auto">
-        {mostSoldProducts.map((product) => (
-          <div key={product.productId} className="flex items-center justify-between">
-            <div className="space-y-1">
-              <p className="text-sm font-medium">{product.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {Intl.NumberFormat("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                }).format(Number(product.price))}
-              </p>
+        {mostSoldProducts.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-10">
+            Nenhuma venda registrada ainda.
+          </p>
+        ) : (
+          mostSoldProducts.map((product) => (
+            <div key={product.productId} className="flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">{product.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  }).format(Number(product.price))}
+                </p>
+              </div>
+              <p className="text-sm font-bold">{product.totalSold} Un.</p>
             </div>
-            <p className="text-sm font-bold">{product.totalSold} Un.</p>
-          </div>
-        ))}
+          ))
+        )}
       </CardContent>
     </Card>
   );

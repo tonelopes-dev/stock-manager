@@ -22,8 +22,8 @@ const DeleteProductDialogContent = ({
     onSuccess: () => {
       toast.success("Produto excluído com sucesso.");
     },
-    onError: () => {
-      toast.error("Ocorreu um erro ao excluir o produto.");
+    onError: ({ error: { serverError } }) => {
+      toast.error(serverError || "Ocorreu um erro ao excluir o produto.");
     },
   });
   const handleContinueClick = () => executeDeleteProduct({ id: productId });

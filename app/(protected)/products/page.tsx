@@ -9,6 +9,9 @@ import Header, {
   HeaderTitle,
 } from "../../_components/header";
 
+import { PackageSearchIcon } from "lucide-react";
+import { EmptyState } from "../../_components/empty-state";
+
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";
 
@@ -25,7 +28,17 @@ const ProductsPage = async () => {
           <AddProductButton />
         </HeaderRight>
       </Header>
-      <DataTable columns={productTableColumns} data={products} />
+      <DataTable 
+        columns={productTableColumns} 
+        data={products} 
+        emptyMessage={
+          <EmptyState
+            icon={PackageSearchIcon}
+            title="Nenhum produto encontrado"
+            description="Você ainda não cadastrou nenhum produto. Comece adicionando o seu primeiro item!"
+          />
+        }
+      />
     </div>
   );
 };
