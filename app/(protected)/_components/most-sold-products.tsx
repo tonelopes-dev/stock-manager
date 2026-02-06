@@ -5,7 +5,7 @@ import { Skeleton } from "@/app/_components/ui/skeleton";
 const MostSoldProducts = async () => {
   const mostSoldProducts = await getMostSoldProducts();
   return (
-    <Card className="min-h-0 overflow-hidden">
+    <Card className="h-full overflow-hidden">
       <CardHeader>
         <CardTitle>Produtos mais vendidos</CardTitle>
       </CardHeader>
@@ -37,7 +37,7 @@ const MostSoldProducts = async () => {
 
 export const MostSoldProductsSkeleton = () => {
   return (
-    <Card className="min-h-0 overflow-hidden">
+    <Card className="h-full overflow-hidden">
       <CardHeader>
         <CardTitle>Produtos mais vendidos</CardTitle>
       </CardHeader>
