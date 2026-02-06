@@ -18,6 +18,7 @@ export interface SalesAnalyticsDto {
     totalRevenue: { value: number; trend: number };
     totalProfit: { value: number; trend: number };
     averageTicket: { value: number; trend: number };
+    totalSales: { value: number; trend: number };
     revenueTimeSeries: { date: string; revenue: number }[];
     monthlyComparison: {
         name: string;
@@ -35,8 +36,14 @@ export const getSalesAnalytics = async (
     
     // 1. Define Intervals for Metrics (Selected Period vs Previous Identical Period)
     const now = new Date();
-    const startOfSelected = from ? startOfDay(new Date(from)) : startOfMonth(now);
-    const endOfSelected = to ? endOfDay(new Date(to)) : endOfDay(now);
+    
+    const parseLocalDay = (dateStr: string) => {
+        const [year, month, day] = dateStr.split("-").map(Number);
+        return new Date(year, month - 1, day);
+    };
+
+    const startOfSelected = from ? startOfDay(parseLocalDay(from)) : startOfMonth(now);
+    const endOfSelected = to ? endOfDay(parseLocalDay(to)) : endOfDay(now);
     
     const diff = endOfSelected.getTime() - startOfSelected.getTime();
     const startOfPrevious = new Date(startOfSelected.getTime() - diff - 1);
@@ -111,6 +118,10 @@ export const getSalesAnalytics = async (
                 currentMetrics.salesCount > 0 ? currentMetrics.revenue / currentMetrics.salesCount : 0,
                 previousMetrics.salesCount > 0 ? previousMetrics.revenue / previousMetrics.salesCount : 0
             )
+        },
+        totalSales: {
+            value: currentMetrics.salesCount,
+            trend: calculateTrend(currentMetrics.salesCount, previousMetrics.salesCount)
         },
         revenueTimeSeries: timeSeries,
         monthlyComparison: [

@@ -3,6 +3,8 @@ import "server-only";
 import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
+import { startOfDay, endOfDay } from "date-fns";
+
 interface SaleProductDto {
   productId: string;
   quantity: number;
@@ -26,6 +28,11 @@ export interface GetSalesParams {
     pageSize?: number;
 }
 
+const parseLocalDay = (dateStr: string) => {
+    const [year, month, day] = dateStr.split("-").map(Number);
+    return new Date(year, month - 1, day);
+};
+
 export const getSales = async (params: GetSalesParams = {}): Promise<{ data: SaleDto[], total: number }> => {
   const { page = 1, pageSize = 10 } = params;
   const skip = (page - 1) * pageSize;
@@ -35,8 +42,8 @@ export const getSales = async (params: GetSalesParams = {}): Promise<{ data: Sal
   const where = {
     companyId,
     date: {
-        gte: params.from ? new Date(params.from) : undefined,
-        lte: params.to ? new Date(params.to) : undefined,
+        gte: params.from ? startOfDay(parseLocalDay(params.from)) : undefined,
+        lte: params.to ? endOfDay(parseLocalDay(params.to)) : undefined,
     }
   };
 

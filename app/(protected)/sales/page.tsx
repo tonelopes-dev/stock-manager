@@ -20,6 +20,7 @@ import { getSalesAnalytics } from "@/app/_data-access/sale/get-sales-analytics";
 import { SalesSummary } from "./_components/sales-summary";
 import { SalesCharts } from "./_components/sales-charts";
 import { MonthComparisonFilter } from "./_components/month-comparison-filter";
+import { SalesViewTabs } from "./_components/sales-view-tabs";
 
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";
@@ -33,6 +34,7 @@ interface HomeProps {
     pageSize?: string;
     monthA?: string;
     monthB?: string;
+    view?: "gestao" | "inteligencia";
   };
 }
 
@@ -42,6 +44,8 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
     label: product.name,
     value: product.id,
   }));
+
+  const view = searchParams.view || "gestao";
 
   const analytics = await getSalesAnalytics(
     searchParams.from, 
@@ -58,8 +62,8 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
             <HeaderSubtitle>Gestão de Vendas</HeaderSubtitle>
             <HeaderTitle>Vendas</HeaderTitle>
           </div>
-          <PeriodFilter />
-          <MonthComparisonFilter />
+          <SalesViewTabs />
+          {view === "gestao" ? <PeriodFilter /> : <MonthComparisonFilter />}
         </HeaderLeft>
         <HeaderRight className="flex items-center gap-3">
           <DataExportButton />
@@ -70,26 +74,33 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
         </HeaderRight>
       </Header>
 
-      <SalesSummary 
-        totalRevenue={analytics.totalRevenue}
-        totalProfit={analytics.totalProfit}
-        averageTicket={analytics.averageTicket}
-      />
-
-      <SalesCharts 
-        monthlyComparison={analytics.monthlyComparison}
-      />
-
-      <Suspense fallback={<SaleTableSkeleton />}>
-        <SalesTableWrapper 
-            productOptions={productOptions} 
-            products={products} 
-            from={searchParams.from} 
-            to={searchParams.to} 
-            page={Number(searchParams.page) || 1}
-            pageSize={Number(searchParams.pageSize) || 10}
+      {view === "inteligencia" && (
+        <SalesCharts 
+            monthlyComparison={analytics.monthlyComparison}
         />
-      </Suspense>
+      )}
+
+      {view === "gestao" && (
+        <div className="space-y-8">
+            <SalesSummary 
+                totalRevenue={analytics.totalRevenue}
+                totalProfit={analytics.totalProfit}
+                averageTicket={analytics.averageTicket}
+                totalSales={analytics.totalSales}
+            />
+
+            <Suspense fallback={<SaleTableSkeleton />}>
+                <SalesTableWrapper 
+                    productOptions={productOptions} 
+                    products={products} 
+                    from={searchParams.from} 
+                    to={searchParams.to} 
+                    page={Number(searchParams.page) || 1}
+                    pageSize={Number(searchParams.pageSize) || 10}
+                />
+            </Suspense>
+        </div>
+      )}
     </div>
   );
 };

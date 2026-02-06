@@ -69,31 +69,50 @@ const DashboardContent = async ({ range }: { range: DashboardRange }) => {
         <div className="space-y-8">
             {/* KPI CARDS */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <SummaryCard title="Receita Bruta" icon={DollarSignIcon} trend={data.totalRevenue.trend}>
+                <SummaryCard 
+                    title="Receita Bruta" 
+                    icon={DollarSignIcon} 
+                    trend={data.totalRevenue.trend}
+                    info="Soma de todas as suas vendas. É o valor bruto que entrou no caixa antes de qualquer desconto ou custo."
+                >
                     <p className="text-2xl font-black text-slate-900 leading-none tracking-tight">
                         {formatCurrency(data.totalRevenue.value)}
                     </p>
                 </SummaryCard>
 
-                <SummaryCard title="Vendas" icon={ShoppingBasketIcon} trend={data.totalSales.trend}>
+                <SummaryCard 
+                    title="Vendas" 
+                    icon={ShoppingBasketIcon} 
+                    trend={data.totalSales.trend}
+                    info="Número total de pedidos realizados no período. Cada pedido pode conter vários produtos diferentes."
+                >
                     <p className="text-2xl font-black text-slate-900 leading-none tracking-tight">
                         {data.totalSales.value}
                     </p>
                 </SummaryCard>
 
-                <SummaryCard title="Ticket Médio" icon={TrendingUpIcon} trend={data.averageTicket.trend}>
+                <SummaryCard 
+                    title="Ticket Médio" 
+                    icon={TrendingUpIcon} 
+                    trend={data.averageTicket.trend}
+                    info="O valor médio que cada cliente gasta por compra. É calculado dividindo o Faturamento Total pelo Número de Vendas."
+                >
                     <p className="text-2xl font-black text-slate-900 leading-none tracking-tight">
                         {formatCurrency(data.averageTicket.value)}
                     </p>
                 </SummaryCard>
 
-                <SummaryCard title="Lucro Bruto" icon={PackageIcon} trend={data.totalProfit.trend}>
+                <SummaryCard 
+                    title="Lucro Bruto" 
+                    icon={PackageIcon} 
+                    trend={data.totalProfit.trend}
+                    info="Quanto sobrou no seu bolso após pagar o custo dos produtos vendidos. (Faturamento - Custo de Aquisição)."
+                >
                     <p className="text-2xl font-black text-slate-900 leading-none tracking-tight">
                         {formatCurrency(data.totalProfit.value)}
                     </p>
                 </SummaryCard>
             </div>
-
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* CHART SECTION */}
                 <div className="lg:col-span-2 rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
