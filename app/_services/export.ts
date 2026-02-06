@@ -96,7 +96,7 @@ export const ExportService = {
     });
 
     // --- WORKBOOK INITIALIZATION ---
-    let workbook = new ExcelJS.Workbook();
+    const workbook = new ExcelJS.Workbook();
     const templatePath = path.resolve(process.cwd(), "public/templates/report-template.xlsx");
     let hasTemplate = false;
     
@@ -112,7 +112,7 @@ export const ExportService = {
     }
 
     // --- TAB 1: RESUMO EXECUTIVO ---
-    let summarySheet = workbook.getWorksheet("Resumo Executivo") || workbook.addWorksheet("Resumo Executivo", { views: [{ showGridLines: false }] });
+    const summarySheet = workbook.getWorksheet("Resumo Executivo") || workbook.addWorksheet("Resumo Executivo", { views: [{ showGridLines: false }] });
 
     const totalRev = sales.reduce((acc, sale) => {
       return acc + sale.saleProducts.reduce((sum, sp) => sum + Number(sp.unitPrice) * sp.quantity, 0);
@@ -164,25 +164,23 @@ export const ExportService = {
     });
 
     // --- TAB 2: VENDAS DETALHADAS ---
-    let detailedSheet = workbook.getWorksheet("Vendas Detalhadas") || workbook.addWorksheet("Vendas Detalhadas", { views: [{ state: "frozen", ySplit: 1 }] });
+    const detailedSheet = workbook.getWorksheet("Vendas Detalhadas") || workbook.addWorksheet("Vendas Detalhadas", { views: [{ state: "frozen", ySplit: 1 }] });
     
-    // Reset columns only if not in template
-    if (!hasTemplate) {
-        detailedSheet.columns = [
-          { header: "DATA", key: "date", width: 15 },
-          { header: "PRODUTO", key: "product", width: 35 },
-          { header: "QTD", key: "quantity", width: 10 },
-          { header: "VALOR UNIT.", key: "unitPrice", width: 18 },
-          { header: "VALOR TOTAL", key: "totalPrice", width: 18 },
-          { header: "LUCRO BRUTO", key: "profit", width: 18 },
-        ];
-        // Style Header
-        detailedSheet.getRow(1).eachCell(c => {
-            c.font = { bold: true, color: { argb: "FFFFFFFF" } };
-            c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-            c.alignment = { horizontal: "center" };
-        });
-    }
+    detailedSheet.columns = [
+      { header: "DATA", key: "date", width: 15 },
+      { header: "PRODUTO", key: "product", width: 35 },
+      { header: "QTD", key: "quantity", width: 10 },
+      { header: "VALOR UNIT.", key: "unitPrice", width: 18 },
+      { header: "VALOR TOTAL", key: "totalPrice", width: 18 },
+      { header: "LUCRO BRUTO", key: "profit", width: 18 },
+    ];
+
+    // Style Header
+    detailedSheet.getRow(1).eachCell(c => {
+        c.font = { bold: true, color: { argb: "FFFFFFFF" } };
+        c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+        c.alignment = { horizontal: "center", vertical: "middle" };
+    });
 
     // Clear old data
     if (detailedSheet.rowCount > 1) {
@@ -203,13 +201,22 @@ export const ExportService = {
         row.getCell("totalPrice").numFmt = '"R$" #,##0.00';
         row.getCell("profit").numFmt = '"R$" #,##0.00';
         row.getCell("date").numFmt = "dd/mm/yyyy";
+        
+        // Manual Zebra for non-table sheets
+        if (row.number % 2 === 0) {
+          row.eachCell(cell => {
+            cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
+          });
+        }
       });
     });
+    
+    detailedSheet.autoFilter = "A1:F1";
 
     // --- TAB 3: COMPARATIVO MENSAL (FASE 2) ---
     if (comparisonData.length > 1) {
       // DATA FOR CHARTS (Hidden)
-      let dataSheet = workbook.getWorksheet("ChartData") || workbook.addWorksheet("ChartData");
+      const dataSheet = workbook.getWorksheet("ChartData") || workbook.addWorksheet("ChartData");
       dataSheet.state = "hidden";
       dataSheet.columns = [
         { header: "Mês", key: "label" },
@@ -221,43 +228,81 @@ export const ExportService = {
       comparisonData.forEach(d => dataSheet.addRow(d));
 
       // Visual Sheet
-      let compSheet = workbook.getWorksheet("Comparativo Mensal") || workbook.addWorksheet("Comparativo Mensal", { views: [{ showGridLines: false }] });
-      if (compSheet.rowCount > 1 && !hasTemplate) compSheet.spliceRows(1, compSheet.rowCount);
-
-      if (compSheet.rowCount <= 1) {
-          compSheet.mergeCells("B2:G2");
-          compSheet.getCell("B2").value = "ANÁLISE COMPARATIVA DE DESEMPENHO";
-          compSheet.getCell("B2").font = { name: "Segoe UI", size: 16, bold: true, color: { argb: "FF1E293B" } };
-          compSheet.getCell("B2").alignment = { horizontal: "center" };
-
-          const compCols = ["PERÍODO", "FATURAMENTO", "VENDAS", "TICKET MÉDIO", "VARIAÇÃO (R$)", "CRESCIMENTO (%)"];
-          const hRow = compSheet.getRow(4);
-          compCols.forEach((c, i) => {
-            const cell = hRow.getCell(i + 2);
-            cell.value = c;
-            cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-            cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-            cell.alignment = { horizontal: "center" };
-            compSheet.getColumn(i + 2).width = 20;
-          });
+      const compSheet = workbook.getWorksheet("Comparativo Mensal") || workbook.addWorksheet("Comparativo Mensal", { views: [{ showGridLines: false, state: "frozen", ySplit: 4 }] });
+      
+      // Reset sheet content safely
+      if (compSheet.rowCount > 0 && !hasTemplate) {
+        compSheet.eachRow((row, rowNumber) => {
+          compSheet.getRow(rowNumber).values = [];
+        });
       }
+
+      // Title
+      compSheet.mergeCells("B2:G2");
+      const subTitleCell = compSheet.getCell("B2");
+      subTitleCell.value = "ANÁLISE COMPARATIVA DE DESEMPENHO";
+      subTitleCell.font = { name: "Segoe UI", size: 16, bold: true, color: { argb: "FF1E293B" } };
+      subTitleCell.alignment = { horizontal: "center", vertical: "middle" };
+
+      // Manual Table Header
+      const compCols = [
+        { header: "MÊS/ANO", width: 15 }, 
+        { header: "FATURAMENTO TOTAL", width: 22 }, 
+        { header: "QUANTIDADE VENDAS", width: 20 }, 
+        { header: "TICKET MÉDIO", width: 20 }, 
+        { header: "DELTA MÊS ANT.", width: 20 }, 
+        { header: "CRESCIMENTO %", width: 18 }
+      ];
+      
+      const hRow = compSheet.getRow(4);
+      hRow.height = 25;
+      compCols.forEach((c, i) => {
+        const cell = hRow.getCell(i + 2);
+        cell.value = c.header;
+        cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 10 };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF334155" } };
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+        compSheet.getColumn(i + 2).width = c.width;
+      });
 
       // Fill Data
       comparisonData.forEach((d, i) => {
         const r = compSheet.getRow(i + 5);
-        r.getCell(2).value = d.label;
+        r.height = 22;
+        r.getCell(2).value = d.label.toUpperCase();
         r.getCell(3).value = d.revenue;
         r.getCell(4).value = d.salesCount;
         r.getCell(5).value = d.avgTicket;
         r.getCell(6).value = d.delta;
         r.getCell(7).value = d.growth;
+        
+        // Formatting
         r.getCell(3).numFmt = '"R$" #,##0.00';
         r.getCell(5).numFmt = '"R$" #,##0.00';
         r.getCell(6).numFmt = '"R$" #,##0.00';
         r.getCell(7).numFmt = "0.00%";
-        if (d.growth > 0) r.getCell(7).font = { color: { argb: "FF059669" }, bold: true };
-        else if (d.growth < 0) r.getCell(7).font = { color: { argb: "FFDC2626" }, bold: true };
+        
+        // Conditional text color for growth
+        if (d.growth > 0) {
+          r.getCell(7).font = { color: { argb: "FF059669" }, bold: true };
+        } else if (d.growth < 0) {
+          r.getCell(7).font = { color: { argb: "FFDC2626" }, bold: true };
+        }
+        
+        // Zebra striping
+        if (r.number % 2 === 0) {
+          for (let col = 2; col <= 7; col++) {
+            r.getCell(col).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+          }
+        }
+        
+        r.eachCell(cell => {
+           cell.alignment = { vertical: "middle", horizontal: cell.address.includes("B") ? "left" : "right" };
+           if (cell.address.includes("B")) cell.alignment.horizontal = "center";
+        });
       });
+      
+      compSheet.autoFilter = "B4:G4";
     }
 
     return await workbook.xlsx.writeBuffer();
