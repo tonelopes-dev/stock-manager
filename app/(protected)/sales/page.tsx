@@ -21,6 +21,9 @@ import { SalesSummary } from "./_components/sales-summary";
 import { SalesCharts } from "./_components/sales-charts";
 import { MonthComparisonFilter } from "./_components/month-comparison-filter";
 import { SalesViewTabs } from "./_components/sales-view-tabs";
+import { ExportReportModal } from "./_components/export-report-modal";
+
+import { Product } from "@prisma/client";
 
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";
@@ -67,6 +70,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
         </HeaderLeft>
         <HeaderRight className="flex items-center gap-3">
           <DataExportButton />
+          <ExportReportModal />
           <UpsertSaleButton
             products={products}
             productOptions={productOptions}
@@ -114,7 +118,7 @@ const SalesTableWrapper = async ({
   pageSize
 }: { 
   productOptions: ComboboxOption[], 
-  products: any[],
+  products: Product[],
   from?: string,
   to?: string,
   page: number,
