@@ -188,14 +188,30 @@ export const ExportReportModal = () => {
             </div>
           </div>
 
-          <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl flex items-start gap-3">
-            <div className="text-blue-600 shrink-0 mt-0.5">
-              <DownloadIcon size={18} />
+          {selectedPeriods.length > 1 && (
+            <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-1 duration-300">
+              <div className="text-emerald-600 shrink-0 mt-0.5">
+                <FileSpreadsheetIcon size={18} />
+              </div>
+              <div>
+                <p className="text-xs text-emerald-800 font-bold mb-0.5">Relatório Inteligente Ativado</p>
+                <p className="text-[11px] text-emerald-700 leading-relaxed">
+                  Detectamos múltiplos períodos. Sua planilha incluirá automaticamente uma aba de **Comparativo Mensal** e **Gráficos de Tendência**.
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-blue-800 leading-relaxed">
-              <strong>Relatórios Consolidados:</strong> Ao selecionar múltiplos meses, eles serão combinados em uma única planilha profissional para facilitar sua contabilidade.
-            </p>
-          </div>
+          )}
+
+          {selectedPeriods.length <= 1 && (
+            <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl flex items-start gap-3">
+              <div className="text-blue-600 shrink-0 mt-0.5">
+                <DownloadIcon size={18} />
+              </div>
+              <p className="text-xs text-blue-800 leading-relaxed">
+                <strong>Dica:</strong> Adicione mais de um período para gerar automaticamente a aba de comparativos e gráficos de crescimento.
+              </p>
+            </div>
+          )}
         </div>
 
         <DialogFooter>
