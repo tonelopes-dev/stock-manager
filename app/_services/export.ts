@@ -4,8 +4,6 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { formatCurrency } from "@/app/_lib/utils";
 import { Prisma } from "@prisma/client";
-import path from "path";
-import fs from "fs";
 
 interface ExportSalesParams {
   companyId: string;
@@ -95,24 +93,15 @@ export const ExportService = {
       return { ...data, delta, growth };
     });
 
-    // --- WORKBOOK INITIALIZATION ---
+    // --- WORKBOOK INITIALIZATION (Pure Code) ---
     const workbook = new ExcelJS.Workbook();
-    const templatePath = path.resolve(process.cwd(), "public/templates/report-template.xlsx");
-    let hasTemplate = false;
-    
-    // Attempt to load template for native charts
-    if (fs.existsSync(templatePath)) {
-      await workbook.xlsx.readFile(templatePath);
-      hasTemplate = true;
-    } else {
-      workbook.creator = "Stockly";
-      workbook.lastModifiedBy = "Stockly";
-      workbook.created = new Date();
-      workbook.modified = new Date();
-    }
+    workbook.creator = "Stockly";
+    workbook.lastModifiedBy = "Stockly";
+    workbook.created = new Date();
+    workbook.modified = new Date();
 
     // --- TAB 1: RESUMO EXECUTIVO ---
-    const summarySheet = workbook.getWorksheet("Resumo Executivo") || workbook.addWorksheet("Resumo Executivo", { views: [{ showGridLines: false }] });
+    const summarySheet = workbook.addWorksheet("Resumo Executivo", { views: [{ showGridLines: false }] });
 
     const totalRev = sales.reduce((acc, sale) => {
       return acc + sale.saleProducts.reduce((sum, sp) => sum + Number(sp.unitPrice) * sp.quantity, 0);
@@ -120,15 +109,13 @@ export const ExportService = {
     const totalS = sales.length;
     const avgT = totalS > 0 ? totalRev / totalS : 0;
 
-    // Build Header if not present
-    if (summarySheet.rowCount <= 1) {
-       summarySheet.mergeCells("A1:K4");
-       summarySheet.getCell("A1").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-       summarySheet.getCell("B2").value = "STOCKLY | RELATÓRIO EXECUTIVO";
-       summarySheet.getCell("B2").font = { name: "Segoe UI", size: 20, bold: true, color: { argb: "FFFFFFFF" } };
-       summarySheet.getCell("B3").value = `Gerado em: ${format(new Date(), "PPpp", { locale: ptBR })}`;
-       summarySheet.getCell("B3").font = { size: 10, color: { argb: "FF94A3B8" } };
-    }
+    // Header styling
+    summarySheet.mergeCells("A1:K4");
+    summarySheet.getCell("A1").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    summarySheet.getCell("B2").value = "STOCKLY | RELATÓRIO EXECUTIVO";
+    summarySheet.getCell("B2").font = { name: "Segoe UI", size: 20, bold: true, color: { argb: "FFFFFFFF" } };
+    summarySheet.getCell("B3").value = `Relatório Consolidado | Gerado em: ${format(new Date(), "PPpp", { locale: ptBR })}`;
+    summarySheet.getCell("B3").font = { size: 10, color: { argb: "FF94A3B8" } };
 
     // KPI Cards
     const kpis = [
@@ -142,7 +129,7 @@ export const ExportService = {
       const nextColLetter = summarySheet.getColumn(kpi.col + 1).letter;
       const cell = summarySheet.getCell(`${colLetter}6`);
       
-      try { summarySheet.mergeCells(`${colLetter}6:${nextColLetter}9`); } catch (e) {}
+      summarySheet.mergeCells(`${colLetter}6:${nextColLetter}9`);
 
       cell.value = {
         richText: [
@@ -163,8 +150,67 @@ export const ExportService = {
       summarySheet.getColumn(kpi.col+1).width = 15;
     });
 
-    // --- TAB 2: VENDAS DETALHADAS ---
-    const detailedSheet = workbook.getWorksheet("Vendas Detalhadas") || workbook.addWorksheet("Vendas Detalhadas", { views: [{ state: "frozen", ySplit: 1 }] });
+    // --- TAB 2: COMPARATIVO MENSAL (IF > 1 PERIOD) ---
+    if (comparisonData.length > 1) {
+      const compSheet = workbook.addWorksheet("Comparativo Mensal", { 
+        views: [{ showGridLines: false, state: "frozen", ySplit: 4 }] 
+      });
+
+      // Title
+      compSheet.mergeCells("B2:G2");
+      const subTitleCell = compSheet.getCell("B2");
+      subTitleCell.value = "ANÁLISE COMPARATIVA DE DESEMPENHO";
+      subTitleCell.font = { name: "Segoe UI", size: 16, bold: true, color: { argb: "FF1E293B" } };
+      subTitleCell.alignment = { horizontal: "center", vertical: "middle" };
+
+      // Header
+      const hRow = compSheet.getRow(4);
+      hRow.height = 25;
+      const compCols = ["MÊS/ANO", "FATURAMENTO TOTAL", "QUANTIDADE VENDAS", "TICKET MÉDIO", "DELTA MÊS ANT.", "CRESCIMENTO %"];
+      compCols.forEach((c, i) => {
+        const cell = hRow.getCell(i + 2);
+        cell.value = c;
+        cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 10 };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF334155" } };
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+        compSheet.getColumn(i + 2).width = i === 0 ? 15 : 22;
+      });
+
+      // Data Rows
+      comparisonData.forEach((d, i) => {
+        const r = compSheet.getRow(i + 5);
+        r.height = 22;
+        r.getCell(2).value = d.label.toUpperCase();
+        r.getCell(3).value = d.revenue;
+        r.getCell(4).value = d.salesCount;
+        r.getCell(5).value = d.avgTicket;
+        r.getCell(6).value = d.delta;
+        r.getCell(7).value = d.growth;
+        
+        r.getCell(3).numFmt = '"R$" #,##0.00';
+        r.getCell(5).numFmt = '"R$" #,##0.00';
+        r.getCell(6).numFmt = '"R$" #,##0.00';
+        r.getCell(7).numFmt = "0.00%";
+        
+        if (d.growth > 0) r.getCell(7).font = { color: { argb: "FF059669" }, bold: true };
+        else if (d.growth < 0) r.getCell(7).font = { color: { argb: "FFDC2626" }, bold: true };
+        
+        if (r.number % 2 === 0) {
+          for (let col = 2; col <= 7; col++) {
+            r.getCell(col).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+          }
+        }
+        
+        r.eachCell(cell => {
+           cell.alignment = { vertical: "middle", horizontal: cell.address.includes("B") ? "center" : "right" };
+        });
+      });
+      
+      compSheet.autoFilter = "B4:G4";
+    }
+
+    // --- TAB 3: VENDAS DETALHADAS ---
+    const detailedSheet = workbook.addWorksheet("Vendas Detalhadas", { views: [{ state: "frozen", ySplit: 1 }] });
     
     detailedSheet.columns = [
       { header: "DATA", key: "date", width: 15 },
@@ -175,17 +221,11 @@ export const ExportService = {
       { header: "LUCRO BRUTO", key: "profit", width: 18 },
     ];
 
-    // Style Header
     detailedSheet.getRow(1).eachCell(c => {
         c.font = { bold: true, color: { argb: "FFFFFFFF" } };
         c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
         c.alignment = { horizontal: "center", vertical: "middle" };
     });
-
-    // Clear old data
-    if (detailedSheet.rowCount > 1) {
-      detailedSheet.spliceRows(2, detailedSheet.rowCount);
-    }
 
     sales.forEach((sale) => {
       sale.saleProducts.forEach((sp) => {
@@ -202,7 +242,6 @@ export const ExportService = {
         row.getCell("profit").numFmt = '"R$" #,##0.00';
         row.getCell("date").numFmt = "dd/mm/yyyy";
         
-        // Manual Zebra for non-table sheets
         if (row.number % 2 === 0) {
           row.eachCell(cell => {
             cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
@@ -212,98 +251,6 @@ export const ExportService = {
     });
     
     detailedSheet.autoFilter = "A1:F1";
-
-    // --- TAB 3: COMPARATIVO MENSAL (FASE 2) ---
-    if (comparisonData.length > 1) {
-      // DATA FOR CHARTS (Hidden)
-      const dataSheet = workbook.getWorksheet("ChartData") || workbook.addWorksheet("ChartData");
-      dataSheet.state = "hidden";
-      dataSheet.columns = [
-        { header: "Mês", key: "label" },
-        { header: "Receita", key: "revenue" },
-        { header: "Vendas", key: "salesCount" },
-        { header: "Ticket", key: "avgTicket" },
-      ];
-      if (dataSheet.rowCount > 1) dataSheet.spliceRows(2, dataSheet.rowCount);
-      comparisonData.forEach(d => dataSheet.addRow(d));
-
-      // Visual Sheet
-      const compSheet = workbook.getWorksheet("Comparativo Mensal") || workbook.addWorksheet("Comparativo Mensal", { views: [{ showGridLines: false, state: "frozen", ySplit: 4 }] });
-      
-      // Reset sheet content safely
-      if (compSheet.rowCount > 0 && !hasTemplate) {
-        compSheet.eachRow((row, rowNumber) => {
-          compSheet.getRow(rowNumber).values = [];
-        });
-      }
-
-      // Title
-      compSheet.mergeCells("B2:G2");
-      const subTitleCell = compSheet.getCell("B2");
-      subTitleCell.value = "ANÁLISE COMPARATIVA DE DESEMPENHO";
-      subTitleCell.font = { name: "Segoe UI", size: 16, bold: true, color: { argb: "FF1E293B" } };
-      subTitleCell.alignment = { horizontal: "center", vertical: "middle" };
-
-      // Manual Table Header
-      const compCols = [
-        { header: "MÊS/ANO", width: 15 }, 
-        { header: "FATURAMENTO TOTAL", width: 22 }, 
-        { header: "QUANTIDADE VENDAS", width: 20 }, 
-        { header: "TICKET MÉDIO", width: 20 }, 
-        { header: "DELTA MÊS ANT.", width: 20 }, 
-        { header: "CRESCIMENTO %", width: 18 }
-      ];
-      
-      const hRow = compSheet.getRow(4);
-      hRow.height = 25;
-      compCols.forEach((c, i) => {
-        const cell = hRow.getCell(i + 2);
-        cell.value = c.header;
-        cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 10 };
-        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF334155" } };
-        cell.alignment = { horizontal: "center", vertical: "middle" };
-        compSheet.getColumn(i + 2).width = c.width;
-      });
-
-      // Fill Data
-      comparisonData.forEach((d, i) => {
-        const r = compSheet.getRow(i + 5);
-        r.height = 22;
-        r.getCell(2).value = d.label.toUpperCase();
-        r.getCell(3).value = d.revenue;
-        r.getCell(4).value = d.salesCount;
-        r.getCell(5).value = d.avgTicket;
-        r.getCell(6).value = d.delta;
-        r.getCell(7).value = d.growth;
-        
-        // Formatting
-        r.getCell(3).numFmt = '"R$" #,##0.00';
-        r.getCell(5).numFmt = '"R$" #,##0.00';
-        r.getCell(6).numFmt = '"R$" #,##0.00';
-        r.getCell(7).numFmt = "0.00%";
-        
-        // Conditional text color for growth
-        if (d.growth > 0) {
-          r.getCell(7).font = { color: { argb: "FF059669" }, bold: true };
-        } else if (d.growth < 0) {
-          r.getCell(7).font = { color: { argb: "FFDC2626" }, bold: true };
-        }
-        
-        // Zebra striping
-        if (r.number % 2 === 0) {
-          for (let col = 2; col <= 7; col++) {
-            r.getCell(col).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
-          }
-        }
-        
-        r.eachCell(cell => {
-           cell.alignment = { vertical: "middle", horizontal: cell.address.includes("B") ? "left" : "right" };
-           if (cell.address.includes("B")) cell.alignment.horizontal = "center";
-        });
-      });
-      
-      compSheet.autoFilter = "B4:G4";
-    }
 
     return await workbook.xlsx.writeBuffer();
   },
