@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/app/_components/ui/button";
 import { CalendarIcon, ClockIcon } from "lucide-react";
 import { cn } from "@/app/_lib/utils";
+import { format } from "date-fns";
 
 const filters = [
   { label: "Hoje", value: "today" },
@@ -39,8 +40,8 @@ export const PeriodFilter = () => {
     }
 
     if (fromDate) {
-        params.set("from", fromDate.toISOString().split('T')[0]);
-        params.set("to", new Date().toISOString().split('T')[0]);
+        params.set("from", format(fromDate, "yyyy-MM-dd"));
+        params.set("to", format(new Date(), "yyyy-MM-dd"));
     }
 
     router.push(`?${params.toString()}`, { scroll: false });

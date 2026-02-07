@@ -3,6 +3,8 @@ import "server-only";
 import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
+import { startOfDay, endOfDay } from "date-fns";
+
 interface SaleProductDto {
   productId: string;
   quantity: number;
@@ -22,25 +24,47 @@ export interface SaleDto {
 export interface GetSalesParams {
     from?: string;
     to?: string;
+    page?: number;
+    pageSize?: number;
 }
 
-export const getSales = async (params: GetSalesParams = {}): Promise<SaleDto[]> => {
+const parseLocalDay = (dateStr: string) => {
+    const [year, month, day] = dateStr.split("-").map(Number);
+    return new Date(year, month - 1, day);
+};
+
+export const getSales = async (params: GetSalesParams = {}): Promise<{ data: SaleDto[], total: number }> => {
+  const { page = 1, pageSize = 10 } = params;
+  const skip = (page - 1) * pageSize;
+
   const companyId = await getCurrentCompanyId();
-  const sales = await db.sale.findMany({
-    where: { 
-        companyId,
-        date: {
-            gte: params.from ? new Date(params.from) : undefined,
-            lte: params.to ? new Date(params.to) : undefined,
-        }
-    },
-    include: {
-      saleProducts: {
-        include: { product: true },
+
+  const where = {
+    companyId,
+    date: {
+        gte: params.from ? startOfDay(parseLocalDay(params.from)) : undefined,
+        lte: params.to ? endOfDay(parseLocalDay(params.to)) : undefined,
+    }
+  };
+
+  const [sales, total] = await Promise.all([
+    db.sale.findMany({
+      where,
+      skip,
+      take: pageSize,
+      orderBy: {
+        date: "desc",
       },
-    },
-  });
-  return JSON.parse(
+      include: {
+        saleProducts: {
+          include: { product: true },
+        },
+      },
+    }),
+    db.sale.count({ where })
+  ]);
+
+  const data = JSON.parse(
     JSON.stringify(
       sales.map((sale) => ({
         id: sale.id,
@@ -68,4 +92,6 @@ export const getSales = async (params: GetSalesParams = {}): Promise<SaleDto[]> 
       })),
     ),
   );
+
+  return { data, total };
 };

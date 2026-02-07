@@ -14,14 +14,30 @@ import { ShoppingCartIcon } from "lucide-react";
 import { EmptyState } from "../../_components/empty-state";
 import { Suspense } from "react";
 import { SaleTableSkeleton } from "./_components/table-skeleton";
-import { DataExportButton } from "@/app/_components/data-export-button";
 import { PeriodFilter } from "@/app/_components/period-filter";
+import { getSalesAnalytics } from "@/app/_data-access/sale/get-sales-analytics";
+import { SalesSummary } from "./_components/sales-summary";
+import { SalesCharts } from "./_components/sales-charts";
+import { MonthComparisonFilter } from "./_components/month-comparison-filter";
+import { SalesViewTabs } from "./_components/sales-view-tabs";
+import { ExportReportModal } from "./_components/export-report-modal";
+
+import { Product } from "@prisma/client";
 
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";
 
 interface HomeProps {
-  searchParams: { from?: string; to?: string; range?: string };
+  searchParams: { 
+    from?: string; 
+    to?: string; 
+    range?: string;
+    page?: string;
+    pageSize?: string;
+    monthA?: string;
+    monthB?: string;
+    view?: "gestao" | "inteligencia";
+  };
 }
 
 const SalesPage = async ({ searchParams }: HomeProps) => {
@@ -31,6 +47,15 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
     value: product.id,
   }));
 
+  const view = searchParams.view || "gestao";
+
+  const analytics = await getSalesAnalytics(
+    searchParams.from, 
+    searchParams.to,
+    searchParams.monthA,
+    searchParams.monthB
+  );
+
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
       <Header>
@@ -39,10 +64,11 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
             <HeaderSubtitle>Gestão de Vendas</HeaderSubtitle>
             <HeaderTitle>Vendas</HeaderTitle>
           </div>
-          <PeriodFilter />
+          <SalesViewTabs />
+          {view === "gestao" ? <PeriodFilter /> : <MonthComparisonFilter />}
         </HeaderLeft>
         <HeaderRight className="flex items-center gap-3">
-          <DataExportButton />
+          <ExportReportModal />
           <UpsertSaleButton
             products={products}
             productOptions={productOptions}
@@ -50,14 +76,33 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
         </HeaderRight>
       </Header>
 
-      <Suspense fallback={<SaleTableSkeleton />}>
-        <SalesTableWrapper 
-            productOptions={productOptions} 
-            products={products} 
-            from={searchParams.from} 
-            to={searchParams.to} 
+      {view === "inteligencia" && (
+        <SalesCharts 
+            monthlyComparison={analytics.monthlyComparison}
         />
-      </Suspense>
+      )}
+
+      {view === "gestao" && (
+        <div className="space-y-8">
+            <SalesSummary 
+                totalRevenue={analytics.totalRevenue}
+                totalProfit={analytics.totalProfit}
+                averageTicket={analytics.averageTicket}
+                totalSales={analytics.totalSales}
+            />
+
+            <Suspense fallback={<SaleTableSkeleton />}>
+                <SalesTableWrapper 
+                    productOptions={productOptions} 
+                    products={products} 
+                    from={searchParams.from} 
+                    to={searchParams.to} 
+                    page={Number(searchParams.page) || 1}
+                    pageSize={Number(searchParams.pageSize) || 10}
+                />
+            </Suspense>
+        </div>
+      )}
     </div>
   );
 };
@@ -66,14 +111,18 @@ const SalesTableWrapper = async ({
   productOptions, 
   products,
   from,
-  to
+  to,
+  page,
+  pageSize
 }: { 
   productOptions: ComboboxOption[], 
-  products: any[],
+  products: Product[],
   from?: string,
-  to?: string
+  to?: string,
+  page: number,
+  pageSize: number
 }) => {
-  const sales = await getSales({ from, to });
+  const { data: sales, total } = await getSales({ from, to, page, pageSize });
   
   const tableData = sales.map((sale) => ({
     ...sale,
@@ -85,6 +134,11 @@ const SalesTableWrapper = async ({
     <DataTable 
       columns={saleTableColumns} 
       data={tableData} 
+      pagination={{
+        total,
+        page,
+        pageSize
+      }}
       emptyMessage={
         <EmptyState
           icon={ShoppingCartIcon}
