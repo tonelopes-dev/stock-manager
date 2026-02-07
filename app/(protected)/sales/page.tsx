@@ -21,6 +21,7 @@ import { SalesCharts } from "./_components/sales-charts";
 import { MonthComparisonFilter } from "./_components/month-comparison-filter";
 import { SalesViewTabs } from "./_components/sales-view-tabs";
 import { ExportReportModal } from "./_components/export-report-modal";
+import { SalesComparisonMetrics } from "./_components/sales-comparison-metrics";
 
 import { Product } from "@prisma/client";
 
@@ -59,13 +60,15 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
       <Header>
-        <HeaderLeft className="flex items-center gap-6">
+        <HeaderLeft className="flex flex-col items-start gap-4">
           <div className="space-y-1">
             <HeaderSubtitle>Gestão de Vendas</HeaderSubtitle>
             <HeaderTitle>Vendas</HeaderTitle>
           </div>
-          <SalesViewTabs />
-          {view === "gestao" ? <PeriodFilter /> : <MonthComparisonFilter />}
+          <div className="flex items-center gap-4">
+            <SalesViewTabs />
+            {view === "gestao" ? <PeriodFilter /> : <MonthComparisonFilter />}
+          </div>
         </HeaderLeft>
         <HeaderRight className="flex items-center gap-3">
           <ExportReportModal />
@@ -77,9 +80,10 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
       </Header>
 
       {view === "inteligencia" && (
-        <SalesCharts 
-            monthlyComparison={analytics.monthlyComparison}
-        />
+        <div className="space-y-8">
+          <SalesComparisonMetrics comparison={analytics.monthlyComparison} />
+          <SalesCharts comparison={analytics.monthlyComparison} />
+        </div>
       )}
 
       {view === "gestao" && (

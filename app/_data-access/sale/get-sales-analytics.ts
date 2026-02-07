@@ -21,9 +21,19 @@ export interface SalesAnalyticsDto {
     totalSales: { value: number; trend: number };
     revenueTimeSeries: { date: string; revenue: number }[];
     monthlyComparison: {
-        name: string;
-        revenue: number;
-    }[];
+        periodA: {
+            name: string;
+            revenue: number;
+            salesCount: number;
+            avgTicket: number;
+        };
+        periodB: {
+            name: string;
+            revenue: number;
+            salesCount: number;
+            avgTicket: number;
+        };
+    };
 }
 
 export const getSalesAnalytics = async (
@@ -101,7 +111,7 @@ export const getSalesAnalytics = async (
         fetchSalesMetrics(companyId, startB, endB)
     ]);
 
-    const formatMonthLabel = (date: Date) => format(date, "MMM/yy", { locale: ptBR });
+    const formatMonthLabel = (date: Date) => format(date, "MMMM yyyy", { locale: ptBR });
 
     return {
         totalRevenue: {
@@ -124,16 +134,20 @@ export const getSalesAnalytics = async (
             trend: calculateTrend(currentMetrics.salesCount, previousMetrics.salesCount)
         },
         revenueTimeSeries: timeSeries,
-        monthlyComparison: [
-            {
+        monthlyComparison: {
+            periodA: {
                 name: formatMonthLabel(startA),
                 revenue: metricsA.revenue,
+                salesCount: metricsA.salesCount,
+                avgTicket: metricsA.salesCount > 0 ? metricsA.revenue / metricsA.salesCount : 0,
             },
-            {
+            periodB: {
                 name: formatMonthLabel(startB),
                 revenue: metricsB.revenue,
+                salesCount: metricsB.salesCount,
+                avgTicket: metricsB.salesCount > 0 ? metricsB.revenue / metricsB.salesCount : 0,
             }
-        ]
+        }
     };
 };
 
