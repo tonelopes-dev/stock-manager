@@ -44,7 +44,7 @@ interface HomeProps {
 const SalesPage = async ({ searchParams }: HomeProps) => {
   const products = await getProducts();
   const productOptions: ComboboxOption[] = products.map((product) => ({
-    label: product.name,
+    label: `${product.name} - ${Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(product.price))}`,
     value: product.id,
   }));
 
