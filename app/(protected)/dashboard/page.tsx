@@ -2,7 +2,6 @@ import Header, {
   HeaderLeft,
   HeaderSubtitle,
   HeaderTitle,
-  HeaderRight,
 } from "@/app/_components/header";
 import { SummaryCard, SummaryCardSkeleton } from "@/app/(protected)/_components/summary-card";
 import { Suspense } from "react";
@@ -21,7 +20,6 @@ import LowStockAlerts, {
 } from "@/app/(protected)/_components/low-stock-alerts";
 import { getDashboardAnalytics, DashboardRange } from "@/app/_data-access/dashboard/get-dashboard-analytics";
 import { PeriodFilter } from "@/app/_components/period-filter";
-import { DataExportButton } from "@/app/_components/data-export-button";
 import { formatCurrency } from "@/app/_lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -44,9 +42,6 @@ const Home = async ({ searchParams }: HomeProps) => {
           </div>
           <PeriodFilter />
         </HeaderLeft>
-        <HeaderRight className="flex items-center gap-3">
-            <DataExportButton label="Exportar Relatório" />
-        </HeaderRight>
       </Header>
 
       <Suspense fallback={<DashboardLoadingSkeleton />}>

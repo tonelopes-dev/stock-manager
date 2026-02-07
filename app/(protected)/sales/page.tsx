@@ -14,7 +14,6 @@ import { ShoppingCartIcon } from "lucide-react";
 import { EmptyState } from "../../_components/empty-state";
 import { Suspense } from "react";
 import { SaleTableSkeleton } from "./_components/table-skeleton";
-import { DataExportButton } from "@/app/_components/data-export-button";
 import { PeriodFilter } from "@/app/_components/period-filter";
 import { getSalesAnalytics } from "@/app/_data-access/sale/get-sales-analytics";
 import { SalesSummary } from "./_components/sales-summary";
@@ -69,7 +68,6 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
           {view === "gestao" ? <PeriodFilter /> : <MonthComparisonFilter />}
         </HeaderLeft>
         <HeaderRight className="flex items-center gap-3">
-          <DataExportButton />
           <ExportReportModal />
           <UpsertSaleButton
             products={products}

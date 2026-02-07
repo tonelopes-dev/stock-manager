@@ -2,7 +2,6 @@ import { DataTable } from "../../_components/ui/data-table";
 import { productTableColumns } from "./_components/table-columns";
 import { getProducts } from "../../_data-access/product/get-products";
 import AddProductButton from "./_components/create-product-button";
-import { ExportProductsButton } from "./_components/export-products-button";
 import Header, {
   HeaderLeft,
   HeaderRight,
@@ -39,7 +38,6 @@ const ProductTableWrapper = async () => {
         </HeaderLeft>
         <HeaderRight>
           <div className="flex gap-3">
-             <ExportProductsButton products={products} />
              <AddProductButton />
           </div>
         </HeaderRight>
