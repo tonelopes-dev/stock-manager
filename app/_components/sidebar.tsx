@@ -1,4 +1,5 @@
 import {
+  BeakerIcon,
   CreditCardIcon,
   LayoutGridIcon,
   PackageIcon,
@@ -32,6 +33,11 @@ const Sidebar = () => {
         <SidebarButton href="/products">
           <PackageIcon size={20} />
           Produtos
+        </SidebarButton>
+
+        <SidebarButton href="/ingredients">
+          <BeakerIcon size={20} />
+          Insumos
         </SidebarButton>
 
         <SidebarButton href="/sales">
