@@ -28,8 +28,16 @@ import { Loader2Icon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
-import { NumericFormat } from "react-number-format";
+import { NumericFormat, NumericFormatProps } from "react-number-format";
 import { toast } from "sonner";
+import * as React from "react";
+
+const MoneyInput = React.forwardRef<HTMLInputElement, NumericFormatProps>(
+  (props, ref) => {
+    return <NumericFormat {...props} getInputRef={ref} />;
+  },
+);
+MoneyInput.displayName = "MoneyInput";
 
 interface UpsertProductDialogContentProps {
   defaultValues?: UpsertProductSchema;
@@ -119,7 +127,7 @@ const UpsertProductDialogContent = ({
                 <FormItem>
                   <FormLabel>Preço</FormLabel>
                   <FormControl>
-                    <NumericFormat
+                    <MoneyInput
                       thousandSeparator="."
                       decimalSeparator=","
                       fixedDecimalScale
@@ -130,8 +138,9 @@ const UpsertProductDialogContent = ({
                       onValueChange={(values) =>
                         field.onChange(values.floatValue)
                       }
-                      {...field}
-                      onChange={() => {}}
+                      name={field.name}
+                      onBlur={field.onBlur}
+                      value={field.value}
                     />
                   </FormControl>
                   <FormMessage />
@@ -146,7 +155,7 @@ const UpsertProductDialogContent = ({
                 <FormItem>
                   <FormLabel>Custo</FormLabel>
                   <FormControl>
-                    <NumericFormat
+                    <MoneyInput
                       thousandSeparator="."
                       decimalSeparator=","
                       fixedDecimalScale
@@ -157,8 +166,9 @@ const UpsertProductDialogContent = ({
                       onValueChange={(values) =>
                         field.onChange(values.floatValue)
                       }
-                      {...field}
-                      onChange={() => {}}
+                      name={field.name}
+                      onBlur={field.onBlur}
+                      value={field.value}
                     />
                   </FormControl>
                   <FormMessage />

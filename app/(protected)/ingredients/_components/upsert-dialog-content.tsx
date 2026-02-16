@@ -35,8 +35,16 @@ import { Loader2Icon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
-import { NumericFormat } from "react-number-format";
+import { NumericFormat, NumericFormatProps } from "react-number-format";
 import { toast } from "sonner";
+import * as React from "react";
+
+const MoneyInput = React.forwardRef<HTMLInputElement, NumericFormatProps>(
+  (props, ref) => {
+    return <NumericFormat {...props} getInputRef={ref} />;
+  },
+);
+MoneyInput.displayName = "MoneyInput";
 
 const UNIT_OPTIONS = [
   { value: "KG", label: "Quilograma (Kg)" },
@@ -149,7 +157,7 @@ const UpsertIngredientDialogContent = ({
                 <FormItem>
                   <FormLabel>Custo unitário</FormLabel>
                   <FormControl>
-                    <NumericFormat
+                    <MoneyInput
                       thousandSeparator="."
                       decimalSeparator=","
                       decimalScale={4}
@@ -159,6 +167,8 @@ const UpsertIngredientDialogContent = ({
                       onValueChange={(values) =>
                         field.onChange(values.floatValue ?? 0)
                       }
+                      name={field.name}
+                      onBlur={field.onBlur}
                       value={field.value}
                     />
                   </FormControl>

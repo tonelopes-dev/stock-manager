@@ -26,7 +26,8 @@ export const upsertProduct = actionClient
     }
 
     // Business Validation: SKU Uniqueness per company
-    const { sku } = data;
+    const sku = data.sku?.trim() || null;
+
     if (sku) {
       const productWithSameSku = await db.product.findFirst({
         where: { 
@@ -43,17 +44,18 @@ export const upsertProduct = actionClient
 
     await db.$transaction(async (trx) => {
       const { stock, ...rest } = data;
+      const updateData = { ...rest, sku };
 
       if (id) {
         // Update product metadata only, ignore stock field from form
         await trx.product.update({
           where: { id, companyId },
-          data: rest,
+          data: updateData,
         });
       } else {
         // Create new product with 0 stock initially
         const product = await trx.product.create({
-          data: { ...rest, companyId, stock: 0 },
+          data: { ...updateData, companyId, stock: 0 },
         });
 
         // Set initial stock via movement for auditability

@@ -2,6 +2,7 @@ import { db } from "@/app/_lib/prisma";
 import { recordStockMovement } from "@/app/_lib/stock";
 import * as Sentry from "@sentry/nextjs";
 import { BusinessError } from "@/app/_lib/errors";
+import { BOMService } from "./bom";
 
 interface UpsertSaleParams {
   id?: string;
@@ -23,7 +24,7 @@ export const SaleService = {
         if (isUpdate) {
           const existingSale = await trx.sale.findFirst({
             where: { id, companyId },
-            include: { saleProducts: true },
+            include: { saleProducts: { include: { product: true } } },
           });
 
           if (!existingSale) {
@@ -35,18 +36,25 @@ export const SaleService = {
           }
 
           // 1. Revert stock for existing products
-          for (const product of existingSale.saleProducts) {
-            await recordStockMovement(
-              {
-                productId: product.productId,
-                companyId,
-                userId,
-                type: "CANCEL",
-                quantity: product.quantity,
-                saleId: existingSale.id,
-              },
-              trx
-            );
+          for (const sp of existingSale.saleProducts) {
+            if (sp.product.type === "RESELL") {
+              await recordStockMovement(
+                {
+                  productId: sp.productId,
+                  companyId,
+                  userId,
+                  type: "CANCEL",
+                  quantity: sp.quantity,
+                  saleId: existingSale.id,
+                },
+                trx
+              );
+            } else {
+              // PREPARED - For now, cancellation of PREPARED item 
+              // doesn't restore ingredients automatically (BOM logic 
+              // would need to be reversed). We keep it simple for Phase 1.
+              // TODO: Implement Ingredient Reversion if needed.
+            }
           }
 
           // 2. Clear old products
@@ -97,34 +105,53 @@ export const SaleService = {
             throw new BusinessError(`O produto ${productFromDb.name} está desativado.`);
           }
 
-          const productIsOutOfStock = product.quantity > productFromDb.stock;
-          if (productIsOutOfStock && !company?.allowNegativeStock) {
-            throw new BusinessError(`Estoque insuficiente para o produto ${productFromDb.name}.`);
+          let baseCost = productFromDb.cost;
+
+          if (productFromDb.type === "RESELL") {
+            const productIsOutOfStock = product.quantity > productFromDb.stock;
+            if (productIsOutOfStock && !company?.allowNegativeStock) {
+              throw new BusinessError(`Estoque insuficiente para o produto ${productFromDb.name}.`);
+            }
+
+            // Record stock movement (SALE type)
+            await recordStockMovement(
+              {
+                productId: product.id,
+                companyId,
+                userId,
+                type: "SALE",
+                quantity: -product.quantity,
+                saleId: sale.id,
+              },
+              trx
+            );
+          } else {
+            // PREPARED - Explosão de BOM
+            const realCost = await BOMService.explodeAndDeduct(
+              {
+                productId: product.id,
+                quantity: product.quantity,
+                companyId,
+                userId,
+                saleId: sale.id,
+              },
+              trx
+            );
+            
+            // For prepared items, the real cost is the sum of ingredients
+            baseCost = realCost.div(product.quantity);
           }
 
-          // Create SaleProduct with historical values
+          // Create SaleProduct with final historical values
           await trx.saleProduct.create({
             data: {
               saleId: sale.id,
               productId: product.id,
               quantity: product.quantity,
               unitPrice: productFromDb.price,
-              baseCost: productFromDb.cost,
+              baseCost: baseCost,
             },
           });
-
-          // Record stock movement (SALE type)
-          await recordStockMovement(
-            {
-              productId: product.id,
-              companyId,
-              userId,
-              type: "SALE",
-              quantity: -product.quantity,
-              saleId: sale.id,
-            },
-            trx
-          );
         }
 
         return sale;
