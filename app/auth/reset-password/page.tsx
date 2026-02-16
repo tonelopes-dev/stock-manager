@@ -34,7 +34,9 @@ const resetPasswordSchema = z.object({
 
 type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
 
-export default function ResetPasswordPage() {
+import { Suspense } from "react";
+
+function ResetPasswordForm() {
   const [isPending, setIsPending] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -48,7 +50,7 @@ export default function ResetPasswordPage() {
     },
   });
 
-  const onSubmit = async (values: ResetPasswordValues) => {
+  const onSubmit = async () => {
     if (!token) {
         toast.error("Token de redefinição ausente ou inválido.");
         return;
@@ -68,8 +70,7 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
-      <Card className="w-full max-w-md border-slate-200 shadow-xl">
+    <Card className="w-full max-w-md border-slate-200 shadow-xl">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-4">
                <div className="p-3 bg-primary/10 text-primary rounded-2xl">
@@ -123,6 +124,22 @@ export default function ResetPasswordPage() {
           </Form>
         </CardContent>
       </Card>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
+      <Suspense fallback={
+        <Card className="w-full max-w-md border-slate-200 shadow-xl">
+           <CardContent className="p-10 flex flex-col items-center justify-center space-y-4">
+              <Loader2Icon className="h-10 w-10 text-primary animate-spin" />
+              <p className="text-sm text-slate-500 font-medium">Carregando...</p>
+           </CardContent>
+        </Card>
+      }>
+        <ResetPasswordForm />
+      </Suspense>
     </div>
   );
 }

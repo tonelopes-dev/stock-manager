@@ -11,7 +11,7 @@ export const inviteUser = actionClient
   .schema(inviteUserSchema)
   .action(async ({ parsedInput: { email, role } }) => {
     const companyId = await getCurrentCompanyId();
-    await authorizeAction(companyId, ["OWNER", "ADMIN"]);
+    await authorizeAction(["OWNER", "ADMIN"], companyId);
 
     // Check if user is already in the company
     const existingMember = await db.userCompany.findFirst({

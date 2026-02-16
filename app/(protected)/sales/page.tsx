@@ -6,7 +6,7 @@ import Header, {
 } from "../../_components/header";
 import { ComboboxOption } from "../../_components/ui/combobox";
 import { DataTable } from "../../_components/ui/data-table";
-import { getProducts } from "../../_data-access/product/get-products";
+import { getProducts, ProductDto } from "../../_data-access/product/get-products";
 import { getSales } from "../../_data-access/sale/get-sales";
 import UpsertSaleButton from "./_components/create-sale-button";
 import { saleTableColumns } from "./_components/table-columns";
@@ -23,7 +23,7 @@ import { SalesViewTabs } from "./_components/sales-view-tabs";
 import { ExportReportModal } from "./_components/export-report-modal";
 import { SalesComparisonMetrics } from "./_components/sales-comparison-metrics";
 
-import { Product } from "@prisma/client";
+
 
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";
@@ -120,7 +120,7 @@ const SalesTableWrapper = async ({
   pageSize
 }: { 
   productOptions: ComboboxOption[], 
-  products: Product[],
+  products: ProductDto[],
   from?: string,
   to?: string,
   page: number,

@@ -1,0 +1,26 @@
+
+> stockly@1.4.0 build
+> next build
+
+  ▲ Next.js 14.2.10
+  - Environments: .env
+  - Experiments (use with caution):
+    · instrumentationHook
+
+   Creating an optimized production build ...
+[@sentry/nextjs] It seems like you don't have a global error handler set up. It is recommended that you add a 'global-error.js' file with Sentry instrumentation so that React rendering errors are reported to Sentry. Read more: https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/#react-render-errors-in-app-router (you can suppress this warning by setting SENTRY_SUPPRESS_GLOBAL_ERROR_HANDLER_FILE_WARNING=1 as environment variable)
+[@sentry/nextjs] DEPRECATION WARNING: It is recommended renaming your `sentry.client.config.ts` file, or moving its content to `instrumentation-client.ts`. When using Turbopack `sentry.client.config.ts` will no longer work. Read more about the `instrumentation-client.ts` file: https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation-client
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+Failed to compile.
+
+./app/_actions/company/invite/invite-user.ts:14:27
+Type error: Argument of type 'string' is not assignable to parameter of type 'UserRole[]'.
+
+[0m [90m 12 |[39m   [33m.[39maction([36masync[39m ({ parsedInput[33m:[39m { email[33m,[39m role } }) [33m=>[39m {[0m
+[0m [90m 13 |[39m     [36mconst[39m companyId [33m=[39m [36mawait[39m getCurrentCompanyId()[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 14 |[39m     [36mawait[39m authorizeAction(companyId[33m,[39m [[32m"OWNER"[39m[33m,[39m [32m"ADMIN"[39m])[33m;[39m[0m
+[0m [90m    |[39m                           [31m[1m^[22m[39m[0m
+[0m [90m 15 |[39m[0m
+[0m [90m 16 |[39m     [90m// Check if user is already in the company[39m[0m
+[0m [90m 17 |[39m     [36mconst[39m existingMember [33m=[39m [36mawait[39m db[33m.[39muserCompany[33m.[39mfindFirst({[0m

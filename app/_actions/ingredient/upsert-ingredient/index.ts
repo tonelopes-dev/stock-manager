@@ -33,7 +33,7 @@ export const upsertIngredient = actionClient
         });
 
         // Set initial stock via movement for auditability
-        if (stock > 0) {
+        if (stock && stock > 0) {
           await IngredientService.adjustStock(
             {
               ingredientId: ingredient.id,

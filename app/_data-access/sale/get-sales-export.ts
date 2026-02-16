@@ -61,6 +61,7 @@ export const getSalesExport = async (params: SalesExportParams = {}) => {
     Lucro: string;
     "Margem %": string;
     Responsável: string;
+    [key: string]: string | number;
   }
 
   const rows: SalesExportRow[] = [];

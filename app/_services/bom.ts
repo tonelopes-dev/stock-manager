@@ -17,7 +17,7 @@ export const BOMService = {
       saleId?: string;
     },
     trx: Prisma.TransactionClient
-  ): Promise<Decimal> {
+  ): Promise<Prisma.Decimal> {
     const { productId, quantity, companyId, userId, saleId } = params;
 
     // 1. Fetch recipe with ingredients
