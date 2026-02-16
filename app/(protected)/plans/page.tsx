@@ -18,7 +18,7 @@ import PlanActions from "./_components/plan-actions";
 import { SubscriptionStatus } from "./_components/subscription-status";
 
 const PlansPage = async () => {
-  const { plan } = (await getCompanyPlan()) as any;
+  const { plan } = await getCompanyPlan();
 
   const plans = [
     {

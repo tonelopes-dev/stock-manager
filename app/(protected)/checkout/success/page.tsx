@@ -55,7 +55,7 @@ export default function SuccessPage() {
             </Link>
           </Button>
           <p className="text-sm text-slate-400 italic">
-            "Seu negócio merece essa organização"
+            &quot;Seu negócio merece essa organização&quot;
           </p>
         </div>
       </div>

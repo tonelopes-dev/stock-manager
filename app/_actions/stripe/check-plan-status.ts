@@ -17,16 +17,14 @@ export async function checkPlanStatus() {
         plan: true,
         stripeSubscriptionId: true,
         stripeCurrentPeriodEnd: true,
-      } as any,
+      },
     });
 
-    return JSON.parse(
-      JSON.stringify({
-        plan: (company as any)?.plan ?? "FREE",
-        stripeSubscriptionId: (company as any)?.stripeSubscriptionId,
-        stripeCurrentPeriodEnd: (company as any)?.stripeCurrentPeriodEnd,
-      }),
-    );
+    return {
+      plan: company?.plan ?? "FREE",
+      stripeSubscriptionId: company?.stripeSubscriptionId,
+      stripeCurrentPeriodEnd: company?.stripeCurrentPeriodEnd,
+    };
   } catch (error) {
     console.error("Failed to check plan status:", error);
     return { plan: "FREE" as const };

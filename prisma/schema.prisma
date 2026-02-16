@@ -28,7 +28,7 @@ model Product {
   company        Company         @relation(fields: [companyId], references: [id])
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
-  saleProducts   SaleProduct[]
+  saleItems      SaleItem[]
   stockMovements StockMovement[]
   recipes        ProductRecipe[]
 
@@ -43,23 +43,41 @@ model Sale {
   company      Company       @relation(fields: [companyId], references: [id])
   userId       String?
   user         User?          @relation(fields: [userId], references: [id])
+  
+  discountAmount Decimal      @db.Decimal(10, 2) @default(0)
+  totalAmount    Decimal      @db.Decimal(10, 2) @default(0)
+  totalCost      Decimal      @db.Decimal(10, 2) @default(0)
+
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
-  saleProducts SaleProduct[]
+  saleItems    SaleItem[]
   stockMovements StockMovement[]
+
+  @@index([companyId, date, status])
+  @@index([companyId, createdAt])
 }
 
-model SaleProduct {
+model SaleItem {
   id        String   @id @default(uuid())
   saleId    String
   sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
   productId String
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
   unitPrice Decimal  @db.Decimal(10, 2)
   baseCost  Decimal  @db.Decimal(10, 2) @default(0)
-  quantity  Int
+  quantity  Decimal  @db.Decimal(10, 3)
+  
+  discountAmount Decimal      @db.Decimal(10, 2) @default(0)
+  totalAmount    Decimal      @db.Decimal(10, 2) @default(0)
+  totalCost      Decimal      @db.Decimal(10, 2) @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([saleId])
+  @@index([productId])
+  @@map("SaleProduct")
 }
 
 // Auth.js Models
@@ -121,6 +139,7 @@ model VerificationToken {
 }
 
 enum SaleStatus {
+  DRAFT
   ACTIVE
   CANCELED
 }

@@ -69,7 +69,7 @@ export const getDashboardAnalytics = async (range: DashboardRange = "7d"): Promi
             date: { gte: startOfCurrent, lte: endOfCurrent }
         },
         include: {
-            saleProducts: true
+            saleItems: true
         }
     });
 
@@ -77,7 +77,7 @@ export const getDashboardAnalytics = async (range: DashboardRange = "7d"): Promi
     const timeSeries = days.map(day => {
         const daySales = sales.filter(sale => isSameDay(sale.date, day));
         const dayRevenue = daySales.reduce((acc, sale) => {
-            return acc + sale.saleProducts.reduce((sum, sp) => sum + (Number(sp.unitPrice) * sp.quantity), 0);
+            return acc + sale.saleItems.reduce((sum, si) => sum + (Number(si.unitPrice) * Number(si.quantity)), 0);
         }, 0);
 
         return {

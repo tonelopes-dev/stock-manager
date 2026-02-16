@@ -7,6 +7,8 @@ export interface PlanUsageDto {
   percentage: number;
   stripeCustomerId: string | null;
   plan: string;
+  stripeSubscriptionId?: string | null;
+  stripeCurrentPeriodEnd?: Date | null;
 }
 
 export const getPlanUsage = async (): Promise<PlanUsageDto> => {
@@ -17,9 +19,11 @@ export const getPlanUsage = async (): Promise<PlanUsageDto> => {
     select: { 
         maxProducts: true,
         stripeCustomerId: true,
-        plan: true
+        plan: true,
+        stripeSubscriptionId: true,
+        stripeCurrentPeriodEnd: true
     },
-  }) as any;
+  });
 
   if (!company) {
     throw new Error("Company not found");
@@ -32,11 +36,13 @@ export const getPlanUsage = async (): Promise<PlanUsageDto> => {
     },
   });
 
-  return JSON.parse(JSON.stringify({
+  return {
     productCount,
     maxProducts: company.maxProducts,
     percentage: Math.min(Math.round((productCount / company.maxProducts) * 100), 100),
     stripeCustomerId: company.stripeCustomerId,
-    plan: company.plan,
-  }));
+    plan: company.plan ?? "FREE",
+    stripeSubscriptionId: company.stripeSubscriptionId,
+    stripeCurrentPeriodEnd: company.stripeCurrentPeriodEnd,
+  };
 };

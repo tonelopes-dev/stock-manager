@@ -18,7 +18,7 @@ export interface SaleDto {
   totalProducts: number;
   totalAmount: number;
   date: Date;
-  saleProducts: SaleProductDto[];
+  saleItems: SaleProductDto[];
 }
 
 export interface GetSalesParams {
@@ -56,7 +56,7 @@ export const getSales = async (params: GetSalesParams = {}): Promise<{ data: Sal
         date: "desc",
       },
       include: {
-        saleProducts: {
+        saleItems: {
           include: { product: true },
         },
       },
@@ -69,24 +69,24 @@ export const getSales = async (params: GetSalesParams = {}): Promise<{ data: Sal
       sales.map((sale) => ({
         id: sale.id,
         date: sale.date,
-        productNames: sale.saleProducts
-          .map((saleProduct) => saleProduct.product.name)
+        productNames: sale.saleItems
+          .map((si) => si.product.name)
           .join(" • "),
-        totalAmount: sale.saleProducts.reduce(
-          (acc, saleProduct) =>
-            acc + saleProduct.quantity * Number(saleProduct.unitPrice),
+        totalAmount: sale.saleItems.reduce(
+          (acc, si) =>
+            acc + Number(si.quantity) * Number(si.unitPrice),
           0,
         ),
-        totalProducts: sale.saleProducts.reduce(
-          (acc, saleProduct) => acc + saleProduct.quantity,
+        totalProducts: sale.saleItems.reduce(
+          (acc, si) => acc + Number(si.quantity),
           0,
         ),
-        saleProducts: sale.saleProducts.map(
-          (saleProduct): SaleProductDto => ({
-            productId: saleProduct.productId,
-            productName: saleProduct.product.name,
-            quantity: saleProduct.quantity,
-            unitPrice: Number(saleProduct.unitPrice),
+        saleItems: sale.saleItems.map(
+          (si): SaleProductDto => ({
+            productId: si.productId,
+            productName: si.product.name,
+            quantity: Number(si.quantity),
+            unitPrice: Number(si.unitPrice),
           }),
         ),
       })),

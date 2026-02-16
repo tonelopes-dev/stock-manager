@@ -5,7 +5,7 @@ import Header, {
   HeaderRight,
 } from "@/app/_components/header";
 import { getTeamMembers, getPendingInvitations } from "@/app/_data-access/user/get-team-members";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
+import { Card, CardContent } from "@/app/_components/ui/card";
 import { Badge } from "@/app/_components/ui/badge";
 import { UserIcon, MailIcon, ShieldCheckIcon, ClockIcon } from "lucide-react";
 import InviteMemberButton from "./_components/invite-member-button";

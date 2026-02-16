@@ -25,7 +25,22 @@ export const getSalesReport = async (
 ): Promise<SalesReportDto> => {
   const companyId = await getCurrentCompanyId();
 
-  const sales = await db.sale.findMany({
+  interface SaleWithItems {
+    id: string;
+    date: Date;
+    saleItems: {
+        productId: string;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        unitPrice: any;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        baseCost: any;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        quantity: any;
+        product: { name: string };
+    }[];
+  }
+
+  const rawSales = await db.sale.findMany({
     where: {
       companyId,
       status: "ACTIVE",
@@ -34,8 +49,9 @@ export const getSalesReport = async (
         lte: filters.to,
       },
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     include: {
-      saleProducts: {
+      saleItems: {
         include: {
           product: {
             select: {
@@ -44,17 +60,24 @@ export const getSalesReport = async (
           },
         },
       },
-    },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any,
+    orderBy: { date: "desc" },
   });
+
+  const sales = rawSales as unknown as SaleWithItems[];
 
   const productMap = new Map<string, ProductReportDto>();
   let totalRevenue = 0;
   let totalCost = 0;
 
-  for (const sale of sales) {
-    for (const item of sale.saleProducts) {
-      const revenue = Number(item.unitPrice) * item.quantity;
-      const cost = Number(item.baseCost) * item.quantity;
+  sales.forEach((sale) => {
+    const items = sale.saleItems || [];
+    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    items.forEach((item: any) => {
+      const revenue = Number(item.unitPrice) * Number(item.quantity);
+      const cost = Number(item.baseCost) * Number(item.quantity);
       const profit = revenue - cost;
 
       totalRevenue += revenue;
@@ -62,7 +85,7 @@ export const getSalesReport = async (
 
       const existing = productMap.get(item.productId);
       if (existing) {
-        existing.quantitySold += item.quantity;
+        existing.quantitySold += Number(item.quantity);
         existing.revenue += revenue;
         existing.cost += cost;
         existing.profit += profit;
@@ -70,14 +93,14 @@ export const getSalesReport = async (
         productMap.set(item.productId, {
           productId: item.productId,
           name: item.product.name,
-          quantitySold: item.quantity,
+          quantitySold: Number(item.quantity),
           revenue,
           cost,
           profit,
         });
       }
-    }
-  }
+    });
+  });
 
   return {
     totalRevenue,

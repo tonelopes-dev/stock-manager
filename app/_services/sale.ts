@@ -24,7 +24,7 @@ export const SaleService = {
         if (isUpdate) {
           const existingSale = await trx.sale.findFirst({
             where: { id, companyId },
-            include: { saleProducts: { include: { product: true } } },
+            include: { saleItems: { include: { product: true } } },
           });
 
           if (!existingSale) {
@@ -36,7 +36,7 @@ export const SaleService = {
           }
 
           // 1. Revert stock for existing products
-          for (const sp of existingSale.saleProducts) {
+          for (const sp of existingSale.saleItems) {
             if (sp.product.type === "RESELL") {
               await recordStockMovement(
                 {
@@ -58,7 +58,7 @@ export const SaleService = {
           }
 
           // 2. Clear old products
-          await trx.saleProduct.deleteMany({
+          await trx.saleItem.deleteMany({
             where: { saleId: id },
           });
 
@@ -142,8 +142,8 @@ export const SaleService = {
             baseCost = realCost.div(product.quantity);
           }
 
-          // Create SaleProduct with final historical values
-          await trx.saleProduct.create({
+          // Create SaleItem with final historical values
+          await trx.saleItem.create({
             data: {
               saleId: sale.id,
               productId: product.id,

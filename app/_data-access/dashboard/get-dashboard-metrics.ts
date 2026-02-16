@@ -30,7 +30,13 @@ export const getDashboardMetrics = async (): Promise<DashboardMetricsDto> => {
 
   // 1. Get Daily Totals (Revenue, Cost, Profit) in ONE highly optimized query
   // We use queryRaw because cross-column math (price * qty) isn't supported by standard .aggregate()
-  const [dailyTotals] = await db.$queryRaw<any[]>`
+  interface DailyTotalsRaw {
+    revenue: number;
+    cost: number;
+    salesCount: number;
+  }
+
+  const [dailyTotals] = await db.$queryRaw<DailyTotalsRaw[]>`
     SELECT 
       COALESCE(SUM("unitPrice" * "quantity"), 0)::float as revenue,
       COALESCE(SUM("baseCost" * "quantity"), 0)::float as cost,
@@ -48,11 +54,18 @@ export const getDashboardMetrics = async (): Promise<DashboardMetricsDto> => {
   const averageTicket = dailyTotals.salesCount > 0 ? dailyRevenue / dailyTotals.salesCount : 0;
 
   // 2. Fetch Top Selling Products (By REVENUE, using historical prices and single query)
-  const topProducts = await db.$queryRaw<any[]>`
+  interface TopProductRaw {
+    id: string;
+    name: string;
+    quantitySold: number;
+    revenue: number;
+  }
+
+  const topProducts = await db.$queryRaw<TopProductRaw[]>`
     SELECT 
       p.id, 
       p.name, 
-      SUM(sp.quantity)::int as "quantitySold",
+      SUM(sp.quantity)::float as "quantitySold",
       SUM(sp."unitPrice" * sp.quantity)::float as revenue
     FROM "SaleProduct" sp
     JOIN "Sale" s ON s.id = sp."saleId"
@@ -65,7 +78,14 @@ export const getDashboardMetrics = async (): Promise<DashboardMetricsDto> => {
   `;
 
   // 3. Low Stock Products (Database level comparison)
-  const lowStockProducts = await db.$queryRaw<any[]>`
+  interface LowStockProductRaw {
+    id: string;
+    name: string;
+    stock: number;
+    minStock: number;
+  }
+
+  const lowStockProducts = await db.$queryRaw<LowStockProductRaw[]>`
     SELECT id, name, stock, "minStock"
     FROM "Product"
     WHERE "companyId" = ${companyId} 

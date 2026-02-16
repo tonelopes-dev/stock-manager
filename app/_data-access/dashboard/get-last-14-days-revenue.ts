@@ -20,19 +20,15 @@ export const getLast14DaysRevenue = async (): Promise<DayTotalRevenueDto[]> => {
   );
   const totalLast14DaysRevenue: DayTotalRevenueDto[] = [];
   for (const day of last14Days) {
-    const dayTotalRevenue = await db.$queryRawUnsafe<
-      { totalRevenue: Decimal }[]
-    >(
-      `
+    const start = day.startOf("day").toDate();
+    const end = day.endOf("day").toDate();
+    
+    const dayTotalRevenue = await db.$queryRaw<{ totalRevenue: Decimal }[]>`
       SELECT SUM("SaleProduct"."unitPrice" * "SaleProduct"."quantity") as "totalRevenue"
       FROM "SaleProduct"
       JOIN "Sale" ON "SaleProduct"."saleId" = "Sale"."id"
-      WHERE "Sale"."date" >= $1 AND "Sale"."date" <= $2 AND "Sale"."companyId" = $3;
-      `,
-      day.startOf("day").toDate(),
-      day.endOf("day").toDate(),
-      companyId,
-    );
+      WHERE "Sale"."date" >= ${start} AND "Sale"."date" <= ${end} AND "Sale"."companyId" = ${companyId};
+    `;
     totalLast14DaysRevenue.push({
       day: day.format("DD/MM"),
       totalRevenue: Number(dayTotalRevenue[0]?.totalRevenue ?? 0),

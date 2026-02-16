@@ -32,9 +32,10 @@ export async function POST(req: Request) {
       process.env.STRIPE_WEBHOOK_SECRET!
     );
     console.log(`🔔 Webhook: ${event.type}`);
-  } catch (error: any) {
-    console.error(`❌ Webhook Error: ${error.message}`);
-    return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Erro desconhecido no webhook";
+    console.error(`❌ Webhook Error: ${message}`);
+    return new NextResponse(`Webhook Error: ${message}`, { status: 400 });
   }
 
   // 1. Map Company to Customer on Checkout Completion
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
       data: {
         stripeCustomerId: session.customer as string,
         stripeSubscriptionId: session.subscription as string,
-      } as any,
+      },
     });
   }
 
@@ -74,7 +75,7 @@ export async function POST(req: Request) {
           { stripeSubscriptionId: subscription.id },
           { stripeCustomerId: subscription.customer as string },
         ],
-      } as any,
+      },
     });
 
     if (company) {
@@ -84,10 +85,10 @@ export async function POST(req: Request) {
         data: {
           stripeSubscriptionId: subscription.id,
           stripePriceId: subscription.items.data[0].price.id,
-          stripeCurrentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
+          stripeCurrentPeriodEnd: new Date((subscription as Stripe.Subscription & { current_period_end: number }).current_period_end * 1000),
           plan,
           ...limits,
-        } as any,
+        },
       });
     } else {
       console.warn(`⚠️ Company not found for subscription ${subscription.id} or customer ${subscription.customer}`);

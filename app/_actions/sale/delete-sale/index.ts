@@ -26,7 +26,7 @@ export const deleteSale = actionClient
           companyId, // Ensure sale belongs to current company
         },
         include: {
-          saleProducts: true,
+          saleItems: true,
         },
       });
       if (!sale) return;
@@ -35,14 +35,14 @@ export const deleteSale = actionClient
           id,
         },
       });
-      for (const product of sale.saleProducts) {
+      for (const item of sale.saleItems) {
         await recordStockMovement(
           {
-            productId: product.productId,
+            productId: item.productId,
             companyId,
             userId,
             type: "CANCEL",
-            quantity: product.quantity,
+            quantity: Number(item.quantity),
             saleId: sale.id,
           },
           trx

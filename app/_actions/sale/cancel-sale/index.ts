@@ -24,7 +24,8 @@ export const cancelSale = actionClient
     await db.$transaction(async (trx) => {
       const sale = await trx.sale.findFirst({
         where: { id, companyId },
-        include: { saleProducts: true },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        include: { saleItems: true } as any,
       });
 
       if (!sale) {
@@ -40,14 +41,15 @@ export const cancelSale = actionClient
         data: { status: "CANCELED" },
       });
 
-      for (const product of sale.saleProducts) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      for (const item of (sale as any).saleItems) {
         await recordStockMovement(
           {
-            productId: product.productId,
+            productId: item.productId,
             companyId,
             userId,
             type: "CANCEL",
-            quantity: product.quantity,
+            quantity: Number(item.quantity),
             saleId: sale.id,
             reason: "Sale cancellation",
           },

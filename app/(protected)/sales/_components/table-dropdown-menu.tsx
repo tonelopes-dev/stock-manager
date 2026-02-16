@@ -35,7 +35,7 @@ import { ProductDto } from "@/app/_data-access/product/get-products";
 import { SaleDto } from "@/app/_data-access/sale/get-sales";
 
 interface SalesTableDropdownMenuProps {
-  sale: Pick<SaleDto, "id" | "saleProducts" | "date">;
+  sale: Pick<SaleDto, "id" | "saleItems" | "date">;
   productOptions: ComboboxOption[];
   products: ProductDto[];
 }
@@ -116,12 +116,16 @@ const SalesTableDropdownMenu = ({
         productOptions={productOptions}
         products={products}
         setSheetIsOpen={setUpsertSheetIsOpen}
-        defaultSelectedProducts={sale.saleProducts.map((saleProduct) => ({
-          id: saleProduct.productId,
-          quantity: saleProduct.quantity,
-          name: saleProduct.productName,
-          price: saleProduct.unitPrice,
-        }))}
+        defaultSelectedProducts={sale.saleItems.map((item) => {
+          const product = products.find((p) => p.id === item.productId);
+          return {
+            id: item.productId,
+            quantity: item.quantity,
+            name: item.productName,
+            price: item.unitPrice,
+            stock: product?.stock ?? 0,
+          };
+        })}
       />
     </Sheet>
   );

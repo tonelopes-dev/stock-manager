@@ -27,9 +27,10 @@ export const upsertSale = actionClient
         userId,
         products,
       });
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Ocorreu um erro ao processar a venda.";
       returnValidationErrors(upsertSaleSchema, {
-        _errors: [error.message || "Ocorreu um erro ao processar a venda."],
+        _errors: [message],
       });
     }
 

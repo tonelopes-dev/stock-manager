@@ -78,7 +78,7 @@ export const getSalesAnalytics = async (
             date: { gte: startOfSelected, lte: endOfSelected }
         },
         include: {
-            saleProducts: true
+            saleItems: true
         }
     });
 
@@ -86,7 +86,7 @@ export const getSalesAnalytics = async (
     const timeSeries = days.map(day => {
         const daySales = sales.filter(sale => isSameDay(sale.date, day));
         const dayRevenue = daySales.reduce((acc, sale) => {
-            return acc + sale.saleProducts.reduce((sum, sp) => sum + (Number(sp.unitPrice) * sp.quantity), 0);
+            return acc + sale.saleItems.reduce((sum, si) => sum + (Number(si.unitPrice) * Number(si.quantity)), 0);
         }, 0);
 
         return {

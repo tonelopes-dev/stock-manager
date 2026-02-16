@@ -52,7 +52,7 @@ export const SubscriptionStatus = ({ initialPlan }: SubscriptionStatusProps) => 
 
   const status = getStatus(currentPlan, searchParams.get("subId") || null); // Fallback for demonstration
 
-  const configs: Record<SubStatus, { label: string; icon: any; variant: "default" | "secondary" | "destructive" | "outline"; className?: string }> = {
+  const configs: Record<SubStatus, { label: string; icon: React.ReactNode; variant: "default" | "secondary" | "destructive" | "outline"; className?: string }> = {
     FREE: {
       label: "Plano Gratuito",
       icon: null,

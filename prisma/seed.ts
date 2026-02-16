@@ -118,7 +118,7 @@ async function main() {
         const product = createdProducts[Math.floor(Math.random() * createdProducts.length)];
         const quantity = Math.floor(Math.random() * 3) + 1;
 
-        await prisma.saleProduct.create({
+        await prisma.saleItem.create({
           data: {
             saleId: sale.id,
             productId: product.id,
