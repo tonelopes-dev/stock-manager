@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { deleteRecipeIngredientSchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { recalculateProductCost } from "./recalculate-cost";
 
 export const deleteRecipeIngredient = actionClient
   .schema(deleteRecipeIngredientSchema)
@@ -24,5 +25,9 @@ export const deleteRecipeIngredient = actionClient
       where: { id },
     });
 
+    await recalculateProductCost(recipe.productId);
+
     revalidatePath(`/products/${recipe.productId}`, "page");
+    revalidatePath("/products", "page");
+    revalidatePath("/");
   });

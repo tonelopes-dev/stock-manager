@@ -61,7 +61,12 @@ export const Combobox = ({
                   key={option.value}
                   value={option.value}
                   onSelect={(currentValue) => {
-                    onChange(currentValue === value ? "" : currentValue);
+                    // cmdk lowercases currentValue, so we find the original option
+                    const originalValue =
+                      options.find(
+                        (opt) => opt.value.toLowerCase() === currentValue.toLowerCase(),
+                      )?.value ?? currentValue;
+                    onChange(originalValue === value ? "" : originalValue);
                     setOpen(false);
                   }}
                 >

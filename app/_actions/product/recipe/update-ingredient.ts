@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { updateRecipeIngredientSchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { recalculateProductCost } from "./recalculate-cost";
 
 export const updateRecipeIngredient = actionClient
   .schema(updateRecipeIngredientSchema)
@@ -25,5 +26,9 @@ export const updateRecipeIngredient = actionClient
       data: { quantity, unit },
     });
 
+    await recalculateProductCost(recipe.productId);
+
     revalidatePath(`/products/${recipe.productId}`, "page");
+    revalidatePath("/products", "page");
+    revalidatePath("/");
   });
