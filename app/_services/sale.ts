@@ -2,10 +2,6 @@ import { db } from "@/app/_lib/prisma";
 import { recordStockMovement } from "@/app/_lib/stock";
 import * as Sentry from "@sentry/nextjs";
 import { BusinessError } from "@/app/_lib/errors";
-import { BOMService } from "./bom";
-import { Decimal } from "@prisma/client/runtime/library";
-import { UnitType } from "@prisma/client";
-import { calculateStockDeduction } from "@/app/_lib/units";
 
 interface UpsertSaleParams {
   id?: string;
@@ -38,59 +34,19 @@ export const SaleService = {
             throw new BusinessError("Não é possível editar uma venda cancelada.");
           }
 
-          // 1. Revert stock for existing products
+          // 1. Revert stock for ALL product types (unified)
           for (const sp of existingSale.saleItems) {
-            if (sp.product.type === "RESELL") {
-              await recordStockMovement(
-                {
-                  productId: sp.productId,
-                  companyId,
-                  userId,
-                  type: "CANCEL",
-                  quantity: sp.quantity,
-                  saleId: existingSale.id,
-                },
-                trx
-              );
-            } else {
-              // PREPARED — Reverse BOM: restore ingredient stock
-              const recipes = await trx.productRecipe.findMany({
-                where: { productId: sp.productId },
-                include: { ingredient: true },
-              });
-
-              for (const rawRecipe of recipes) {
-                const recipe = rawRecipe as unknown as {
-                  unit: UnitType;
-                  quantity: Decimal;
-                  ingredient: {
-                    id: string;
-                    unit: UnitType;
-                  };
-                };
-
-                const totalRecipeQty = new Decimal(recipe.quantity.toString()).mul(sp.quantity);
-                const deductionQty = calculateStockDeduction(
-                  totalRecipeQty,
-                  recipe.unit,
-                  recipe.ingredient.unit
-                );
-
-                // Restore stock (positive quantity = adds back)
-                await recordStockMovement(
-                  {
-                    ingredientId: recipe.ingredient.id,
-                    companyId,
-                    userId,
-                    type: "CANCEL",
-                    quantity: deductionQty,
-                    saleId: existingSale.id,
-                    reason: `Cancelamento de venda - produto preparado: ${sp.productId}`,
-                  },
-                  trx
-                );
-              }
-            }
+            await recordStockMovement(
+              {
+                productId: sp.productId,
+                companyId,
+                userId,
+                type: "CANCEL",
+                quantity: sp.quantity,
+                saleId: existingSale.id,
+              },
+              trx
+            );
           }
 
           // 2. Clear old products
@@ -127,7 +83,7 @@ export const SaleService = {
           select: { allowNegativeStock: true },
         });
 
-        // 4. Process new products
+        // 4. Process products — unified for RESELL and PREPARED
         for (const product of products) {
           const productFromDb = await trx.product.findUnique({
             where: { id: product.id },
@@ -141,51 +97,39 @@ export const SaleService = {
             throw new BusinessError(`O produto ${productFromDb.name} está desativado.`);
           }
 
-          let baseCost = productFromDb.cost;
+          console.log(`[UPSERT_SALE] Processing product ${productFromDb.name} (${productFromDb.type})`);
+          console.log(`[UPSERT_SALE] Stock: ${productFromDb.stock}, Requested: ${product.quantity}`);
 
-          if (productFromDb.type === "RESELL") {
-            const productIsOutOfStock = product.quantity > productFromDb.stock;
-            if (productIsOutOfStock && !company?.allowNegativeStock) {
-              throw new BusinessError(`Estoque insuficiente para o produto ${productFromDb.name}.`);
-            }
-
-            // Record stock movement (SALE type)
-            await recordStockMovement(
-              {
-                productId: product.id,
-                companyId,
-                userId,
-                type: "SALE",
-                quantity: -product.quantity,
-                saleId: sale.id,
-              },
-              trx
-            );
-          } else {
-            // PREPARED - Explosão de BOM
-            const realCost = await BOMService.explodeAndDeduct(
-              {
-                productId: product.id,
-                quantity: product.quantity,
-                companyId,
-                userId,
-                saleId: sale.id,
-              },
-              trx
-            );
-            
-            // For prepared items, the real cost is the sum of ingredients
-            baseCost = realCost.div(product.quantity);
+          // Validate stock (applies to both RESELL and PREPARED)
+          const productIsOutOfStock = product.quantity > productFromDb.stock;
+          if (productIsOutOfStock && !company?.allowNegativeStock) {
+            console.log(`[UPSERT_SALE] Insufficient stock for ${productFromDb.name}`);
+            throw new BusinessError(`Estoque insuficiente para o produto ${productFromDb.name}.`);
           }
 
-          // Create SaleItem with final historical values
+          // Deduct product stock (SALE movement)
+          console.log(`[UPSERT_SALE] Recording stock movement for ${productFromDb.name}`);
+          await recordStockMovement(
+            {
+              productId: product.id,
+              companyId,
+              userId,
+              type: "SALE",
+              quantity: -product.quantity,
+              saleId: sale.id,
+            },
+            trx
+          );
+
+          // Create SaleItem with historical cost
+          console.log(`[UPSERT_SALE] Creating sale item for ${productFromDb.name}, cost: ${productFromDb.cost}`);
           await trx.saleItem.create({
             data: {
               saleId: sale.id,
               productId: product.id,
               quantity: product.quantity,
               unitPrice: productFromDb.price,
-              baseCost: baseCost,
+              baseCost: productFromDb.cost,
             },
           });
         }
@@ -193,6 +137,7 @@ export const SaleService = {
         return sale;
       });
     } catch (error) {
+      console.error("[UPSERT_SALE_ERROR]", error);
       if (error instanceof BusinessError) {
         throw error;
       }

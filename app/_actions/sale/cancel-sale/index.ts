@@ -12,52 +12,56 @@ import { authorizeAction } from "@/app/_lib/rbac";
 export const cancelSale = actionClient
   .schema(cancelSaleSchema)
   .action(async ({ parsedInput: { id } }) => {
-    const companyId = await getCurrentCompanyId();
-    await authorizeAction(["OWNER", "ADMIN"]);
-    const session = await auth();
-    const userId = session?.user?.id;
+    try {
+      const companyId = await getCurrentCompanyId();
+      await authorizeAction(["OWNER", "ADMIN"]);
+      const session = await auth();
+      const userId = session?.user?.id;
 
-    if (!userId) {
-      throw new Error("User not authenticated");
+      if (!userId) {
+        throw new Error("Usuário não autenticado.");
+      }
+
+      await db.$transaction(async (trx) => {
+        const sale = await trx.sale.findFirst({
+          where: { id, companyId },
+          include: { saleItems: true },
+        });
+
+        if (!sale) {
+          throw new Error("Venda não encontrada.");
+        }
+
+        if (sale.status === "CANCELED") {
+          throw new Error("Esta venda já está cancelada.");
+        }
+
+        await trx.sale.update({
+          where: { id },
+          data: { status: "CANCELED" },
+        });
+
+        for (const item of sale.saleItems) {
+          console.log(`[CANCEL_SALE] Reverting product ${item.productId}, qty: ${item.quantity}`);
+          await recordStockMovement(
+            {
+              productId: item.productId,
+              companyId,
+              userId,
+              type: "CANCEL",
+              quantity: Number(item.quantity),
+              saleId: sale.id,
+              reason: "Cancelamento de venda",
+            },
+            trx
+          );
+        }
+      });
+
+      revalidatePath("/sales", "page");
+      revalidatePath("/");
+    } catch (error) {
+      console.error("[CANCEL_SALE_ERROR]", error);
+      throw error;
     }
-
-    await db.$transaction(async (trx) => {
-      const sale = await trx.sale.findFirst({
-        where: { id, companyId },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        include: { saleItems: true } as any,
-      });
-
-      if (!sale) {
-        throw new Error("Sale not found.");
-      }
-
-      if (sale.status === "CANCELED") {
-        throw new Error("Sale is already canceled.");
-      }
-
-      await trx.sale.update({
-        where: { id },
-        data: { status: "CANCELED" },
-      });
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      for (const item of (sale as any).saleItems) {
-        await recordStockMovement(
-          {
-            productId: item.productId,
-            companyId,
-            userId,
-            type: "CANCEL",
-            quantity: Number(item.quantity),
-            saleId: sale.id,
-            reason: "Sale cancellation",
-          },
-          trx
-        );
-      }
-    });
-
-    revalidatePath("/sales", "page");
-    revalidatePath("/");
   });

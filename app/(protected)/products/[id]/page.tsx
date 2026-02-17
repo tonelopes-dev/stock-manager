@@ -25,6 +25,7 @@ import {
 import Link from "next/link";
 import RecipeTable from "./_components/recipe-table";
 import AddIngredientForm from "./_components/add-ingredient-form";
+import ProduceBatchModal from "./_components/produce-batch-modal";
 import { getIngredients } from "@/app/_data-access/ingredient/get-ingredients";
 
 const formatCurrency = (value: number) =>
@@ -74,6 +75,15 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
             </div>
           </div>
         </HeaderLeft>
+        {isPrepared && product.recipes.length > 0 && (
+          <ProduceBatchModal
+            productId={product.id}
+            productName={product.name}
+            productStock={product.stock}
+            recipeCost={product.recipeCost}
+            recipes={product.recipes}
+          />
+        )}
       </Header>
 
       {/* KPI Cards */}
@@ -127,11 +137,11 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <BeakerIcon size={14} />
-                <span className="text-xs font-medium">Insumos</span>
+                <BoxIcon size={14} />
+                <span className="text-xs font-medium">Estoque Produzido</span>
               </div>
-              <p className="text-lg font-bold">{product.recipes.length}</p>
-              <p className="text-xs text-muted-foreground">na receita</p>
+              <p className="text-lg font-bold">{product.stock}</p>
+              <p className="text-xs text-muted-foreground">unidades disponíveis</p>
             </CardContent>
           </Card>
         )}

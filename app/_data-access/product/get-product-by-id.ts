@@ -3,7 +3,7 @@ import "server-only";
 import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { calculateMargin } from "@/app/_lib/pricing";
-import { calculateRealCost } from "@/app/_lib/units";
+import { calculateRealCost, calculateStockDeduction } from "@/app/_lib/units";
 import { UnitType } from "@prisma/client";
 
 const UNIT_LABELS: Record<string, string> = {
@@ -26,6 +26,8 @@ export interface RecipeIngredientDto {
   ingredientUnitLabel: string;
   ingredientStock: number;
   partialCost: number;
+  /** How much ingredient stock is consumed per 1 unit of product produced (in stock unit) */
+  consumptionPerUnit: number;
 }
 
 export interface ProductDetailDto {
@@ -71,6 +73,14 @@ export const getProductById = async (id: string): Promise<ProductDetailDto | nul
       )
     );
 
+    const consumptionPerUnit = Number(
+      calculateStockDeduction(
+        recipe.quantity,
+        recipe.unit as UnitType,
+        recipe.ingredient.unit as UnitType,
+      )
+    );
+
     return {
       id: recipe.id,
       ingredientId: recipe.ingredientId,
@@ -83,6 +93,7 @@ export const getProductById = async (id: string): Promise<ProductDetailDto | nul
       ingredientUnitLabel: UNIT_LABELS[recipe.ingredient.unit] || recipe.ingredient.unit,
       ingredientStock: Number(recipe.ingredient.stock),
       partialCost,
+      consumptionPerUnit,
     };
   });
 

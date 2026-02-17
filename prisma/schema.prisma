@@ -31,6 +31,7 @@ model Product {
   saleItems      SaleItem[]
   stockMovements StockMovement[]
   recipes        ProductRecipe[]
+  productionOrders ProductionOrder[]
 
   @@unique([sku, companyId])
 }
@@ -100,6 +101,7 @@ model User {
   userCompanies  UserCompany[]
   sales          Sale[]
   stockMovements StockMovement[]
+  productionOrders ProductionOrder[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 }
@@ -162,6 +164,7 @@ enum StockMovementType {
   ADJUSTMENT
   MANUAL
   CANCEL
+  PRODUCTION
 }
 
 enum ProductType {
@@ -224,6 +227,7 @@ model Company {
   sales          Sale[]
   stockMovements StockMovement[]
   invitations    CompanyInvitation[]
+  productionOrders ProductionOrder[]
 }
 
 model UserCompany {
@@ -286,4 +290,20 @@ model ProductRecipe {
   ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
 
   @@unique([productId, ingredientId])
+}
+
+model ProductionOrder {
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  quantity    Int
+  totalCost   Decimal  @db.Decimal(10, 2) @default(0)
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([companyId])
+  @@index([productId])
 }
