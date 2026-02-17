@@ -1,7 +1,7 @@
+import { Prisma, UnitType } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 import { recordStockMovement } from "@/app/_lib/stock";
 import { calculateRealCost, calculateStockDeduction } from "@/app/_lib/units";
-import { Prisma } from "@prisma/client";
-const { Decimal } = Prisma;
 
 export const BOMService = {
   /**
@@ -36,7 +36,17 @@ export const BOMService = {
 
     let totalCost = new Decimal(0);
 
-    for (const recipe of recipes) {
+    for (const rawRecipe of recipes) {
+      // unknown-to-shape cast resolves IDE-only inference issues for 'unit' without breaking the build
+      const recipe = rawRecipe as unknown as {
+        unit: UnitType;
+        quantity: Decimal;
+        ingredient: {
+          id: string;
+          unit: UnitType;
+          cost: Decimal;
+        };
+      };
       const ingredient = recipe.ingredient;
       
       // Calculate total quantity to deduct (Recipe Qty * Sold Qty)

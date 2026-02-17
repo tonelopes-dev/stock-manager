@@ -9,10 +9,11 @@ import {
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { formatCurrency } from "@/app/_lib/utils";
 
-interface Last14DaysRevenueCardProps {
+interface RevenueTrendChartProps {
   data: {
     date: string;
     revenue: number;
+    cogs: number;
   }[];
 }
 
@@ -21,9 +22,13 @@ const chartConfig = {
     label: "Receita",
     color: "hsl(var(--primary))",
   },
+  cogs: {
+    label: "Custo",
+    color: "hsl(var(--slate-400))",
+  },
 } satisfies ChartConfig;
 
-export const Last14DaysRevenueCard = ({ data }: Last14DaysRevenueCardProps) => {
+export const RevenueTrendChart = ({ data }: RevenueTrendChartProps) => {
   return (
     <ChartContainer config={chartConfig} className="h-full w-full">
       <AreaChart
@@ -49,6 +54,18 @@ export const Last14DaysRevenueCard = ({ data }: Last14DaysRevenueCardProps) => {
               stopOpacity={0.01}
             />
           </linearGradient>
+          <linearGradient id="fillCogs" x1="0" y1="0" x2="0" y2="1">
+            <stop
+              offset="5%"
+              stopColor="#94a3b8"
+              stopOpacity={0.2}
+            />
+            <stop
+              offset="95%"
+              stopColor="#94a3b8"
+              stopOpacity={0.01}
+            />
+          </linearGradient>
         </defs>
         <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#f1f5f9" />
         <XAxis
@@ -69,9 +86,24 @@ export const Last14DaysRevenueCard = ({ data }: Last14DaysRevenueCardProps) => {
           content={
             <ChartTooltipContent
               className="w-[180px] border-slate-100 shadow-xl"
-              formatter={(value) => formatCurrency(Number(value))}
+              formatter={(value, name) => (
+                <div className="flex items-center gap-2">
+                    <div className="w-1 h-3 rounded-full" style={{ backgroundColor: name === 'revenue' ? 'var(--color-revenue)' : '#94a3b8' }} />
+                    <span className="text-slate-500">{name === 'revenue' ? 'Receita' : 'Custo'}:</span>
+                    <span className="font-black text-slate-900">{formatCurrency(Number(value))}</span>
+                </div>
+              )}
             />
           }
+        />
+        <Area
+          dataKey="cogs"
+          type="monotone"
+          fill="url(#fillCogs)"
+          fillOpacity={1}
+          stroke="#94a3b8"
+          strokeWidth={2}
+          strokeDasharray="4 4"
         />
         <Area
           dataKey="revenue"
