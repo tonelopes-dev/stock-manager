@@ -53,7 +53,7 @@ model Sale {
   saleItems    SaleItem[]
   stockMovements StockMovement[]
 
-  @@index([companyId, date, status])
+  @@index([companyId, status, date])
   @@index([companyId, createdAt])
 }
 
