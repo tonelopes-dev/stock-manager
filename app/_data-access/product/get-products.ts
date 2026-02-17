@@ -44,6 +44,7 @@ export const getProducts = async (slowMovingDays = 30): Promise<ProductDto[]> =>
     return {
       id: product.id,
       name: product.name,
+      type: product.type,
       sku: product.sku,
       stock: product.stock,
       minStock: product.minStock,

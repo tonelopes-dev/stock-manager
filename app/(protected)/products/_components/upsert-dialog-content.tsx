@@ -23,6 +23,13 @@ import {
   Form,
 } from "@/app/_components/ui/form";
 import { Input } from "@/app/_components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/_components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -64,6 +71,7 @@ const UpsertProductDialogContent = ({
     defaultValues: defaultValues ?? {
       id: "",
       name: "",
+      type: "RESELL",
       price: 0,
       cost: 0,
       sku: "",
@@ -71,6 +79,9 @@ const UpsertProductDialogContent = ({
       minStock: 0,
     },
   });
+
+  const productType = form.watch("type");
+  const isPrepared = productType === "PREPARED";
 
   const onSubmit = (data: UpsertProductSchema) => {
     executeUpsertProduct({ ...data, id: defaultValues?.id });
@@ -101,23 +112,56 @@ const UpsertProductDialogContent = ({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="sku"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>SKU</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Digite o SKU do produto"
-                    {...field}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tipo</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={isEditing}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="RESELL">Revenda</SelectItem>
+                      <SelectItem value="PREPARED">Produção Própria</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {isEditing && (
+                    <p className="text-[10px] text-muted-foreground">
+                      O tipo não pode ser alterado após a criação.
+                    </p>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="sku"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>SKU</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Digite o SKU do produto"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <FormField
@@ -148,78 +192,98 @@ const UpsertProductDialogContent = ({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="cost"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Custo</FormLabel>
-                  <FormControl>
-                    <MoneyInput
-                      thousandSeparator="."
-                      decimalSeparator=","
-                      fixedDecimalScale
-                      decimalScale={2}
-                      prefix="R$ "
-                      allowNegative={false}
-                      customInput={Input}
-                      onValueChange={(values) =>
-                        field.onChange(values.floatValue)
-                      }
-                      name={field.name}
-                      onBlur={field.onBlur}
-                      value={field.value}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!isPrepared && (
+              <FormField
+                control={form.control}
+                name="cost"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Custo</FormLabel>
+                    <FormControl>
+                      <MoneyInput
+                        thousandSeparator="."
+                        decimalSeparator=","
+                        fixedDecimalScale
+                        decimalScale={2}
+                        prefix="R$ "
+                        allowNegative={false}
+                        customInput={Input}
+                        onValueChange={(values) =>
+                          field.onChange(values.floatValue)
+                        }
+                        name={field.name}
+                        onBlur={field.onBlur}
+                        value={field.value}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {isPrepared && (
+              <div className="flex items-end">
+                <p className="text-xs text-muted-foreground pb-2">
+                  O custo será calculado automaticamente com base na receita.
+                </p>
+              </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="stock"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Estoque Atual</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Quantidade atual"
-                      {...field}
-                      disabled={isEditing}
-                    />
-                  </FormControl>
-                  {isEditing && (
-                    <p className="text-[10px] text-muted-foreground">
-                      Para alterar o estoque de um produto existente, utilize a opção &quot;Ajustar Estoque&quot; no menu de ações.
-                    </p>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          {!isPrepared && (
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="stock"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estoque Atual</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Quantidade atual"
+                        {...field}
+                        disabled={isEditing}
+                      />
+                    </FormControl>
+                    {isEditing && (
+                      <p className="text-[10px] text-muted-foreground">
+                        Para alterar o estoque de um produto existente, utilize a opção &quot;Ajustar Estoque&quot; no menu de ações.
+                      </p>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="minStock"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Estoque Mínimo</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Alerta de estoque baixo"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+              <FormField
+                control={form.control}
+                name="minStock"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estoque Mínimo</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Alerta de estoque baixo"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+
+          {isPrepared && (
+            <div className="rounded-lg border border-dashed border-muted-foreground/30 p-4">
+              <p className="text-sm text-muted-foreground text-center">
+                Após criar o produto, acesse a página de detalhes para cadastrar a receita com os insumos.
+              </p>
+            </div>
+          )}
 
           <DialogFooter>
             <DialogClose asChild>

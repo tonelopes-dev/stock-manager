@@ -17,11 +17,13 @@ import {
   ClipboardCopyIcon,
   EditIcon,
   TrashIcon,
+  ExternalLinkIcon,
 } from "lucide-react";
 import { useState } from "react";
 import DeleteProductDialogContent from "./delete-dialog-content";
 import UpsertProductDialogContent from "./upsert-dialog-content";
 import { ProductDto } from "@/app/_data-access/product/get-products";
+import Link from "next/link";
 
 interface ProductTableDropdownMenuProps {
   product: ProductDto;
@@ -43,6 +45,12 @@ const ProductTableDropdownMenu = ({
           <DropdownMenuContent>
             <DropdownMenuLabel>Ações</DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href={`/products/${product.id}`} className="gap-1.5">
+                <ExternalLinkIcon size={16} />
+                Ver Detalhes
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem
               className="gap-1.5"
               onClick={() => navigator.clipboard.writeText(product.id)}
@@ -68,6 +76,7 @@ const ProductTableDropdownMenu = ({
           defaultValues={{
             id: product.id,
             name: product.name,
+            type: product.type,
             price: Number(product.price),
             cost: Number(product.cost),
             sku: product.sku || "",

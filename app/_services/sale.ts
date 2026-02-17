@@ -3,6 +3,9 @@ import { recordStockMovement } from "@/app/_lib/stock";
 import * as Sentry from "@sentry/nextjs";
 import { BusinessError } from "@/app/_lib/errors";
 import { BOMService } from "./bom";
+import { Decimal } from "@prisma/client/runtime/library";
+import { UnitType } from "@prisma/client";
+import { calculateStockDeduction } from "@/app/_lib/units";
 
 interface UpsertSaleParams {
   id?: string;
@@ -50,10 +53,43 @@ export const SaleService = {
                 trx
               );
             } else {
-              // PREPARED - For now, cancellation of PREPARED item 
-              // doesn't restore ingredients automatically (BOM logic 
-              // would need to be reversed). We keep it simple for Phase 1.
-              // TODO: Implement Ingredient Reversion if needed.
+              // PREPARED — Reverse BOM: restore ingredient stock
+              const recipes = await trx.productRecipe.findMany({
+                where: { productId: sp.productId },
+                include: { ingredient: true },
+              });
+
+              for (const rawRecipe of recipes) {
+                const recipe = rawRecipe as unknown as {
+                  unit: UnitType;
+                  quantity: Decimal;
+                  ingredient: {
+                    id: string;
+                    unit: UnitType;
+                  };
+                };
+
+                const totalRecipeQty = new Decimal(recipe.quantity.toString()).mul(sp.quantity);
+                const deductionQty = calculateStockDeduction(
+                  totalRecipeQty,
+                  recipe.unit,
+                  recipe.ingredient.unit
+                );
+
+                // Restore stock (positive quantity = adds back)
+                await recordStockMovement(
+                  {
+                    ingredientId: recipe.ingredient.id,
+                    companyId,
+                    userId,
+                    type: "CANCEL",
+                    quantity: deductionQty,
+                    saleId: existingSale.id,
+                    reason: `Cancelamento de venda - produto preparado: ${sp.productId}`,
+                  },
+                  trx
+                );
+              }
             }
           }
 

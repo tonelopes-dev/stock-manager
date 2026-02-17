@@ -43,8 +43,8 @@ export const upsertProduct = actionClient
     }
 
     await db.$transaction(async (trx) => {
-      const { stock, ...rest } = data;
-      const updateData = { ...rest, sku };
+      const { stock, type, ...rest } = data;
+      const updateData = { ...rest, sku, type };
 
       if (id) {
         // Update product metadata only, ignore stock field from form
@@ -55,11 +55,12 @@ export const upsertProduct = actionClient
       } else {
         // Create new product with 0 stock initially
         const product = await trx.product.create({
-          data: { ...updateData, companyId, stock: 0 },
+          data: { ...updateData, companyId, stock: 0, type },
         });
 
         // Set initial stock via movement for auditability
-        if (stock && stock > 0) {
+        // PREPARED products: stock is managed via ingredients, skip initial movement
+        if (type !== "PREPARED" && stock && stock > 0) {
           await recordStockMovement(
             {
               productId: product.id,

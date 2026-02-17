@@ -4,11 +4,25 @@ import { ColumnDef } from "@tanstack/react-table";
 import ProductTableDropdownMenu from "./table-dropdown-menu";
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import ProductStatusBadge from "@/app/_components/product-status-badge";
+import { Badge } from "@/app/_components/ui/badge";
+
+const PRODUCT_TYPE_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
+  RESELL: { label: "Revenda", variant: "secondary" },
+  PREPARED: { label: "Produção Própria", variant: "default" },
+};
 
 export const productTableColumns: ColumnDef<ProductDto>[] = [
   {
     accessorKey: "name",
     header: "Produto",
+  },
+  {
+    accessorKey: "type",
+    header: "Tipo",
+    cell: ({ row: { original: product } }) => {
+      const config = PRODUCT_TYPE_LABELS[product.type] || PRODUCT_TYPE_LABELS.RESELL;
+      return <Badge variant={config.variant}>{config.label}</Badge>;
+    },
   },
   {
     accessorKey: "sku",
