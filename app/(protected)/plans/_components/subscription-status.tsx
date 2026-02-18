@@ -4,9 +4,9 @@ import { Badge } from "@/app/_components/ui/badge";
 import { AlertCircleIcon, CheckCircle2Icon, ClockIcon } from "lucide-react";
 
 interface SubscriptionStatusProps {
-  initialPlan: string;
   subscriptionStatus?: string | null;
 }
+
 
 export type SubStatus = "FREE" | "TRIALING" | "ACTIVE" | "PAST_DUE" | "CANCELED" | "INCOMPLETE";
 
@@ -54,17 +54,10 @@ const configs: Record<
 };
 
 export const SubscriptionStatus = ({
-  initialPlan,
   subscriptionStatus,
 }: SubscriptionStatusProps) => {
   // Determine display status: prefer subscriptionStatus from DB (set by webhook)
-  let status: SubStatus = "FREE";
-
-  if (subscriptionStatus) {
-    status = subscriptionStatus as SubStatus;
-  } else if (initialPlan === "PRO") {
-    status = "ACTIVE";
-  }
+  const status: SubStatus = (subscriptionStatus as SubStatus) ?? "FREE";
 
   const config = configs[status] ?? configs.FREE;
 

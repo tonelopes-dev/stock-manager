@@ -20,8 +20,12 @@ export default async function ProfilePage() {
   
   const company = await db.company.findUnique({
     where: { id: companyId },
-    select: { name: true, plan: true }
+    select: { 
+      name: true, 
+      subscriptionStatus: true 
+    }
   });
+
 
   const user = await db.user.findUnique({
     where: { id: session?.user?.id },
@@ -103,11 +107,12 @@ export default async function ProfilePage() {
               </div>
 
               <div className="space-y-2 pt-4 border-t border-slate-200">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Plano Atual</p>
-                <Badge className="font-black px-3 py-1 bg-primary text-white">
-                  {company?.plan}
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status da Assinatura</p>
+                <Badge className="font-black px-3 py-1 bg-primary text-white uppercase">
+                  {company?.subscriptionStatus || "FREE"}
                 </Badge>
               </div>
+
             </CardContent>
           </Card>
 

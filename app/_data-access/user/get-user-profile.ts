@@ -26,7 +26,8 @@ export const getUserProfile = async () => {
       },
       company: {
         select: {
-          plan: true,
+          id: true,
+          name: true,
         },
       },
     },
@@ -41,6 +42,6 @@ export const getUserProfile = async () => {
     name: userWithCompany.user.name,
     email: userWithCompany.user.email,
     role: userWithCompany.role,
-    plan: userWithCompany.company.plan,
   };
 };
+

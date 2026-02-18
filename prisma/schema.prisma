@@ -203,12 +203,6 @@ model StockMovement {
   @@index([ingredientId])
 }
 
-enum Plan {
-  FREE
-  PRO
-  ENTERPRISE
-}
-
 enum SubscriptionStatus {
   TRIALING
   ACTIVE
@@ -220,9 +214,6 @@ enum SubscriptionStatus {
 model Company {
   id                     String               @id @default(cuid())
   name                   String
-  plan                   Plan                 @default(FREE)
-  maxProducts            Int                  @default(20)
-  maxUsers               Int                  @default(1)
   allowNegativeStock     Boolean              @default(false)
   createdAt              DateTime             @default(now())
   stripeCustomerId       String?              @unique
@@ -230,6 +221,8 @@ model Company {
   stripePriceId          String?
   stripeCurrentPeriodEnd DateTime?
   subscriptionStatus     SubscriptionStatus?
+
+
   userCompanies  UserCompany[]
   products       Product[]
   ingredients    Ingredient[]

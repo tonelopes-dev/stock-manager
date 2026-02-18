@@ -5,7 +5,6 @@ import { auth } from "@/app/_lib/auth";
 import { actionClient } from "@/app/_lib/safe-action";
 import { z } from "zod";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { getTeamUsage } from "@/app/_data-access/user/get-team-usage";
 import { revalidatePath } from "next/cache";
 import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
 
@@ -35,13 +34,8 @@ export const inviteMember = actionClient
         throw new Error("Apenas administradores podem convidar membros.");
     }
 
-    // 2. Verificar limites do plano
-    const { userCount, maxUsers } = await getTeamUsage();
-    if (userCount >= maxUsers) {
-        throw new Error(`Limite de usuários atingido (${maxUsers}). Faça upgrade do seu plano.`);
-    }
+    // 2. Verificar se o e-mail já é membro ou já foi convidado
 
-    // 3. Verificar se o e-mail já é membro ou já foi convidado
     const existingMember = await db.userCompany.findFirst({
         where: { companyId, user: { email } }
     });

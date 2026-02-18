@@ -7,7 +7,6 @@ import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { auth } from "@/app/_lib/auth";
 import { recordStockMovement } from "@/app/_lib/stock";
-import { checkProductLimit } from "@/app/_lib/plan-limits";
 import { recalculateProductCost } from "../recipe/recalculate-cost";
 import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
 
@@ -23,12 +22,8 @@ export const upsertProduct = actionClient
       throw new Error("User not authenticated");
     }
 
-    // Plan Limit: Global check for new products
-    if (!id) {
-      await checkProductLimit(companyId);
-    }
-
     // Business Validation: SKU Uniqueness per company
+
     const sku = data.sku?.trim() || null;
 
     if (sku) {

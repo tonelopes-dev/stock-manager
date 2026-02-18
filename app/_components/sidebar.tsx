@@ -9,17 +9,20 @@ import {
 } from "lucide-react";
 import SidebarButton from "./sidebar-button";
 import LogoutButton from "./logout-button";
-import PlanUsageWidget from "./plan-usage-widget";
+import SubscriptionPanel from "./subscription-panel";
 import { UserSidebarProfile } from "./user-sidebar-profile";
 import { getUserRoleInCompany } from "@/app/_lib/rbac";
 import { UserRole } from "@prisma/client";
+import { getCompanyPlan } from "../_data-access/company/get-company-plan";
+
 
 const Sidebar = async () => {
   const role = await getUserRoleInCompany();
   const isAdminOrOwner = role === UserRole.OWNER || role === UserRole.ADMIN;
+  const { subscriptionStatus, stripeCurrentPeriodEnd } = await getCompanyPlan();
 
   return (
-    <div className="flex w-64 flex-col border-r border-gray-200 bg-white">
+    <div className="flex h-full w-64 flex-col border-r border-gray-200 bg-white">
       {/* USER PROFILE */}
       <UserSidebarProfile />
 
@@ -72,8 +75,11 @@ const Sidebar = async () => {
       </div>
 
       <div className="mt-auto flex flex-col gap-4 p-4">
-        {/* USAGE WIDGET */}
-        <PlanUsageWidget />
+        {/* SUBSCRIPTION PANEL */}
+        <SubscriptionPanel
+          status={subscriptionStatus}
+          periodEnd={stripeCurrentPeriodEnd}
+        />
 
         {/* LOGOUT */}
         <LogoutButton />
@@ -81,5 +87,6 @@ const Sidebar = async () => {
     </div>
   );
 };
+
 
 export default Sidebar;
