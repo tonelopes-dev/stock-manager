@@ -52,21 +52,16 @@ export const Combobox = ({
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
         <Command>
-          <CommandInput placeholder="Search option..." />
+          <CommandInput placeholder="Buscar..." />
           <CommandList>
-            <CommandEmpty>No option found.</CommandEmpty>
+            <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.value}
-                  onSelect={(currentValue) => {
-                    // cmdk lowercases currentValue, so we find the original option
-                    const originalValue =
-                      options.find(
-                        (opt) => opt.value.toLowerCase() === currentValue.toLowerCase(),
-                      )?.value ?? currentValue;
-                    onChange(originalValue === value ? "" : originalValue);
+                  value={option.label}
+                  onSelect={() => {
+                    onChange(option.value === value ? "" : option.value);
                     setOpen(false);
                   }}
                 >

@@ -6,6 +6,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import SalesTableDropdownMenu from "./table-dropdown-menu";
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
+import { format } from "date-fns";
 
 interface SaleTableColumn extends SaleDto {
   products: ProductDto[];
@@ -35,7 +36,7 @@ export const saleTableColumns: ColumnDef<SaleTableColumn>[] = [
       row: {
         original: { date },
       },
-    }) => new Date(date).toLocaleDateString("pt-BR"),
+    }) => format(new Date(date), "dd/MM/yyyy"),
   },
   {
     header: "Ações",

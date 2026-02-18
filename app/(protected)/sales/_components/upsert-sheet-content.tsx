@@ -28,6 +28,7 @@ import {
 } from "@/app/_components/ui/table";
 import { formatCurrency } from "@/app/_helpers/currency";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
 import { CheckIcon, PlusIcon, TrashIcon, ShoppingCartIcon, CalendarIcon } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -79,7 +80,7 @@ const UpsertSheetContent = ({
     defaultSelectedProducts ?? [],
   );
   const [date, setDate] = useState<string>(
-    saleDate ? new Date(saleDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]
+    saleDate ? format(new Date(saleDate), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd")
   );
 
   const { execute: executeUpsertSale, isPending } = useAction(upsertSale, {
@@ -111,7 +112,7 @@ const UpsertSheetContent = ({
   useEffect(() => {
     if (isOpen) {
       setSelectedProducts(defaultSelectedProducts ?? []);
-      setDate(saleDate ? new Date(saleDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]);
+      setDate(saleDate ? format(new Date(saleDate), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"));
     } else {
       form.reset();
       setSelectedProducts([]);
@@ -169,7 +170,7 @@ const UpsertSheetContent = ({
   const onSubmitSale = () => {
     executeUpsertSale({
       id: saleId,
-      date: date ? new Date(date) : undefined,
+      date: date ? new Date(date + "T12:00:00") : undefined,
       products: selectedProducts.map((p) => ({ id: p.id, quantity: p.quantity })),
     });
   };
