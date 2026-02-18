@@ -1,12 +1,17 @@
 import { auth } from "@/app/_lib/auth";
 import { NextResponse } from "next/server";
 
-export default auth((req) => {
+export default auth(async (req) => {
+
   const isLoggedIn = !!req.auth;
   const { pathname } = req.nextUrl;
 
-  // Public routes that don't require authentication
-  const publicRoutes = ["/", "/login", "/register"];
+  // 1. Loop Protection & Public Routes
+  if (pathname === "/billing-required") {
+    return NextResponse.next();
+  }
+
+  const publicRoutes = ["/", "/login", "/register", "/plans", "/checkout", "/checkout/success"];
   const isPublicRoute = publicRoutes.includes(pathname);
   const isAuthApiRoute = pathname.startsWith("/api/auth");
   const isWebhookRoute = pathname.startsWith("/api/webhooks");
@@ -34,9 +39,21 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/login", req.nextUrl.origin));
   }
 
-  return NextResponse.next();
+  // 2. Inject Pathname into Headers (for Server Components)
+  // This allows the ProtectedLayout to perform the subscription guard check safely on the server
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-pathname", pathname);
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 });
 
+
 export const config = {
-  matcher: ["/((?!api/webhooks|api/auth|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next|favicon.ico).*)"],
 };
+
+

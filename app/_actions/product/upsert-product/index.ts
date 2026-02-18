@@ -9,11 +9,13 @@ import { auth } from "@/app/_lib/auth";
 import { recordStockMovement } from "@/app/_lib/stock";
 import { checkProductLimit } from "@/app/_lib/plan-limits";
 import { recalculateProductCost } from "../recipe/recalculate-cost";
+import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
 
 export const upsertProduct = actionClient
   .schema(upsertProductSchema)
   .action(async ({ parsedInput: { id, ...data } }) => {
     const companyId = await getCurrentCompanyId();
+    await requireActiveSubscription(companyId);
     const session = await auth();
     const userId = session?.user?.id;
 

@@ -7,11 +7,13 @@ import { returnValidationErrors } from "next-safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { auth } from "@/app/_lib/auth";
 import { SaleService } from "@/app/_services/sale";
+import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
 
 export const upsertSale = actionClient
   .schema(upsertSaleSchema)
   .action(async ({ parsedInput: { products, id, date } }) => {
     const companyId = await getCurrentCompanyId();
+    await requireActiveSubscription(companyId);
     const session = await auth();
     const userId = session?.user?.id;
 

@@ -8,11 +8,13 @@ import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { auth } from "@/app/_lib/auth";
 import { recordStockMovement } from "@/app/_lib/stock";
 import { authorizeAction } from "@/app/_lib/rbac";
+import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
 
 export const adjustStock = actionClient
   .schema(adjustStockSchema)
   .action(async ({ parsedInput: { id, quantity, reason } }) => {
     const companyId = await getCurrentCompanyId();
+    await requireActiveSubscription(companyId);
     await authorizeAction(["OWNER", "ADMIN"]);
     const session = await auth();
     const userId = session?.user?.id;

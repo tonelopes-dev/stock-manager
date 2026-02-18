@@ -7,11 +7,13 @@ import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { auth } from "@/app/_lib/auth";
 import { IngredientService } from "@/app/_services/ingredient";
+import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
 
 export const upsertIngredient = actionClient
   .schema(upsertIngredientSchema)
   .action(async ({ parsedInput: { id, stock, ...data } }) => {
     const companyId = await getCurrentCompanyId();
+    await requireActiveSubscription(companyId);
     const session = await auth();
     const userId = session?.user?.id;
 

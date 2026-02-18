@@ -7,6 +7,7 @@ import { z } from "zod";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { getTeamUsage } from "@/app/_data-access/user/get-team-usage";
 import { revalidatePath } from "next/cache";
+import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
 
 const inviteMemberSchema = z.object({
   email: z.string().email("E-mail inválido"),
@@ -18,6 +19,7 @@ export const inviteMember = actionClient
   .action(async ({ parsedInput: { email, role } }) => {
     const session = await auth();
     const companyId = await getCurrentCompanyId();
+    await requireActiveSubscription(companyId);
 
     if (!session?.user?.id) {
       throw new Error("Não autorizado");

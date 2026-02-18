@@ -98,10 +98,10 @@ async function syncSubscription(subscription: Stripe.Subscription) {
   }
 
   const priceId = subscription.items.data[0]?.price?.id ?? null;
-  const currentPeriodEnd = new Date(
-    (subscription as unknown as { current_period_end: number })
-      .current_period_end * 1000
-  );
+  const sub = subscription as any;
+  const currentPeriodEnd = sub.current_period_end
+    ? new Date(sub.current_period_end * 1000)
+    : null;
 
   // Reflect status in legacy `plan` field for backward compatibility
   const legacyPlan: "PRO" | "FREE" =
