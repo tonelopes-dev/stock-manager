@@ -50,4 +50,7 @@ export const deleteSale = actionClient
       });
     });
     revalidatePath("/", "layout");
+    revalidatePath("/dashboard");
+    revalidatePath("/sales");
+    revalidatePath("/products");
   });

@@ -1,5 +1,5 @@
 import { db } from "@/app/_lib/prisma";
-import { Prisma, SaleStatus } from "@prisma/client";
+import { startOfDay, format } from "date-fns";
 
 export interface DateRange {
   startDate: Date;
@@ -58,32 +58,23 @@ export async function getFinancialOverview(
     throw new Error("Invalid date range");
   }
 
-  // 2. Perform aggregation directly in the database
-  // We use explicit Prisma types and an unknown cast to satisfy IDE-only inference desync 
-  // without triggering ESLint 'any' warnings or build failures.
-  const aggregation = (await db.sale.aggregate({
-    where: {
-      companyId,
-      status: SaleStatus.ACTIVE,
-      date: {
-        gte: startDate,
-        lte: endDate,
-      },
-    },
-    _sum: {
-      totalAmount: true,
-      totalCost: true,
-    },
-  } as Prisma.SaleAggregateArgs)) as unknown as {
-    _sum: {
-      totalAmount: number | null;
-      totalCost: number | null;
-    };
-  };
+  // 2. Perform raw aggregation across Sale items to ensure accuracy
+  // We join Sale with SaleItem to sum the actual item values
+  const results = await db.$queryRaw<{ revenue: number; cost: number }[]>`
+    SELECT 
+      COALESCE(SUM(si."unitPrice" * si."quantity"), 0)::float as revenue,
+      COALESCE(SUM(si."baseCost" * si."quantity"), 0)::float as cost
+    FROM "SaleProduct" si
+    JOIN "Sale" s ON s.id = si."saleId"
+    WHERE s."companyId" = ${companyId}
+      AND s."status" = 'ACTIVE'
+      AND s."date" >= ${startDate}
+      AND s."date" < ${endDate}
+  `;
 
-  // 3. Extract values and handle potential nulls
-  const revenue = Number(aggregation._sum.totalAmount ?? 0);
-  const cogs = Number(aggregation._sum.totalCost ?? 0);
+  // 3. Extract values
+  const revenue = results[0].revenue;
+  const cogs = results[0].cost;
 
   // 3. Calculate derived metrics
   const profit = revenue - cogs;
@@ -113,34 +104,33 @@ export async function getDailySalesChart(
     throw new Error("Invalid date range");
   }
 
-  // 1. Query raw totals grouped by day
+  // 1. Query raw totals grouped by day, joining SaleItem for precision
   const results = await db.$queryRaw<DailySalesRaw[]>`
     SELECT 
-      DATE_TRUNC('day', "date") as day,
-      SUM("totalAmount") as revenue,
-      SUM("totalCost") as cogs
-    FROM "Sale"
-    WHERE "companyId" = ${companyId}
-      AND "status" = 'ACTIVE'
-      AND "date" BETWEEN ${startDate} AND ${endDate}
+      DATE_TRUNC('day', s."date") as day,
+      SUM(si."unitPrice" * si."quantity") as revenue,
+      SUM(si."baseCost" * si."quantity") as cogs
+    FROM "SaleProduct" si
+    JOIN "Sale" s ON s.id = si."saleId"
+    WHERE s."companyId" = ${companyId}
+      AND s."status" = 'ACTIVE'
+      AND s."date" >= ${startDate}
+      AND s."date" < ${endDate}
     GROUP BY day
     ORDER BY day ASC;
   `;
 
-  // 2. Gap Filling in Node.js
+  // 2. Gap Filling using Local Dates
   const resultMap = new Map(
-    results.map((r) => [new Date(r.day).toISOString().split("T")[0], r])
+    results.map((r) => [format(new Date(r.day), "yyyy-MM-dd"), r])
   );
 
   const filledResults: DailySalesData[] = [];
-  const current = new Date(startDate);
-  current.setUTCHours(0, 0, 0, 0);
+  let current = startOfDay(new Date(startDate));
+  const finalDate = startOfDay(new Date(endDate));
 
-  const finalDate = new Date(endDate);
-  finalDate.setUTCHours(0, 0, 0, 0);
-
-  while (current <= finalDate) {
-    const key = current.toISOString().split("T")[0];
+  while (current < finalDate) {
+    const key = format(current, "yyyy-MM-dd");
     const data = resultMap.get(key);
 
     filledResults.push({
@@ -149,7 +139,7 @@ export async function getDailySalesChart(
       cogs: Number(data?.cogs ?? 0),
     });
 
-    current.setUTCDate(current.getUTCDate() + 1);
+    current = new Date(current.setDate(current.getDate() + 1));
   }
 
   return filledResults;
@@ -172,16 +162,17 @@ export async function getTopProfitableProducts(
     SELECT
       si."productId",
       p."name" as "productName",
-      SUM(si."totalAmount") as revenue,
-      SUM(si."totalCost") as cogs,
-      SUM(si."totalAmount" - si."totalCost") as profit
+      SUM(si."unitPrice" * si."quantity") as revenue,
+      SUM(si."baseCost" * si."quantity") as cogs,
+      SUM((si."unitPrice" * si."quantity") - (si."baseCost" * si."quantity")) as profit
     FROM "SaleProduct" si
     JOIN "Sale" s ON s.id = si."saleId"
     JOIN "Product" p ON p.id = si."productId"
     WHERE
       s."companyId" = ${companyId}
       AND s."status" = 'ACTIVE'
-      AND s."date" BETWEEN ${startDate} AND ${endDate}
+      AND s."date" >= ${startDate}
+      AND s."date" < ${endDate}
     GROUP BY si."productId", p."name"
     ORDER BY profit DESC
     LIMIT 10;
@@ -215,12 +206,12 @@ export async function getWorstMarginProducts(
     SELECT
       si."productId",
       p."name" as "productName",
-      SUM(si."totalAmount") as revenue,
-      SUM(si."totalCost") as cogs,
-      SUM(si."totalAmount" - si."totalCost") as profit,
+      SUM(si."unitPrice" * si."quantity") as revenue,
+      SUM(si."baseCost" * si."quantity") as cogs,
+      SUM((si."unitPrice" * si."quantity") - (si."baseCost" * si."quantity")) as profit,
       CASE 
-        WHEN SUM(si."totalAmount") > 0 
-        THEN (SUM(si."totalAmount" - si."totalCost") / SUM(si."totalAmount")) * 100 
+        WHEN SUM(si."unitPrice" * si."quantity") > 0 
+        THEN (SUM((si."unitPrice" * si."quantity") - (si."baseCost" * si."quantity")) / SUM(si."unitPrice" * si."quantity")) * 100 
         ELSE 0 
       END as margin
     FROM "SaleProduct" si
@@ -229,9 +220,10 @@ export async function getWorstMarginProducts(
     WHERE
       s."companyId" = ${companyId}
       AND s."status" = 'ACTIVE'
-      AND s."date" BETWEEN ${startDate} AND ${endDate}
+      AND s."date" >= ${startDate}
+      AND s."date" < ${endDate}
     GROUP BY si."productId", p."name"
-    HAVING SUM(si."totalAmount") > 0
+    HAVING SUM(si."unitPrice" * si."quantity") > 0
     ORDER BY margin ASC
     LIMIT 10;
   `;

@@ -30,6 +30,8 @@ export const toggleProductStatus = actionClient
     });
 
     revalidatePath("/", "layout");
+    revalidatePath("/dashboard");
+    revalidatePath("/sales");
     revalidatePath("/products");
     revalidatePath(`/products/${id}`);
 

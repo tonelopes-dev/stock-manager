@@ -3,8 +3,8 @@ import "server-only";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { 
   startOfDay, 
-  endOfDay, 
   subDays, 
+  addDays,
   format,
 } from "date-fns";
 import { 
@@ -54,12 +54,17 @@ export const getDashboardAnalytics = async (
     let startOfCurrentDate: Date;
     let daysCount: number;
 
+    const parseLocalDay = (dateStr: string) => {
+        const [year, month, day] = dateStr.split("-").map(Number);
+        return new Date(year, month - 1, day);
+    };
+
     if (range === "custom" && customFrom && customTo) {
-        startOfCurrentDate = startOfDay(new Date(customFrom));
-        endOfCurrentDate = endOfDay(new Date(customTo));
+        startOfCurrentDate = startOfDay(parseLocalDay(customFrom));
+        endOfCurrentDate = startOfDay(addDays(parseLocalDay(customTo), 1)); // Start of next day
         daysCount = Math.ceil((endOfCurrentDate.getTime() - startOfCurrentDate.getTime()) / (1000 * 60 * 60 * 24));
     } else {
-        endOfCurrentDate = endOfDay(now);
+        endOfCurrentDate = startOfDay(addDays(now, 1)); // Start of tomorrow
         daysCount = 7;
         if (range === "today") daysCount = 1;
         if (range === "14d") daysCount = 14;
@@ -72,7 +77,7 @@ export const getDashboardAnalytics = async (
     }
 
     const startOfPrevious = startOfDay(subDays(startOfCurrentDate, daysCount));
-    const endOfPrevious = endOfDay(subDays(startOfCurrentDate, 1));
+    const endOfPrevious = startOfCurrentDate; // Exclusive boundary is the start of current period
 
 
     // 2. Fetch Metrics using AnalyticsService in parallel
@@ -146,7 +151,7 @@ async function fetchSalesCount(companyId: string, start: Date, end: Date): Promi
         where: {
             companyId,
             status: SaleStatus.ACTIVE,
-            date: { gte: start, lte: end }
+            date: { gte: start, lt: end }
         }
     });
     return count;

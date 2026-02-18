@@ -86,6 +86,9 @@ export const SaleService = {
         });
 
         // 4. Process products — unified for RESELL and PREPARED
+        let totalAmount = 0;
+        let totalCost = 0;
+
         for (const product of products) {
           const productFromDb = await trx.product.findUnique({
             where: { id: product.id },
@@ -148,7 +151,19 @@ export const SaleService = {
               baseCost: effectiveCost,
             },
           });
+
+          totalAmount += Number(productFromDb.price) * product.quantity;
+          totalCost += effectiveCost * product.quantity;
         }
+
+        // 5. Update Sale header with final totals
+        await trx.sale.update({
+          where: { id: sale.id },
+          data: {
+            totalAmount,
+            totalCost,
+          },
+        });
 
         return sale;
       });

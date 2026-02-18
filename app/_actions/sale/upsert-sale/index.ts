@@ -35,5 +35,8 @@ export const upsertSale = actionClient
     }
 
     revalidatePath("/", "layout");
+    revalidatePath("/dashboard");
+    revalidatePath("/sales");
+    revalidatePath("/products");
   });
 

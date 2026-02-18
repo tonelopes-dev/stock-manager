@@ -4,13 +4,13 @@ import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { 
   startOfDay, 
-  endOfDay, 
   format,
   eachDayOfInterval,
   isSameDay,
   startOfMonth,
   endOfMonth,
-  subMonths
+  subMonths,
+  addDays
 } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 
@@ -53,11 +53,11 @@ export const getSalesAnalytics = async (
     };
 
     const startOfSelected = from ? startOfDay(parseLocalDay(from)) : startOfMonth(now);
-    const endOfSelected = to ? endOfDay(parseLocalDay(to)) : endOfDay(now);
+    const endOfSelected = to ? startOfDay(addDays(parseLocalDay(to), 1)) : startOfDay(addDays(now, 1));
     
     const diff = endOfSelected.getTime() - startOfSelected.getTime();
-    const startOfPrevious = new Date(startOfSelected.getTime() - diff - 1);
-    const endOfPrevious = new Date(startOfSelected.getTime() - 1);
+    const startOfPrevious = new Date(startOfSelected.getTime() - diff);
+    const endOfPrevious = startOfSelected;
 
     // 2. Fetch Metrics
     const [currentMetrics, previousMetrics] = await Promise.all([
@@ -97,10 +97,10 @@ export const getSalesAnalytics = async (
 
     // 4. Monthly Comparison (Custom Months or Current vs Previous)
     const parseMonthStr = (str?: string, defaultDate: Date = now) => {
-        if (!str) return { start: startOfMonth(defaultDate), end: endOfMonth(defaultDate) };
+        if (!str) return { start: startOfMonth(defaultDate), end: startOfDay(addDays(endOfMonth(defaultDate), 1)) };
         const [year, month] = str.split("-").map(Number);
         const date = new Date(year, month - 1, 1);
-        return { start: startOfMonth(date), end: endOfMonth(date) };
+        return { start: startOfMonth(date), end: startOfDay(addDays(endOfMonth(date), 1)) };
     };
 
     const { start: startA, end: endA } = parseMonthStr(monthA, now);
@@ -162,7 +162,7 @@ async function fetchSalesMetrics(companyId: string, start: Date, end: Date) {
         WHERE "Sale"."companyId" = ${companyId}
             AND "Sale"."status" = 'ACTIVE'
             AND "Sale"."date" >= ${start}
-            AND "Sale"."date" <= ${end}
+            AND "Sale"."date" < ${end}
     `;
 
     return {
