@@ -209,18 +209,27 @@ enum Plan {
   ENTERPRISE
 }
 
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
+
 model Company {
-  id             String          @id @default(cuid())
-  name           String
-  plan           Plan            @default(FREE)
-  maxProducts    Int             @default(20)
-  maxUsers       Int             @default(1)
-  allowNegativeStock Boolean     @default(false)
-  createdAt      DateTime        @default(now())
-  stripeCustomerId       String?   @unique
-  stripeSubscriptionId   String?   @unique
+  id                     String               @id @default(cuid())
+  name                   String
+  plan                   Plan                 @default(FREE)
+  maxProducts            Int                  @default(20)
+  maxUsers               Int                  @default(1)
+  allowNegativeStock     Boolean              @default(false)
+  createdAt              DateTime             @default(now())
+  stripeCustomerId       String?              @unique
+  stripeSubscriptionId   String?              @unique
   stripePriceId          String?
   stripeCurrentPeriodEnd DateTime?
+  subscriptionStatus     SubscriptionStatus?
   userCompanies  UserCompany[]
   products       Product[]
   ingredients    Ingredient[]

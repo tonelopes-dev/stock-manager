@@ -18,7 +18,7 @@ import PlanActions from "./_components/plan-actions";
 import { SubscriptionStatus } from "./_components/subscription-status";
 
 const PlansPage = async () => {
-  const { plan } = await getCompanyPlan();
+  const { plan, subscriptionStatus } = await getCompanyPlan();
 
   const plans = [
     {
@@ -48,7 +48,7 @@ const PlansPage = async () => {
         "Gestão de estoque inteligente",
       ],
       isCurrent: plan === "PRO",
-      actionLabel: plan === "PRO" ? "Gerenciar Assinatura" : "Upgrade para Pro",
+      actionLabel: plan === "PRO" ? "Gerenciar Assinatura" : "Começar teste grátis de 30 dias",
       highlight: true,
     },
   ];
@@ -60,7 +60,7 @@ const PlansPage = async () => {
           <HeaderSubtitle>Gerencie sua assinatura e limites</HeaderSubtitle>
           <div className="flex items-center gap-4">
             <HeaderTitle>Planos</HeaderTitle>
-            <SubscriptionStatus initialPlan={plan} />
+            <SubscriptionStatus initialPlan={plan} subscriptionStatus={subscriptionStatus} />
           </div>
         </HeaderLeft>
       </Header>

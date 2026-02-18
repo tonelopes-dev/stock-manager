@@ -3,103 +3,244 @@ import { db } from "@/app/_lib/prisma";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const getSubscriptionStatus = (status: Stripe.Subscription.Status) => {
-  return status === "active" || status === "trialing" ? "PRO" : "FREE";
-};
+// Must use Node.js runtime to read raw body for signature verification
+export const runtime = "nodejs";
 
-const getPlanLimits = (status: Stripe.Subscription.Status) => {
-  if (status === "active" || status === "trialing") {
-    return { maxProducts: 1000, maxUsers: 10 };
+// Inline enum to avoid Prisma client import issues during build
+const SubscriptionStatus = {
+  TRIALING: "TRIALING",
+  ACTIVE: "ACTIVE",
+  PAST_DUE: "PAST_DUE",
+  CANCELED: "CANCELED",
+  INCOMPLETE: "INCOMPLETE",
+} as const;
+type SubscriptionStatus = (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus];
+
+/**
+ * Maps a Stripe subscription status to our internal SubscriptionStatus enum.
+ * Returns null for unknown statuses so we can log and skip safely.
+ */
+function mapStripeStatus(
+  stripeStatus: Stripe.Subscription["status"]
+): SubscriptionStatus | null {
+  const map: Partial<Record<Stripe.Subscription["status"], SubscriptionStatus>> = {
+    trialing: SubscriptionStatus.TRIALING,
+    active: SubscriptionStatus.ACTIVE,
+    past_due: SubscriptionStatus.PAST_DUE,
+    canceled: SubscriptionStatus.CANCELED,
+    incomplete: SubscriptionStatus.INCOMPLETE,
+    incomplete_expired: SubscriptionStatus.CANCELED,
+    unpaid: SubscriptionStatus.PAST_DUE,
+  };
+  return map[stripeStatus] ?? null;
+}
+
+/**
+ * Resolves the companyId from a Stripe subscription.
+ * Priority: subscription metadata → customer metadata → DB lookup by customerId.
+ */
+async function resolveCompanyId(
+  subscription: Stripe.Subscription
+): Promise<string | null> {
+  // 1. Subscription metadata (set during checkout session creation)
+  if (subscription.metadata?.companyId) {
+    return subscription.metadata.companyId;
   }
-  return { maxProducts: 20, maxUsers: 1 };
-};
+
+  const customerId =
+    typeof subscription.customer === "string"
+      ? subscription.customer
+      : subscription.customer.id;
+
+  // 2. Customer metadata (set during customer creation)
+  try {
+    const customer = await stripe.customers.retrieve(customerId);
+    if (!customer.deleted && customer.metadata?.companyId) {
+      return customer.metadata.companyId;
+    }
+  } catch {
+    // Customer retrieval failed, fall through to DB lookup
+  }
+
+  // 3. DB lookup by stripeCustomerId
+  const company = await db.company.findUnique({
+    where: { stripeCustomerId: customerId },
+    select: { id: true },
+  });
+
+  return company?.id ?? null;
+}
+
+/**
+ * Syncs a Stripe subscription to our Company record.
+ * This is the single function that keeps Stripe as the source of truth.
+ */
+async function syncSubscription(subscription: Stripe.Subscription) {
+  const companyId = await resolveCompanyId(subscription);
+
+  if (!companyId) {
+    console.error(
+      "[Webhook] ❌ Could not resolve companyId for subscription:",
+      subscription.id
+    );
+    return;
+  }
+
+  const status = mapStripeStatus(subscription.status);
+
+  if (!status) {
+    console.warn(
+      "[Webhook] ⚠️ Unknown Stripe status:",
+      subscription.status,
+      "— skipping update."
+    );
+    return;
+  }
+
+  const priceId = subscription.items.data[0]?.price?.id ?? null;
+  const currentPeriodEnd = new Date(
+    (subscription as unknown as { current_period_end: number })
+      .current_period_end * 1000
+  );
+
+  // Reflect status in legacy `plan` field for backward compatibility
+  const legacyPlan: "PRO" | "FREE" =
+    status === SubscriptionStatus.TRIALING || status === SubscriptionStatus.ACTIVE
+      ? "PRO"
+      : "FREE";
+
+  await db.company.update({
+    where: { id: companyId },
+    data: {
+      subscriptionStatus: status,
+      stripeSubscriptionId: subscription.id,
+      stripePriceId: priceId,
+      stripeCurrentPeriodEnd: currentPeriodEnd,
+      plan: legacyPlan,
+    },
+  });
+
+  console.log(
+    `[Webhook] ✅ Company ${companyId} synced → subscriptionStatus: ${status}`
+  );
+}
+
+/**
+ * Handles subscription deletion — marks company as CANCELED.
+ */
+async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+  const companyId = await resolveCompanyId(subscription);
+
+  if (!companyId) {
+    console.error(
+      "[Webhook] ❌ Could not resolve companyId for deleted subscription:",
+      subscription.id
+    );
+    return;
+  }
+
+  await db.company.update({
+    where: { id: companyId },
+    data: {
+      subscriptionStatus: SubscriptionStatus.CANCELED,
+      plan: "FREE",
+      // Keep stripeSubscriptionId for audit trail — do NOT clear it
+    },
+  });
+
+  console.log(`[Webhook] ✅ Company ${companyId} subscription deleted → CANCELED`);
+}
 
 export async function POST(req: Request) {
   const body = Buffer.from(await req.arrayBuffer());
   const signature = req.headers.get("stripe-signature");
 
   if (!signature) {
-    console.error("❌ No Stripe signature found in headers");
-    return new NextResponse("No signature", { status: 400 });
+    console.error("[Webhook] ❌ Missing stripe-signature header");
+    return new NextResponse("Missing stripe-signature header", { status: 400 });
+  }
+
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    console.error("[Webhook] ❌ STRIPE_WEBHOOK_SECRET is not configured");
+    return new NextResponse("Webhook secret not configured", { status: 500 });
   }
 
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
-    console.log(`🔔 Webhook: ${event.type}`);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Erro desconhecido no webhook";
-    console.error(`❌ Webhook Error: ${message}`);
-    return new NextResponse(`Webhook Error: ${message}`, { status: 400 });
-  }
-
-  // 1. Map Company to Customer on Checkout Completion
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
-    
-    if (!session?.metadata?.companyId) {
-      console.error("❌ Company ID not found in checkout session metadata");
-      return new NextResponse("Company ID not found in metadata", { status: 400 });
-    }
-
-    console.log(`🔗 Company ${session.metadata.companyId} matched with Stripe Customer`);
-
-    await db.company.update({
-      where: { id: session.metadata.companyId },
-      data: {
-        stripeCustomerId: session.customer as string,
-        stripeSubscriptionId: session.subscription as string,
-      },
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error("[Webhook] ❌ Signature verification failed:", message);
+    return new NextResponse(`Webhook signature invalid: ${message}`, {
+      status: 400,
     });
   }
 
-  // 2. PRIMARY TRUTH: Subscription Lifecycle
-  if (
-    event.type === "customer.subscription.created" ||
-    event.type === "customer.subscription.updated" ||
-    event.type === "customer.subscription.deleted"
-  ) {
-    const subscription = event.data.object as Stripe.Subscription;
-    const plan = getSubscriptionStatus(subscription.status);
-    const limits = getPlanLimits(subscription.status);
+  console.log(`[Webhook] 🔔 Received event: ${event.type}`);
 
-    // We find the company by stripeCustomerId or stripeSubscriptionId
-    const company = await db.company.findFirst({
-      where: {
-        OR: [
-          { stripeSubscriptionId: subscription.id },
-          { stripeCustomerId: subscription.customer as string },
-        ],
-      },
-    });
+  try {
+    switch (event.type) {
+      // ── Subscription lifecycle ──────────────────────────────────────────
+      case "customer.subscription.created":
+      case "customer.subscription.updated":
+        await syncSubscription(event.data.object as Stripe.Subscription);
+        break;
 
-    if (company) {
-      console.log(`✅ Updating company ${company.id} to plan ${plan}`);
-      await db.company.update({
-        where: { id: company.id },
-        data: {
-          stripeSubscriptionId: subscription.id,
-          stripePriceId: subscription.items.data[0].price.id,
-          stripeCurrentPeriodEnd: new Date((subscription as Stripe.Subscription & { current_period_end: number }).current_period_end * 1000),
-          plan,
-          ...limits,
-        },
-      });
-    } else {
-      console.warn(`⚠️ Company not found for subscription ${subscription.id} or customer ${subscription.customer}`);
+      case "customer.subscription.deleted":
+        await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+        break;
+
+      // ── Invoice events ──────────────────────────────────────────────────
+      case "invoice.payment_succeeded": {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const invoice = event.data.object as any;
+        const subId: string | null = invoice.subscription ?? null;
+        if (subId) {
+          const subscription = await stripe.subscriptions.retrieve(subId);
+          await syncSubscription(subscription);
+        }
+        break;
+      }
+
+      case "invoice.payment_failed": {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const invoice = event.data.object as any;
+        const subId: string | null = invoice.subscription ?? null;
+        if (subId) {
+          const subscription = await stripe.subscriptions.retrieve(subId);
+          await syncSubscription(subscription); // Will set PAST_DUE
+        }
+        break;
+      }
+
+      // ── Checkout completed (link customerId + subscriptionId) ───────────
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (session.metadata?.companyId && session.customer && session.subscription) {
+          await db.company.update({
+            where: { id: session.metadata.companyId },
+            data: {
+              stripeCustomerId: session.customer as string,
+              stripeSubscriptionId: session.subscription as string,
+            },
+          });
+          console.log(
+            `[Webhook] ✅ Company ${session.metadata.companyId} linked to Stripe customer`
+          );
+        }
+        break;
+      }
+
+      default:
+        console.log(`[Webhook] Unhandled event type: ${event.type}`);
     }
-  }
-
-  // 3. Optional: Handle failed payments to alert/log
-  if (event.type === "invoice.payment_failed") {
-    const session = event.data.object as Stripe.Invoice;
-    console.warn(`Payment failed for customer ${session.customer}`);
-    // Future: Send email to user
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error(`[Webhook] ❌ Error processing event ${event.type}:`, message);
+    // Return 500 so Stripe retries the event
+    return new NextResponse("Internal webhook processing error", { status: 500 });
   }
 
   return new NextResponse(null, { status: 200 });

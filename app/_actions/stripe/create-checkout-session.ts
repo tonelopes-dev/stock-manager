@@ -56,6 +56,12 @@ export const createCheckoutSession = actionClient.action(async () => {
         quantity: 1,
       },
     ],
+    subscription_data: {
+      trial_period_days: 30,
+      metadata: {
+        companyId: companyId,
+      },
+    },
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/plans?canceled=true`,
     metadata: {
