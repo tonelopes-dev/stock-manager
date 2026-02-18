@@ -5,13 +5,19 @@ import {
   PackageIcon,
   ShoppingBasketIcon,
   UsersIcon,
+  HistoryIcon,
 } from "lucide-react";
 import SidebarButton from "./sidebar-button";
 import LogoutButton from "./logout-button";
 import PlanUsageWidget from "./plan-usage-widget";
 import { UserSidebarProfile } from "./user-sidebar-profile";
+import { getUserRoleInCompany } from "@/app/_lib/rbac";
+import { UserRole } from "@prisma/client";
 
-const Sidebar = () => {
+const Sidebar = async () => {
+  const role = await getUserRoleInCompany();
+  const isAdminOrOwner = role === UserRole.OWNER || role === UserRole.ADMIN;
+
   return (
     <div className="flex w-64 flex-col border-r border-gray-200 bg-white">
       {/* USER PROFILE */}
@@ -56,6 +62,13 @@ const Sidebar = () => {
           <UsersIcon size={20} />
           Equipe
         </SidebarButton>
+
+        {isAdminOrOwner && (
+          <SidebarButton href="/audit">
+            <HistoryIcon size={20} />
+            Auditoria
+          </SidebarButton>
+        )}
       </div>
 
       <div className="mt-auto flex flex-col gap-4 p-4">

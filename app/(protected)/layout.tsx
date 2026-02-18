@@ -28,9 +28,9 @@ export default async function ProtectedLayout({
   const { needsPasswordChange } = await getUserSecurityStatus();
 
   return (
-    <div className="flex h-screen">
+    <div className="fixed inset-0 flex overflow-hidden">
       <Sidebar />
-      <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-gray-100">
+      <main className="flex-1 overflow-y-auto bg-gray-100">
         {children}
       </main>
       <OnboardingModal isOpen={needsOnboarding} />
