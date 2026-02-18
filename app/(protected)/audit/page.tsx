@@ -33,7 +33,7 @@ const AuditPage = async ({ searchParams }: AuditPageProps) => {
   }
 
   const page = Number(searchParams.page) || 1;
-  const pageSize = Number(searchParams.pageSize) || 30;
+  const pageSize = Number(searchParams.pageSize) || 10;
 
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
