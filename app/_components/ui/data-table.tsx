@@ -7,6 +7,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
+import { cn } from "@/app/_lib/utils";
+
 import {
   Table,
   TableBody,
@@ -28,6 +30,7 @@ interface DataTableProps<TData, TValue> {
     page: number;
     pageSize: number;
   };
+  getRowClassName?: (data: TData) => string;
 }
 
 export function DataTable<TData, TValue>({
@@ -36,6 +39,7 @@ export function DataTable<TData, TValue>({
   isLoading,
   emptyMessage,
   pagination,
+  getRowClassName,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -81,6 +85,7 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className={cn(getRowClassName?.(row.original))}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

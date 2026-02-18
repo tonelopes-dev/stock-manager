@@ -1,7 +1,7 @@
 import "server-only";
 
 import { db } from "@/app/_lib/prisma";
-import { Product, UnitType } from "@prisma/client";
+import { Product, Prisma, UnitType } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { calculateMargin } from "@/app/_lib/pricing";
 import { subDays } from "date-fns";
@@ -14,15 +14,36 @@ export interface ProductDto extends Omit<Product, "price" | "cost"> {
   cost: number;
   margin: number;
   status: ProductStatusDto;
+  _count?: {
+    saleItems: number;
+    productionOrders: number;
+  };
 }
 
-export const getProducts = async (slowMovingDays = 30): Promise<ProductDto[]> => {
+export const getProducts = async (
+  slowMovingDays = 30, 
+  status: "ACTIVE" | "INACTIVE" | "ALL" = "ACTIVE"
+): Promise<ProductDto[]> => {
   const companyId = await getCurrentCompanyId();
   const slowMovingThreshold = subDays(new Date(), slowMovingDays);
 
+  const where: Prisma.ProductWhereInput = { companyId, isActive: true };
+  
+  if (status === "INACTIVE") {
+    where.isActive = false;
+  } else if (status === "ALL") {
+    delete where.isActive;
+  }
+
   const products = await db.product.findMany({
-    where: { companyId, isActive: true },
+    where,
     include: {
+      _count: {
+        select: {
+          saleItems: true,
+          productionOrders: true,
+        },
+      },
       saleItems: {
         where: {
           sale: {
@@ -87,6 +108,7 @@ export const getProducts = async (slowMovingDays = 30): Promise<ProductDto[]> =>
         : isSlowMoving
         ? "SLOW_MOVING"
         : "IN_STOCK",
+      _count: product._count,
     } as ProductDto;
   });
 };

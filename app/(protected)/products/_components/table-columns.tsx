@@ -21,7 +21,16 @@ export const productTableColumns: ColumnDef<ProductDto>[] = [
     header: "Tipo",
     cell: ({ row: { original: product } }) => {
       const config = PRODUCT_TYPE_LABELS[product.type] || PRODUCT_TYPE_LABELS.RESELL;
-      return <Badge variant={config.variant}>{config.label}</Badge>;
+      return (
+        <div className="flex items-center gap-2">
+          <Badge variant={config.variant}>{config.label}</Badge>
+          {!product.isActive && (
+            <Badge variant="destructive" className="bg-red-100 text-red-700 hover:bg-red-100 border-red-200">
+              Inativo
+            </Badge>
+          )}
+        </div>
+      );
     },
   },
   {

@@ -1,7 +1,7 @@
-import { DataTable } from "../../_components/ui/data-table";
-import { productTableColumns } from "./_components/table-columns";
 import { getProducts } from "../../_data-access/product/get-products";
 import AddProductButton from "./_components/create-product-button";
+import { ProductStatusFilter } from "./_components/status-filter";
+import { ProductDataTable } from "./_components/product-data-table";
 import Header, {
   HeaderLeft,
   HeaderRight,
@@ -9,26 +9,35 @@ import Header, {
   HeaderTitle,
 } from "../../_components/header";
 
-import { PackageSearchIcon } from "lucide-react";
-import { EmptyState } from "../../_components/empty-state";
 import { Suspense } from "react";
 import { ProductTableSkeleton } from "./_components/table-skeleton";
+
+interface ProductsPageProps {
+  searchParams: {
+    status?: string;
+  };
+}
 
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";
 
-const ProductsPage = async () => {
+const ProductsPage = async ({ searchParams }: ProductsPageProps) => {
+  const statusParam = searchParams?.status?.toUpperCase();
+  const status = (["ACTIVE", "INACTIVE", "ALL"].includes(statusParam || "")
+    ? statusParam
+    : "ACTIVE") as "ACTIVE" | "INACTIVE" | "ALL";
+
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
-      <Suspense fallback={<ProductTableSkeleton />}>
-        <ProductTableWrapper />
+      <Suspense key={status} fallback={<ProductTableSkeleton />}>
+        <ProductTableWrapper status={status} />
       </Suspense>
     </div>
   );
 };
 
-const ProductTableWrapper = async () => {
-  const products = await getProducts();
+const ProductTableWrapper = async ({ status }: { status: "ACTIVE" | "INACTIVE" | "ALL" }) => {
+  const products = await getProducts(30, status);
   return (
     <div className="space-y-6">
       <Header>
@@ -38,22 +47,13 @@ const ProductTableWrapper = async () => {
         </HeaderLeft>
         <HeaderRight>
           <div className="flex gap-3">
+             <ProductStatusFilter />
              <AddProductButton />
           </div>
         </HeaderRight>
       </Header>
 
-      <DataTable 
-        columns={productTableColumns} 
-        data={products} 
-        emptyMessage={
-          <EmptyState
-            icon={PackageSearchIcon}
-            title="Nenhum produto encontrado"
-            description="Você ainda não cadastrou nenhum produto. Comece adicionando o seu primeiro item!"
-          />
-        }
-      />
+      <ProductDataTable products={products} />
     </div>
   );
 };
