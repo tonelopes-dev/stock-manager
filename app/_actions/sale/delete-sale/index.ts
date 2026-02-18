@@ -30,11 +30,6 @@ export const deleteSale = actionClient
         },
       });
       if (!sale) return;
-      await trx.sale.delete({
-        where: {
-          id,
-        },
-      });
       for (const item of sale.saleItems) {
         await recordStockMovement(
           {
@@ -44,10 +39,15 @@ export const deleteSale = actionClient
             type: "CANCEL",
             quantity: Number(item.quantity),
             saleId: sale.id,
+            reason: "Exclusão de venda",
           },
           trx
         );
       }
+
+      await trx.sale.delete({
+        where: { id },
+      });
     });
     revalidatePath("/", "layout");
   });

@@ -2,6 +2,8 @@ import { db } from "@/app/_lib/prisma";
 import { recordStockMovement } from "@/app/_lib/stock";
 import * as Sentry from "@sentry/nextjs";
 import { BusinessError } from "@/app/_lib/errors";
+import { calculateRealCost } from "@/app/_lib/units";
+import { UnitType } from "@prisma/client";
 
 interface UpsertSaleParams {
   id?: string;
@@ -87,6 +89,11 @@ export const SaleService = {
         for (const product of products) {
           const productFromDb = await trx.product.findUnique({
             where: { id: product.id },
+            include: {
+              recipes: {
+                include: { ingredient: true }
+              }
+            }
           });
 
           if (!productFromDb) {
@@ -97,18 +104,28 @@ export const SaleService = {
             throw new BusinessError(`O produto ${productFromDb.name} está desativado.`);
           }
 
-          console.log(`[UPSERT_SALE] Processing product ${productFromDb.name} (${productFromDb.type})`);
-          console.log(`[UPSERT_SALE] Stock: ${productFromDb.stock}, Requested: ${product.quantity}`);
+          // Calculate point-in-time cost for PREPARED products
+          let effectiveCost = Number(productFromDb.cost);
+          if (productFromDb.type === "PREPARED" && productFromDb.recipes.length > 0) {
+            const recipeCost = productFromDb.recipes.reduce((sum, recipe) => {
+              const partialCost = calculateRealCost(
+                recipe.quantity,
+                recipe.unit as UnitType,
+                recipe.ingredient.unit as UnitType,
+                recipe.ingredient.cost
+              );
+              return sum + Number(partialCost);
+            }, 0);
+            effectiveCost = recipeCost;
+          }
 
           // Validate stock (applies to both RESELL and PREPARED)
           const productIsOutOfStock = product.quantity > productFromDb.stock;
           if (productIsOutOfStock && !company?.allowNegativeStock) {
-            console.log(`[UPSERT_SALE] Insufficient stock for ${productFromDb.name}`);
             throw new BusinessError(`Estoque insuficiente para o produto ${productFromDb.name}.`);
           }
 
           // Deduct product stock (SALE movement)
-          console.log(`[UPSERT_SALE] Recording stock movement for ${productFromDb.name}`);
           await recordStockMovement(
             {
               productId: product.id,
@@ -122,14 +139,13 @@ export const SaleService = {
           );
 
           // Create SaleItem with historical cost
-          console.log(`[UPSERT_SALE] Creating sale item for ${productFromDb.name}, cost: ${productFromDb.cost}`);
           await trx.saleItem.create({
             data: {
               saleId: sale.id,
               productId: product.id,
               quantity: product.quantity,
               unitPrice: productFromDb.price,
-              baseCost: productFromDb.cost,
+              baseCost: effectiveCost,
             },
           });
         }
@@ -137,7 +153,6 @@ export const SaleService = {
         return sale;
       });
     } catch (error) {
-      console.error("[UPSERT_SALE_ERROR]", error);
       if (error instanceof BusinessError) {
         throw error;
       }

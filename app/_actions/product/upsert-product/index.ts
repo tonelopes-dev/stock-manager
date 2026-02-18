@@ -8,6 +8,7 @@ import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { auth } from "@/app/_lib/auth";
 import { recordStockMovement } from "@/app/_lib/stock";
 import { checkProductLimit } from "@/app/_lib/plan-limits";
+import { recalculateProductCost } from "../recipe/recalculate-cost";
 
 export const upsertProduct = actionClient
   .schema(upsertProductSchema)
@@ -43,19 +44,44 @@ export const upsertProduct = actionClient
     }
 
     await db.$transaction(async (trx) => {
-      const { stock, type, ...rest } = data;
-      const updateData = { ...rest, sku, type };
+      const { stock, type, cost, ...rest } = data;
+      
+      // For PREPARED products, cost is managed via recipes and shouldn't be updated here.
+      // For RESELL products, cost is managed manually via this form.
+      // For PREPARED products, cost is managed via recipes and shouldn't be updated here.
+      // For RESELL products, cost is managed manually via this form.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const updateData: any = { 
+        ...rest, 
+        sku, 
+        type 
+      };
+      
+      if (type !== "PREPARED") {
+        updateData.cost = cost;
+      }
 
       if (id) {
         // Update product metadata only, ignore stock field from form
-        await trx.product.update({
+        const updatedProduct = await trx.product.update({
           where: { id, companyId },
           data: updateData,
         });
+
+        // If it's a PREPARED product, we must ensure its cost is correctly recalculated
+        // from its recipe, especially since previous bugs might have set it to 0.
+        if (updatedProduct.type === "PREPARED") {
+          await recalculateProductCost(id, trx);
+        }
       } else {
         // Create new product with 0 stock initially
         const product = await trx.product.create({
-          data: { ...updateData, companyId, stock: 0, type },
+          data: { 
+            ...updateData, 
+            cost: type === "PREPARED" ? 0 : (cost || 0),
+            companyId, 
+            stock: 0 
+          },
         });
 
         // Set initial stock via movement for auditability

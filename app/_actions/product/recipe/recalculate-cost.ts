@@ -2,14 +2,19 @@
 
 import { db } from "@/app/_lib/prisma";
 import { calculateRealCost } from "@/app/_lib/units";
-import { UnitType } from "@prisma/client";
+import { UnitType, Prisma } from "@prisma/client";
 
 /**
  * Recalculates a PREPARED product's cost from its recipe ingredients
  * and persists the result in the product.cost field.
  */
-export async function recalculateProductCost(productId: string) {
-  const recipes = await db.productRecipe.findMany({
+export async function recalculateProductCost(
+  productId: string, 
+  trx?: Prisma.TransactionClient
+) {
+  const client = trx || db;
+  
+  const recipes = await client.productRecipe.findMany({
     where: { productId },
     include: { ingredient: true },
   });
@@ -28,7 +33,7 @@ export async function recalculateProductCost(productId: string) {
     totalCost += partialCost;
   }
 
-  await db.product.update({
+  await client.product.update({
     where: { id: productId },
     data: { cost: totalCost },
   });

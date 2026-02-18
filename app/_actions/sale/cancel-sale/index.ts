@@ -8,6 +8,7 @@ import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { auth } from "@/app/_lib/auth";
 import { recordStockMovement } from "@/app/_lib/stock";
 import { authorizeAction } from "@/app/_lib/rbac";
+import { BusinessError } from "@/app/_lib/errors";
 
 export const cancelSale = actionClient
   .schema(cancelSaleSchema)
@@ -42,7 +43,6 @@ export const cancelSale = actionClient
         });
 
         for (const item of sale.saleItems) {
-          console.log(`[CANCEL_SALE] Reverting product ${item.productId}, qty: ${item.quantity}`);
           await recordStockMovement(
             {
               productId: item.productId,
@@ -61,7 +61,9 @@ export const cancelSale = actionClient
       revalidatePath("/sales", "page");
       revalidatePath("/");
     } catch (error) {
-      console.error("[CANCEL_SALE_ERROR]", error);
+      if (error instanceof BusinessError) {
+        throw error;
+      }
       throw error;
     }
   });

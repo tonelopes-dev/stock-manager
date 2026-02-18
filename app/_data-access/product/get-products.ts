@@ -1,10 +1,11 @@
 import "server-only";
 
 import { db } from "@/app/_lib/prisma";
-import { Product } from "@prisma/client";
+import { Product, UnitType } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { calculateMargin } from "@/app/_lib/pricing";
 import { subDays } from "date-fns";
+import { calculateRealCost } from "@/app/_lib/units";
 
 export type ProductStatusDto = "IN_STOCK" | "OUT_OF_STOCK" | "LOW_STOCK" | "SLOW_MOVING";
 
@@ -31,15 +32,39 @@ export const getProducts = async (slowMovingDays = 30): Promise<ProductDto[]> =>
         },
         take: 1,
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any,
+      recipes: {
+        include: {
+          ingredient: true,
+        },
+      },
+    }
   });
 
   return products.map((product) => {
     const isOutOfStock = product.stock <= 0;
     const isLowStock = product.stock <= product.minStock;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const isSlowMoving = (product as any).saleItems.length === 0 && !isOutOfStock;
+    const isSlowMoving = product.saleItems.length === 0 && !isOutOfStock;
+
+    // Calculate effective cost: use recipe cost for PREPARED products
+    let effectiveCost = Number(product.cost);
+    
+    if (product.type === "PREPARED") {
+      const recipeCost = product.recipes.reduce((sum, recipe) => {
+        const partialCost = calculateRealCost(
+          recipe.quantity,
+          recipe.unit as UnitType,
+          recipe.ingredient.unit as UnitType,
+          recipe.ingredient.cost
+        );
+        return sum + Number(partialCost);
+      }, 0);
+      
+      // If the product has a recipe, use it. 
+      // This "fixes" the bug where cost was reset to 0 in the DB.
+      if (product.recipes.length > 0) {
+        effectiveCost = recipeCost;
+      }
+    }
 
     return {
       id: product.id,
@@ -53,8 +78,8 @@ export const getProducts = async (slowMovingDays = 30): Promise<ProductDto[]> =>
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
       price: Number(product.price),
-      cost: Number(product.cost),
-      margin: calculateMargin(product.price, product.cost),
+      cost: effectiveCost,
+      margin: calculateMargin(product.price, effectiveCost),
       status: isOutOfStock
         ? "OUT_OF_STOCK"
         : isLowStock

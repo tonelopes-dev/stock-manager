@@ -24,11 +24,9 @@ export const recordStockMovement = async (
   const execute = async (t: Prisma.TransactionClient) => {
     try {
       const qty = new Decimal(params.quantity.toString());
-      console.log(`[STOCK_MOVEMENT] Type: ${params.type}, Qty: ${qty.toString()}, Product: ${params.productId}, Ingredient: ${params.ingredientId}`);
 
       if (params.productId) {
         // 1. Update product
-        console.log(`[STOCK_MOVEMENT] Updating product ${params.productId}`);
         const updatedProduct = await t.product.update({
           where: { id: params.productId },
           data: {
@@ -44,19 +42,14 @@ export const recordStockMovement = async (
           },
         });
 
-        console.log(`[STOCK_MOVEMENT] Product updated. New Stock: ${updatedProduct.stock}`);
-
         const stockAfter = new Decimal(updatedProduct.stock);
         const stockBefore = stockAfter.minus(qty);
 
         // 2. Validate negative stock
         if (stockAfter.lt(0) && !updatedProduct.company.allowNegativeStock) {
-          console.log(`[STOCK_MOVEMENT] Insufficient stock error`);
           throw new BusinessError("Estoque insuficiente. A empresa não permite estoque negativo.");
         }
 
-        // 3. Create movement record
-        console.log(`[STOCK_MOVEMENT] Creating movement record`);
         return await t.stockMovement.create({
           data: {
             productId: params.productId,
@@ -71,8 +64,7 @@ export const recordStockMovement = async (
           },
         });
       } else if (params.ingredientId) {
-        // ... (logging for ingredients as well)
-        console.log(`[STOCK_MOVEMENT] Updating ingredient ${params.ingredientId}`);
+        // 1. Update ingredient
         const updatedIngredient = await t.ingredient.update({
           where: { id: params.ingredientId },
           data: {
@@ -112,7 +104,6 @@ export const recordStockMovement = async (
         throw new Error("Either productId or ingredientId must be provided.");
       }
     } catch (err) {
-      console.error("[STOCK_MOVEMENT_ERROR]", err);
       throw err;
     }
   };
