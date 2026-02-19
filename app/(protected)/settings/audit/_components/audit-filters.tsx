@@ -2,17 +2,18 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useTransition } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/_components/ui/select";
+import { Input } from "@/app/_components/ui/input";
 import { AuditEventType } from "@prisma/client";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { Label } from "@/app/_components/ui/label";
+import { Button } from "@/app/_components/ui/button";
 import { X } from "lucide-react";
 
 export function AuditFilters({ actors }: { actors: { id: string, name: string | null, email: string }[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
+
 
   const createQueryString = useCallback(
     (params: Record<string, string | null>) => {

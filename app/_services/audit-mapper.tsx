@@ -1,4 +1,4 @@
-import { AuditEventType, AuditSeverity } from "@prisma/client";
+import { AuditEventType, Prisma } from "@prisma/client";
 import { 
   UserPlus, 
   UserMinus, 
@@ -22,8 +22,11 @@ export interface MappedAuditLog {
 }
 
 export class AuditMapper {
-  static map(type: AuditEventType, metadata: any, actorName: string | null): MappedAuditLog {
+  static map(type: AuditEventType, metadata: Prisma.JsonValue, actorName: string | null): MappedAuditLog {
     const actor = actorName || "Sistema";
+    const meta = (metadata && typeof metadata === "object" && !Array.isArray(metadata)) 
+      ? metadata as Record<string, unknown> 
+      : {};
 
     switch (type) {
       // Account Lifecycle
@@ -53,7 +56,7 @@ export class AuditMapper {
       case AuditEventType.MEMBER_INVITED:
         return {
           title: "Membro convidado",
-          description: `${actor} enviou um convite para ${metadata?.email || "novo membro"}.`,
+          description: `${actor} enviou um convite para ${String(meta.email || "novo membro")}.`,
           icon: <UserPlus className="h-4 w-4" />,
           variant: "info",
         };
@@ -83,10 +86,55 @@ export class AuditMapper {
       case AuditEventType.SALE_CANCELED:
         return {
           title: "Venda cancelada",
-          description: `${actor} cancelou a venda #${metadata?.saleId || ""}.`,
+          description: `${actor} cancelou a venda #${String(meta.saleId || "")}.`,
           icon: <ShoppingCart className="h-4 w-4" />,
           variant: "warning",
         };
+      case AuditEventType.SALE_CREATED:
+        return {
+          title: "Venda realizada",
+          description: `${actor} registrou uma nova venda no valor de R$ ${Number(meta.totalAmount || 0).toFixed(2)}.`,
+
+          icon: <ShoppingCart className="h-4 w-4" />,
+          variant: "info",
+        };
+      case AuditEventType.SALE_UPDATED:
+        return {
+          title: "Venda editada",
+          description: `${actor} alterou os dados da venda #${String(meta.saleId || "")}.`,
+          icon: <ShoppingCart className="h-4 w-4" />,
+          variant: "info",
+        };
+      case AuditEventType.SALE_DELETED:
+        return {
+          title: "Venda excluída",
+          description: `${actor} removeu permanentemente a venda #${String(meta.saleId || "")}.`,
+          icon: <Trash2 className="h-4 w-4" />,
+          variant: "warning",
+        };
+      case AuditEventType.PRODUCT_CREATED:
+        return {
+          title: "Produto criado",
+          description: `${actor} adicionou o produto "${String(meta.name || "Sem nome")}" ao catálogo.`,
+          icon: <Package className="h-4 w-4" />,
+          variant: "info",
+        };
+      case AuditEventType.PRODUCT_UPDATED:
+        return {
+          title: "Produto atualizado",
+          description: `${actor} editou as informações do produto "${String(meta.name || "Sem nome")}".`,
+          icon: <Package className="h-4 w-4" />,
+          variant: "info",
+        };
+      case AuditEventType.PRODUCT_DELETED:
+        return {
+          title: "Produto desativado",
+          description: `${actor} desativou o produto "${String(meta.name || "Sem nome")}" do catálogo.`,
+          icon: <Trash2 className="h-4 w-4" />,
+          variant: "warning",
+        };
+
+
 
       // Billing
       case AuditEventType.SUBSCRIPTION_ACTIVATED:

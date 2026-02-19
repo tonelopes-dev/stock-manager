@@ -1,6 +1,6 @@
 import { db } from "@/app/_lib/prisma";
 import { auth } from "@/app/_lib/auth";
-import { AuditEventType, AuditSeverity } from "@prisma/client";
+import { AuditEventType, AuditSeverity, Prisma } from "@prisma/client";
 
 interface LogEventParams {
   type: AuditEventType;
@@ -8,7 +8,7 @@ interface LogEventParams {
   companyId?: string;
   entityType?: "USER" | "COMPANY" | "PRODUCT" | "SALE" | "TEAM_MEMBER" | "BILLING";
   entityId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Prisma.JsonValue;
   metadataVersion?: number;
 }
 
@@ -43,7 +43,9 @@ export class AuditService {
           actorEmail,
           entityType,
           entityId,
-          metadata,
+          metadata: metadata ?? Prisma.DbNull,
+
+
           metadataVersion,
         },
       });
@@ -54,7 +56,7 @@ export class AuditService {
 
   // Helper for internal transactions (where we already have the tx client)
   static async logWithTransaction(
-    tx: any,
+    tx: Omit<typeof db, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">,
     {
       type,
       severity = AuditSeverity.INFO,
@@ -82,7 +84,9 @@ export class AuditService {
         actorEmail,
         entityType,
         entityId,
-        metadata,
+        metadata: metadata ?? Prisma.DbNull,
+
+
         metadataVersion,
       },
     });
@@ -105,7 +109,12 @@ export class AuditService {
     limit?: number;
     cursor?: string;
   }) {
-    const where: any = { companyId };
+    const where: { 
+      companyId: string; 
+      type?: AuditEventType; 
+      actorId?: string; 
+      createdAt?: { gte?: Date; lte?: Date } 
+    } = { companyId };
 
     if (type) where.type = type;
     if (actorId) where.actorId = actorId;

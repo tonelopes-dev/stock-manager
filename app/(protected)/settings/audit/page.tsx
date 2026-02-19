@@ -4,16 +4,17 @@ import { assertRole, ADMIN_AND_OWNER } from "@/app/_lib/rbac";
 import { AuditMapper } from "@/app/_services/audit-mapper";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/_components/ui/table";
+import { Badge } from "@/app/_components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/_components/ui/avatar";
+import { Card, CardContent } from "@/app/_components/ui/card";
 import { AuditFilters } from "./_components/audit-filters";
 import { db } from "@/app/_lib/prisma";
 import { AuditEventType } from "@prisma/client";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/_components/ui/button";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+
 
 interface AuditPageProps {
   searchParams: {

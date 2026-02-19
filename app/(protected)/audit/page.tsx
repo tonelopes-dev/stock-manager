@@ -12,7 +12,7 @@ import { Suspense } from "react";
 import { Skeleton } from "../../_components/ui/skeleton";
 import { getStockMovements } from "@/app/_data-access/stock-movement/get-stock-movements";
 import { stockMovementTableColumns } from "./_components/table-columns";
-import { getUserRoleInCompany } from "@/app/_lib/rbac";
+import { getCurrentUserRole } from "@/app/_lib/rbac";
 import { UserRole } from "@prisma/client";
 import { redirect } from "next/navigation";
 
@@ -27,10 +27,11 @@ interface AuditPageProps {
 
 const AuditPage = async ({ searchParams }: AuditPageProps) => {
   // 1. Role Guard - Enterprise Style (Server Side)
-  const role = await getUserRoleInCompany();
+  const role = await getCurrentUserRole();
   if (!role || (role !== UserRole.OWNER && role !== UserRole.ADMIN)) {
     redirect("/dashboard");
   }
+
 
   const page = Number(searchParams.page) || 1;
   const pageSize = Number(searchParams.pageSize) || 10;
