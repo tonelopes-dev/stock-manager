@@ -11,7 +11,9 @@ const PRODUCT_TYPE_LABELS: Record<string, { label: string; variant: "default" | 
   PREPARED: { label: "Produção Própria", variant: "default" },
 };
 
-export const productTableColumns: ColumnDef<ProductDto>[] = [
+import { UserRole } from "@prisma/client";
+
+export const productTableColumns = (userRole: UserRole): ColumnDef<ProductDto>[] => [
   {
     accessorKey: "name",
     header: "Produto",
@@ -70,6 +72,6 @@ export const productTableColumns: ColumnDef<ProductDto>[] = [
   {
     accessorKey: "actions",
     header: "Ações",
-    cell: (row) => <ProductTableDropdownMenu product={row.row.original} />,
+    cell: (row) => <ProductTableDropdownMenu product={row.row.original} userRole={userRole} />,
   },
 ];

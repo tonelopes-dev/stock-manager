@@ -1,4 +1,5 @@
-import { PrismaClient, UserRole, SaleStatus, StockMovementType, Plan } from "@prisma/client";
+import { PrismaClient, UserRole, SaleStatus, StockMovementType } from "@prisma/client";
+
 import { hash } from "bcryptjs";
 import { subDays } from "date-fns";
 
@@ -16,10 +17,8 @@ async function main() {
     create: {
       id: "test-company-id",
       name: "Empresa Stockly Teste",
-      plan: Plan.PRO,
-      maxProducts: 100,
-      maxUsers: 10,
     },
+
   });
 
   // 2. Create Users

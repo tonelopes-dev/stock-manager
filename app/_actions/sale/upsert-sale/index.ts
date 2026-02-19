@@ -8,12 +8,20 @@ import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { auth } from "@/app/_lib/auth";
 import { SaleService } from "@/app/_services/sale";
 import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
+import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
 
 export const upsertSale = actionClient
   .schema(upsertSaleSchema)
   .action(async ({ parsedInput: { products, id, date } }) => {
     const companyId = await getCurrentCompanyId();
+    
+    // Role Guard: Only OWNER/ADMIN can edit. Anyone can create.
+    if (id) {
+      await assertRole(ADMIN_AND_OWNER);
+    }
+    
     await requireActiveSubscription(companyId);
+
     const session = await auth();
     const userId = session?.user?.id;
 

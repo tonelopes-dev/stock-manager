@@ -27,14 +27,19 @@ import ToggleStatusDialogContent from "./toggle-status-dialog-content";
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { toggleProductStatus } from "@/app/_actions/product/toggle-status";
 import Link from "next/link";
+import { UserRole } from "@prisma/client";
+
 
 interface ProductTableDropdownMenuProps {
   product: ProductDto;
+  userRole: UserRole;
 }
 
 const ProductTableDropdownMenu = ({
   product,
+  userRole,
 }: ProductTableDropdownMenuProps) => {
+
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [toggleStatusDialogOpen, setToggleStatusDialogOpen] = useState(false);
@@ -77,43 +82,48 @@ const ProductTableDropdownMenu = ({
             </Link>
           </DropdownMenuItem>
           
-          <DropdownMenuItem
-            className="gap-1.5"
-            onClick={handleToggleStatus}
-            disabled={isPending}
-          >
-            {product.isActive ? (
-              <>
-                <PowerOffIcon size={16} />
-                Desativar
-              </>
-            ) : (
-              <>
-                <PowerIcon size={16} />
-                Reativar
-              </>
-            )}
-          </DropdownMenuItem>
+          {userRole !== UserRole.MEMBER && (
+            <>
+              <DropdownMenuItem
+                className="gap-1.5"
+                onClick={handleToggleStatus}
+                disabled={isPending}
+              >
+                {product.isActive ? (
+                  <>
+                    <PowerOffIcon size={16} />
+                    Desativar
+                  </>
+                ) : (
+                  <>
+                    <PowerIcon size={16} />
+                    Reativar
+                  </>
+                )}
+              </DropdownMenuItem>
 
-          <DropdownMenuItem 
-            className="gap-1.5"
-            onClick={() => setEditDialogOpen(true)}
-          >
-            <EditIcon size={16} />
-            Editar
-          </DropdownMenuItem>
+              <DropdownMenuItem 
+                className="gap-1.5"
+                onClick={() => setEditDialogOpen(true)}
+              >
+                <EditIcon size={16} />
+                Editar
+              </DropdownMenuItem>
 
-          {!hasHistory && (
-            <DropdownMenuItem 
-              className="gap-1.5 text-red-600 focus:text-red-600 focus:bg-red-50"
-              onClick={() => setDeleteDialogOpen(true)}
-            >
-              <TrashIcon size={16} />
-              Deletar
-            </DropdownMenuItem>
+              {!hasHistory && (
+                <DropdownMenuItem 
+                  className="gap-1.5 text-red-600 focus:text-red-600 focus:bg-red-50"
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
+                  <TrashIcon size={16} />
+                  Deletar
+                </DropdownMenuItem>
+              )}
+            </>
           )}
         </DropdownMenuContent>
       </DropdownMenu>
+
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>

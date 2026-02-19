@@ -39,7 +39,26 @@ export default auth(async (req) => {
     return NextResponse.redirect(new URL("/login", req.nextUrl.origin));
   }
 
-  // 2. Inject Pathname into Headers (for Server Components)
+  // 2. Role-Based Route Protection (Layer 1)
+  if (isLoggedIn) {
+     const role = req.auth?.user?.role;
+     
+     // OWNER: Can access everything
+     // ADMIN: Cannot access /plans (Billing)
+     if (role === "ADMIN" && pathname.startsWith("/plans")) {
+        return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
+     }
+
+     // MEMBER: Cannot access /plans OR /settings/team
+     if (role === "MEMBER") {
+        if (pathname.startsWith("/plans") || pathname.startsWith("/settings/team")) {
+          return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
+        }
+     }
+  }
+
+  // 3. Inject Pathname into Headers (for Server Components)
+
   // This allows the ProtectedLayout to perform the subscription guard check safely on the server
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-pathname", pathname);

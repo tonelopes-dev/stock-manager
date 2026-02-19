@@ -21,6 +21,9 @@ interface ProductsPageProps {
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";
 
+import { getCurrentUserRole } from "@/app/_lib/rbac";
+import { UserRole } from "@prisma/client";
+
 const ProductsPage = async ({ searchParams }: ProductsPageProps) => {
   const statusParam = searchParams?.status?.toUpperCase();
   const status = (["ACTIVE", "INACTIVE", "ALL"].includes(statusParam || "")
@@ -38,6 +41,9 @@ const ProductsPage = async ({ searchParams }: ProductsPageProps) => {
 
 const ProductTableWrapper = async ({ status }: { status: "ACTIVE" | "INACTIVE" | "ALL" }) => {
   const products = await getProducts(30, status);
+  const role = await getCurrentUserRole();
+  const isManagement = role === UserRole.OWNER || role === UserRole.ADMIN;
+
   return (
     <div className="space-y-6">
       <Header>
@@ -48,14 +54,15 @@ const ProductTableWrapper = async ({ status }: { status: "ACTIVE" | "INACTIVE" |
         <HeaderRight>
           <div className="flex gap-3">
              <ProductStatusFilter />
-             <AddProductButton />
+             {isManagement && <AddProductButton />}
           </div>
         </HeaderRight>
       </Header>
 
-      <ProductDataTable products={products} />
+      <ProductDataTable products={products} userRole={role as UserRole} />
     </div>
   );
 };
+
 
 export default ProductsPage;

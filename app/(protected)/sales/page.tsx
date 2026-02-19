@@ -41,6 +41,9 @@ interface HomeProps {
   };
 }
 
+import { getCurrentUserRole } from "@/app/_lib/rbac";
+import { UserRole } from "@prisma/client";
+
 const SalesPage = async ({ searchParams }: HomeProps) => {
   const products = await getProducts();
   const productOptions: ComboboxOption[] = products.map((product) => ({
@@ -49,6 +52,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
   }));
 
   const view = searchParams.view || "gestao";
+  const role = await getCurrentUserRole();
 
   const analytics = await getSalesAnalytics(
     searchParams.from, 
@@ -103,6 +107,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
                     to={searchParams.to} 
                     page={Number(searchParams.page) || 1}
                     pageSize={Number(searchParams.pageSize) || 10}
+                    userRole={role as UserRole}
                 />
             </Suspense>
         </div>
@@ -117,14 +122,16 @@ const SalesTableWrapper = async ({
   from,
   to,
   page,
-  pageSize
+  pageSize,
+  userRole,
 }: { 
   productOptions: ComboboxOption[], 
   products: ProductDto[],
   from?: string,
   to?: string,
   page: number,
-  pageSize: number
+  pageSize: number,
+  userRole: UserRole,
 }) => {
   const { data: sales, total } = await getSales({ from, to, page, pageSize });
   
@@ -136,7 +143,7 @@ const SalesTableWrapper = async ({
 
   return (
     <DataTable 
-      columns={saleTableColumns} 
+      columns={saleTableColumns(userRole)} 
       data={tableData} 
       pagination={{
         total,
@@ -153,5 +160,6 @@ const SalesTableWrapper = async ({
     />
   );
 };
+
 
 export default SalesPage;

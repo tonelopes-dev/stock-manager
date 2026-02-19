@@ -7,6 +7,7 @@ import { z } from "zod";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { revalidatePath } from "next/cache";
 import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
+import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
 
 const inviteMemberSchema = z.object({
   email: z.string().email("E-mail inválido"),
@@ -18,23 +19,15 @@ export const inviteMember = actionClient
   .action(async ({ parsedInput: { email, role } }) => {
     const session = await auth();
     const companyId = await getCurrentCompanyId();
+    await assertRole(ADMIN_AND_OWNER);
     await requireActiveSubscription(companyId);
 
     if (!session?.user?.id) {
       throw new Error("Não autorizado");
     }
 
-    // 1. Verificar se o usuário atual é ADMIN ou OWNER
-    const currentUserRole = await db.userCompany.findUnique({
-        where: { userId_companyId: { userId: session.user.id, companyId } },
-        select: { role: true }
-    });
+    // 1. Verificar se o e-mail já é membro ou já foi convidado
 
-    if (!currentUserRole || (currentUserRole.role !== "OWNER" && currentUserRole.role !== "ADMIN")) {
-        throw new Error("Apenas administradores podem convidar membros.");
-    }
-
-    // 2. Verificar se o e-mail já é membro ou já foi convidado
 
     const existingMember = await db.userCompany.findFirst({
         where: { companyId, user: { email } }

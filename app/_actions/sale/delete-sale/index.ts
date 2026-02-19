@@ -7,12 +7,15 @@ import { revalidatePath } from "next/cache";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { auth } from "@/app/_lib/auth";
 import { recordStockMovement } from "@/app/_lib/stock";
+import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
 
 export const deleteSale = actionClient
   .schema(deleteSaleSchema)
   .action(async ({ parsedInput: { id } }) => {
     const companyId = await getCurrentCompanyId();
+    await assertRole(ADMIN_AND_OWNER);
     const session = await auth();
+
     const userId = session?.user?.id;
 
     if (!userId) {

@@ -4,6 +4,8 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { db } from "./prisma";
 
+import { UserRole } from "@prisma/client";
+
 declare module "next-auth" {
   interface Session {
     user: {
@@ -11,16 +13,19 @@ declare module "next-auth" {
       email: string;
       name: string;
       companyId: string;
+      role: UserRole;
     };
   }
 
   interface User {
     companyId?: string;
+    role?: UserRole;
   }
 
   interface JWT {
     id: string;
     companyId: string;
+    role: UserRole;
   }
 }
 
@@ -74,13 +79,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
       }
-      // Always ensure companyId is in token
-      if (token.id && !token.companyId) {
+      // Always ensure companyId and role are in token
+      if (token.id && (!token.companyId || !token.role)) {
         const userCompany = await db.userCompany.findFirst({
           where: { userId: token.id as string },
-          select: { companyId: true },
+          select: { companyId: true, role: true },
         });
         token.companyId = userCompany?.companyId ?? "";
+        token.role = userCompany?.role ?? UserRole.MEMBER;
       }
       return token;
     },
@@ -88,8 +94,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         session.user.companyId = token.companyId as string;
+        session.user.role = token.role as UserRole;
       }
       return session;
     },
   },
 });
+
