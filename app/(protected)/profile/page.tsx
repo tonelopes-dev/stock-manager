@@ -4,7 +4,7 @@ import Header, {
   HeaderTitle,
 } from "@/app/_components/header";
 import { auth } from "@/app/_lib/auth";
-import { getUserRoleInCompany } from "@/app/_lib/rbac";
+import { getCurrentUserRole } from "@/app/_lib/rbac";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
 import { ProfileForm } from "./_components/profile-form";
@@ -16,7 +16,8 @@ import { UserIcon, ShieldCheckIcon, BuildingIcon } from "lucide-react";
 export default async function ProfilePage() {
   const session = await auth();
   const companyId = await getCurrentCompanyId();
-  const role = await getUserRoleInCompany(companyId);
+  const role = await getCurrentUserRole();
+
   
   const company = await db.company.findUnique({
     where: { id: companyId },

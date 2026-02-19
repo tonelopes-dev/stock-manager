@@ -1,13 +1,29 @@
 import { AuditMapper } from "@/app/_services/audit-mapper";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { cn } from "@/lib/utils";
-import { AuditEventType } from "@prisma/client";
+import { AuditEventType, Prisma } from "@prisma/client";
+import { cn } from "@/app/_lib/utils";
+
+interface AuditLogWithActor {
+
+  id: string;
+  type: AuditEventType;
+  metadata: Prisma.JsonValue;
+  actorName: string | null;
+  createdAt: string | Date;
+  actor?: {
+    name: string | null;
+    email: string;
+  };
+}
 
 interface ActivityTimelineProps {
-  logs: any[];
+  logs: AuditLogWithActor[];
   className?: string;
 }
+
+
+
 
 export function ActivityTimeline({ logs, className }: ActivityTimelineProps) {
   if (!logs?.length) {

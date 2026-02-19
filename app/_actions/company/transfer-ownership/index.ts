@@ -17,7 +17,7 @@ const transferOwnershipSchema = z.object({
 export const transferOwnership = actionClient
   .schema(transferOwnershipSchema)
   .action(async ({ parsedInput: { newOwnerId } }) => {
-    const { role: requesterRole, userId: currentOwnerId } = await assertRole(OWNER_ONLY);
+    const { userId: currentOwnerId } = await assertRole(OWNER_ONLY);
     const companyId = await getCurrentCompanyId();
 
     if (newOwnerId === currentOwnerId) {
@@ -91,8 +91,9 @@ export const transferOwnership = actionClient
 
         return { success: true };
       });
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro ao transferir posse.";
       console.error("Transfer Ownership Error:", error);
-      throw new Error(error.message || "Erro ao transferir posse.");
+      throw new Error(message);
     }
   });

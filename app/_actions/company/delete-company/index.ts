@@ -24,7 +24,8 @@ const deleteCompanySchema = z.object({
 export const softDeleteCompany = actionClient
   .schema(deleteCompanySchema)
   .action(async ({ parsedInput: { confirmationString } }) => {
-    const { userId } = await assertRole(OWNER_ONLY);
+    await assertRole(OWNER_ONLY);
+
     const companyId = await getCurrentCompanyId();
 
     const company = await db.company.findUnique({
@@ -70,9 +71,10 @@ export const softDeleteCompany = actionClient
       // Since it's soft deleted, middleware will now handle subsequent requests.
       revalidatePath("/", "layout");
       redirect("/login?reason=company_deactivated");
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro ao desativar empresa.";
       console.error("Soft Delete Error:", error);
-      throw new Error(error.message || "Erro ao desativar empresa.");
+      throw new Error(message);
     }
   });
 
@@ -81,7 +83,8 @@ const restoreCompanySchema = z.object({});
 export const restoreCompany = actionClient
   .schema(restoreCompanySchema)
   .action(async () => {
-    const { userId } = await assertRole(OWNER_ONLY);
+    await assertRole(OWNER_ONLY);
+
     const companyId = await getCurrentCompanyId();
 
     const company = await db.company.findUnique({
@@ -120,8 +123,9 @@ export const restoreCompany = actionClient
 
       revalidatePath("/", "layout");
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro ao restaurar empresa.";
       console.error("Restore Error:", error);
-      throw new Error(error.message || "Erro ao restaurar empresa.");
+      throw new Error(message);
     }
   });

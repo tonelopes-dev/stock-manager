@@ -86,10 +86,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user, trigger, session }) {
       if (user) {
-        const u = user as any;
-        token.id = u.id;
-        token.sessionVersion = u.sessionVersion ?? 0;
+        token.id = user.id as string;
+        token.sessionVersion = (user as { sessionVersion?: number }).sessionVersion ?? 0;
       }
+
 
       // Handle manual updates (trigger "update")
       if (trigger === "update" && session) {
@@ -117,7 +117,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               take: 1
             }
           }
-        }) as any;
+        }) as { sessionVersion: number; userCompanies: { companyId: string; role: UserRole; company: { subscriptionStatus: string | null; deletedAt: Date | null } }[] } | null;
+
 
         // Real Session Invalidation: 
         // If DB version is higher than token version, the session is toast.
@@ -137,14 +138,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async session({ session, token }) {
       if (session.user && token) {
-
-        const t = token as any;
-        session.user.id = t.id as string;
-        session.user.companyId = t.companyId as string;
-        session.user.role = t.role as UserRole;
-        session.user.subscriptionStatus = t.subscriptionStatus as string | null;
-        session.user.companyDeletedAt = t.companyDeletedAt as string | null;
+        session.user.id = token.id as string;
+        session.user.companyId = token.companyId as string;
+        session.user.role = token.role as UserRole;
+        session.user.subscriptionStatus = token.subscriptionStatus as string | null;
+        session.user.companyDeletedAt = token.companyDeletedAt as string | null;
       }
+
       return session;
     },
 

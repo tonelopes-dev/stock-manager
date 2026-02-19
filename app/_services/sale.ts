@@ -67,14 +67,22 @@ export const SaleService = {
         }
 
         // Create or use existing sale ID
-        let sale;
-        if (isUpdate) {
-          sale = { id: id! };
-        } else {
-          sale = await trx.sale.create({
+        let saleId = id;
+        if (!isUpdate) {
+          const newSale = await trx.sale.create({
             data: {
               date: date || new Date(),
               companyId,
+              userId,
+            },
+          });
+          saleId = newSale.id;
+        } else {
+          // Update date for existing
+          await trx.sale.update({
+            where: { id: saleId, companyId },
+            data: {
+              date: date || undefined,
               userId,
             },
           });
@@ -136,7 +144,7 @@ export const SaleService = {
               userId,
               type: "SALE",
               quantity: -product.quantity,
-              saleId: sale.id,
+              saleId: saleId!,
             },
             trx
           );
@@ -144,7 +152,7 @@ export const SaleService = {
           // Create SaleItem with historical cost
           await trx.saleItem.create({
             data: {
-              saleId: sale.id,
+              saleId: saleId!,
               productId: product.id,
               quantity: product.quantity,
               unitPrice: productFromDb.price,
@@ -156,16 +164,15 @@ export const SaleService = {
           totalCost += effectiveCost * product.quantity;
         }
 
-        // 5. Update Sale header with final totals
-        await trx.sale.update({
-          where: { id: sale.id },
+        // 5. Update Sale header with final totals and return full object
+        return await trx.sale.update({
+          where: { id: saleId },
           data: {
             totalAmount,
             totalCost,
           },
         });
 
-        return sale;
       });
     } catch (error) {
       if (error instanceof BusinessError) {

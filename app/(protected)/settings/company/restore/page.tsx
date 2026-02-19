@@ -2,11 +2,11 @@
 
 import { auth } from "@/app/_lib/auth";
 import { redirect } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, RotateCcw } from "lucide-react";
-import { restoreCompany } from "@/app/_actions/company/delete-company";
+import { Button } from "@/app/_components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/app/_components/ui/card";
+import { AlertCircle } from "lucide-react";
 import { RestoreButton } from "./_components/restore-button";
+
 
 export default async function RestoreCompanyPage() {
   const session = await auth();

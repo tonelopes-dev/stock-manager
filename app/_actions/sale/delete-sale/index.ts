@@ -7,6 +7,9 @@ import { revalidatePath } from "next/cache";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { recordStockMovement } from "@/app/_lib/stock";
 import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { AuditService } from "@/app/_services/audit";
+import { AuditEventType, AuditSeverity } from "@prisma/client";
+
 
 export const deleteSale = actionClient
   .schema(deleteSaleSchema)
@@ -14,9 +17,6 @@ export const deleteSale = actionClient
     const companyId = await getCurrentCompanyId();
     const { userId } = await assertRole(ADMIN_AND_OWNER);
 
-    if (!userId) {
-      throw new Error("User not authenticated");
-    }
 
     await db.$transaction(async (trx) => {
       const sale = await trx.sale.findFirst({
@@ -47,7 +47,23 @@ export const deleteSale = actionClient
       await trx.sale.delete({
         where: { id },
       });
+
+      // 3. Log Audit within transaction
+      await AuditService.logWithTransaction(trx, {
+        type: AuditEventType.SALE_DELETED,
+        severity: AuditSeverity.WARNING,
+
+
+        companyId,
+        entityType: "SALE",
+        entityId: id,
+        metadata: {
+          saleId: id,
+          total: Number(sale.totalAmount),
+        },
+      });
     });
+
     revalidatePath("/", "layout");
     revalidatePath("/dashboard");
     revalidatePath("/sales");

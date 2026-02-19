@@ -2,7 +2,8 @@
 
 import { useAction } from "next-safe-action/hooks";
 import { restoreCompany } from "@/app/_actions/company/delete-company";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/_components/ui/button";
+
 import { RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";

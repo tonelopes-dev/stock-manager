@@ -5,13 +5,14 @@ import { revalidatePath } from "next/cache";
 import { inviteUserSchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { authorizeAction } from "@/app/_lib/rbac";
+import { assertRole, ADMIN_AND_OWNER } from "@/app/_lib/rbac";
 
 export const inviteUser = actionClient
   .schema(inviteUserSchema)
   .action(async ({ parsedInput: { email, role } }) => {
     const companyId = await getCurrentCompanyId();
-    await authorizeAction(["OWNER", "ADMIN"], companyId);
+    await assertRole(ADMIN_AND_OWNER);
+
 
     // Check if user is already in the company
     const existingMember = await db.userCompany.findFirst({

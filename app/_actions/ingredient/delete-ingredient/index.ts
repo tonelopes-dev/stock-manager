@@ -5,13 +5,15 @@ import { deleteIngredientSchema } from "./schema";
 import { revalidatePath } from "next/cache";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { isAdminOrOwner } from "@/app/_lib/rbac";
+import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+
 
 export const deleteIngredient = actionClient
   .schema(deleteIngredientSchema)
   .action(async ({ parsedInput: { id } }) => {
     const companyId = await getCurrentCompanyId();
-    await isAdminOrOwner();
+    await assertRole(ADMIN_AND_OWNER);
+
 
     const ingredient = await db.ingredient.findFirst({
       where: { id, companyId },

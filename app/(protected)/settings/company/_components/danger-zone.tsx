@@ -24,7 +24,8 @@ import { Input } from "@/app/_components/ui/input";
 import { toast } from "sonner";
 import { useAction } from "next-safe-action/hooks";
 import { transferOwnership } from "@/app/_actions/company/transfer-ownership";
-import { deleteCompany } from "@/app/_actions/company/delete-company";
+import { softDeleteCompany } from "@/app/_actions/company/delete-company";
+
 import { signOut } from "next-auth/react";
 import { Label } from "@/app/_components/ui/label";
 
@@ -62,7 +63,8 @@ export const DangerZone = ({ companyName, admins }: DangerZoneProps) => {
     }
   });
 
-  const deleteAction = useAction(deleteCompany, {
+  const deleteAction = useAction(softDeleteCompany, {
+
     onSuccess: () => {
       toast.success("Empresa excluída com sucesso.");
       setDeleteDialogOpen(false);

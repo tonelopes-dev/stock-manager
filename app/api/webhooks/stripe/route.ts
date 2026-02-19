@@ -98,27 +98,34 @@ async function syncSubscription(subscription: Stripe.Subscription) {
   }
 
   const priceId = subscription.items.data[0]?.price?.id ?? null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sub = subscription as any;
   const currentPeriodEnd = sub.current_period_end
     ? new Date(sub.current_period_end * 1000)
     : null;
 
-  // Reflect status in legacy `plan` field for backward compatibility
-  const legacyPlan: "PRO" | "FREE" =
+
+  // Reflect status in `plan` field for display/logic
+  const plan: string =
     status === SubscriptionStatus.TRIALING || status === SubscriptionStatus.ACTIVE
       ? "PRO"
       : "FREE";
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updateData: any = {
+    subscriptionStatus: status,
+    stripeSubscriptionId: subscription.id,
+    stripePriceId: priceId,
+    stripeCurrentPeriodEnd: currentPeriodEnd,
+    plan,
+  };
+
   await db.company.update({
     where: { id: companyId },
-    data: {
-      subscriptionStatus: status,
-      stripeSubscriptionId: subscription.id,
-      stripePriceId: priceId,
-      stripeCurrentPeriodEnd: currentPeriodEnd,
-      plan: legacyPlan,
-    },
+    data: updateData,
   });
+
+
 
   console.log(
     `[Webhook] ✅ Company ${companyId} synced → subscriptionStatus: ${status}`
@@ -139,14 +146,18 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     return;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updateData: any = {
+    subscriptionStatus: SubscriptionStatus.CANCELED,
+    plan: "FREE",
+    // Keep stripeSubscriptionId for audit trail — do NOT clear it
+  };
+
   await db.company.update({
     where: { id: companyId },
-    data: {
-      subscriptionStatus: SubscriptionStatus.CANCELED,
-      plan: "FREE",
-      // Keep stripeSubscriptionId for audit trail — do NOT clear it
-    },
+    data: updateData,
   });
+
 
   console.log(`[Webhook] ✅ Company ${companyId} subscription deleted → CANCELED`);
 }

@@ -5,47 +5,56 @@ import { revalidatePath } from "next/cache";
 import { actionClient } from "@/app/_lib/safe-action";
 import { returnValidationErrors } from "next-safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { auth } from "@/app/_lib/auth";
 import { SaleService } from "@/app/_services/sale";
 import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
-import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { ADMIN_AND_OWNER, ALL_ROLES, assertRole } from "@/app/_lib/rbac";
+import { AuditService } from "@/app/_services/audit";
+import { AuditEventType } from "@prisma/client";
+
+
 
 export const upsertSale = actionClient
   .schema(upsertSaleSchema)
   .action(async ({ parsedInput: { products, id, date } }) => {
     const companyId = await getCurrentCompanyId();
+    const isUpdate = Boolean(id);
     
-    let userId: string | undefined;
-
     // Role Guard: Only OWNER/ADMIN can edit. Anyone can create.
-    if (id) {
-       const res = await assertRole(ADMIN_AND_OWNER);
-       userId = res.userId;
-    } else {
-       const session = await auth();
-       userId = session?.user?.id;
-    }
+    const { userId } = await (isUpdate ? assertRole(ADMIN_AND_OWNER) : assertRole(ALL_ROLES));
     
     await requireActiveSubscription(companyId);
 
-    if (!userId) {
-      throw new Error("User not authenticated");
-    }
-
     try {
-      await SaleService.upsertSale({
+      const sale = await SaleService.upsertSale({
         id,
         date,
         companyId,
         userId,
         products,
       });
+
+      await AuditService.log({
+        type: isUpdate ? AuditEventType.SALE_UPDATED : AuditEventType.SALE_CREATED,
+        companyId,
+
+
+        entityType: "SALE",
+        entityId: sale.id,
+        metadata: {
+          saleId: sale.id,
+          totalAmount: Number(sale.totalAmount),
+          itemCount: products.length,
+        },
+
+      });
+
     } catch (error) {
       const message = error instanceof Error ? error.message : "Ocorreu um erro ao processar a venda.";
       returnValidationErrors(upsertSaleSchema, {
         _errors: [message],
       });
     }
+
 
     revalidatePath("/", "layout");
     revalidatePath("/dashboard");
