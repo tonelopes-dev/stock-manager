@@ -85,7 +85,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             take: 1
           }
         }
-      }) as any;
+      });
 
       if (!dbUser || dbUser.sessionVersion > (token.sessionVersion as number)) {
         console.log("[Auth] Session invalidated for user:", token.id);
@@ -98,7 +98,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       token.role = userCompany?.role ?? UserRole.MEMBER;
       token.subscriptionStatus = userCompany?.company?.subscriptionStatus ?? null;
       token.companyDeletedAt = userCompany?.company?.deletedAt?.toISOString() ?? null;
-      token.onboardingStep = userCompany?.company?.onboardingStep ?? 0;
 
       return token;
     }

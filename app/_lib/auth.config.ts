@@ -1,5 +1,4 @@
 import { NextAuthConfig } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
 
 // We import types/enums but NOT the database client itself here
 import { UserRole } from "@prisma/client";
@@ -14,7 +13,6 @@ declare module "next-auth" {
       role: UserRole;
       subscriptionStatus?: string | null;
       companyDeletedAt?: string | null;
-      onboardingStep: number;
     };
   }
 
