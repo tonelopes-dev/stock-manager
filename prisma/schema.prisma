@@ -103,6 +103,8 @@ model User {
   stockMovements StockMovement[]
   productionOrders ProductionOrder[]
   createdAt      DateTime        @default(now())
+  sessionVersion Int             @default(0)
+  auditEvents    AuditEvent[]    @relation("UserAudits")
   updatedAt      DateTime        @updatedAt
 }
 
@@ -221,7 +223,7 @@ model Company {
   stripePriceId          String?
   stripeCurrentPeriodEnd DateTime?
   subscriptionStatus     SubscriptionStatus?
-
+  deletedAt              DateTime?            // Soft delete flag
 
   userCompanies  UserCompany[]
   products       Product[]
@@ -230,7 +232,11 @@ model Company {
   stockMovements StockMovement[]
   invitations    CompanyInvitation[]
   productionOrders ProductionOrder[]
+  auditEvents    AuditEvent[]
+
+  @@index([deletedAt])
 }
+
 
 model UserCompany {
   id        String   @id @default(cuid())
@@ -309,3 +315,62 @@ model ProductionOrder {
   @@index([companyId])
   @@index([productId])
 }
+enum AuditSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum AuditEventType {
+  // Account Lifecycle
+  OWNERSHIP_TRANSFERRED
+  COMPANY_SOFT_DELETED
+  COMPANY_RESTORED
+  COMPANY_PERMANENTLY_DELETED
+  
+  // Team
+  MEMBER_INVITED
+  MEMBER_REMOVED
+  ROLE_UPDATED
+  
+  // Business
+  STOCK_ADJUSTED
+  SALE_CANCELED
+  
+  // Billing
+  SUBSCRIPTION_ACTIVATED
+  SUBSCRIPTION_CANCELED
+  BILLING_REQUIRED
+  CHECKOUT_STARTED
+}
+
+
+model AuditEvent {
+  id              String          @id @default(cuid())
+  type            AuditEventType
+  severity        AuditSeverity   @default(INFO)
+  
+  // Company Link (Optional to survive company hard-delete)
+  companyId       String?
+  company         Company?        @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  
+  // Actor Info & Snapshot
+  actorId         String
+  actor           User            @relation("UserAudits", fields: [actorId], references: [id])
+  actorName       String?
+  actorEmail      String?
+  
+  // Entity Context (e.g., PRODUCT:uuid)
+  entityType      String?         
+  entityId        String?
+  
+  metadata        Json?
+  metadataVersion Int             @default(1)
+  
+  createdAt       DateTime        @default(now())
+
+  @@index([companyId, createdAt(sort: Desc)])
+  @@index([type])
+  @@index([entityType, entityId])
+}
+

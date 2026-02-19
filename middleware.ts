@@ -15,6 +15,7 @@ export default auth(async (req) => {
   const isPublicRoute = publicRoutes.includes(pathname);
   const isAuthApiRoute = pathname.startsWith("/api/auth");
   const isWebhookRoute = pathname.startsWith("/api/webhooks");
+  const isRestorePage = pathname === "/settings/company/restore";
 
   // Allow access to auth API routes and webhooks
   if (isAuthApiRoute || isWebhookRoute) {
@@ -42,7 +43,30 @@ export default auth(async (req) => {
   // 2. Role-Based Route Protection (Layer 1)
   if (isLoggedIn) {
      const role = req.auth?.user?.role;
+     const subscriptionStatus = req.auth?.user?.subscriptionStatus;
+     const companyDeletedAt = req.auth?.user?.companyDeletedAt;
+
+     // 2.1 Lifecycle Guard: Soft Delete
+     if (companyDeletedAt && !isRestorePage && !pathname.startsWith("/_actions")) {
+        // If pending deletion: Only OWNER can go to restore page. Others are blocked.
+        if (role === "OWNER") {
+          return NextResponse.redirect(new URL("/settings/company/restore", req.nextUrl.origin));
+        } else {
+          // Non-owners see a "Deactivated" message or just logout
+          return NextResponse.redirect(new URL("/login?reason=company_deactivated", req.nextUrl.origin));
+        }
+     }
+
+     // 2.2 Lifecycle Guard: Subscription (Suspended)
+     // Allowed statuses for app access: ACTIVE, TRIALING
+     const restrictedStatuses = ["PAST_DUE", "CANCELED", "INCOMPLETE"];
+     if (restrictedStatuses.includes(subscriptionStatus as string) && pathname !== "/billing-required" && !isPublicRoute) {
+        // Only allow OWNER/ADMIN to access billing/settings to fix it? 
+        // For now, redirect everyone to the billing required page.
+        return NextResponse.redirect(new URL("/billing-required", req.nextUrl.origin));
+     }
      
+     // 2.3 RBAC: Action Guard
      // OWNER: Can access everything
      // ADMIN: Cannot access /plans (Billing)
      if (role === "ADMIN" && pathname.startsWith("/plans")) {

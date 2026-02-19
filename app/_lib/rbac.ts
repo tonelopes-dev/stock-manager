@@ -30,14 +30,16 @@ export async function getCurrentUserRole(): Promise<UserRole | null> {
  * Lança erro se não autorizado. (Camada de Proteção de Server Actions)
  */
 export async function assertRole(allowedRoles: UserRole[]) {
+  const session = await auth();
   const role = await getCurrentUserRole();
   
-  if (!role || !allowedRoles.includes(role)) {
+  if (!role || !allowedRoles.includes(role) || !session?.user?.id) {
     throw new Error("Ação não permitida: nível de permissão insuficiente.");
   }
   
-  return role;
+  return { role, userId: session.user.id };
 }
+
 
 // Helpers rápidos para legibilidade
 export const OWNER_ONLY = [UserRole.OWNER];

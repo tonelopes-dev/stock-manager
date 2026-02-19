@@ -6,7 +6,9 @@ import { actionClient } from "@/app/_lib/safe-action";
 import { z } from "zod";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { assertRole, OWNER_ONLY } from "@/app/_lib/rbac";
-import { UserRole } from "@prisma/client";
+import { UserRole, AuditEventType } from "@prisma/client";
+import { AuditService } from "@/app/_services/audit";
+
 
 const updateMemberRoleSchema = z.object({
   userCompanyId: z.string(),
@@ -45,6 +47,20 @@ export const updateMemberRole = actionClient
       where: { id: userCompanyId },
       data: { role: newRole },
     });
+
+    // 3. Log Audit
+    await AuditService.log({
+      type: AuditEventType.ROLE_UPDATED,
+      companyId,
+      entityType: "TEAM_MEMBER",
+      entityId: memberToUpdate.userId,
+      metadata: { 
+        userId: memberToUpdate.userId,
+        oldRole: memberToUpdate.role,
+        newRole: newRole 
+      },
+    });
+
 
     revalidatePath("/settings/team");
     

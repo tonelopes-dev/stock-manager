@@ -6,7 +6,9 @@ import { actionClient } from "@/app/_lib/safe-action";
 import { z } from "zod";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { assertRole, ADMIN_AND_OWNER } from "@/app/_lib/rbac";
-import { UserRole } from "@prisma/client";
+import { UserRole, AuditEventType, AuditSeverity } from "@prisma/client";
+import { AuditService } from "@/app/_services/audit";
+
 
 
 const removeMemberSchema = z.object({
@@ -17,7 +19,7 @@ export const removeMember = actionClient
   .schema(removeMemberSchema)
   .action(async ({ parsedInput: { userCompanyId } }) => {
     const companyId = await getCurrentCompanyId();
-    const requesterRole = await assertRole(ADMIN_AND_OWNER);
+    const { role: requesterRole } = await assertRole(ADMIN_AND_OWNER);
 
     const memberToDelete = await db.userCompany.findUnique({
       where: { id: userCompanyId, companyId },
@@ -47,6 +49,20 @@ export const removeMember = actionClient
     await db.userCompany.delete({
       where: { id: userCompanyId },
     });
+
+    // 3. Log Audit
+    await AuditService.log({
+      type: AuditEventType.MEMBER_REMOVED,
+      severity: AuditSeverity.WARNING,
+      companyId,
+      entityType: "TEAM_MEMBER",
+      entityId: memberToDelete.userId,
+      metadata: { 
+        removedUserId: memberToDelete.userId,
+        role: memberToDelete.role 
+      },
+    });
+
 
     revalidatePath("/settings/team");
     

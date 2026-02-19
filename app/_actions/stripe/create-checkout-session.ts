@@ -8,9 +8,9 @@ import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { assertRole, OWNER_ONLY } from "@/app/_lib/rbac";
 
 export const createCheckoutSession = actionClient.action(async () => {
-  const session = await auth();
   const companyId = await getCurrentCompanyId();
   await assertRole(OWNER_ONLY);
+  const session = await auth(); // Keep for email if needed, but wait.
 
 
   if (!session?.user?.email) {

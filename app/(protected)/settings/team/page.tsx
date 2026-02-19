@@ -13,6 +13,9 @@ import { getCurrentUserRole } from "@/app/_lib/rbac";
 import { auth } from "@/app/_lib/auth";
 import { UserRole } from "@prisma/client";
 import { MemberCardActions } from "./_components/member-card-actions";
+import { ActivityTimeline } from "@/app/_components/activity-timeline";
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+
 
 export default async function TeamPage() {
   const members = await getTeamMembers();
@@ -127,7 +130,10 @@ export default async function TeamPage() {
                     <p><strong className="text-slate-500 font-black uppercase tracking-tighter">Membro:</strong> Operação de vendas e consulta de estoque.</p>
                 </div>
             </div>
+
+            <ActivityTimeline companyId={await getCurrentCompanyId()} title="Atividade da Equipe" />
         </div>
+
       </div>
     </div>
   );

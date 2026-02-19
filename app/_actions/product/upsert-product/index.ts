@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { upsertProductSchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { auth } from "@/app/_lib/auth";
 import { recordStockMovement } from "@/app/_lib/stock";
 import { recalculateProductCost } from "../recipe/recalculate-cost";
 import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
@@ -15,11 +14,9 @@ export const upsertProduct = actionClient
   .schema(upsertProductSchema)
   .action(async ({ parsedInput: { id, ...data } }) => {
     const companyId = await getCurrentCompanyId();
-    await assertRole(ADMIN_AND_OWNER);
+    const { userId } = await assertRole(ADMIN_AND_OWNER);
     await requireActiveSubscription(companyId);
 
-    const session = await auth();
-    const userId = session?.user?.id;
 
     if (!userId) {
       throw new Error("User not authenticated");

@@ -5,9 +5,10 @@ import { revalidatePath } from "next/cache";
 import { cancelSaleSchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { auth } from "@/app/_lib/auth";
 import { recordStockMovement } from "@/app/_lib/stock";
-import { authorizeAction } from "@/app/_lib/rbac";
+import { assertRole, ADMIN_AND_OWNER } from "@/app/_lib/rbac";
+import { AuditService } from "@/app/_services/audit";
+import { AuditEventType, AuditSeverity } from "@prisma/client";
 import { BusinessError } from "@/app/_lib/errors";
 
 export const cancelSale = actionClient
@@ -15,13 +16,7 @@ export const cancelSale = actionClient
   .action(async ({ parsedInput: { id } }) => {
     try {
       const companyId = await getCurrentCompanyId();
-      await authorizeAction(["OWNER", "ADMIN"]);
-      const session = await auth();
-      const userId = session?.user?.id;
-
-      if (!userId) {
-        throw new Error("Usuário não autenticado.");
-      }
+      const { userId } = await assertRole(ADMIN_AND_OWNER);
 
       await db.$transaction(async (trx) => {
         const sale = await trx.sale.findFirst({
@@ -56,6 +51,19 @@ export const cancelSale = actionClient
             trx
           );
         }
+
+        // Log Audit within transaction
+        await AuditService.logWithTransaction(trx, {
+          type: AuditEventType.SALE_CANCELED,
+          severity: AuditSeverity.WARNING,
+          companyId,
+          entityType: "SALE",
+          entityId: sale.id,
+          metadata: {
+            saleId: sale.id,
+            total: Number(sale.totalAmount),
+          },
+        });
       });
 
       revalidatePath("/sales", "page");

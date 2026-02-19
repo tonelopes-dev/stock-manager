@@ -15,15 +15,18 @@ export const upsertSale = actionClient
   .action(async ({ parsedInput: { products, id, date } }) => {
     const companyId = await getCurrentCompanyId();
     
+    let userId: string | undefined;
+
     // Role Guard: Only OWNER/ADMIN can edit. Anyone can create.
     if (id) {
-      await assertRole(ADMIN_AND_OWNER);
+       const res = await assertRole(ADMIN_AND_OWNER);
+       userId = res.userId;
+    } else {
+       const session = await auth();
+       userId = session?.user?.id;
     }
     
     await requireActiveSubscription(companyId);
-
-    const session = await auth();
-    const userId = session?.user?.id;
 
     if (!userId) {
       throw new Error("User not authenticated");

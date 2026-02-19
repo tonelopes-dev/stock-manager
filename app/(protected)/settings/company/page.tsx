@@ -8,11 +8,15 @@ import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { CompanyForm } from "./_components/company-form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/_components/ui/card";
 import { Badge } from "@/app/_components/ui/badge";
-import { Button } from "@/app/_components/ui/button";
-import { Building2Icon, CreditCardIcon, AlertTriangleIcon } from "lucide-react";
+import { Building2Icon, CreditCardIcon } from "lucide-react";
 
+
+import { DangerZone } from "./_components/danger-zone";
+import { UserRole } from "@prisma/client";
+import { ActivityTimeline } from "@/app/_components/activity-timeline";
 
 export default async function CompanySettingsPage() {
+
   const companyId = await getCurrentCompanyId();
   
   const company = await db.company.findUnique({
@@ -26,6 +30,29 @@ export default async function CompanySettingsPage() {
   });
 
   if (!company) return null;
+
+  // Fetch Admins for ownership transfer
+  const admins = await db.userCompany.findMany({
+    where: {
+      companyId,
+      role: UserRole.ADMIN,
+    },
+    select: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  const adminList = admins.map((a) => ({
+    id: a.user.id,
+    name: a.user.name,
+    email: a.user.email,
+  }));
 
   return (
     <div className="m-8 space-y-8">
@@ -91,28 +118,12 @@ export default async function CompanySettingsPage() {
         </div>
 
         <div className="space-y-8">
-           {/* Zona de Perigo */}
-           <Card className="border-red-100 bg-red-50/30 overflow-hidden shadow-sm">
-             <CardHeader className="border-b border-red-100 bg-red-50/50">
-               <div className="flex items-center gap-3 text-red-700">
-                 <AlertTriangleIcon size={20} />
-                 <CardTitle className="text-lg font-black">Zona de Perigo</CardTitle>
-               </div>
-             </CardHeader>
-             <CardContent className="pt-6 space-y-4">
-                <p className="text-xs text-red-600 leading-relaxed font-medium">
-                  A exclusão da empresa é <strong className="uppercase">irreversível</strong>. Todos os dados de produtos, vendas e equipe serão apagados permanentemente.
-                </p>
-                <Button variant="destructive" className="w-full font-black text-xs h-11" disabled>
-                   Excluir Empresa (Bloqueado)
-                </Button>
-                <p className="text-[10px] text-center text-red-400 italic">
-                  Contate o suporte para exclusão total da conta.
-                </p>
-             </CardContent>
-           </Card>
+           <ActivityTimeline companyId={companyId} title="Histórico da Empresa" />
+           <DangerZone companyName={company.name} admins={adminList} />
         </div>
+
       </div>
     </div>
   );
 }
+
