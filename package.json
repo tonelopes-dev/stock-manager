@@ -9,7 +9,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "prepare": "prisma generate"
+    "prepare": "prisma generate",
+    "db:seed": "prisma db seed",
+    "db:reset": "prisma migrate reset --force --skip-seed",
+    "db:fresh": "prisma migrate reset --force"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"

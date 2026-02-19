@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole, SaleStatus, StockMovementType } from "@prisma/client";
+import { PrismaClient, UserRole, SaleStatus, StockMovementType, ProductType, UnitType } from "@prisma/client";
 
 import { hash } from "bcryptjs";
 import { subDays } from "date-fns";
@@ -13,12 +13,16 @@ async function main() {
   // 1. Create Company
   const company = await prisma.company.upsert({
     where: { id: "test-company-id" },
-    update: {},
+    update: {
+      plan: "PRO",
+      subscriptionStatus: "ACTIVE",
+    },
     create: {
       id: "test-company-id",
       name: "Empresa Stockly Teste",
+      plan: "PRO",
+      subscriptionStatus: "ACTIVE",
     },
-
   });
 
   // 2. Create Users
@@ -92,6 +96,56 @@ async function main() {
     createdProducts.push(product);
   }
 
+  // 3.1 Create Ingredients
+  console.log("🥬 Seeding ingredients...");
+  const ingredientsData = [
+    { name: "Malte PC", unit: UnitType.KG, cost: 5.5, stock: 500, minStock: 100 },
+    { name: "Lúpulo Cascade", unit: UnitType.G, cost: 0.8, stock: 2000, minStock: 500 },
+    { name: "Água Tratada", unit: UnitType.L, cost: 0.01, stock: 10000, minStock: 1000 },
+  ];
+
+  const createdIngredients = [];
+  for (const iData of ingredientsData) {
+    const ingredient = await prisma.ingredient.create({
+      data: {
+        ...iData,
+        companyId: company.id,
+      },
+    });
+    createdIngredients.push(ingredient);
+  }
+
+  // 3.2 Create Prepared Products (Recipes)
+  console.log("🍳 Seeding prepared products...");
+  const preparedProducts = [
+    { name: "Chopp Artesanal 500ml", price: 18.0, cost: 4.5, category: "Bebidas", stock: 100, minStock: 20 },
+  ];
+
+  for (const p of preparedProducts) {
+    const product = await prisma.product.create({
+      data: {
+        name: p.name,
+        price: p.price,
+        cost: p.cost,
+        category: p.category,
+        stock: p.stock,
+        minStock: p.minStock,
+        type: ProductType.PREPARED,
+        sku: p.name.toLowerCase().replace(/ /g, "-"),
+        companyId: company.id,
+        recipes: {
+          create: [
+            { ingredientId: createdIngredients[0].id, quantity: 0.15, unit: UnitType.KG },
+            { ingredientId: createdIngredients[1].id, quantity: 10, unit: UnitType.G },
+            { ingredientId: createdIngredients[2].id, quantity: 0.5, unit: UnitType.L },
+          ],
+        },
+      },
+    });
+    createdProducts.push(product);
+  }
+
+
   // 4. Create Sales (Last 90 days)
   console.log("📊 Generating sales history...");
   for (let i = 0; i < 90; i++) {
@@ -110,12 +164,20 @@ async function main() {
           companyId: company.id,
           userId: seller.id,
           status: SaleStatus.ACTIVE,
+          totalAmount: 0,
+          totalCost: 0,
+          discountAmount: 0,
         },
       });
+
+      let saleTotalAmount = 0;
+      let saleTotalCost = 0;
 
       for (let k = 0; k < productCount; k++) {
         const product = createdProducts[Math.floor(Math.random() * createdProducts.length)];
         const quantity = Math.floor(Math.random() * 3) + 1;
+        const itemTotalAmount = Number(product.price) * quantity;
+        const itemTotalCost = Number(product.cost) * quantity;
 
         await prisma.saleItem.create({
           data: {
@@ -124,8 +186,13 @@ async function main() {
             quantity: quantity,
             unitPrice: product.price,
             baseCost: product.cost,
+            totalAmount: itemTotalAmount,
+            totalCost: itemTotalCost,
           },
         });
+
+        saleTotalAmount += itemTotalAmount;
+        saleTotalCost += itemTotalCost;
 
         // Register stock movement
         await prisma.stockMovement.create({
@@ -136,12 +203,22 @@ async function main() {
             saleId: sale.id,
             type: StockMovementType.SALE,
             stockBefore: product.stock,
-            stockAfter: product.stock - quantity,
+            stockAfter: Number(product.stock) - quantity,
           },
         });
       }
+
+      // Update sale totals
+      await prisma.sale.update({
+        where: { id: sale.id },
+        data: {
+          totalAmount: saleTotalAmount,
+          totalCost: saleTotalCost,
+        },
+      });
     }
   }
+
 
   console.log("✅ Seeding complete!");
 }
