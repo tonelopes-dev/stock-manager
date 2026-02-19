@@ -1,0 +1,28 @@
+
+> stockly@1.4.0 build
+> next build
+
+  ▲ Next.js 14.2.10
+  - Environments: .env
+  - Experiments (use with caution):
+    · instrumentationHook
+
+   Creating an optimized production build ...
+[@sentry/nextjs] It seems like you don't have a global error handler set up. It is recommended that you add a 'global-error.js' file with Sentry instrumentation so that React rendering errors are reported to Sentry. Read more: https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/#react-render-errors-in-app-router (you can suppress this warning by setting SENTRY_SUPPRESS_GLOBAL_ERROR_HANDLER_FILE_WARNING=1 as environment variable)
+[@sentry/nextjs] DEPRECATION WARNING: It is recommended renaming your `sentry.client.config.ts` file, or moving its content to `instrumentation-client.ts`. When using Turbopack `sentry.client.config.ts` will no longer work. Read more about the `instrumentation-client.ts` file: https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation-client
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+Failed to compile.
+
+./app/_services/audit-mapper.tsx
+56:72  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+86:67  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+93:90  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+101:76  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+108:82  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+115:70  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+122:83  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+129:70  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules

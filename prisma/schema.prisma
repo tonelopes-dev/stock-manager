@@ -216,6 +216,7 @@ enum SubscriptionStatus {
 model Company {
   id                     String               @id @default(cuid())
   name                   String
+  plan                   String               @default("FREE")
   allowNegativeStock     Boolean              @default(false)
   createdAt              DateTime             @default(now())
   stripeCustomerId       String?              @unique
@@ -236,6 +237,7 @@ model Company {
 
   @@index([deletedAt])
 }
+
 
 
 model UserCompany {
@@ -336,6 +338,12 @@ enum AuditEventType {
   // Business
   STOCK_ADJUSTED
   SALE_CANCELED
+  SALE_CREATED
+  SALE_UPDATED
+  SALE_DELETED
+  PRODUCT_CREATED
+  PRODUCT_UPDATED
+  PRODUCT_DELETED
   
   // Billing
   SUBSCRIPTION_ACTIVATED
