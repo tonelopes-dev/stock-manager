@@ -77,6 +77,19 @@ export const SaleService = {
             },
           });
           saleId = newSale.id;
+
+          // Activation Tracking: First Sale
+          const company = await trx.company.findUnique({
+            where: { id: companyId },
+            select: { firstSaleAt: true }
+          });
+
+          if (!company?.firstSaleAt) {
+            await trx.company.update({
+              where: { id: companyId },
+              data: { firstSaleAt: new Date() }
+            });
+          }
         } else {
           // Update date for existing
           await trx.sale.update({

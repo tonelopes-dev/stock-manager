@@ -19,10 +19,21 @@ export default auth(async (req) => {
   const isAuthApiRoute = pathname.startsWith("/api/auth");
   const isWebhookRoute = pathname.startsWith("/api/webhooks");
   const isRestorePage = pathname === "/settings/company/restore";
+  const isOnboardingPage = pathname === "/onboarding";
 
   // Allow access to auth API routes and webhooks
   if (isAuthApiRoute || isWebhookRoute) {
     return NextResponse.next();
+  }
+  
+  // 2. Lifecycle Guards
+  if (isLoggedIn) {
+     const onboardingStep = req.auth?.user?.onboardingStep;
+     
+     // 2.0 Onboarding Guard: If not completed, force to onboarding
+     if (onboardingStep === 0 && !isOnboardingPage && !pathname.startsWith("/_actions/onboarding")) {
+        return NextResponse.redirect(new URL("/onboarding", req.nextUrl.origin));
+     }
   }
 
   // Handle root route

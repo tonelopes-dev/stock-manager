@@ -78,7 +78,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               company: {
                 select: {
                   subscriptionStatus: true,
-                  deletedAt: true
+                  deletedAt: true,
+                  onboardingStep: true
                 }
               }
             },
@@ -93,13 +94,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       // 4. Populate missing fields
-      if (!token.companyId || !token.role || trigger === "update") {
-        const userCompany = dbUser.userCompanies[0];
-        token.companyId = userCompany?.companyId ?? "";
-        token.role = userCompany?.role ?? UserRole.MEMBER;
-        token.subscriptionStatus = userCompany?.company?.subscriptionStatus ?? null;
-        token.companyDeletedAt = userCompany?.company?.deletedAt?.toISOString() ?? null;
-      }
+      const userCompany = dbUser.userCompanies[0];
+      token.companyId = userCompany?.companyId ?? "";
+      token.role = userCompany?.role ?? UserRole.MEMBER;
+      token.subscriptionStatus = userCompany?.company?.subscriptionStatus ?? null;
+      token.companyDeletedAt = userCompany?.company?.deletedAt?.toISOString() ?? null;
+      token.onboardingStep = userCompany?.company?.onboardingStep ?? 0;
 
       return token;
     }

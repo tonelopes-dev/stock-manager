@@ -14,6 +14,7 @@ declare module "next-auth" {
       role: UserRole;
       subscriptionStatus?: string | null;
       companyDeletedAt?: string | null;
+      onboardingStep: number;
     };
   }
 
@@ -23,6 +24,7 @@ declare module "next-auth" {
     sessionVersion?: number;
     subscriptionStatus?: string | null;
     companyDeletedAt?: string | null;
+    onboardingStep?: number;
   }
 
   interface JWT {
@@ -32,6 +34,7 @@ declare module "next-auth" {
     sessionVersion: number;
     subscriptionStatus?: string | null;
     companyDeletedAt?: string | null;
+    onboardingStep: number;
   }
 }
 
@@ -62,6 +65,7 @@ export const authConfig = {
         session.user.role = token.role as UserRole;
         session.user.subscriptionStatus = token.subscriptionStatus as string | null;
         session.user.companyDeletedAt = token.companyDeletedAt as string | null;
+        session.user.onboardingStep = (token.onboardingStep as number) ?? 0;
       }
       return session;
     },
