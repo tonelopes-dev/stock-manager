@@ -1,18 +1,30 @@
 import {
+  BeakerIcon,
   CreditCardIcon,
   LayoutGridIcon,
   PackageIcon,
   ShoppingBasketIcon,
   UsersIcon,
+  HistoryIcon,
+  SettingsIcon,
 } from "lucide-react";
 import SidebarButton from "./sidebar-button";
 import LogoutButton from "./logout-button";
-import PlanUsageWidget from "./plan-usage-widget";
+import SubscriptionPanel from "./subscription-panel";
 import { UserSidebarProfile } from "./user-sidebar-profile";
+import { getCurrentUserRole } from "@/app/_lib/rbac";
+import { UserRole } from "@prisma/client";
+import { getCompanyPlan } from "../_data-access/company/get-company-plan";
 
-const Sidebar = () => {
+
+const Sidebar = async () => {
+  const role = await getCurrentUserRole();
+  const isOwner = role === UserRole.OWNER;
+  const isAdminOrOwner = role === UserRole.OWNER || role === UserRole.ADMIN;
+  const { subscriptionStatus, stripeCurrentPeriodEnd } = await getCompanyPlan();
+
   return (
-    <div className="flex w-64 flex-col border-r border-gray-200 bg-white">
+    <div className="flex h-full w-64 flex-col border-r border-gray-200 bg-white">
       {/* USER PROFILE */}
       <UserSidebarProfile />
 
@@ -34,27 +46,56 @@ const Sidebar = () => {
           Produtos
         </SidebarButton>
 
+        <SidebarButton href="/ingredients">
+          <BeakerIcon size={20} />
+          Insumos
+        </SidebarButton>
+
         <SidebarButton href="/sales">
           <ShoppingBasketIcon size={20} />
           Vendas
         </SidebarButton>
 
-        <SidebarButton href="/plans">
-          <CreditCardIcon size={20} />
-          Planos
-        </SidebarButton>
+        {isOwner && (
+          <SidebarButton href="/plans">
+            <CreditCardIcon size={20} />
+            Assinatura
+          </SidebarButton>
+        )}
 
         <div className="my-2 border-t border-gray-100" />
 
-        <SidebarButton href="/settings/team">
-          <UsersIcon size={20} />
-          Equipe
-        </SidebarButton>
+        {isAdminOrOwner && (
+          <SidebarButton href="/settings/team">
+            <UsersIcon size={20} />
+            Equipe
+          </SidebarButton>
+        )}
+
+        {isOwner && (
+          <SidebarButton href="/settings/company">
+            <SettingsIcon size={20} />
+            Empresa
+          </SidebarButton>
+        )}
+
+        {isAdminOrOwner && (
+          <SidebarButton href="/audit">
+            <HistoryIcon size={20} />
+            Auditoria
+          </SidebarButton>
+        )}
       </div>
 
       <div className="mt-auto flex flex-col gap-4 p-4">
-        {/* USAGE WIDGET */}
-        <PlanUsageWidget />
+        {/* SUBSCRIPTION PANEL */}
+        {isOwner && (
+          <SubscriptionPanel
+            status={subscriptionStatus}
+            periodEnd={stripeCurrentPeriodEnd}
+          />
+        )}
+
 
         {/* LOGOUT */}
         <LogoutButton />
@@ -62,5 +103,6 @@ const Sidebar = () => {
     </div>
   );
 };
+
 
 export default Sidebar;

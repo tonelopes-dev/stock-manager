@@ -7,15 +7,16 @@ export const getCompanyPlan = async () => {
   const company = await db.company.findUnique({
     where: { id: companyId },
     select: {
-      plan: true,
       stripeSubscriptionId: true,
       stripeCurrentPeriodEnd: true,
+      subscriptionStatus: true,
     },
+
   });
 
   if (!company) {
     throw new Error("Company not found");
   }
 
-  return JSON.parse(JSON.stringify(company));
+  return company;
 };

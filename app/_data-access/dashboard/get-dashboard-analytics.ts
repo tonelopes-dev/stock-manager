@@ -1,15 +1,22 @@
 import "server-only";
 
-import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { 
   startOfDay, 
-  endOfDay, 
   subDays, 
+  addDays,
   format,
-  eachDayOfInterval,
-  isSameDay
 } from "date-fns";
+import { 
+    getFinancialOverview, 
+    getDailySalesChart, 
+    DailySalesData,
+    getTopProfitableProducts,
+    getWorstMarginProducts,
+    ProductRanking
+} from "@/app/_services/analytics";
+import { db } from "@/app/_lib/prisma";
+import { SaleStatus } from "@prisma/client";
 
 export type DashboardRange = "today" | "7d" | "14d" | "30d" | "month" | "custom";
 
@@ -19,40 +26,77 @@ export interface AnalyticsMetric {
 }
 
 export interface DashboardAnalyticsDto {
-    totalRevenue: AnalyticsMetric;
-    totalSales: AnalyticsMetric;
+    revenue: AnalyticsMetric;
+    cogs: AnalyticsMetric;
+    profit: AnalyticsMetric;
+    margin: AnalyticsMetric;
+    salesCount: AnalyticsMetric;
     averageTicket: AnalyticsMetric;
-    totalProfit: AnalyticsMetric;
     revenueTimeSeries: {
         date: string;
         revenue: number;
+        cogs: number;
     }[];
+    topProfitable: ProductRanking[];
+    worstMargin: ProductRanking[];
 }
 
-export const getDashboardAnalytics = async (range: DashboardRange = "7d"): Promise<DashboardAnalyticsDto> => {
+export const getDashboardAnalytics = async (
+    range: DashboardRange = "30d",
+    customFrom?: string,
+    customTo?: string,
+): Promise<DashboardAnalyticsDto> => {
     const companyId = await getCurrentCompanyId();
     
     // 1. Define Intervals
     const now = new Date();
-    const endOfCurrent = endOfDay(now);
-    
-    let daysCount = 7;
-    if (range === "today") daysCount = 1;
-    if (range === "14d") daysCount = 14;
-    if (range === "30d") daysCount = 30;
-    if (range === "month") {
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        daysCount = Math.ceil((now.getTime() - startOfMonth.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    let endOfCurrentDate: Date;
+    let startOfCurrentDate: Date;
+    let daysCount: number;
+
+    const parseLocalDay = (dateStr: string) => {
+        const [year, month, day] = dateStr.split("-").map(Number);
+        return new Date(year, month - 1, day);
+    };
+
+    if (range === "custom" && customFrom && customTo) {
+        startOfCurrentDate = startOfDay(parseLocalDay(customFrom));
+        endOfCurrentDate = startOfDay(addDays(parseLocalDay(customTo), 1)); // Start of next day
+        daysCount = Math.ceil((endOfCurrentDate.getTime() - startOfCurrentDate.getTime()) / (1000 * 60 * 60 * 24));
+    } else {
+        endOfCurrentDate = startOfDay(addDays(now, 1)); // Start of tomorrow
+        daysCount = 7;
+        if (range === "today") daysCount = 1;
+        if (range === "14d") daysCount = 14;
+        if (range === "30d") daysCount = 30;
+        if (range === "month") {
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            daysCount = Math.ceil((now.getTime() - startOfMonth.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        }
+        startOfCurrentDate = startOfDay(subDays(now, daysCount - 1));
     }
 
-    const startOfCurrent = startOfDay(subDays(now, daysCount - 1));
-    const startOfPrevious = startOfDay(subDays(startOfCurrent, daysCount));
-    const endOfPrevious = endOfDay(subDays(startOfCurrent, 1));
+    const startOfPrevious = startOfDay(subDays(startOfCurrentDate, daysCount));
+    const endOfPrevious = startOfCurrentDate; // Exclusive boundary is the start of current period
 
-    // 2. Fetch Metrics for both periods in parallel
-    const [currentMetrics, previousMetrics] = await Promise.all([
-        fetchMetrics(companyId, startOfCurrent, endOfCurrent),
-        fetchMetrics(companyId, startOfPrevious, endOfPrevious)
+
+    // 2. Fetch Metrics using AnalyticsService in parallel
+    const [
+        currentMetrics, 
+        previousMetrics, 
+        timeSeriesData, 
+        currentSalesCount, 
+        previousSalesCount,
+        topProfitable,
+        worstMargin
+    ] = await Promise.all([
+        getFinancialOverview(companyId, { startDate: startOfCurrentDate, endDate: endOfCurrentDate }),
+        getFinancialOverview(companyId, { startDate: startOfPrevious, endDate: endOfPrevious }),
+        getDailySalesChart(companyId, { startDate: startOfCurrentDate, endDate: endOfCurrentDate }),
+        fetchSalesCount(companyId, startOfCurrentDate, endOfCurrentDate),
+        fetchSalesCount(companyId, startOfPrevious, endOfPrevious),
+        getTopProfitableProducts(companyId, { startDate: startOfCurrentDate, endDate: endOfCurrentDate }),
+        getWorstMarginProducts(companyId, { startDate: startOfCurrentDate, endDate: endOfCurrentDate })
     ]);
 
     // 3. Calculate Trends
@@ -61,78 +105,54 @@ export const getDashboardAnalytics = async (range: DashboardRange = "7d"): Promi
         return Math.round(((current - previous) / previous) * 100);
     };
 
-    // 4. Fetch Time Series Data
-    const sales = await db.sale.findMany({
-        where: {
-            companyId,
-            status: "ACTIVE",
-            date: { gte: startOfCurrent, lte: endOfCurrent }
-        },
-        include: {
-            saleProducts: true
-        }
-    });
-
-    const days = eachDayOfInterval({ start: startOfCurrent, end: endOfCurrent });
-    const timeSeries = days.map(day => {
-        const daySales = sales.filter(sale => isSameDay(sale.date, day));
-        const dayRevenue = daySales.reduce((acc, sale) => {
-            return acc + sale.saleProducts.reduce((sum, sp) => sum + (Number(sp.unitPrice) * sp.quantity), 0);
-        }, 0);
-
-        return {
-            date: format(day, "dd/MM"),
-            revenue: dayRevenue
-        };
-    });
+    // 4. Format Time Series
+    const revenueTimeSeries = timeSeriesData.map((data: DailySalesData) => ({
+        date: format(data.day, "dd/MM"),
+        revenue: data.revenue,
+        cogs: data.cogs
+    }));
 
     return {
-        totalRevenue: {
+        revenue: {
             value: currentMetrics.revenue,
             trend: calculateTrend(currentMetrics.revenue, previousMetrics.revenue)
         },
-        totalSales: {
-            value: currentMetrics.salesCount,
-            trend: calculateTrend(currentMetrics.salesCount, previousMetrics.salesCount)
+        cogs: {
+            value: currentMetrics.cogs,
+            trend: calculateTrend(currentMetrics.cogs, previousMetrics.cogs)
+        },
+        profit: {
+            value: currentMetrics.profit,
+            trend: calculateTrend(currentMetrics.profit, previousMetrics.profit)
+        },
+        margin: {
+            value: currentMetrics.margin,
+            trend: calculateTrend(currentMetrics.margin, previousMetrics.margin)
+        },
+        salesCount: {
+            value: currentSalesCount,
+            trend: calculateTrend(currentSalesCount, previousSalesCount)
         },
         averageTicket: {
-            value: currentMetrics.salesCount > 0 ? currentMetrics.revenue / currentMetrics.salesCount : 0,
+            value: currentSalesCount > 0 ? currentMetrics.revenue / currentSalesCount : 0,
             trend: calculateTrend(
-                currentMetrics.salesCount > 0 ? currentMetrics.revenue / currentMetrics.salesCount : 0,
-                previousMetrics.salesCount > 0 ? previousMetrics.revenue / previousMetrics.salesCount : 0
+                currentSalesCount > 0 ? currentMetrics.revenue / currentSalesCount : 0,
+                previousSalesCount > 0 ? previousMetrics.revenue / previousSalesCount : 0
             )
         },
-        totalProfit: {
-            value: currentMetrics.revenue - currentMetrics.cost,
-            trend: calculateTrend(currentMetrics.revenue - currentMetrics.cost, previousMetrics.revenue - previousMetrics.cost)
-        },
-        revenueTimeSeries: timeSeries
+        revenueTimeSeries,
+        topProfitable,
+        worstMargin
     };
 };
 
-interface RawMetricTotals {
-    revenue: number;
-    cost: number;
-    salesCount: number;
-}
-
-async function fetchMetrics(companyId: string, start: Date, end: Date) {
-    const totals = await db.$queryRaw<RawMetricTotals[]>`
-        SELECT 
-            COALESCE(SUM("unitPrice" * "quantity"), 0)::float as revenue,
-            COALESCE(SUM("baseCost" * "quantity"), 0)::float as cost,
-            COUNT(DISTINCT "saleId")::int as "salesCount"
-        FROM "SaleProduct"
-        JOIN "Sale" ON "Sale"."id" = "SaleProduct"."saleId"
-        WHERE "Sale"."companyId" = ${companyId}
-            AND "Sale"."status" = 'ACTIVE'
-            AND "Sale"."date" >= ${start}
-            AND "Sale"."date" <= ${end}
-    `;
-
-    return {
-        revenue: totals[0].revenue,
-        cost: totals[0].cost,
-        salesCount: totals[0].salesCount
-    };
+async function fetchSalesCount(companyId: string, start: Date, end: Date): Promise<number> {
+    const count = await db.sale.count({
+        where: {
+            companyId,
+            status: SaleStatus.ACTIVE,
+            date: { gte: start, lt: end }
+        }
+    });
+    return count;
 }

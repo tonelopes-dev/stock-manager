@@ -5,10 +5,13 @@ import { stripe } from "@/app/_lib/stripe";
 import { db } from "@/app/_lib/prisma";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { assertRole, OWNER_ONLY } from "@/app/_lib/rbac";
 
 export const createCheckoutSession = actionClient.action(async () => {
-  const session = await auth();
   const companyId = await getCurrentCompanyId();
+  await assertRole(OWNER_ONLY);
+  const session = await auth(); // Keep for email if needed, but wait.
+
 
   if (!session?.user?.email) {
     throw new Error("Unauthorized: Email is required");
@@ -56,6 +59,12 @@ export const createCheckoutSession = actionClient.action(async () => {
         quantity: 1,
       },
     ],
+    subscription_data: {
+      trial_period_days: 30,
+      metadata: {
+        companyId: companyId,
+      },
+    },
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/plans?canceled=true`,
     metadata: {

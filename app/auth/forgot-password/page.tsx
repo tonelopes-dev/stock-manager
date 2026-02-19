@@ -36,11 +36,11 @@ export default function ForgotPasswordPage() {
     },
   });
 
-  const onSubmit = async (values: ForgotPasswordValues) => {
+  const onSubmit = async () => {
     setIsPending(true);
     try {
       // Simulate server action for recovery
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       setIsSent(true);
       toast.success("Se o e-mail existir, um link de recuperação foi enviado.");
     } catch (error) {

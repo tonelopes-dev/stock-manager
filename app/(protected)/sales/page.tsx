@@ -6,7 +6,7 @@ import Header, {
 } from "../../_components/header";
 import { ComboboxOption } from "../../_components/ui/combobox";
 import { DataTable } from "../../_components/ui/data-table";
-import { getProducts } from "../../_data-access/product/get-products";
+import { getProducts, ProductDto } from "../../_data-access/product/get-products";
 import { getSales } from "../../_data-access/sale/get-sales";
 import UpsertSaleButton from "./_components/create-sale-button";
 import { saleTableColumns } from "./_components/table-columns";
@@ -21,8 +21,9 @@ import { SalesCharts } from "./_components/sales-charts";
 import { MonthComparisonFilter } from "./_components/month-comparison-filter";
 import { SalesViewTabs } from "./_components/sales-view-tabs";
 import { ExportReportModal } from "./_components/export-report-modal";
+import { SalesComparisonMetrics } from "./_components/sales-comparison-metrics";
 
-import { Product } from "@prisma/client";
+
 
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";
@@ -40,14 +41,18 @@ interface HomeProps {
   };
 }
 
+import { getCurrentUserRole } from "@/app/_lib/rbac";
+import { UserRole } from "@prisma/client";
+
 const SalesPage = async ({ searchParams }: HomeProps) => {
   const products = await getProducts();
   const productOptions: ComboboxOption[] = products.map((product) => ({
-    label: product.name,
+    label: `${product.name} - ${Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(product.price))}`,
     value: product.id,
   }));
 
   const view = searchParams.view || "gestao";
+  const role = await getCurrentUserRole();
 
   const analytics = await getSalesAnalytics(
     searchParams.from, 
@@ -59,13 +64,15 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
       <Header>
-        <HeaderLeft className="flex items-center gap-6">
+        <HeaderLeft className="flex flex-col items-start gap-4">
           <div className="space-y-1">
             <HeaderSubtitle>Gestão de Vendas</HeaderSubtitle>
             <HeaderTitle>Vendas</HeaderTitle>
           </div>
-          <SalesViewTabs />
-          {view === "gestao" ? <PeriodFilter /> : <MonthComparisonFilter />}
+          <div className="flex items-center gap-4">
+            <SalesViewTabs />
+            {view === "gestao" ? <PeriodFilter /> : <MonthComparisonFilter />}
+          </div>
         </HeaderLeft>
         <HeaderRight className="flex items-center gap-3">
           <ExportReportModal />
@@ -77,9 +84,10 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
       </Header>
 
       {view === "inteligencia" && (
-        <SalesCharts 
-            monthlyComparison={analytics.monthlyComparison}
-        />
+        <div className="space-y-8">
+          <SalesComparisonMetrics comparison={analytics.monthlyComparison} />
+          <SalesCharts comparison={analytics.monthlyComparison} />
+        </div>
       )}
 
       {view === "gestao" && (
@@ -99,6 +107,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
                     to={searchParams.to} 
                     page={Number(searchParams.page) || 1}
                     pageSize={Number(searchParams.pageSize) || 10}
+                    userRole={role as UserRole}
                 />
             </Suspense>
         </div>
@@ -113,14 +122,16 @@ const SalesTableWrapper = async ({
   from,
   to,
   page,
-  pageSize
+  pageSize,
+  userRole,
 }: { 
   productOptions: ComboboxOption[], 
-  products: Product[],
+  products: ProductDto[],
   from?: string,
   to?: string,
   page: number,
-  pageSize: number
+  pageSize: number,
+  userRole: UserRole,
 }) => {
   const { data: sales, total } = await getSales({ from, to, page, pageSize });
   
@@ -132,7 +143,7 @@ const SalesTableWrapper = async ({
 
   return (
     <DataTable 
-      columns={saleTableColumns} 
+      columns={saleTableColumns(userRole)} 
       data={tableData} 
       pagination={{
         total,
@@ -149,5 +160,6 @@ const SalesTableWrapper = async ({
     />
   );
 };
+
 
 export default SalesPage;

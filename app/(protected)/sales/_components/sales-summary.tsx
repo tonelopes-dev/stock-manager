@@ -21,8 +21,8 @@ interface SummaryCardProps {
 const SummaryCard = ({ title, value, trend, icon: Icon, description, info }: SummaryCardProps) => {
   const iconContent = (
     <div className={cn(
-        "p-2 bg-white rounded-lg border transition-all text-slate-400",
-        info ? "hover:border-primary hover:text-primary cursor-pointer shadow-sm" : "border-slate-100"
+        "p-2 bg-slate-50 rounded-xl transition-all text-slate-400",
+        info ? "hover:bg-slate-100 hover:text-primary cursor-pointer shadow-sm" : ""
     )}>
         <Icon size={16} />
     </div>
@@ -36,7 +36,7 @@ const SummaryCard = ({ title, value, trend, icon: Icon, description, info }: Sum
         {info ? (
             <Popover>
                 <PopoverTrigger asChild>
-                    <button className="outline-none focus:ring-2 focus:ring-primary/20 rounded-lg transition-all">
+                    <button className="outline-none border-none focus:ring-2 focus:ring-primary/20 rounded-xl transition-all">
                         {iconContent}
                     </button>
                 </PopoverTrigger>

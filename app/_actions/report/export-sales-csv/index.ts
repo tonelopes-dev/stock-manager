@@ -19,8 +19,9 @@ export const exportSalesCsv = actionClient
           lte: to,
         },
       },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       include: {
-        saleProducts: {
+        saleItems: {
           include: {
             product: {
               select: {
@@ -29,7 +30,8 @@ export const exportSalesCsv = actionClient
             },
           },
         },
-      },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
       orderBy: {
         date: "asc",
       },
@@ -37,7 +39,8 @@ export const exportSalesCsv = actionClient
 
     const headers = ["Data", "Produto", "Quantidade", "Receita", "Custo", "Lucro"];
     const rows = sales.flatMap((sale) =>
-      sale.saleProducts.map((item) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (sale as any).saleItems.map((item: any) => {
         const revenue = Number(item.unitPrice) * item.quantity;
         const cost = Number(item.baseCost) * item.quantity;
         const profit = revenue - cost;

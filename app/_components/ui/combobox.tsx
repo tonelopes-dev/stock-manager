@@ -52,16 +52,16 @@ export const Combobox = ({
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
         <Command>
-          <CommandInput placeholder="Search option..." />
+          <CommandInput placeholder="Buscar..." />
           <CommandList>
-            <CommandEmpty>No option found.</CommandEmpty>
+            <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.value}
-                  onSelect={(currentValue) => {
-                    onChange(currentValue === value ? "" : currentValue);
+                  value={option.label}
+                  onSelect={() => {
+                    onChange(option.value === value ? "" : option.value);
                     setOpen(false);
                   }}
                 >

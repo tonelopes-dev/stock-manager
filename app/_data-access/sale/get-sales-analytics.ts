@@ -4,13 +4,13 @@ import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { 
   startOfDay, 
-  endOfDay, 
   format,
   eachDayOfInterval,
   isSameDay,
   startOfMonth,
   endOfMonth,
-  subMonths
+  subMonths,
+  addDays
 } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 
@@ -21,9 +21,19 @@ export interface SalesAnalyticsDto {
     totalSales: { value: number; trend: number };
     revenueTimeSeries: { date: string; revenue: number }[];
     monthlyComparison: {
-        name: string;
-        revenue: number;
-    }[];
+        periodA: {
+            name: string;
+            revenue: number;
+            salesCount: number;
+            avgTicket: number;
+        };
+        periodB: {
+            name: string;
+            revenue: number;
+            salesCount: number;
+            avgTicket: number;
+        };
+    };
 }
 
 export const getSalesAnalytics = async (
@@ -43,11 +53,11 @@ export const getSalesAnalytics = async (
     };
 
     const startOfSelected = from ? startOfDay(parseLocalDay(from)) : startOfMonth(now);
-    const endOfSelected = to ? endOfDay(parseLocalDay(to)) : endOfDay(now);
+    const endOfSelected = to ? startOfDay(addDays(parseLocalDay(to), 1)) : startOfDay(addDays(now, 1));
     
     const diff = endOfSelected.getTime() - startOfSelected.getTime();
-    const startOfPrevious = new Date(startOfSelected.getTime() - diff - 1);
-    const endOfPrevious = new Date(startOfSelected.getTime() - 1);
+    const startOfPrevious = new Date(startOfSelected.getTime() - diff);
+    const endOfPrevious = startOfSelected;
 
     // 2. Fetch Metrics
     const [currentMetrics, previousMetrics] = await Promise.all([
@@ -68,7 +78,7 @@ export const getSalesAnalytics = async (
             date: { gte: startOfSelected, lte: endOfSelected }
         },
         include: {
-            saleProducts: true
+            saleItems: true
         }
     });
 
@@ -76,7 +86,7 @@ export const getSalesAnalytics = async (
     const timeSeries = days.map(day => {
         const daySales = sales.filter(sale => isSameDay(sale.date, day));
         const dayRevenue = daySales.reduce((acc, sale) => {
-            return acc + sale.saleProducts.reduce((sum, sp) => sum + (Number(sp.unitPrice) * sp.quantity), 0);
+            return acc + sale.saleItems.reduce((sum, si) => sum + (Number(si.unitPrice) * Number(si.quantity)), 0);
         }, 0);
 
         return {
@@ -87,10 +97,10 @@ export const getSalesAnalytics = async (
 
     // 4. Monthly Comparison (Custom Months or Current vs Previous)
     const parseMonthStr = (str?: string, defaultDate: Date = now) => {
-        if (!str) return { start: startOfMonth(defaultDate), end: endOfMonth(defaultDate) };
+        if (!str) return { start: startOfMonth(defaultDate), end: startOfDay(addDays(endOfMonth(defaultDate), 1)) };
         const [year, month] = str.split("-").map(Number);
         const date = new Date(year, month - 1, 1);
-        return { start: startOfMonth(date), end: endOfMonth(date) };
+        return { start: startOfMonth(date), end: startOfDay(addDays(endOfMonth(date), 1)) };
     };
 
     const { start: startA, end: endA } = parseMonthStr(monthA, now);
@@ -101,7 +111,7 @@ export const getSalesAnalytics = async (
         fetchSalesMetrics(companyId, startB, endB)
     ]);
 
-    const formatMonthLabel = (date: Date) => format(date, "MMM/yy", { locale: ptBR });
+    const formatMonthLabel = (date: Date) => format(date, "MMMM yyyy", { locale: ptBR });
 
     return {
         totalRevenue: {
@@ -124,16 +134,20 @@ export const getSalesAnalytics = async (
             trend: calculateTrend(currentMetrics.salesCount, previousMetrics.salesCount)
         },
         revenueTimeSeries: timeSeries,
-        monthlyComparison: [
-            {
+        monthlyComparison: {
+            periodA: {
                 name: formatMonthLabel(startA),
                 revenue: metricsA.revenue,
+                salesCount: metricsA.salesCount,
+                avgTicket: metricsA.salesCount > 0 ? metricsA.revenue / metricsA.salesCount : 0,
             },
-            {
+            periodB: {
                 name: formatMonthLabel(startB),
                 revenue: metricsB.revenue,
+                salesCount: metricsB.salesCount,
+                avgTicket: metricsB.salesCount > 0 ? metricsB.revenue / metricsB.salesCount : 0,
             }
-        ]
+        }
     };
 };
 
@@ -148,7 +162,7 @@ async function fetchSalesMetrics(companyId: string, start: Date, end: Date) {
         WHERE "Sale"."companyId" = ${companyId}
             AND "Sale"."status" = 'ACTIVE'
             AND "Sale"."date" >= ${start}
-            AND "Sale"."date" <= ${end}
+            AND "Sale"."date" < ${end}
     `;
 
     return {

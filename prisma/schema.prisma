@@ -16,6 +16,7 @@ datasource db {
 model Product {
   id             String          @id @default(uuid())
   name           String
+  type           ProductType     @default(RESELL)
   price          Decimal         @db.Decimal(10, 2)
   cost           Decimal         @default(0) @db.Decimal(10, 2)
   sku            String?
@@ -27,8 +28,10 @@ model Product {
   company        Company         @relation(fields: [companyId], references: [id])
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
-  saleProducts   SaleProduct[]
+  saleItems      SaleItem[]
   stockMovements StockMovement[]
+  recipes        ProductRecipe[]
+  productionOrders ProductionOrder[]
 
   @@unique([sku, companyId])
 }
@@ -41,23 +44,41 @@ model Sale {
   company      Company       @relation(fields: [companyId], references: [id])
   userId       String?
   user         User?          @relation(fields: [userId], references: [id])
+  
+  discountAmount Decimal      @db.Decimal(10, 2) @default(0)
+  totalAmount    Decimal      @db.Decimal(10, 2) @default(0)
+  totalCost      Decimal      @db.Decimal(10, 2) @default(0)
+
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
-  saleProducts SaleProduct[]
+  saleItems    SaleItem[]
   stockMovements StockMovement[]
+
+  @@index([companyId, status, date])
+  @@index([companyId, createdAt])
 }
 
-model SaleProduct {
+model SaleItem {
   id        String   @id @default(uuid())
   saleId    String
   sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
   productId String
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
   unitPrice Decimal  @db.Decimal(10, 2)
   baseCost  Decimal  @db.Decimal(10, 2) @default(0)
-  quantity  Int
+  quantity  Decimal  @db.Decimal(10, 3)
+  
+  discountAmount Decimal      @db.Decimal(10, 2) @default(0)
+  totalAmount    Decimal      @db.Decimal(10, 2) @default(0)
+  totalCost      Decimal      @db.Decimal(10, 2) @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([saleId])
+  @@index([productId])
+  @@map("SaleProduct")
 }
 
 // Auth.js Models
@@ -80,7 +101,10 @@ model User {
   userCompanies  UserCompany[]
   sales          Sale[]
   stockMovements StockMovement[]
+  productionOrders ProductionOrder[]
   createdAt      DateTime        @default(now())
+  sessionVersion Int             @default(0)
+  auditEvents    AuditEvent[]    @relation("UserAudits")
   updatedAt      DateTime        @updatedAt
 }
 
@@ -119,6 +143,7 @@ model VerificationToken {
 }
 
 enum SaleStatus {
+  DRAFT
   ACTIVE
   CANCELED
 }
@@ -141,50 +166,79 @@ enum StockMovementType {
   ADJUSTMENT
   MANUAL
   CANCEL
+  PRODUCTION
+}
+
+enum ProductType {
+  RESELL
+  PREPARED
+}
+
+enum UnitType {
+  KG
+  G
+  L
+  ML
+  UN
 }
 
 model StockMovement {
-  id          String            @id @default(uuid())
-  type        StockMovementType
-  stockBefore Int
-  stockAfter  Int
-  productId   String
-  product     Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
-  companyId   String
-  company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  saleId      String?
-  sale        Sale?             @relation(fields: [saleId], references: [id], onDelete: SetNull)
-  reason      String?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  id              String            @id @default(uuid())
+  type            StockMovementType
+  stockBefore     Decimal           @db.Decimal(10, 4)
+  stockAfter      Decimal           @db.Decimal(10, 4)
+  quantityDecimal Decimal?          @db.Decimal(10, 4)
+  productId       String?
+  product         Product?          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  ingredientId    String?
+  ingredient      Ingredient?       @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  companyId       String
+  company         Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  saleId          String?
+  sale            Sale?             @relation(fields: [saleId], references: [id], onDelete: SetNull)
+  reason          String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([ingredientId])
 }
 
-enum Plan {
-  FREE
-  PRO
-  ENTERPRISE
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
 }
 
 model Company {
-  id             String          @id @default(cuid())
-  name           String
-  plan           Plan            @default(FREE)
-  maxProducts    Int             @default(20)
-  maxUsers       Int             @default(1)
-  allowNegativeStock Boolean     @default(false)
-  createdAt      DateTime        @default(now())
-  stripeCustomerId       String?   @unique
-  stripeSubscriptionId   String?   @unique
+  id                     String               @id @default(cuid())
+  name                   String
+  plan                   String               @default("FREE")
+  allowNegativeStock     Boolean              @default(false)
+  createdAt              DateTime             @default(now())
+  stripeCustomerId       String?              @unique
+  stripeSubscriptionId   String?              @unique
   stripePriceId          String?
   stripeCurrentPeriodEnd DateTime?
+  subscriptionStatus     SubscriptionStatus?
+  deletedAt              DateTime?            // Soft delete flag
+
   userCompanies  UserCompany[]
   products       Product[]
+  ingredients    Ingredient[]
   sales          Sale[]
   stockMovements StockMovement[]
   invitations    CompanyInvitation[]
+  productionOrders ProductionOrder[]
+  auditEvents    AuditEvent[]
+
+  @@index([deletedAt])
 }
+
+
 
 model UserCompany {
   id        String   @id @default(cuid())
@@ -211,3 +265,120 @@ model CompanyInvitation {
 
   @@unique([email, companyId, status])
 }
+
+// ──────────────────────────────────────────────
+// Gastronomic Models (Phase 1)
+// ──────────────────────────────────────────────
+
+model Ingredient {
+  id        String   @id @default(cuid())
+  name      String
+  unit      UnitType
+  cost      Decimal  @db.Decimal(10, 4)
+  stock     Decimal  @default(0) @db.Decimal(10, 4)
+  minStock  Decimal  @default(0) @db.Decimal(10, 4)
+  isActive  Boolean  @default(true)
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  recipes        ProductRecipe[]
+  stockMovements StockMovement[]
+
+  @@index([companyId])
+}
+
+model ProductRecipe {
+  id           String     @id @default(cuid())
+  productId    String
+  ingredientId String
+  quantity     Decimal    @db.Decimal(10, 4)
+  unit         UnitType
+
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, ingredientId])
+}
+
+model ProductionOrder {
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  quantity    Int
+  totalCost   Decimal  @db.Decimal(10, 2) @default(0)
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([companyId])
+  @@index([productId])
+}
+enum AuditSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum AuditEventType {
+  // Account Lifecycle
+  OWNERSHIP_TRANSFERRED
+  COMPANY_SOFT_DELETED
+  COMPANY_RESTORED
+  COMPANY_PERMANENTLY_DELETED
+  
+  // Team
+  MEMBER_INVITED
+  MEMBER_REMOVED
+  ROLE_UPDATED
+  
+  // Business
+  STOCK_ADJUSTED
+  SALE_CANCELED
+  SALE_CREATED
+  SALE_UPDATED
+  SALE_DELETED
+  PRODUCT_CREATED
+  PRODUCT_UPDATED
+  PRODUCT_DELETED
+  
+  // Billing
+  SUBSCRIPTION_ACTIVATED
+  SUBSCRIPTION_CANCELED
+  BILLING_REQUIRED
+  CHECKOUT_STARTED
+}
+
+
+model AuditEvent {
+  id              String          @id @default(cuid())
+  type            AuditEventType
+  severity        AuditSeverity   @default(INFO)
+  
+  // Company Link (Optional to survive company hard-delete)
+  companyId       String?
+  company         Company?        @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  
+  // Actor Info & Snapshot
+  actorId         String
+  actor           User            @relation("UserAudits", fields: [actorId], references: [id])
+  actorName       String?
+  actorEmail      String?
+  
+  // Entity Context (e.g., PRODUCT:uuid)
+  entityType      String?         
+  entityId        String?
+  
+  metadata        Json?
+  metadataVersion Int             @default(1)
+  
+  createdAt       DateTime        @default(now())
+
+  @@index([companyId, createdAt(sort: Desc)])
+  @@index([type])
+  @@index([entityType, entityId])
+}
+

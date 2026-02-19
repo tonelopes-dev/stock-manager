@@ -4,11 +4,36 @@ import { ColumnDef } from "@tanstack/react-table";
 import ProductTableDropdownMenu from "./table-dropdown-menu";
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import ProductStatusBadge from "@/app/_components/product-status-badge";
+import { Badge } from "@/app/_components/ui/badge";
 
-export const productTableColumns: ColumnDef<ProductDto>[] = [
+const PRODUCT_TYPE_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
+  RESELL: { label: "Revenda", variant: "secondary" },
+  PREPARED: { label: "Produção Própria", variant: "default" },
+};
+
+import { UserRole } from "@prisma/client";
+
+export const productTableColumns = (userRole: UserRole): ColumnDef<ProductDto>[] => [
   {
     accessorKey: "name",
     header: "Produto",
+  },
+  {
+    accessorKey: "type",
+    header: "Tipo",
+    cell: ({ row: { original: product } }) => {
+      const config = PRODUCT_TYPE_LABELS[product.type] || PRODUCT_TYPE_LABELS.RESELL;
+      return (
+        <div className="flex items-center gap-2">
+          <Badge variant={config.variant}>{config.label}</Badge>
+          {!product.isActive && (
+            <Badge variant="destructive" className="bg-red-100 text-red-700 hover:bg-red-100 border-red-200">
+              Inativo
+            </Badge>
+          )}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "sku",
@@ -47,6 +72,6 @@ export const productTableColumns: ColumnDef<ProductDto>[] = [
   {
     accessorKey: "actions",
     header: "Ações",
-    cell: (row) => <ProductTableDropdownMenu product={row.row.original} />,
+    cell: (row) => <ProductTableDropdownMenu product={row.row.original} userRole={userRole} />,
   },
 ];

@@ -5,59 +5,59 @@ import { revalidatePath } from "next/cache";
 import { upsertProductSchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { auth } from "@/app/_lib/auth";
 import { recordStockMovement } from "@/app/_lib/stock";
-import { checkProductLimit } from "@/app/_lib/plan-limits";
+import { recalculateProductCost } from "../recipe/recalculate-cost";
+import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
+import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { AuditService } from "@/app/_services/audit";
+import { AuditEventType } from "@prisma/client";
+
+
 
 export const upsertProduct = actionClient
   .schema(upsertProductSchema)
   .action(async ({ parsedInput: { id, ...data } }) => {
     const companyId = await getCurrentCompanyId();
-    const session = await auth();
-    const userId = session?.user?.id;
+    const { userId } = await assertRole(ADMIN_AND_OWNER);
+    await requireActiveSubscription(companyId);
 
-    if (!userId) {
-      throw new Error("User not authenticated");
-    }
 
-    // Plan Limit: Global check for new products
-    if (!id) {
-      await checkProductLimit(companyId);
-    }
-
-    // Business Validation: SKU Uniqueness per company
-    const { sku } = data;
-    if (sku) {
-      const productWithSameSku = await db.product.findFirst({
-        where: { 
-          sku, 
-          companyId,
-          NOT: id ? { id } : undefined 
-        },
-      });
-
-      if (productWithSameSku) {
-        throw new Error("Este SKU já está em uso por outro produto da sua empresa.");
-      }
-    }
+    const sku = data.sku?.trim() || null;
 
     await db.$transaction(async (trx) => {
-      const { stock, ...rest } = data;
+      const { stock, type, cost, ...rest } = data;
+      
+      const updateData = { 
+        ...rest, 
+        sku, 
+        type,
+        cost: type === "PREPARED" ? undefined : cost
+      };
+
+
+      let productId = id;
 
       if (id) {
-        // Update product metadata only, ignore stock field from form
-        await trx.product.update({
+        const updatedProduct = await trx.product.update({
           where: { id, companyId },
-          data: rest,
-        });
-      } else {
-        // Create new product with 0 stock initially
-        const product = await trx.product.create({
-          data: { ...rest, companyId, stock: 0 },
+          data: updateData,
         });
 
-        // Set initial stock via movement for auditability
-        if (stock > 0) {
+        if (updatedProduct.type === "PREPARED") {
+          await recalculateProductCost(id, trx);
+        }
+      } else {
+        const product = await trx.product.create({
+          data: { 
+            ...updateData, 
+            cost: type === "PREPARED" ? 0 : (cost || 0),
+            companyId, 
+            stock: 0 
+          },
+        });
+        productId = product.id;
+
+        if (type !== "PREPARED" && stock && stock > 0) {
           await recordStockMovement(
             {
               productId: product.id,
@@ -71,7 +71,22 @@ export const upsertProduct = actionClient
           );
         }
       }
+
+      // 3. Log Audit within transaction
+      await AuditService.logWithTransaction(trx, {
+        type: id ? AuditEventType.PRODUCT_UPDATED : AuditEventType.PRODUCT_CREATED,
+        companyId,
+        entityType: "PRODUCT",
+        entityId: productId,
+        metadata: {
+          productId,
+          sku,
+          name: data.name,
+        },
+      });
     });
+
+
 
     revalidatePath("/products", "page");
     revalidatePath("/");

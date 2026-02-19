@@ -17,7 +17,7 @@ export const createCustomerPortalSession = actionClient.action(async () => {
   const company = await db.company.findUnique({
     where: { id: companyId },
     select: { stripeCustomerId: true },
-  }) as any;
+  });
 
   if (!company?.stripeCustomerId) {
     throw new Error("Stripe Customer ID not found. Subscribe to a plan first.");

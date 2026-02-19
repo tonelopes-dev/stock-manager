@@ -34,17 +34,22 @@ import { ComboboxOption } from "@/app/_components/ui/combobox";
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { SaleDto } from "@/app/_data-access/sale/get-sales";
 
+import { UserRole } from "@prisma/client";
+
 interface SalesTableDropdownMenuProps {
-  sale: Pick<SaleDto, "id" | "saleProducts" | "date">;
+  sale: Pick<SaleDto, "id" | "saleItems" | "date">;
   productOptions: ComboboxOption[];
   products: ProductDto[];
+  userRole: UserRole;
 }
 
 const SalesTableDropdownMenu = ({
   sale,
   products,
   productOptions,
+  userRole,
 }: SalesTableDropdownMenuProps) => {
+
   const [upsertSheetIsOpen, setUpsertSheetIsOpen] = useState(false);
   const { execute } = useAction(deleteSale, {
     onSuccess: () => {
@@ -78,20 +83,25 @@ const SalesTableDropdownMenu = ({
               <ClipboardCopyIcon size={16} />
               Copiar ID
             </DropdownMenuItem>
-            <SheetTrigger asChild>
-              <DropdownMenuItem className="gap-1.5">
-                <EditIcon size={16} />
-                Editar
-              </DropdownMenuItem>
-            </SheetTrigger>
-            <AlertDialogTrigger asChild>
-              <DropdownMenuItem className="gap-1.5">
-                <TrashIcon size={16} />
-                Deletar
-              </DropdownMenuItem>
-            </AlertDialogTrigger>
+            {userRole !== UserRole.MEMBER && (
+               <>
+                  <SheetTrigger asChild>
+                    <DropdownMenuItem className="gap-1.5">
+                      <EditIcon size={16} />
+                      Editar
+                    </DropdownMenuItem>
+                  </SheetTrigger>
+                  <AlertDialogTrigger asChild>
+                    <DropdownMenuItem className="gap-1.5">
+                      <TrashIcon size={16} />
+                      Deletar
+                    </DropdownMenuItem>
+                  </AlertDialogTrigger>
+               </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
+
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
@@ -116,12 +126,16 @@ const SalesTableDropdownMenu = ({
         productOptions={productOptions}
         products={products}
         setSheetIsOpen={setUpsertSheetIsOpen}
-        defaultSelectedProducts={sale.saleProducts.map((saleProduct) => ({
-          id: saleProduct.productId,
-          quantity: saleProduct.quantity,
-          name: saleProduct.productName,
-          price: saleProduct.unitPrice,
-        }))}
+        defaultSelectedProducts={sale.saleItems.map((item) => {
+          const product = products.find((p) => p.id === item.productId);
+          return {
+            id: item.productId,
+            quantity: item.quantity,
+            name: item.productName,
+            price: item.unitPrice,
+            stock: product?.stock ?? 0,
+          };
+        })}
       />
     </Sheet>
   );

@@ -1,15 +1,21 @@
 import { auth } from "@/app/_lib/auth";
 import { NextResponse } from "next/server";
 
-export default auth((req) => {
+export default auth(async (req) => {
+
   const isLoggedIn = !!req.auth;
   const { pathname } = req.nextUrl;
 
-  // Public routes that don't require authentication
-  const publicRoutes = ["/", "/login", "/register"];
+  // 1. Loop Protection & Public Routes
+  if (pathname === "/billing-required") {
+    return NextResponse.next();
+  }
+
+  const publicRoutes = ["/", "/login", "/register", "/plans", "/checkout", "/checkout/success"];
   const isPublicRoute = publicRoutes.includes(pathname);
   const isAuthApiRoute = pathname.startsWith("/api/auth");
   const isWebhookRoute = pathname.startsWith("/api/webhooks");
+  const isRestorePage = pathname === "/settings/company/restore";
 
   // Allow access to auth API routes and webhooks
   if (isAuthApiRoute || isWebhookRoute) {
@@ -34,9 +40,63 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/login", req.nextUrl.origin));
   }
 
-  return NextResponse.next();
+  // 2. Role-Based Route Protection (Layer 1)
+  if (isLoggedIn) {
+     const role = req.auth?.user?.role;
+     const subscriptionStatus = req.auth?.user?.subscriptionStatus;
+     const companyDeletedAt = req.auth?.user?.companyDeletedAt;
+
+     // 2.1 Lifecycle Guard: Soft Delete
+     if (companyDeletedAt && !isRestorePage && !pathname.startsWith("/_actions")) {
+        // If pending deletion: Only OWNER can go to restore page. Others are blocked.
+        if (role === "OWNER") {
+          return NextResponse.redirect(new URL("/settings/company/restore", req.nextUrl.origin));
+        } else {
+          // Non-owners see a "Deactivated" message or just logout
+          return NextResponse.redirect(new URL("/login?reason=company_deactivated", req.nextUrl.origin));
+        }
+     }
+
+     // 2.2 Lifecycle Guard: Subscription (Suspended)
+     // Allowed statuses for app access: ACTIVE, TRIALING
+     const restrictedStatuses = ["PAST_DUE", "CANCELED", "INCOMPLETE"];
+     if (restrictedStatuses.includes(subscriptionStatus as string) && pathname !== "/billing-required" && !isPublicRoute) {
+        // Only allow OWNER/ADMIN to access billing/settings to fix it? 
+        // For now, redirect everyone to the billing required page.
+        return NextResponse.redirect(new URL("/billing-required", req.nextUrl.origin));
+     }
+     
+     // 2.3 RBAC: Action Guard
+     // OWNER: Can access everything
+     // ADMIN: Cannot access /plans (Billing)
+     if (role === "ADMIN" && pathname.startsWith("/plans")) {
+        return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
+     }
+
+     // MEMBER: Cannot access /plans OR /settings/team
+     if (role === "MEMBER") {
+        if (pathname.startsWith("/plans") || pathname.startsWith("/settings/team")) {
+          return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
+        }
+     }
+  }
+
+  // 3. Inject Pathname into Headers (for Server Components)
+
+  // This allows the ProtectedLayout to perform the subscription guard check safely on the server
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-pathname", pathname);
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 });
 
+
 export const config = {
-  matcher: ["/((?!api/webhooks|api/auth|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next|favicon.ico).*)"],
 };
+
+

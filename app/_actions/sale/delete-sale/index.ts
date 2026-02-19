@@ -5,19 +5,18 @@ import { deleteSaleSchema } from "./schema";
 import { db } from "@/app/_lib/prisma";
 import { revalidatePath } from "next/cache";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { auth } from "@/app/_lib/auth";
 import { recordStockMovement } from "@/app/_lib/stock";
+import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { AuditService } from "@/app/_services/audit";
+import { AuditEventType, AuditSeverity } from "@prisma/client";
+
 
 export const deleteSale = actionClient
   .schema(deleteSaleSchema)
   .action(async ({ parsedInput: { id } }) => {
     const companyId = await getCurrentCompanyId();
-    const session = await auth();
-    const userId = session?.user?.id;
+    const { userId } = await assertRole(ADMIN_AND_OWNER);
 
-    if (!userId) {
-      throw new Error("User not authenticated");
-    }
 
     await db.$transaction(async (trx) => {
       const sale = await trx.sale.findFirst({
@@ -26,28 +25,47 @@ export const deleteSale = actionClient
           companyId, // Ensure sale belongs to current company
         },
         include: {
-          saleProducts: true,
+          saleItems: true,
         },
       });
       if (!sale) return;
-      await trx.sale.delete({
-        where: {
-          id,
-        },
-      });
-      for (const product of sale.saleProducts) {
+      for (const item of sale.saleItems) {
         await recordStockMovement(
           {
-            productId: product.productId,
+            productId: item.productId,
             companyId,
             userId,
             type: "CANCEL",
-            quantity: product.quantity,
+            quantity: Number(item.quantity),
             saleId: sale.id,
+            reason: "Exclusão de venda",
           },
           trx
         );
       }
+
+      await trx.sale.delete({
+        where: { id },
+      });
+
+      // 3. Log Audit within transaction
+      await AuditService.logWithTransaction(trx, {
+        type: AuditEventType.SALE_DELETED,
+        severity: AuditSeverity.WARNING,
+
+
+        companyId,
+        entityType: "SALE",
+        entityId: id,
+        metadata: {
+          saleId: id,
+          total: Number(sale.totalAmount),
+        },
+      });
     });
+
     revalidatePath("/", "layout");
+    revalidatePath("/dashboard");
+    revalidatePath("/sales");
+    revalidatePath("/products");
   });

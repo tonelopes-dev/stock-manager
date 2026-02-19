@@ -14,16 +14,7 @@ export interface MostSoldProductDto {
 export const getMostSoldProducts = async (): Promise<MostSoldProductDto[]> => {
   const companyId = await getCurrentCompanyId();
   await new Promise((resolve) => setTimeout(resolve, 3000));
-  const mostSoldProductsQuery = `
-    SELECT "Product"."name", SUM("SaleProduct"."quantity") as "totalSold", "Product"."price", "Product"."stock", "Product"."id" as "productId"
-    FROM "SaleProduct"
-    JOIN "Product" ON "SaleProduct"."productId" = "Product"."id"
-    WHERE "Product"."companyId" = $1
-    GROUP BY "Product"."name", "Product"."price", "Product"."stock", "Product"."id"
-    ORDER BY "totalSold" DESC
-    LIMIT 5;
-  `;
-  const mostSoldProducts = await db.$queryRawUnsafe<
+  const mostSoldProducts = await db.$queryRaw<
     {
       productId: string;
       name: string;
@@ -31,7 +22,15 @@ export const getMostSoldProducts = async (): Promise<MostSoldProductDto[]> => {
       stock: number;
       price: number;
     }[]
-  >(mostSoldProductsQuery, companyId);
+  >`
+    SELECT "Product"."name", SUM("SaleProduct"."quantity")::float as "totalSold", "Product"."price", "Product"."stock", "Product"."id" as "productId"
+    FROM "SaleProduct"
+    JOIN "Product" ON "SaleProduct"."productId" = "Product"."id"
+    WHERE "Product"."companyId" = ${companyId}
+    GROUP BY "Product"."name", "Product"."price", "Product"."stock", "Product"."id"
+    ORDER BY "totalSold" DESC
+    LIMIT 5;
+  `;
   return mostSoldProducts.map((product) => ({
     ...product,
     totalSold: Number(product.totalSold),

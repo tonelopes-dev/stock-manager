@@ -4,7 +4,7 @@ import Header, {
   HeaderTitle,
 } from "@/app/_components/header";
 import { auth } from "@/app/_lib/auth";
-import { getUserRoleInCompany } from "@/app/_lib/rbac";
+import { getCurrentUserRole } from "@/app/_lib/rbac";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
 import { ProfileForm } from "./_components/profile-form";
@@ -16,12 +16,17 @@ import { UserIcon, ShieldCheckIcon, BuildingIcon } from "lucide-react";
 export default async function ProfilePage() {
   const session = await auth();
   const companyId = await getCurrentCompanyId();
-  const role = await getUserRoleInCompany(companyId);
+  const role = await getCurrentUserRole();
+
   
   const company = await db.company.findUnique({
     where: { id: companyId },
-    select: { name: true, plan: true }
+    select: { 
+      name: true, 
+      subscriptionStatus: true 
+    }
   });
+
 
   const user = await db.user.findUnique({
     where: { id: session?.user?.id },
@@ -103,11 +108,12 @@ export default async function ProfilePage() {
               </div>
 
               <div className="space-y-2 pt-4 border-t border-slate-200">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Plano Atual</p>
-                <Badge className="font-black px-3 py-1 bg-primary text-white">
-                  {company?.plan}
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status da Assinatura</p>
+                <Badge className="font-black px-3 py-1 bg-primary text-white uppercase">
+                  {company?.subscriptionStatus || "FREE"}
                 </Badge>
               </div>
+
             </CardContent>
           </Card>
 

@@ -5,19 +5,24 @@ export const upsertProductSchema = z.object({
   name: z.string().trim().min(1, {
     message: "O nome do produto é obrigatório.",
   }),
+  type: z.enum(["RESELL", "PREPARED"]).default("RESELL"),
   price: z.number().min(0.01, {
     message: "O preço do produto é obrigatório.",
   }),
   cost: z.number().min(0, {
     message: "O custo do produto deve ser positivo.",
-  }),
+  }).default(0),
   sku: z.string().trim().nullable().optional(),
   category: z.string().trim().nullable().optional(),
   stock: z.coerce.number().int().min(0, {
     message: "A quantidade em estoque é obrigatória.",
-  }),
+  }).default(0),
   minStock: z.coerce.number().int().min(0).default(0),
-}).refine((data) => data.cost <= data.price, {
+}).refine((data) => {
+  // PREPARED products get their cost from the recipe, skip this validation
+  if (data.type === "PREPARED") return true;
+  return data.cost <= data.price;
+}, {
   message: "O custo não pode ser maior que o preço de venda.",
   path: ["cost"],
 });

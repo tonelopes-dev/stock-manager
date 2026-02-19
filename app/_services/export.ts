@@ -36,7 +36,7 @@ export const ExportService = {
     const sales = await db.sale.findMany({
       where: whereClause,
       include: {
-        saleProducts: {
+        saleItems: {
           include: {
             product: true,
           },
@@ -61,7 +61,7 @@ export const ExportService = {
       const month = sale.date.getMonth() + 1;
       const year = sale.date.getFullYear();
       const key = `${month}-${year}`;
-      const saleTotal = sale.saleProducts.reduce((sum, sp) => sum + Number(sp.unitPrice) * sp.quantity, 0);
+      const saleTotal = sale.saleItems.reduce((sum, si) => sum + Number(si.unitPrice) * Number(si.quantity), 0);
 
       if (!monthlyData[key]) {
         monthlyData[key] = {
@@ -104,7 +104,7 @@ export const ExportService = {
     const summarySheet = workbook.addWorksheet("Resumo Executivo", { views: [{ showGridLines: false }] });
 
     const totalRev = sales.reduce((acc, sale) => {
-      return acc + sale.saleProducts.reduce((sum, sp) => sum + Number(sp.unitPrice) * sp.quantity, 0);
+      return acc + sale.saleItems.reduce((sum, si) => sum + Number(si.unitPrice) * Number(si.quantity), 0);
     }, 0);
     const totalS = sales.length;
     const avgT = totalS > 0 ? totalRev / totalS : 0;
@@ -228,14 +228,14 @@ export const ExportService = {
     });
 
     sales.forEach((sale) => {
-      sale.saleProducts.forEach((sp) => {
+      sale.saleItems.forEach((si) => {
         const row = detailedSheet.addRow({
           date: sale.date,
-          product: sp.product.name,
-          quantity: sp.quantity,
-          unitPrice: Number(sp.unitPrice),
-          totalPrice: Number(sp.unitPrice) * sp.quantity,
-          profit: (Number(sp.unitPrice) - Number(sp.baseCost)) * sp.quantity,
+          product: si.product.name,
+          quantity: Number(si.quantity),
+          unitPrice: Number(si.unitPrice),
+          totalPrice: Number(si.unitPrice) * Number(si.quantity),
+          profit: (Number(si.unitPrice) - Number(si.baseCost)) * Number(si.quantity),
         });
         row.getCell("unitPrice").numFmt = '"R$" #,##0.00';
         row.getCell("totalPrice").numFmt = '"R$" #,##0.00';
