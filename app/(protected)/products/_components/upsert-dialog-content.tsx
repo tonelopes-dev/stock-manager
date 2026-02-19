@@ -46,37 +46,23 @@ const MoneyInput = React.forwardRef<HTMLInputElement, NumericFormatProps>(
 );
 MoneyInput.displayName = "MoneyInput";
 
-import confetti from "canvas-confetti";
 
 interface UpsertProductDialogContentProps {
   defaultValues?: UpsertProductSchema;
   setDialogIsOpen: Dispatch<SetStateAction<boolean>>;
-  hasProducts?: boolean;
 }
 
 const UpsertProductDialogContent = ({
   defaultValues,
   setDialogIsOpen,
-  hasProducts,
 }: UpsertProductDialogContentProps) => {
   const { execute: executeUpsertProduct } = useAction(upsertProduct, {
     onSuccess: () => {
       const isCreate = !defaultValues;
 
-      if (isCreate && !hasProducts) {
-        confetti({
-          particleCount: 150,
-          spread: 70,
-          origin: { y: 0.6 },
-        });
-
-        toast.success("🚀 Você deu seu primeiro passo!", {
-          description: "Seu primeiro produto foi criado. Agora você já pode registrar vendas e ver a mágica acontecer.",
-          duration: 6000,
-        });
-      } else {
-        toast.success("Produto salvo com sucesso.");
-      }
+      toast.success(
+        `Produto ${isCreate ? "criado" : "atualizado"} com sucesso.`,
+      );
 
       setDialogIsOpen(false);
     },

@@ -57,7 +57,6 @@ interface SelectedProduct {
   stock: number;
 }
 
-import confetti from "canvas-confetti";
 
 interface UpsertSheetContentProps {
   isOpen: boolean;
@@ -67,7 +66,6 @@ interface UpsertSheetContentProps {
   productOptions: ComboboxOption[];
   setSheetIsOpen: Dispatch<SetStateAction<boolean>>;
   defaultSelectedProducts?: SelectedProduct[];
-  hasSales?: boolean;
 }
 
 const UpsertSheetContent = ({
@@ -78,7 +76,6 @@ const UpsertSheetContent = ({
   productOptions,
   setSheetIsOpen,
   defaultSelectedProducts,
-  hasSales,
 }: UpsertSheetContentProps) => {
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>(
     defaultSelectedProducts ?? [],
@@ -93,25 +90,7 @@ const UpsertSheetContent = ({
       toast.error(serverError ?? flattenedErrors.formErrors[0]);
     },
     onSuccess: () => {
-      if (!saleId && !hasSales) {
-        // First Sale WOW Moment
-        confetti({
-          particleCount: 150,
-          spread: 70,
-          origin: { y: 0.6 },
-          colors: ["#2563eb", "#3b82f6", "#60a5fa"],
-        });
-
-        toast.success("🎉 Venda registrada!", {
-          description: "O estoque foi atualizado automaticamente. Clique para conferir.",
-          action: {
-            label: "Ver estoque",
-            onClick: () => (window.location.href = "/products"),
-          },
-        });
-      } else {
-        toast.success(saleId ? "Venda atualizada com sucesso." : "Venda realizada com sucesso.");
-      }
+      toast.success("Venda realizada com sucesso.");
       setSheetIsOpen(false);
     },
   });

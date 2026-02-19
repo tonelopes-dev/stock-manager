@@ -15,7 +15,10 @@ import { BusinessError } from "./errors";
 export async function requireActiveSubscription(companyId: string): Promise<void> {
   const company = await db.company.findUnique({
     where: { id: companyId },
-    select: { subscriptionStatus: true },
+    select: { 
+      subscriptionStatus: true,
+      stripeCurrentPeriodEnd: true,
+    },
   });
 
   if (!company) {
@@ -29,9 +32,18 @@ export async function requireActiveSubscription(companyId: string): Promise<void
 
   const allowedStatuses = ["TRIALING", "ACTIVE"] as const;
 
+  // 1. Check status
   if (!allowedStatuses.includes(company.subscriptionStatus as (typeof allowedStatuses)[number])) {
     throw new BusinessError(
       "Sua assinatura expirou ou está inativa. Acesse a página de Planos para reativar."
+    );
+  }
+
+  // 2. Check period end (Trial/Subscription expiration)
+  const now = new Date();
+  if (company.stripeCurrentPeriodEnd && company.stripeCurrentPeriodEnd < now) {
+    throw new BusinessError(
+      "Seu período de acesso expirou. Acesse a página de Planos para assinar e continuar usando o sistema."
     );
   }
 }

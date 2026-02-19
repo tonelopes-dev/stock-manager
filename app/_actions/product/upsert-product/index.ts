@@ -57,19 +57,6 @@ export const upsertProduct = actionClient
         });
         productId = product.id;
 
-        // Activation Tracking: First Product
-        const company = await trx.company.findUnique({
-          where: { id: companyId },
-          select: { firstProductAt: true }
-        });
-
-        if (!company?.firstProductAt) {
-          await trx.company.update({
-            where: { id: companyId },
-            data: { firstProductAt: new Date() }
-          });
-        }
-
         if (type !== "PREPARED" && stock && stock > 0) {
           await recordStockMovement(
             {

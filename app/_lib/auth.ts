@@ -79,7 +79,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 select: {
                   subscriptionStatus: true,
                   deletedAt: true,
-                  onboardingStep: true
                 }
               }
             },

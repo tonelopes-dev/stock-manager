@@ -5,21 +5,8 @@ import { AlertCircleIcon, ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/app/_components/ui/button";
 
-import { db } from "@/app/_lib/prisma";
-import { auth } from "@/app/_lib/auth";
-import { FirstAlertToastTrigger } from "./first-alert-toast-trigger";
-
 const LowStockAlerts = async () => {
-  const session = await auth();
-  if (!session?.user?.companyId) return null;
-
-  const [lowStockProducts, company] = await Promise.all([
-    getLowStockProducts(),
-    db.company.findUnique({
-      where: { id: session.user.companyId },
-      select: { firstAlertSeenAt: true }
-    })
-  ]);
+  const lowStockProducts = await getLowStockProducts();
 
   if (lowStockProducts.length === 0) {
     return null;
@@ -27,7 +14,6 @@ const LowStockAlerts = async () => {
 
   return (
     <Card className="border-red-100 bg-red-50/30">
-      <FirstAlertToastTrigger firstAlertSeenAt={company?.firstAlertSeenAt ?? null} />
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <div className="flex items-center gap-2">
             <AlertCircleIcon className="h-5 w-5 text-red-500" />

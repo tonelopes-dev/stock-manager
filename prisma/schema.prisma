@@ -226,13 +226,6 @@ model Company {
   subscriptionStatus     SubscriptionStatus?
   deletedAt              DateTime?            // Soft delete flag
   
-  // Onboarding & Activation
-  onboardingStep         Int                  @default(0)
-  businessType           String?
-  onboardingCompletedAt  DateTime?
-  firstProductAt         DateTime?
-  firstSaleAt            DateTime?
-  firstAlertSeenAt       DateTime?
 
   userCompanies  UserCompany[]
   products       Product[]
