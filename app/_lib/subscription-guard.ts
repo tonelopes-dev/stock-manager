@@ -1,5 +1,6 @@
 import { db } from "./prisma";
 import { BusinessError } from "./errors";
+import { redirect } from "next/navigation";
 
 /**
  * Verifies that a company has an active subscription (TRIALING or ACTIVE).
@@ -22,7 +23,7 @@ export async function requireActiveSubscription(companyId: string): Promise<void
   });
 
   if (!company) {
-    throw new Error("Company not found");
+    redirect("/login?reason=session_expired");
   }
 
   // Legacy company (pre-Stripe) — allow access during transition period

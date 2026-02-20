@@ -1,11 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { adjustIngredientStockSchema } from "./schema";
-import { actionClient } from "@/app/_lib/safe-action";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
-import { IngredientService } from "@/app/_services/ingredient";
+import { auth } from "@/app/_lib/auth";
+import { db } from "@/app/_lib/prisma";
+import { redirect } from "next/navigation";
 
 export const adjustIngredientStock = actionClient
   .schema(adjustIngredientStockSchema)

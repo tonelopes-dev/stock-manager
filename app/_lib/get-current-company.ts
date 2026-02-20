@@ -2,12 +2,13 @@
 
 import { auth } from "./auth";
 import { db } from "./prisma";
+import { redirect } from "next/navigation";
 
 export async function getCurrentCompanyId(): Promise<string> {
   const session = await auth();
   
   if (!session?.user?.id) {
-    throw new Error("User not authenticated");
+    redirect("/login?reason=session_expired");
   }
 
   // If companyId is in session, return it
@@ -42,4 +43,3 @@ export async function getCurrentCompanyId(): Promise<string> {
 
   return company.id;
 }
-
