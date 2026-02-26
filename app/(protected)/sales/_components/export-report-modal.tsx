@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/app/_components/ui/select";
 import { Badge } from "@/app/_components/ui/badge";
-import { DownloadIcon, FileSpreadsheetIcon, PlusIcon, XIcon } from "lucide-react";
+import { DownloadIcon, FileSpreadsheetIcon, Loader2, PlusIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/app/_lib/utils";
 
@@ -68,15 +68,26 @@ export const ExportReportModal = () => {
 
       const url = `/api/sales/export/xlsx?${query.toString()}`;
       
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error("Export failed");
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      
       const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "");
+      link.href = downloadUrl;
+      link.setAttribute("download", `relatorio-vendas-${new Date().getTime()}.xlsx`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
       
-      toast.success("Seu relatório está sendo gerado!");
+      toast.success("Seu relatório foi gerado com sucesso!");
     } catch (error) {
+      console.error(error);
       toast.error("Ocorreu um erro ao gerar o relatório.");
     } finally {
       setIsGenerating(false);
@@ -220,7 +231,14 @@ export const ExportReportModal = () => {
             disabled={isGenerating || selectedPeriods.length === 0}
             className="w-full bg-slate-900 hover:bg-slate-800 text-white gap-2 font-bold h-11 transition-all"
           >
-            {isGenerating ? "Preparando Arquivo..." : "Gerar Relatório XLSX Profissional"}
+            {isGenerating ? (
+              <>
+                <Loader2 className="animate-spin mr-2" size={18} />
+                Preparando Arquivo...
+              </>
+            ) : (
+              "Gerar Relatório XLSX Profissional"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
