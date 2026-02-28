@@ -78,7 +78,7 @@ export const OnboardingModal = ({ isOpen }: OnboardingModalProps) => {
              </div>
           </div>
           <DialogTitle className="text-center text-2xl font-bold">
-            {step === 1 && "Bem-vindo ao Stockly!"}
+            {step === 1 && "Bem-vindo ao Stocky!"}
             {step === 2 && "Seu primeiro produto"}
             {step === 3 && "Tudo pronto! 🚀"}
           </DialogTitle>

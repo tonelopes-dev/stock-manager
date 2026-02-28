@@ -1,4 +1,4 @@
-# 📦 STOCKLY
+# 📦 STOCKY
 
 > **A modern, enterprise-ready inventory management system designed for multi-tenant scalability and precision.**
 
@@ -12,7 +12,7 @@
 
 ## 🎯 **Project Overview**
 
-STOCKLY is a robust multi-tenant SaaS solution. It enables business owners to manage inventory across multiple companies, coordinate teams with granular permissions, and gain deep financial insights through advanced analytics—all while scaling effortlessly with Stripe-powered subscriptions.
+STOCKY is a robust multi-tenant SaaS solution. It enables business owners to manage inventory across multiple companies, coordinate teams with granular permissions, and gain deep financial insights through advanced analytics—all while scaling effortlessly with Stripe-powered subscriptions.
 
 ### ✨ **Core SaaS Pillars**
 
@@ -97,7 +97,7 @@ erDiagram
 ### **1. Rapid Deployment**
 
 ```bash
-git clone https://github.com/tonelopes-dev/stockly.git
+git clone https://github.com/tonelopes-dev/stock-manager
 npm install
 npx prisma generate
 ```
@@ -112,7 +112,7 @@ npx prisma generate
 ## 📁 **Project Structure**
 
 ```bash
-stockly/
+stocky/
 ├── app/
 │   ├── (protected)/        # Dashboard, Team, Profile, Products, Sales
 │   ├── auth/               # Login, Forgot Password, Reset Password
@@ -127,8 +127,8 @@ stockly/
 
 <div align="center">
 
-**STOCKLY - Empowering Modern Inventory Management**
+**STOCKY - Empowering Modern Inventory Management**
 
-[🌐 Production Access](https://stockly-demo.vercel.app) • [🛠️ Issues](https://github.com/tonelopes-dev/stockly/issues)
+[🌐 Production Access](https://stocky-360.vercel.app/) • [🛠️ Issues](https://github.com/tonelopes-dev/stock-manager/issues)
 
 </div>

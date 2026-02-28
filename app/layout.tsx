@@ -3,7 +3,7 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 
 export const metadata: Metadata = {
-  title: "Stockly",
+  title: "Stocky",
   description: "Sistema de gerenciamento de estoque",
 };
 

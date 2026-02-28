@@ -45,7 +45,7 @@ export default async function InvitationPage({ params }: InvitationPageProps) {
           <div className="mx-auto h-16 w-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4 rotate-3">
             <UserPlusIcon size={32} />
           </div>
-          <CardTitle className="text-2xl font-black italic tracking-tighter">STOCKLY</CardTitle>
+          <CardTitle className="text-2xl font-black italic tracking-tighter">STOCKY</CardTitle>
           <CardDescription className="text-lg font-medium text-slate-900 mt-2">
             Você foi convidado!
           </CardDescription>

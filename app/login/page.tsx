@@ -52,7 +52,7 @@ export default function LoginPage() {
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
         <CardTitle className="text-center text-2xl font-bold">
-          📦 Stockly
+          📦 Stocky
         </CardTitle>
         <CardDescription className="text-center">
           Entre com seu email e senha para acessar

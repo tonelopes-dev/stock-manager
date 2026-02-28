@@ -1,30 +1,30 @@
 services:
-  stockly-db:
+  stocky-db:
     image: postgres:17
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: stockly
+      POSTGRES_DB: stocky
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d stockly"]
+      test: ["CMD-SHELL", "pg_isready -U user -d stocky"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  stockly-app:
+  stocky-app:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: "postgresql://user:password@stockly-db:5432/stockly"
+      DATABASE_URL: "postgresql://user:password@stocky-db:5432/stocky"
     depends_on:
-      stockly-db:
+      stocky-db:
         condition: service_healthy
     command: >
       sh -c "npx prisma migrate deploy && npm run start"

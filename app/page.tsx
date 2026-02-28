@@ -19,7 +19,7 @@ import {
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Stockly | Controle Executivo de Estoque",
+  title: "Stocky | Controle Executivo de Estoque",
   description:
     "O sistema de gestão de estoque feito para quem não tem tempo a perder com planilhas. Tudo automático, rápido e seguro.",
 };
@@ -35,7 +35,7 @@ export default function LandingPage() {
               <Package2 className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-black uppercase tracking-tighter text-slate-900">
-              Stockly
+              Stocky
             </span>
           </div>
           <div className="hidden items-center gap-10 text-sm font-bold text-slate-500 md:flex">
@@ -202,7 +202,7 @@ export default function LandingPage() {
           <div className="dot-grid absolute inset-0 opacity-30" />
           <div className="relative mx-auto max-w-6xl">
             <h2 className="mb-32 text-center text-4xl font-black text-slate-900 md:text-6xl">
-              Se isso acontece com você, o Stockly resolve.
+              Se isso acontece com você, o Stocky resolve.
             </h2>
             <div className="relative">
               {/* Vertical timeline line */}
@@ -597,7 +597,7 @@ export default function LandingPage() {
                   <Package2 className="h-[18px] w-[18px] text-white" />
                 </div>
                 <span className="text-2xl font-black uppercase tracking-tighter text-slate-900">
-                  Stockly
+                  Stocky
                 </span>
               </div>
               <p className="max-w-sm text-base font-medium leading-relaxed text-slate-500">
@@ -671,7 +671,7 @@ export default function LandingPage() {
           </div>
           <div className="flex flex-col items-center justify-between gap-8 border-t border-slate-50 pt-12 md:flex-row">
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-              © 2026 STOCKLY TECHNOLOGY. TODOS OS DIREITOS RESERVADOS.
+              © 2026 STOCKY TECHNOLOGY. TODOS OS DIREITOS RESERVADOS.
             </p>
             <div className="flex items-center gap-10 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
               <a className="transition-colors hover:text-slate-900" href="#">

@@ -48,7 +48,7 @@ export const ExportProductsButton = ({ products }: ExportProductsButtonProps) =>
       
       const date = new Date().toISOString().split("T")[0];
       link.setAttribute("href", url);
-      link.setAttribute("download", `stockly-produtos-${date}.csv`);
+      link.setAttribute("download", `stocky-produtos-${date}.csv`);
       link.style.visibility = "hidden";
       document.body.appendChild(link);
       link.click();
