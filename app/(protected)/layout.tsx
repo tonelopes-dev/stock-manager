@@ -1,5 +1,4 @@
 import Sidebar from "../_components/sidebar";
-import { Toaster } from "sonner";
 import { auth } from "../_lib/auth";
 import { redirect } from "next/navigation";
 import { getCurrentCompanyId } from "../_lib/get-current-company";
@@ -63,9 +62,6 @@ export default async function ProtectedLayout({
       </div>
       <OnboardingModal isOpen={needsOnboarding} />
       <PasswordResetModal isOpen={needsPasswordChange} />
-      <Toaster />
     </div>
   );
 }
-
-

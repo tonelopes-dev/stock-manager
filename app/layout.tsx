@@ -12,6 +12,10 @@ const inter = Inter({
   display: "auto",
 });
 
+import { Toaster } from "sonner";
+import { SessionClearHandler } from "./_components/auth/session-clear-handler";
+import { Suspense } from "react";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -19,7 +23,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${inter.className} antialiased`}>{children}</body>
+      <body className={`${inter.className} antialiased`}>
+        <Suspense fallback={null}>
+          <SessionClearHandler />
+        </Suspense>
+        {children}
+        <Toaster richColors closeButton position="top-center" />
+      </body>
     </html>
   );
 }

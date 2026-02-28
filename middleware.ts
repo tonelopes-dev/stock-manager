@@ -28,6 +28,21 @@ export default auth(async (req) => {
   // Redirect logged-in users away from login/register pages
   // UNLESS there is a reason/error param (indicating a forced logout/session invalidation from the server)
   const hasError = req.nextUrl.searchParams.has("error") || req.nextUrl.searchParams.has("reason");
+  const reason = req.nextUrl.searchParams.get("reason");
+
+  // Agressive session clearing for specific events
+  if (reason === "ownership_transferred") {
+    const response = NextResponse.next();
+    const cookieNames = [
+      "next-auth.session-token",
+      "__Secure-next-auth.session-token",
+      "next-auth.callback-url",
+      "next-auth.csrf-token",
+      "next-auth.state"
+    ];
+    cookieNames.forEach(name => response.cookies.delete(name));
+    return response;
+  }
 
   // Handle root route
   if (pathname === "/") {
