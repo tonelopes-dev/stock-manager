@@ -60,10 +60,10 @@ export const DangerZone = ({ companyName, admins }: DangerZoneProps) => {
 
   const transferAction = useAction(transferOwnership, {
     onSuccess: () => {
-      toast.success("Posse transferida com sucesso! Redirecionando...");
+      toast.success("Posse transferida com sucesso! Reiniciando sessão...");
       setTransferDialogOpen(false);
-      // Force sign out to clear stale session
-      signOut({ callbackUrl: "/?reason=ownership_transferred" });
+      // Absolute redirection to break any potential 307 loop
+      window.location.href = "/auth/clear-session";
     },
     onError: (error) => {
       toast.error(error.error.serverError || "Erro ao transferir posse.");

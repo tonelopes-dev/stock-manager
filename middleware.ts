@@ -32,16 +32,9 @@ export default auth(async (req) => {
 
   // Agressive session clearing for specific events
   if (reason === "ownership_transferred") {
-    const response = NextResponse.next();
-    const cookieNames = [
-      "next-auth.session-token",
-      "__Secure-next-auth.session-token",
-      "next-auth.callback-url",
-      "next-auth.csrf-token",
-      "next-auth.state"
-    ];
-    cookieNames.forEach(name => response.cookies.delete(name));
-    return response;
+    // Redirect to a dedicated page that handles BOTH server-side cookie deletion 
+    // AND client-side storage cleanup to break any possible 307 loop.
+    return NextResponse.redirect(new URL("/auth/clear-session", req.nextUrl.origin));
   }
 
   // Handle root route

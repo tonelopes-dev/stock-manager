@@ -10,7 +10,7 @@ export const SessionClearHandler = () => {
   const reason = searchParams.get("reason");
 
   useEffect(() => {
-    if (reason === "ownership_transferred") {
+    if (reason === "ownership_transferred" || reason === "session_cleared") {
       // 1. Clear all storage
       localStorage.clear();
       sessionStorage.clear();
@@ -23,13 +23,11 @@ export const SessionClearHandler = () => {
       );
 
       // 3. Optional: toast for feedback
-      toast.info(
-        "Sessão reiniciada por segurança devido à mudança de permissões.",
-        {
-          description: "Por favor, entre novamente se necessário.",
-          duration: 6000,
-        },
-      );
+      toast.success("Sessão reiniciada com sucesso.", {
+        description:
+          "Seu acesso foi atualizado devido à mudança de permissões da empresa.",
+        duration: 6000,
+      });
 
       // 4. Remove the reason from URL to prevent infinite re-clearing if they refresh
       // but we wait a bit to ensure the message is seen or the redirect is stable.
