@@ -11,8 +11,9 @@
     "lint": "next lint",
     "prepare": "prisma generate",
     "db:seed": "prisma db seed",
-    "db:reset": "prisma migrate reset --force --skip-seed",
-    "db:fresh": "prisma migrate reset --force"
+    "DANGER_DESTRUCTIVE_db:reset": "prisma migrate reset --force --skip-seed",
+    "DANGER_DESTRUCTIVE_db:fresh": "prisma migrate reset --force",
+    "db:warning": "echo 'WARNING: Do not run reset or fresh in production!'"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"

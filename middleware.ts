@@ -25,17 +25,18 @@ export default auth(async (req) => {
     return NextResponse.next();
   }
 
+  // Redirect logged-in users away from login/register pages
+  // UNLESS there is a reason/error param (indicating a forced logout/session invalidation from the server)
+  const hasError = req.nextUrl.searchParams.has("error") || req.nextUrl.searchParams.has("reason");
+
   // Handle root route
   if (pathname === "/") {
-    if (isLoggedIn) {
+    if (isLoggedIn && !hasError) {
       return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
     }
     return NextResponse.next();
   }
 
-  // Redirect logged-in users away from login/register pages
-  // UNLESS there is a reason/error param (indicating a forced logout/session invalidation from the server)
-  const hasError = req.nextUrl.searchParams.has("error") || req.nextUrl.searchParams.has("reason");
   if (isLoggedIn && !hasError && (pathname === "/login" || pathname === "/register")) {
     return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
   }
