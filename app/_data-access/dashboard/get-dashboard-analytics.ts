@@ -102,7 +102,7 @@ export const getDashboardAnalytics = async (
     // 3. Calculate Trends
     const calculateTrend = (current: number, previous: number) => {
         if (previous === 0) return current > 0 ? 100 : 0;
-        return Math.round(((current - previous) / previous) * 100);
+        return ((current - previous) / previous) * 100;
     };
 
     // 4. Format Time Series

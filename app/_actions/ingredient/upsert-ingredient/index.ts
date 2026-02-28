@@ -16,11 +16,12 @@ export const upsertIngredient = actionClient
     const companyId = await getCurrentCompanyId();
     await requireActiveSubscription(companyId);
     const session = await auth();
-    const userId = session?.user?.id;
 
     if (!session?.user?.id) {
       redirect("/login?reason=session_expired");
     }
+
+    const userId = session.user.id;
 
     await db.$transaction(async (trx) => {
       if (id) {

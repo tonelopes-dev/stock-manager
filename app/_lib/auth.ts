@@ -55,7 +55,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // 1. Base callback handles user -> token mapping on sign in
       if (user) {
         token.id = user.id;
-        token.sessionVersion = (user as any).sessionVersion ?? 0;
+        token.sessionVersion = (user as { sessionVersion?: number }).sessionVersion ?? 0;
       }
 
       // 2. Handle manual updates from useSession().update()
