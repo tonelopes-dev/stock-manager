@@ -38,14 +38,29 @@ export default auth(async (req) => {
   // Absolute cookie clearing when hitting the clear-session page
   if (pathname === "/auth/clear-session") {
     const response = NextResponse.next();
-    // Get all cookie names that might be related to session
-    // We clear everything containing 'auth' to be safe
+    
+    // NUCLEAR OPTION: Clear-Site-Data
+    // This wipes everything in supporting browsers
+    response.headers.set("Clear-Site-Data", '"cookies", "storage", "cache"');
+    
+    // Disable any caching to ensure the browser always hits this logic
+    response.headers.set("Cache-Control", "no-store, max-age=0, must-revalidate");
+    response.headers.set("Pragma", "no-cache");
+    response.headers.set("Expires", "0");
+
+    // Manually delete cookies as a fallback with explicit options
     const allCookies = req.cookies.getAll();
     allCookies.forEach(cookie => {
-      if (cookie.name.includes("auth")) {
-        response.cookies.delete(cookie.name);
+      if (cookie.name.includes("auth") || cookie.name.includes("session")) {
+        response.cookies.delete({
+          name: cookie.name,
+          path: "/",
+          secure: true,
+          httpOnly: true,
+        });
       }
     });
+    
     return response;
   }
 

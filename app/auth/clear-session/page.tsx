@@ -1,5 +1,8 @@
 import { Package2 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function ClearSessionPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-white p-6">
@@ -31,7 +34,7 @@ export default async function ClearSessionPage() {
               }
               setTimeout(() => {
                 window.location.href = "/?reason=session_cleared";
-              }, 1500);
+              }, 2000);
             `,
           }}
         />
