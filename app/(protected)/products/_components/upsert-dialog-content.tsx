@@ -49,6 +49,7 @@ MoneyInput.displayName = "MoneyInput";
 interface UpsertProductDialogContentProps {
   defaultValues?: UpsertProductSchema;
   setDialogIsOpen: Dispatch<SetStateAction<boolean>>;
+  hasProducts?: boolean;
 }
 
 const UpsertProductDialogContent = ({
@@ -57,7 +58,12 @@ const UpsertProductDialogContent = ({
 }: UpsertProductDialogContentProps) => {
   const { execute: executeUpsertProduct } = useAction(upsertProduct, {
     onSuccess: () => {
-      toast.success("Produto salvo com sucesso.");
+      const isCreate = !defaultValues;
+
+      toast.success(
+        `Produto ${isCreate ? "criado" : "atualizado"} com sucesso.`,
+      );
+
       setDialogIsOpen(false);
     },
     onError: ({ error: { serverError, validationErrors } }) => {
@@ -224,7 +230,7 @@ const UpsertProductDialogContent = ({
 
             {isPrepared && (
               <div className="flex items-end">
-                <p className="text-xs text-muted-foreground pb-2">
+                <p className="pb-2 text-xs text-muted-foreground">
                   O custo será calculado automaticamente com base na receita.
                 </p>
               </div>
@@ -249,7 +255,8 @@ const UpsertProductDialogContent = ({
                     </FormControl>
                     {isEditing && (
                       <p className="text-[10px] text-muted-foreground">
-                        Para alterar o estoque de um produto existente, utilize a opção &quot;Ajustar Estoque&quot; no menu de ações.
+                        Para alterar o estoque de um produto existente, utilize
+                        a opção &quot;Ajustar Estoque&quot; no menu de ações.
                       </p>
                     )}
                     <FormMessage />
@@ -279,8 +286,9 @@ const UpsertProductDialogContent = ({
 
           {isPrepared && (
             <div className="rounded-lg border border-dashed border-muted-foreground/30 p-4">
-              <p className="text-sm text-muted-foreground text-center">
-                Após criar o produto, acesse a página de detalhes para cadastrar a receita com os insumos.
+              <p className="text-center text-sm text-muted-foreground">
+                Após criar o produto, acesse a página de detalhes para cadastrar
+                a receita com os insumos.
               </p>
             </div>
           )}

@@ -1,5 +1,8 @@
-import { auth } from "@/app/_lib/auth";
+import NextAuth from "next-auth";
+import { authConfig } from "@/app/_lib/auth.config";
 import { NextResponse } from "next/server";
+
+const { auth } = NextAuth(authConfig);
 
 export default auth(async (req) => {
 
@@ -31,7 +34,9 @@ export default auth(async (req) => {
   }
 
   // Redirect logged-in users away from login/register pages
-  if (isLoggedIn && (pathname === "/login" || pathname === "/register")) {
+  // UNLESS there is a reason/error param (indicating a forced logout/session invalidation from the server)
+  const hasError = req.nextUrl.searchParams.has("error") || req.nextUrl.searchParams.has("reason");
+  if (isLoggedIn && !hasError && (pathname === "/login" || pathname === "/register")) {
     return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
   }
 

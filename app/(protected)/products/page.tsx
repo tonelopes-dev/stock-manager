@@ -11,6 +11,9 @@ import Header, {
 
 import { Suspense } from "react";
 import { ProductTableSkeleton } from "./_components/table-skeleton";
+import { getOnboardingStats } from "@/app/_data-access/onboarding/get-onboarding-stats";
+import { getCurrentUserRole } from "@/app/_lib/rbac";
+import { UserRole } from "@prisma/client";
 
 interface ProductsPageProps {
   searchParams: {
@@ -20,9 +23,6 @@ interface ProductsPageProps {
 
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";
-
-import { getCurrentUserRole } from "@/app/_lib/rbac";
-import { UserRole } from "@prisma/client";
 
 const ProductsPage = async ({ searchParams }: ProductsPageProps) => {
   const statusParam = searchParams?.status?.toUpperCase();
@@ -42,6 +42,7 @@ const ProductsPage = async ({ searchParams }: ProductsPageProps) => {
 const ProductTableWrapper = async ({ status }: { status: "ACTIVE" | "INACTIVE" | "ALL" }) => {
   const products = await getProducts(30, status);
   const role = await getCurrentUserRole();
+  const onboardingStats = await getOnboardingStats();
   const isManagement = role === UserRole.OWNER || role === UserRole.ADMIN;
 
   return (
@@ -54,7 +55,9 @@ const ProductTableWrapper = async ({ status }: { status: "ACTIVE" | "INACTIVE" |
         <HeaderRight>
           <div className="flex gap-3">
              <ProductStatusFilter />
-             {isManagement && <AddProductButton />}
+             {isManagement && (
+               <AddProductButton hasProducts={onboardingStats?.hasProducts ?? true} />
+             )}
           </div>
         </HeaderRight>
       </Header>

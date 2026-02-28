@@ -1,0 +1,17 @@
+-- AlterEnum
+-- This migration adds more than one value to an enum.
+-- With PostgreSQL versions 11 and earlier, this is not possible
+-- in a single migration. This can be worked around by creating
+-- multiple migrations, each migration adding only one value to
+-- the enum.
+
+
+ALTER TYPE "AuditEventType" ADD VALUE 'SALE_CREATED';
+ALTER TYPE "AuditEventType" ADD VALUE 'SALE_UPDATED';
+ALTER TYPE "AuditEventType" ADD VALUE 'SALE_DELETED';
+ALTER TYPE "AuditEventType" ADD VALUE 'PRODUCT_CREATED';
+ALTER TYPE "AuditEventType" ADD VALUE 'PRODUCT_UPDATED';
+ALTER TYPE "AuditEventType" ADD VALUE 'PRODUCT_DELETED';
+
+-- AlterTable
+ALTER TABLE "Company" ADD COLUMN     "plan" TEXT NOT NULL DEFAULT 'FREE';

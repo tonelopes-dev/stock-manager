@@ -11,10 +11,12 @@ import { ProductDto } from "@/app/_data-access/product/get-products";
 interface UpsertSaleButtonProps {
   products: ProductDto[];
   productOptions: ComboboxOption[];
+  hasSales?: boolean;
 }
 
-const UpsertSaleButton = (props: UpsertSaleButtonProps) => {
+const UpsertSaleButton = ({ products, productOptions, hasSales }: UpsertSaleButtonProps) => {
   const [sheetIsOpen, setSheetIsOpen] = useState(false);
+
   return (
     <Sheet open={sheetIsOpen} onOpenChange={setSheetIsOpen}>
       <SheetTrigger asChild>
@@ -26,7 +28,9 @@ const UpsertSaleButton = (props: UpsertSaleButtonProps) => {
       <UpsertSheetContent
         isOpen={sheetIsOpen}
         setSheetIsOpen={setSheetIsOpen}
-        {...props}
+        products={products}
+        productOptions={productOptions}
+        hasSales={hasSales}
       />
     </Sheet>
   );

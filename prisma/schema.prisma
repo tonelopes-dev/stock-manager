@@ -225,6 +225,7 @@ model Company {
   stripeCurrentPeriodEnd DateTime?
   subscriptionStatus     SubscriptionStatus?
   deletedAt              DateTime?            // Soft delete flag
+  
 
   userCompanies  UserCompany[]
   products       Product[]

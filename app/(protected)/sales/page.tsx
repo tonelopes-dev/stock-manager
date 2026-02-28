@@ -5,13 +5,10 @@ import Header, {
   HeaderTitle,
 } from "../../_components/header";
 import { ComboboxOption } from "../../_components/ui/combobox";
-import { DataTable } from "../../_components/ui/data-table";
 import { getProducts, ProductDto } from "../../_data-access/product/get-products";
 import { getSales } from "../../_data-access/sale/get-sales";
 import UpsertSaleButton from "./_components/create-sale-button";
-import { saleTableColumns } from "./_components/table-columns";
-import { ShoppingCartIcon } from "lucide-react";
-import { EmptyState } from "../../_components/empty-state";
+import { SalesDataTable } from "./_components/sales-data-table";
 import { Suspense } from "react";
 import { SaleTableSkeleton } from "./_components/table-skeleton";
 import { PeriodFilter } from "@/app/_components/period-filter";
@@ -22,8 +19,9 @@ import { MonthComparisonFilter } from "./_components/month-comparison-filter";
 import { SalesViewTabs } from "./_components/sales-view-tabs";
 import { ExportReportModal } from "./_components/export-report-modal";
 import { SalesComparisonMetrics } from "./_components/sales-comparison-metrics";
-
-
+import { getOnboardingStats } from "@/app/_data-access/onboarding/get-onboarding-stats";
+import { getCurrentUserRole } from "@/app/_lib/rbac";
+import { UserRole } from "@prisma/client";
 
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";
@@ -41,9 +39,6 @@ interface HomeProps {
   };
 }
 
-import { getCurrentUserRole } from "@/app/_lib/rbac";
-import { UserRole } from "@prisma/client";
-
 const SalesPage = async ({ searchParams }: HomeProps) => {
   const products = await getProducts();
   const productOptions: ComboboxOption[] = products.map((product) => ({
@@ -53,6 +48,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
 
   const view = searchParams.view || "gestao";
   const role = await getCurrentUserRole();
+  const onboardingStats = await getOnboardingStats();
 
   const analytics = await getSalesAnalytics(
     searchParams.from, 
@@ -79,6 +75,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
           <UpsertSaleButton
             products={products}
             productOptions={productOptions}
+            hasSales={onboardingStats?.hasSales ?? true}
           />
         </HeaderRight>
       </Header>
@@ -116,6 +113,16 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
   );
 };
 
+interface SalesTableWrapperProps {
+  productOptions: ComboboxOption[];
+  products: ProductDto[];
+  from?: string;
+  to?: string;
+  page: number;
+  pageSize: number;
+  userRole: UserRole;
+}
+
 const SalesTableWrapper = async ({ 
   productOptions, 
   products,
@@ -124,15 +131,7 @@ const SalesTableWrapper = async ({
   page,
   pageSize,
   userRole,
-}: { 
-  productOptions: ComboboxOption[], 
-  products: ProductDto[],
-  from?: string,
-  to?: string,
-  page: number,
-  pageSize: number,
-  userRole: UserRole,
-}) => {
+}: SalesTableWrapperProps) => {
   const { data: sales, total } = await getSales({ from, to, page, pageSize });
   
   const tableData = sales.map((sale) => ({
@@ -142,24 +141,14 @@ const SalesTableWrapper = async ({
   }));
 
   return (
-    <DataTable 
-      columns={saleTableColumns(userRole)} 
-      data={tableData} 
-      pagination={{
-        total,
-        page,
-        pageSize
-      }}
-      emptyMessage={
-        <EmptyState
-          icon={ShoppingCartIcon}
-          title="Nenhuma venda encontrada"
-          description="Você ainda não realizou nenhuma venda. Que tal começar agora?"
-        />
-      }
+    <SalesDataTable 
+      sales={tableData}
+      total={total}
+      page={page}
+      pageSize={pageSize}
+      userRole={userRole}
     />
   );
 };
-
 
 export default SalesPage;

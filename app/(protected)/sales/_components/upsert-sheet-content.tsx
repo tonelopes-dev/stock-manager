@@ -29,7 +29,13 @@ import {
 import { formatCurrency } from "@/app/_helpers/currency";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { CheckIcon, PlusIcon, TrashIcon, ShoppingCartIcon, CalendarIcon } from "lucide-react";
+import {
+  CheckIcon,
+  PlusIcon,
+  TrashIcon,
+  ShoppingCartIcon,
+  CalendarIcon,
+} from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -65,6 +71,7 @@ interface UpsertSheetContentProps {
   productOptions: ComboboxOption[];
   setSheetIsOpen: Dispatch<SetStateAction<boolean>>;
   defaultSelectedProducts?: SelectedProduct[];
+  hasSales?: boolean;
 }
 
 const UpsertSheetContent = ({
@@ -80,7 +87,9 @@ const UpsertSheetContent = ({
     defaultSelectedProducts ?? [],
   );
   const [date, setDate] = useState<string>(
-    saleDate ? format(new Date(saleDate), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd")
+    saleDate
+      ? format(new Date(saleDate), "yyyy-MM-dd")
+      : format(new Date(), "yyyy-MM-dd"),
   );
 
   const { execute: executeUpsertSale, isPending } = useAction(upsertSale, {
@@ -89,7 +98,7 @@ const UpsertSheetContent = ({
       toast.error(serverError ?? flattenedErrors.formErrors[0]);
     },
     onSuccess: () => {
-      toast.success(saleId ? "Venda atualizada com sucesso." : "Venda realizada com sucesso.");
+      toast.success("Venda realizada com sucesso.");
       setSheetIsOpen(false);
     },
   });
@@ -106,13 +115,17 @@ const UpsertSheetContent = ({
   const selectedQuantity = form.watch("quantity");
 
   const currentProduct = useMemo(() => {
-    return products.find(p => p.id === selectedProductId);
+    return products.find((p) => p.id === selectedProductId);
   }, [products, selectedProductId]);
 
   useEffect(() => {
     if (isOpen) {
       setSelectedProducts(defaultSelectedProducts ?? []);
-      setDate(saleDate ? format(new Date(saleDate), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"));
+      setDate(
+        saleDate
+          ? format(new Date(saleDate), "yyyy-MM-dd")
+          : format(new Date(), "yyyy-MM-dd"),
+      );
     } else {
       form.reset();
       setSelectedProducts([]);
@@ -131,20 +144,25 @@ const UpsertSheetContent = ({
           return current;
         }
         return current.map((p) =>
-          p.id === product.id ? { ...p, quantity: p.quantity + data.quantity } : p
+          p.id === product.id
+            ? { ...p, quantity: p.quantity + data.quantity }
+            : p,
         );
       }
       if (data.quantity > product.stock) {
         form.setError("quantity", { message: "Estoque insuficiente." });
         return current;
       }
-      return [...current, { ...product, price: Number(product.price), quantity: data.quantity }];
+      return [
+        ...current,
+        { ...product, price: Number(product.price), quantity: data.quantity },
+      ];
     });
     form.reset({ productId: "", quantity: 1 });
   };
 
   const updateQuantity = (productId: string, newQuantity: number) => {
-    const product = products.find(p => p.id === productId);
+    const product = products.find((p) => p.id === productId);
     if (!product) return;
 
     if (newQuantity > product.stock) {
@@ -152,17 +170,22 @@ const UpsertSheetContent = ({
       return;
     }
 
-    setSelectedProducts(current =>
-      current.map(p => p.id === productId ? { ...p, quantity: newQuantity } : p)
+    setSelectedProducts((current) =>
+      current.map((p) =>
+        p.id === productId ? { ...p, quantity: newQuantity } : p,
+      ),
     );
   };
 
   const onDelete = (productId: string) => {
-    setSelectedProducts(current => current.filter(p => p.id !== productId));
+    setSelectedProducts((current) => current.filter((p) => p.id !== productId));
   };
 
   const totals = useMemo(() => {
-    const subtotal = selectedProducts.reduce((acc, p) => acc + p.price * p.quantity, 0);
+    const subtotal = selectedProducts.reduce(
+      (acc, p) => acc + p.price * p.quantity,
+      0,
+    );
     const itenCount = selectedProducts.reduce((acc, p) => acc + p.quantity, 0);
     return { subtotal, itenCount };
   }, [selectedProducts]);
@@ -171,63 +194,75 @@ const UpsertSheetContent = ({
     executeUpsertSale({
       id: saleId,
       date: date ? new Date(date + "T12:00:00") : undefined,
-      products: selectedProducts.map((p) => ({ id: p.id, quantity: p.quantity })),
+      products: selectedProducts.map((p) => ({
+        id: p.id,
+        quantity: p.quantity,
+      })),
     });
   };
 
   return (
-    <SheetContent className="flex flex-col h-full !max-w-[700px] p-0 border-none">
-      <div className="flex flex-col h-full">
+    <SheetContent className="flex h-full !max-w-[700px] flex-col border-none p-0">
+      <div className="flex h-full flex-col">
         {/* Header Section */}
-        <div className="p-6 border-b border-slate-100 bg-white sticky top-0 z-10">
+        <div className="sticky top-0 z-10 border-b border-slate-100 bg-white p-6">
           <SheetHeader className="text-left">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="p-1.5 bg-primary/10 rounded-lg text-primary">
+            <div className="mb-1 flex items-center gap-2">
+              <div className="rounded-lg bg-primary/10 p-1.5 text-primary">
                 <ShoppingCartIcon size={18} />
               </div>
-              <SheetTitle className="text-xl font-black italic tracking-tighter uppercase whitespace-nowrap">
+              <SheetTitle className="whitespace-nowrap text-xl font-black uppercase italic tracking-tighter">
                 {saleId ? "Editar Venda" : "Nova Venda"}
               </SheetTitle>
             </div>
-            <SheetDescription className="text-xs font-semibold text-slate-400 uppercase tracking-tight">
+            <SheetDescription className="text-xs font-semibold uppercase tracking-tight text-slate-400">
               Venda rápida • Atualização em tempo real
             </SheetDescription>
           </SheetHeader>
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-slate-50/30">
+        <div className="flex-1 space-y-8 overflow-y-auto bg-slate-50/30 p-6">
           {/* Product Composition Area */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+          <div className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="space-y-0.5">
-                <h4 className="text-sm font-bold text-slate-900">Compor Carrinho</h4>
-                <p className="text-[10px] font-medium text-slate-400 uppercase">Adicione produtos e quantidades</p>
+                <h4 className="text-sm font-bold text-slate-900">
+                  Compor Carrinho
+                </h4>
+                <p className="text-[10px] font-medium uppercase text-slate-400">
+                  Adicione produtos e quantidades
+                </p>
               </div>
 
               <div className="space-y-1">
-                <Label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1.5">
+                <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400">
                   <CalendarIcon size={12} />
                   Data
                 </Label>
-                <Input 
-                  type="date" 
-                  value={date} 
+                <Input
+                  type="date"
+                  value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="h-8 w-[130px] text-[10px] font-bold border-slate-200 focus-visible:ring-primary/20 p-2"
+                  className="h-8 w-[130px] border-slate-200 p-2 text-[10px] font-bold focus-visible:ring-primary/20"
                 />
               </div>
             </div>
 
             <Form {...form}>
-              <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+              <form
+                className="space-y-6"
+                onSubmit={form.handleSubmit(onSubmit)}
+              >
+                <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-12">
                   <FormField
                     control={form.control}
                     name="productId"
                     render={({ field }) => (
                       <FormItem className="md:col-span-7">
-                        <FormLabel className="text-[10px] font-black uppercase text-slate-400">Produto</FormLabel>
+                        <FormLabel className="text-[10px] font-black uppercase text-slate-400">
+                          Produto
+                        </FormLabel>
                         <FormControl>
                           <Combobox
                             placeholder="Buscar produto..."
@@ -245,18 +280,23 @@ const UpsertSheetContent = ({
                     name="quantity"
                     render={({ field }) => (
                       <FormItem className="md:col-span-5">
-                        <FormLabel className="text-[10px] font-black uppercase text-slate-400">Quantidade</FormLabel>
+                        <FormLabel className="text-[10px] font-black uppercase text-slate-400">
+                          Quantidade
+                        </FormLabel>
                         <FormControl>
-                          <QuantityStepper 
-                            value={field.value} 
-                            onChange={field.onChange} 
+                          <QuantityStepper
+                            value={field.value}
+                            onChange={field.onChange}
                             max={currentProduct?.stock}
                             className="h-10 justify-start"
                           />
                         </FormControl>
                         {currentProduct && (
-                          <p className="text-[10px] font-bold text-slate-400 mt-1.5">
-                            Estoque: <span className="text-slate-900">{currentProduct.stock} unid.</span>
+                          <p className="mt-1.5 text-[10px] font-bold text-slate-400">
+                            Estoque:{" "}
+                            <span className="text-slate-900">
+                              {currentProduct.stock} unid.
+                            </span>
                           </p>
                         )}
                         <FormMessage className="text-[10px]" />
@@ -266,19 +306,28 @@ const UpsertSheetContent = ({
                 </div>
 
                 {currentProduct && (
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 transition-all animate-in fade-in slide-in-from-top-2">
+                  <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-4 transition-all animate-in fade-in slide-in-from-top-2 md:flex-row md:items-center">
                     <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Resumo Parcial</p>
+                      <p className="text-[10px] font-black uppercase tracking-tighter text-slate-400">
+                        Resumo Parcial
+                      </p>
                       <div className="flex items-baseline gap-2">
                         <span className="text-lg font-black text-slate-900">
-                          {formatCurrency(Number(currentProduct.price) * selectedQuantity)}
+                          {formatCurrency(
+                            Number(currentProduct.price) * selectedQuantity,
+                          )}
                         </span>
                         <span className="text-[10px] font-bold text-slate-400">
-                          ({selectedQuantity}x {formatCurrency(Number(currentProduct.price))})
+                          ({selectedQuantity}x{" "}
+                          {formatCurrency(Number(currentProduct.price))})
                         </span>
                       </div>
                     </div>
-                    <Button type="submit" className="gap-2 h-10 font-bold" variant="default">
+                    <Button
+                      type="submit"
+                      className="h-10 gap-2 font-bold"
+                      variant="default"
+                    >
                       <PlusIcon size={18} />
                       Adicionar à Lista
                     </Button>
@@ -291,53 +340,69 @@ const UpsertSheetContent = ({
           {/* Added Products Table */}
           <div className="space-y-4 pb-32">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-bold text-slate-900 uppercase tracking-tighter italic">Itens da Venda</h4>
-              <p className="text-[10px] font-bold text-slate-400 uppercase">{selectedProducts.length} produtos adicionados</p>
+              <h4 className="text-sm font-bold uppercase italic tracking-tighter text-slate-900">
+                Itens da Venda
+              </h4>
+              <p className="text-[10px] font-bold uppercase text-slate-400">
+                {selectedProducts.length} produtos adicionados
+              </p>
             </div>
 
             {selectedProducts.length === 0 ? (
-              <div className="h-32 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl bg-white/50 text-slate-400">
+              <div className="flex h-32 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-white/50 text-slate-400">
                 <ShoppingCartIcon size={24} className="mb-2 opacity-20" />
-                <p className="text-xs font-bold uppercase tracking-widest opacity-50">Carrinho Vazio</p>
+                <p className="text-xs font-bold uppercase tracking-widest opacity-50">
+                  Carrinho Vazio
+                </p>
               </div>
             ) : (
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <Table>
                   <TableHeader className="bg-slate-50/50">
-                    <TableRow className="hover:bg-transparent border-slate-100">
-                      <TableHead className="text-[10px] font-black uppercase text-slate-400 h-10">Produto</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase text-slate-400 h-10">Qtd</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase text-slate-400 h-10 text-right">Unitário</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase text-slate-400 h-10 text-right">Total</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase text-slate-400 h-10 text-center w-10"></TableHead>
+                    <TableRow className="border-slate-100 hover:bg-transparent">
+                      <TableHead className="h-10 text-[10px] font-black uppercase text-slate-400">
+                        Produto
+                      </TableHead>
+                      <TableHead className="h-10 text-[10px] font-black uppercase text-slate-400">
+                        Qtd
+                      </TableHead>
+                      <TableHead className="h-10 text-right text-[10px] font-black uppercase text-slate-400">
+                        Unitário
+                      </TableHead>
+                      <TableHead className="h-10 text-right text-[10px] font-black uppercase text-slate-400">
+                        Total
+                      </TableHead>
+                      <TableHead className="h-10 w-10 text-center text-[10px] font-black uppercase text-slate-400"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {selectedProducts.map((p) => (
-                      <TableRow key={p.id} className="border-slate-100 group">
+                      <TableRow key={p.id} className="group border-slate-100">
                         <TableCell className="py-4">
-                          <p className="text-sm font-bold text-slate-900">{p.name}</p>
+                          <p className="text-sm font-bold text-slate-900">
+                            {p.name}
+                          </p>
                         </TableCell>
                         <TableCell className="py-4">
-                          <QuantityStepper 
-                            value={p.quantity} 
-                            onChange={(val) => updateQuantity(p.id, val)} 
+                          <QuantityStepper
+                            value={p.quantity}
+                            onChange={(val) => updateQuantity(p.id, val)}
                             max={p.stock}
                             className="h-8"
                           />
                         </TableCell>
-                        <TableCell className="text-right py-4 font-medium text-slate-600">
+                        <TableCell className="py-4 text-right font-medium text-slate-600">
                           {formatCurrency(p.price)}
                         </TableCell>
-                        <TableCell className="text-right py-4 font-black text-slate-900">
+                        <TableCell className="py-4 text-right font-black text-slate-900">
                           {formatCurrency(p.price * p.quantity)}
                         </TableCell>
                         <TableCell className="py-4 text-center">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => onDelete(p.id)}
-                            className="h-8 w-8 text-rose-500 hover:bg-rose-50 hover:text-rose-600 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="h-8 w-8 rounded-lg text-rose-500 opacity-0 transition-opacity hover:bg-rose-50 hover:text-rose-600 group-hover:opacity-100"
                           >
                             <TrashIcon size={16} />
                           </Button>
@@ -352,22 +417,28 @@ const UpsertSheetContent = ({
         </div>
 
         {/* Sticky Summary Footer */}
-        <div className="p-6 border-t border-slate-100 bg-white sticky bottom-0 z-10 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] transition-all">
-          <div className="flex items-center justify-between mb-6">
+        <div className="sticky bottom-0 z-10 border-t border-slate-100 bg-white p-6 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] transition-all">
+          <div className="mb-6 flex items-center justify-between">
             <div className="space-y-0.5">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-tighter italic">Resumo Financeiro</p>
-              <p className="text-xs font-bold text-slate-900 uppercase tracking-tighter">{totals.itenCount} itens no total</p>
+              <p className="text-[10px] font-black uppercase italic tracking-tighter text-slate-400">
+                Resumo Financeiro
+              </p>
+              <p className="text-xs font-bold uppercase tracking-tighter text-slate-900">
+                {totals.itenCount} itens no total
+              </p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-tighter italic">Total Geral</p>
-              <h2 className="text-3xl font-black text-primary tracking-tighter leading-none">
+              <p className="text-[10px] font-black uppercase italic tracking-tighter text-slate-400">
+                Total Geral
+              </p>
+              <h2 className="text-3xl font-black leading-none tracking-tighter text-primary">
                 {formatCurrency(totals.subtotal)}
               </h2>
             </div>
           </div>
 
           <Button
-            className="w-full h-12 text-sm font-black uppercase tracking-widest gap-2 shadow-lg shadow-primary/20 active:scale-[0.98] transition-all"
+            className="h-12 w-full gap-2 text-sm font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
             disabled={selectedProducts.length === 0 || isPending}
             onClick={onSubmitSale}
           >

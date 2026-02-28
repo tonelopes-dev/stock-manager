@@ -58,10 +58,15 @@ export async function register(
       },
     });
 
-    // Create company for the user
+    // Create company for the user with a 30-day trial
+    const trialEndDate = new Date();
+    trialEndDate.setDate(trialEndDate.getDate() + 30);
+
     const company = await tx.company.create({
       data: {
         name: `${name}'s Company`,
+        subscriptionStatus: "TRIALING",
+        stripeCurrentPeriodEnd: trialEndDate,
       },
     });
 

@@ -136,3 +136,70 @@ body {
     @apply antialiased;
   }
 }
+
+@layer utilities {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .premium-gradient {
+    @apply bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900;
+  }
+
+  .text-gradient {
+    background: linear-gradient(to right, #2563eb, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .dot-grid {
+    background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .hero-glow {
+    background: radial-gradient(
+      circle at center,
+      rgba(241, 245, 249, 1) 0%,
+      rgba(255, 255, 255, 0) 70%
+    );
+  }
+
+  .timeline-line {
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      #e2e8f0 10%,
+      #e2e8f0 90%,
+      transparent
+    );
+  }
+
+  .tilt-3d {
+    transform: perspective(1000px) rotateX(4deg) rotateY(-8deg);
+    transition: transform 0.5s ease;
+  }
+
+  .tilt-3d-reverse {
+    transform: perspective(1000px) rotateX(-4deg) rotateY(8deg);
+    transition: transform 0.5s ease;
+  }
+}
