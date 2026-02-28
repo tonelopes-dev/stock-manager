@@ -17,7 +17,7 @@ export default async function ProtectedLayout({
 }>) {
   const session = await auth();
   if (!session) {
-    redirect("/login");
+    redirect("/auth/clear-session?reason=invalid_session");
   }
 
   // Ensure company exists for the user

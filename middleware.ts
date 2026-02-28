@@ -31,9 +31,7 @@ export default auth(async (req) => {
   const reason = req.nextUrl.searchParams.get("reason");
 
   // Agressive session clearing for specific events
-  if (reason === "ownership_transferred") {
-    // Redirect to a dedicated page that handles BOTH server-side cookie deletion 
-    // AND client-side storage cleanup to break any possible 307 loop.
+  if (reason === "ownership_transferred" && pathname !== "/auth/clear-session") {
     return NextResponse.redirect(new URL("/auth/clear-session", req.nextUrl.origin));
   }
 
