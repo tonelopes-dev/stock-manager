@@ -244,6 +244,40 @@ export async function POST(req: Request) {
         break;
       }
 
+      // ── Async payments (Pix, Boleto) ─────────────────────────────────────
+      case "checkout.session.async_payment_succeeded": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (session.subscription) {
+          const subId = typeof session.subscription === "string"
+            ? session.subscription
+            : session.subscription;
+          const subscription = await stripe.subscriptions.retrieve(subId as string);
+          await syncSubscription(subscription);
+          console.log(
+            `[Webhook] ✅ Async payment confirmed for company ${session.metadata?.companyId}`
+          );
+        }
+        break;
+      }
+
+      case "checkout.session.async_payment_failed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        console.warn(
+          `[Webhook] ⚠️ Async payment failed for company ${session.metadata?.companyId}`
+        );
+        // The subscription will remain in INCOMPLETE status
+        // Stripe will handle retries based on your settings
+        break;
+      }
+
+      case "checkout.session.expired": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        console.log(
+          `[Webhook] ℹ️ Checkout expired for company ${session.metadata?.companyId}`
+        );
+        break;
+      }
+
       default:
         console.log(`[Webhook] Unhandled event type: ${event.type}`);
     }
