@@ -35,6 +35,20 @@ export default auth(async (req) => {
     return NextResponse.redirect(new URL("/auth/clear-session", req.nextUrl.origin));
   }
 
+  // Absolute cookie clearing when hitting the clear-session page
+  if (pathname === "/auth/clear-session") {
+    const response = NextResponse.next();
+    // Get all cookie names that might be related to session
+    // We clear everything containing 'auth' to be safe
+    const allCookies = req.cookies.getAll();
+    allCookies.forEach(cookie => {
+      if (cookie.name.includes("auth")) {
+        response.cookies.delete(cookie.name);
+      }
+    });
+    return response;
+  }
+
   // Handle root route
   if (pathname === "/") {
     if (isLoggedIn && !hasError) {
