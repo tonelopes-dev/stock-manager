@@ -6,6 +6,29 @@ import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { startOfDay, endOfDay } from "date-fns";
 import { parseLocalDay, getDefaultSalesRange } from "@/app/_lib/date";
 
+export interface GetSalesParams {
+  from?: string;
+  to?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface SaleProductDto {
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface SaleDto {
+  id: string;
+  date: Date;
+  productNames: string;
+  totalAmount: number;
+  totalProducts: number;
+  saleItems: SaleProductDto[];
+}
+
 export const getSales = async (params: GetSalesParams = {}): Promise<{ data: SaleDto[], total: number }> => {
   const { page = 1, pageSize = 10 } = params;
   const skip = (page - 1) * pageSize;
@@ -16,6 +39,7 @@ export const getSales = async (params: GetSalesParams = {}): Promise<{ data: Sal
 
   const where = {
     companyId,
+    status: "ACTIVE" as const,
     date: {
         gte: params.from ? startOfDay(parseLocalDay(params.from)) : defaultFrom,
         lte: params.to ? endOfDay(parseLocalDay(params.to)) : endOfDay(defaultTo),

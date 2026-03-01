@@ -174,7 +174,7 @@ async function fetchSalesMetrics(companyId: string, start: Date, end: Date) {
         FROM "SaleProduct"
         JOIN "Sale" ON "Sale"."id" = "SaleProduct"."saleId"
         WHERE "Sale"."companyId" = ${companyId}
-            AND "Sale"."status" = 'ACTIVE'
+            AND "Sale"."status"::text = 'ACTIVE'
             AND "Sale"."date" >= ${start}
             AND "Sale"."date" < ${end}
     `;
