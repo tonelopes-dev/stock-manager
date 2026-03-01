@@ -10,6 +10,7 @@ interface UpsertSaleParams {
   date?: Date;
   companyId: string;
   userId: string;
+  customerId?: string;
   products: {
     id: string;
     quantity: number;
@@ -17,7 +18,7 @@ interface UpsertSaleParams {
 }
 
 export const SaleService = {
-  async upsertSale({ id, date, companyId, userId, products }: UpsertSaleParams) {
+  async upsertSale({ id, date, companyId, userId, customerId, products }: UpsertSaleParams) {
     try {
       return await db.$transaction(async (trx) => {
         const isUpdate = Boolean(id);
@@ -74,16 +75,18 @@ export const SaleService = {
               date: date || new Date(),
               companyId,
               userId,
+              customerId: customerId || null,
             },
           });
           saleId = newSale.id;
         } else {
-          // Update date for existing
+          // Update date/customer for existing
           await trx.sale.update({
             where: { id: saleId, companyId },
             data: {
               date: date || undefined,
               userId,
+              customerId: customerId || undefined,
             },
           });
         }
@@ -164,14 +167,29 @@ export const SaleService = {
           totalCost += effectiveCost * product.quantity;
         }
 
-        // 5. Update Sale header with final totals and return full object
-        return await trx.sale.update({
+        const updatedSale = await trx.sale.update({
           where: { id: saleId },
           data: {
             totalAmount,
             totalCost,
           },
         });
+
+        // 6. CRM Auto-upgrade (Lead -> Regular)
+        if (customerId) {
+          const customer = await trx.customer.findUnique({
+            where: { id: customerId, companyId },
+          });
+
+          if (customer && customer.category === "LEAD") {
+            await trx.customer.update({
+              where: { id: customerId },
+              data: { category: "REGULAR" },
+            });
+          }
+        }
+
+        return updatedSale;
 
       });
     } catch (error) {

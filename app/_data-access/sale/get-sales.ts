@@ -1,97 +1,99 @@
-import "server-only";
-
-import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { db } from "@/app/_lib/prisma";
+import { SaleStatus, SaleItem, Product, Prisma } from "@prisma/client";
 
-import { startOfDay, endOfDay } from "date-fns";
-import { parseLocalDay, getDefaultSalesRange } from "@/app/_lib/date";
-
-export interface GetSalesParams {
-  from?: string;
-  to?: string;
-  page?: number;
-  pageSize?: number;
-}
-
-export interface SaleProductDto {
-  productId: string;
-  productName: string;
-  quantity: number;
-  unitPrice: number;
+export interface SaleItemDto extends SaleItem {
+  product: Pick<Product, "name">;
 }
 
 export interface SaleDto {
   id: string;
   date: Date;
-  productNames: string;
   totalAmount: number;
+  totalCost: number;
+  status: SaleStatus;
+  productNames: string;
   totalProducts: number;
-  saleItems: SaleProductDto[];
+  customerName: string | null;
+  customerId: string | null;
+  saleItems: SaleItemDto[];
 }
 
-export const getSales = async (params: GetSalesParams = {}): Promise<{ data: SaleDto[], total: number }> => {
-  const { page = 1, pageSize = 10 } = params;
-  const skip = (page - 1) * pageSize;
+interface GetSalesParams {
+  from?: string;
+  to?: string;
+  page: number;
+  pageSize: number;
+}
 
+export const getSales = async ({
+  from,
+  to,
+  page,
+  pageSize,
+}: GetSalesParams): Promise<{ data: SaleDto[]; total: number }> => {
   const companyId = await getCurrentCompanyId();
 
-  const { from: defaultFrom, to: defaultTo } = getDefaultSalesRange();
-
-  const where = {
+  const where: Prisma.SaleWhereInput = {
     companyId,
-    status: "ACTIVE" as const,
-    date: {
-        gte: params.from ? startOfDay(parseLocalDay(params.from)) : defaultFrom,
-        lte: params.to ? endOfDay(parseLocalDay(params.to)) : endOfDay(defaultTo),
-    }
   };
 
+  if (from && to) {
+    where.date = {
+      gte: new Date(from),
+      lte: new Date(to),
+    };
+  }
 
   const [sales, total] = await Promise.all([
     db.sale.findMany({
       where,
-      skip,
-      take: pageSize,
+      include: {
+        saleItems: {
+          include: {
+            product: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        customer: {
+          select: {
+            name: true,
+          },
+        },
+      },
       orderBy: {
         date: "desc",
       },
-      include: {
-        saleItems: {
-          include: { product: true },
-        },
-      },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     }),
-    db.sale.count({ where })
+    db.sale.count({ where }),
   ]);
 
-  const data = JSON.parse(
-    JSON.stringify(
-      sales.map((sale) => ({
-        id: sale.id,
-        date: sale.date,
-        productNames: sale.saleItems
-          .map((si) => si.product.name)
-          .join(" • "),
-        totalAmount: sale.saleItems.reduce(
-          (acc, si) =>
-            acc + Number(si.quantity) * Number(si.unitPrice),
-          0,
-        ),
-        totalProducts: sale.saleItems.reduce(
-          (acc, si) => acc + Number(si.quantity),
-          0,
-        ),
-        saleItems: sale.saleItems.map(
-          (si): SaleProductDto => ({
-            productId: si.productId,
-            productName: si.product.name,
-            quantity: Number(si.quantity),
-            unitPrice: Number(si.unitPrice),
-          }),
-        ),
-      })),
-    ),
-  );
-
-  return { data, total };
+  return {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: (sales as any[]).map((sale) => ({
+      id: sale.id,
+      date: sale.date,
+      totalAmount: Number(sale.totalAmount),
+      totalCost: Number(sale.totalCost),
+      status: sale.status,
+      productNames: sale.saleItems
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .map((item: any) => item.product.name)
+        .join(", "),
+      totalProducts: sale.saleItems.reduce(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (acc: number, item: any) => acc + Number(item.quantity),
+        0,
+      ),
+      customerName: sale.customer?.name || null,
+      customerId: sale.customerId,
+      saleItems: sale.saleItems as SaleItemDto[],
+    })),
+    total,
+  };
 };

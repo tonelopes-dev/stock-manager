@@ -11,10 +11,16 @@ import { ProductDto } from "@/app/_data-access/product/get-products";
 interface UpsertSaleButtonProps {
   products: ProductDto[];
   productOptions: ComboboxOption[];
+  customerOptions: ComboboxOption[];
   hasSales?: boolean;
 }
 
-const UpsertSaleButton = ({ products, productOptions, hasSales }: UpsertSaleButtonProps) => {
+const UpsertSaleButton = ({
+  products,
+  productOptions,
+  customerOptions,
+  hasSales,
+}: UpsertSaleButtonProps) => {
   const [sheetIsOpen, setSheetIsOpen] = useState(false);
 
   return (
@@ -30,6 +36,7 @@ const UpsertSaleButton = ({ products, productOptions, hasSales }: UpsertSaleButt
         setSheetIsOpen={setSheetIsOpen}
         products={products}
         productOptions={productOptions}
+        customerOptions={customerOptions}
         hasSales={hasSales}
       />
     </Sheet>

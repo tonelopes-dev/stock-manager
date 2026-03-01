@@ -1,3 +1,4 @@
+"use client";
 import { deleteSale } from "@/app/_actions/sale/delete-sale";
 import {
   AlertDialog,
@@ -37,8 +38,9 @@ import { SaleDto } from "@/app/_data-access/sale/get-sales";
 import { UserRole } from "@prisma/client";
 
 interface SalesTableDropdownMenuProps {
-  sale: Pick<SaleDto, "id" | "saleItems" | "date">;
+  sale: Pick<SaleDto, "id" | "saleItems" | "date" | "customerId">;
   productOptions: ComboboxOption[];
+  customerOptions: ComboboxOption[];
   products: ProductDto[];
   userRole: UserRole;
 }
@@ -47,9 +49,9 @@ const SalesTableDropdownMenu = ({
   sale,
   products,
   productOptions,
+  customerOptions,
   userRole,
 }: SalesTableDropdownMenuProps) => {
-
   const [upsertSheetIsOpen, setUpsertSheetIsOpen] = useState(false);
   const { execute } = useAction(deleteSale, {
     onSuccess: () => {
@@ -84,20 +86,20 @@ const SalesTableDropdownMenu = ({
               Copiar ID
             </DropdownMenuItem>
             {userRole !== UserRole.MEMBER && (
-               <>
-                  <SheetTrigger asChild>
-                    <DropdownMenuItem className="gap-1.5">
-                      <EditIcon size={16} />
-                      Editar
-                    </DropdownMenuItem>
-                  </SheetTrigger>
-                  <AlertDialogTrigger asChild>
-                    <DropdownMenuItem className="gap-1.5">
-                      <TrashIcon size={16} />
-                      Deletar
-                    </DropdownMenuItem>
-                  </AlertDialogTrigger>
-               </>
+              <>
+                <SheetTrigger asChild>
+                  <DropdownMenuItem className="gap-1.5">
+                    <EditIcon size={16} />
+                    Editar
+                  </DropdownMenuItem>
+                </SheetTrigger>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem className="gap-1.5">
+                    <TrashIcon size={16} />
+                    Deletar
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+              </>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -122,17 +124,19 @@ const SalesTableDropdownMenu = ({
       <UpsertSheetContent
         saleId={sale.id}
         saleDate={sale.date}
+        customerId={sale.customerId}
         isOpen={upsertSheetIsOpen}
         productOptions={productOptions}
+        customerOptions={customerOptions}
         products={products}
         setSheetIsOpen={setUpsertSheetIsOpen}
         defaultSelectedProducts={sale.saleItems.map((item) => {
           const product = products.find((p) => p.id === item.productId);
           return {
             id: item.productId,
-            quantity: item.quantity,
-            name: item.productName,
-            price: item.unitPrice,
+            quantity: Number(item.quantity),
+            name: item.product.name,
+            price: Number(item.unitPrice),
             stock: product?.stock ?? 0,
           };
         })}

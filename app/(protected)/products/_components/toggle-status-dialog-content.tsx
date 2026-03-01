@@ -1,3 +1,4 @@
+"use client";
 import { toggleProductStatus } from "@/app/_actions/product/toggle-status";
 import {
   AlertDialogAction,
@@ -23,11 +24,15 @@ const ToggleStatusDialogContent = ({
   const { execute: executeToggleStatus } = useAction(toggleProductStatus, {
     onSuccess: () => {
       toast.success(
-        isActive ? "Produto desativado com sucesso." : "Produto reativado com sucesso."
+        isActive
+          ? "Produto desativado com sucesso."
+          : "Produto reativado com sucesso.",
       );
     },
     onError: ({ error: { serverError } }) => {
-      toast.error(serverError || "Ocorreu um erro ao alterar o status do produto.");
+      toast.error(
+        serverError || "Ocorreu um erro ao alterar o status do produto.",
+      );
     },
   });
 
