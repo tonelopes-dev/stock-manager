@@ -9,69 +9,74 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Product {
-  id             String          @id @default(uuid())
-  name           String
-  type           ProductType     @default(RESELL)
-  price          Decimal         @db.Decimal(10, 2)
-  cost           Decimal         @default(0) @db.Decimal(10, 2)
-  sku            String?
-  category       String?
-  stock          Int             @default(0)
-  minStock       Int             @default(0)
-  isActive       Boolean         @default(true)
-  companyId      String
-  company        Company         @relation(fields: [companyId], references: [id])
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  saleItems      SaleItem[]
-  stockMovements StockMovement[]
-  recipes        ProductRecipe[]
+  id               String            @id @default(uuid())
+  name             String
+  type             ProductType       @default(RESELL)
+  price            Decimal           @db.Decimal(10, 2)
+  cost             Decimal           @default(0) @db.Decimal(10, 2)
+  sku              String?
+  category         String?
+  stock            Int               @default(0)
+  minStock         Int               @default(0)
+  isActive         Boolean           @default(true)
+  companyId        String
+  company          Company           @relation(fields: [companyId], references: [id])
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  saleItems        SaleItem[]
+  stockMovements   StockMovement[]
+  recipes          ProductRecipe[]
   productionOrders ProductionOrder[]
+  goals            Goal[]
 
   @@unique([sku, companyId])
 }
 
 model Sale {
-  id           String        @id @default(uuid())
-  date         DateTime
-  status       SaleStatus    @default(ACTIVE)
-  companyId    String
-  company      Company       @relation(fields: [companyId], references: [id])
-  userId       String?
-  user         User?          @relation(fields: [userId], references: [id])
-  
-  discountAmount Decimal      @db.Decimal(10, 2) @default(0)
-  totalAmount    Decimal      @db.Decimal(10, 2) @default(0)
-  totalCost      Decimal      @db.Decimal(10, 2) @default(0)
+  id         String     @id @default(uuid())
+  date       DateTime
+  status     SaleStatus @default(ACTIVE)
+  companyId  String
+  company    Company    @relation(fields: [companyId], references: [id])
+  userId     String?
+  user       User?      @relation(fields: [userId], references: [id])
+  customerId String?
+  customer   Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  saleItems    SaleItem[]
+  discountAmount Decimal @default(0) @db.Decimal(10, 2)
+  totalAmount    Decimal @default(0) @db.Decimal(10, 2)
+  totalCost      Decimal @default(0) @db.Decimal(10, 2)
+
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  saleItems      SaleItem[]
   stockMovements StockMovement[]
 
   @@index([companyId, status, date])
   @@index([companyId, createdAt])
+  @@index([customerId])
 }
 
 model SaleItem {
-  id        String   @id @default(uuid())
+  id        String  @id @default(uuid())
   saleId    String
-  sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  sale      Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
   productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  unitPrice Decimal  @db.Decimal(10, 2)
-  baseCost  Decimal  @db.Decimal(10, 2) @default(0)
-  quantity  Decimal  @db.Decimal(10, 3)
-  
-  discountAmount Decimal      @db.Decimal(10, 2) @default(0)
-  totalAmount    Decimal      @db.Decimal(10, 2) @default(0)
-  totalCost      Decimal      @db.Decimal(10, 2) @default(0)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  unitPrice Decimal @db.Decimal(10, 2)
+  baseCost  Decimal @default(0) @db.Decimal(10, 2)
+  quantity  Decimal @db.Decimal(10, 3)
+
+  discountAmount Decimal @default(0) @db.Decimal(10, 2)
+  totalAmount    Decimal @default(0) @db.Decimal(10, 2)
+  totalCost      Decimal @default(0) @db.Decimal(10, 2)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -83,29 +88,30 @@ model SaleItem {
 
 // Auth.js Models
 model User {
-  id             String          @id @default(cuid())
-  name           String?
-  email          String          @unique
-  emailVerified  DateTime?
-  phone          String?
-  password       String?
-  image          String?
-  
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  phone         String?
+  password      String?
+  image         String?
+
   // Security
-  needsPasswordChange Boolean     @default(false)
-  resetPasswordToken  String?     @unique
+  needsPasswordChange  Boolean   @default(false)
+  resetPasswordToken   String?   @unique
   resetPasswordExpires DateTime?
 
-  accounts       Account[]
-  sessions       Session[]
-  userCompanies  UserCompany[]
-  sales          Sale[]
-  stockMovements StockMovement[]
+  accounts         Account[]
+  sessions         Session[]
+  userCompanies    UserCompany[]
+  sales            Sale[]
+  stockMovements   StockMovement[]
   productionOrders ProductionOrder[]
-  createdAt      DateTime        @default(now())
-  sessionVersion Int             @default(0)
-  auditEvents    AuditEvent[]    @relation("UserAudits")
-  updatedAt      DateTime        @updatedAt
+  createdGoals     Goal[]
+  createdAt        DateTime          @default(now())
+  sessionVersion   Int               @default(0)
+  auditEvents      AuditEvent[]      @relation("UserAudits")
+  updatedAt        DateTime          @updatedAt
 }
 
 model Account {
@@ -214,32 +220,31 @@ enum SubscriptionStatus {
 }
 
 model Company {
-  id                     String               @id @default(cuid())
+  id                     String              @id @default(cuid())
   name                   String
-  plan                   String               @default("FREE")
-  allowNegativeStock     Boolean              @default(false)
-  createdAt              DateTime             @default(now())
-  stripeCustomerId       String?              @unique
-  stripeSubscriptionId   String?              @unique
+  plan                   String              @default("FREE")
+  allowNegativeStock     Boolean             @default(false)
+  createdAt              DateTime            @default(now())
+  stripeCustomerId       String?             @unique
+  stripeSubscriptionId   String?             @unique
   stripePriceId          String?
   stripeCurrentPeriodEnd DateTime?
   subscriptionStatus     SubscriptionStatus?
-  deletedAt              DateTime?            // Soft delete flag
-  
+  deletedAt              DateTime? // Soft delete flag
 
-  userCompanies  UserCompany[]
-  products       Product[]
-  ingredients    Ingredient[]
-  sales          Sale[]
-  stockMovements StockMovement[]
-  invitations    CompanyInvitation[]
+  userCompanies    UserCompany[]
+  products         Product[]
+  ingredients      Ingredient[]
+  sales            Sale[]
+  customers        Customer[]
+  goals            Goal[]
+  stockMovements   StockMovement[]
+  invitations      CompanyInvitation[]
   productionOrders ProductionOrder[]
-  auditEvents    AuditEvent[]
+  auditEvents      AuditEvent[]
 
   @@index([deletedAt])
 }
-
-
 
 model UserCompany {
   id        String   @id @default(cuid())
@@ -247,7 +252,7 @@ model UserCompany {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   companyId String
   company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  role      UserRole         @default(MEMBER)
+  role      UserRole @default(MEMBER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -291,10 +296,10 @@ model Ingredient {
 }
 
 model ProductRecipe {
-  id           String     @id @default(cuid())
+  id           String   @id @default(cuid())
   productId    String
   ingredientId String
-  quantity     Decimal    @db.Decimal(10, 4)
+  quantity     Decimal  @db.Decimal(10, 4)
   unit         UnitType
 
   product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -310,7 +315,7 @@ model ProductionOrder {
   companyId   String
   company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   quantity    Int
-  totalCost   Decimal  @db.Decimal(10, 2) @default(0)
+  totalCost   Decimal  @default(0) @db.Decimal(10, 2)
   createdById String
   createdBy   User     @relation(fields: [createdById], references: [id])
   createdAt   DateTime @default(now())
@@ -318,6 +323,7 @@ model ProductionOrder {
   @@index([companyId])
   @@index([productId])
 }
+
 enum AuditSeverity {
   INFO
   WARNING
@@ -330,12 +336,12 @@ enum AuditEventType {
   COMPANY_SOFT_DELETED
   COMPANY_RESTORED
   COMPANY_PERMANENTLY_DELETED
-  
+
   // Team
   MEMBER_INVITED
   MEMBER_REMOVED
   ROLE_UPDATED
-  
+
   // Business
   STOCK_ADJUSTED
   SALE_CANCELED
@@ -345,7 +351,7 @@ enum AuditEventType {
   PRODUCT_CREATED
   PRODUCT_UPDATED
   PRODUCT_DELETED
-  
+
   // Billing
   SUBSCRIPTION_ACTIVATED
   SUBSCRIPTION_CANCELED
@@ -353,33 +359,120 @@ enum AuditEventType {
   CHECKOUT_STARTED
 }
 
-
 model AuditEvent {
-  id              String          @id @default(cuid())
-  type            AuditEventType
-  severity        AuditSeverity   @default(INFO)
-  
+  id       String         @id @default(cuid())
+  type     AuditEventType
+  severity AuditSeverity  @default(INFO)
+
   // Company Link (Optional to survive company hard-delete)
-  companyId       String?
-  company         Company?        @relation(fields: [companyId], references: [id], onDelete: SetNull)
-  
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
   // Actor Info & Snapshot
-  actorId         String
-  actor           User            @relation("UserAudits", fields: [actorId], references: [id])
-  actorName       String?
-  actorEmail      String?
-  
+  actorId    String
+  actor      User    @relation("UserAudits", fields: [actorId], references: [id])
+  actorName  String?
+  actorEmail String?
+
   // Entity Context (e.g., PRODUCT:uuid)
-  entityType      String?         
-  entityId        String?
-  
+  entityType String?
+  entityId   String?
+
   metadata        Json?
-  metadataVersion Int             @default(1)
-  
-  createdAt       DateTime        @default(now())
+  metadataVersion Int   @default(1)
+
+  createdAt DateTime @default(now())
 
   @@index([companyId, createdAt(sort: Desc)])
   @@index([type])
   @@index([entityType, entityId])
 }
 
+// ──────────────────────────────────────────────
+// CRM & Goals Models (Rota 360)
+// ──────────────────────────────────────────────
+
+enum CustomerCategory {
+  LEAD
+  REGULAR
+  VIP
+  INACTIVE
+}
+
+enum CustomerSource {
+  MANUAL // Cadastrado manualmente pelo time
+  IFOOD // Importado via iFood (futuro)
+  WHATSAPP // Via integração WhatsApp (futuro)
+  WEBSITE // Via formulário do site (futuro)
+  OTHER
+}
+
+model Customer {
+  id         String           @id @default(cuid())
+  name       String
+  email      String?
+  phone      String?
+  category   CustomerCategory @default(LEAD)
+  source     CustomerSource   @default(MANUAL)
+  externalId String? // ID de origem externa (ex: iFood, WhatsApp)
+  birthday   DateTime?
+  notes      String?          @db.Text
+  isActive   Boolean          @default(true)
+
+  // Multi-tenancy
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  // Relacionamentos
+  sales Sale[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([email, companyId])
+  @@unique([phone, companyId])
+  @@unique([externalId, source, companyId]) // Evita duplicatas de import
+  @@index([companyId, category])
+  @@index([companyId, birthday])
+}
+
+enum GoalType {
+  GLOBAL
+  PRODUCT
+}
+
+enum GoalPeriod {
+  DAILY
+  WEEKLY
+  MONTHLY
+  CUSTOM
+}
+
+model Goal {
+  id     String     @id @default(cuid())
+  title  String
+  type   GoalType
+  period GoalPeriod @default(MONTHLY)
+
+  targetValue Decimal @db.Decimal(10, 2)
+
+  startDate DateTime
+  endDate   DateTime
+
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id])
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId, startDate, endDate])
+  @@index([companyId, productId])
+  @@index([companyId, type, isActive])
+}
