@@ -3,23 +3,39 @@ import "server-only";
 import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { 
-  startOfDay, 
   format,
   eachDayOfInterval,
   isSameDay,
   startOfMonth,
   endOfMonth,
   subMonths,
-  addDays
+  addDays,
+  startOfDay
 } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
+import { parseLocalDay, getDefaultSalesRange } from "@/app/_lib/date";
 
 export interface SalesAnalyticsDto {
-    totalRevenue: { value: number; trend: number };
-    totalProfit: { value: number; trend: number };
-    averageTicket: { value: number; trend: number };
-    totalSales: { value: number; trend: number };
-    revenueTimeSeries: { date: string; revenue: number }[];
+    totalRevenue: {
+        value: number;
+        trend: number;
+    };
+    totalProfit: {
+        value: number;
+        trend: number;
+    };
+    averageTicket: {
+        value: number;
+        trend: number;
+    };
+    totalSales: {
+        value: number;
+        trend: number;
+    };
+    revenueTimeSeries: {
+        date: string;
+        revenue: number;
+    }[];
     monthlyComparison: {
         periodA: {
             name: string;
@@ -36,6 +52,7 @@ export interface SalesAnalyticsDto {
     };
 }
 
+
 export const getSalesAnalytics = async (
     from?: string, 
     to?: string,
@@ -45,15 +62,10 @@ export const getSalesAnalytics = async (
     const companyId = await getCurrentCompanyId();
     
     // 1. Define Intervals for Metrics (Selected Period vs Previous Identical Period)
-    const now = new Date();
-    
-    const parseLocalDay = (dateStr: string) => {
-        const [year, month, day] = dateStr.split("-").map(Number);
-        return new Date(year, month - 1, day);
-    };
+    const { from: defaultFrom, to: defaultTo } = getDefaultSalesRange();
 
-    const startOfSelected = from ? startOfDay(parseLocalDay(from)) : startOfMonth(now);
-    const endOfSelected = to ? startOfDay(addDays(parseLocalDay(to), 1)) : startOfDay(addDays(now, 1));
+    const startOfSelected = from ? startOfDay(parseLocalDay(from)) : defaultFrom;
+    const endOfSelected = to ? startOfDay(addDays(parseLocalDay(to), 1)) : addDays(defaultTo, 1);
     
     const diff = endOfSelected.getTime() - startOfSelected.getTime();
     const startOfPrevious = new Date(startOfSelected.getTime() - diff);
@@ -82,7 +94,7 @@ export const getSalesAnalytics = async (
         }
     });
 
-    const days = eachDayOfInterval({ start: startOfSelected, end: endOfSelected });
+    const days = eachDayOfInterval({ start: startOfSelected, end: startOfSelected.getTime() > endOfSelected.getTime() ? startOfSelected : addDays(endOfSelected, -1) });
     const timeSeries = days.map(day => {
         const daySales = sales.filter(sale => isSameDay(sale.date, day));
         const dayRevenue = daySales.reduce((acc, sale) => {
@@ -96,6 +108,7 @@ export const getSalesAnalytics = async (
     });
 
     // 4. Monthly Comparison (Custom Months or Current vs Previous)
+    const now = new Date();
     const parseMonthStr = (str?: string, defaultDate: Date = now) => {
         if (!str) return { start: startOfMonth(defaultDate), end: startOfDay(addDays(endOfMonth(defaultDate), 1)) };
         const [year, month] = str.split("-").map(Number);
@@ -150,6 +163,7 @@ export const getSalesAnalytics = async (
         }
     };
 };
+
 
 async function fetchSalesMetrics(companyId: string, start: Date, end: Date) {
     const totals = await db.$queryRaw<{ revenue: number; cost: number; salesCount: number }[]>`

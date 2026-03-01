@@ -4,34 +4,7 @@ import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
 import { startOfDay, endOfDay } from "date-fns";
-
-interface SaleProductDto {
-  productId: string;
-  quantity: number;
-  unitPrice: number;
-  productName: string;
-}
-
-export interface SaleDto {
-  id: string;
-  productNames: string;
-  totalProducts: number;
-  totalAmount: number;
-  date: Date;
-  saleItems: SaleProductDto[];
-}
-
-export interface GetSalesParams {
-    from?: string;
-    to?: string;
-    page?: number;
-    pageSize?: number;
-}
-
-const parseLocalDay = (dateStr: string) => {
-    const [year, month, day] = dateStr.split("-").map(Number);
-    return new Date(year, month - 1, day);
-};
+import { parseLocalDay, getDefaultSalesRange } from "@/app/_lib/date";
 
 export const getSales = async (params: GetSalesParams = {}): Promise<{ data: SaleDto[], total: number }> => {
   const { page = 1, pageSize = 10 } = params;
@@ -39,13 +12,16 @@ export const getSales = async (params: GetSalesParams = {}): Promise<{ data: Sal
 
   const companyId = await getCurrentCompanyId();
 
+  const { from: defaultFrom, to: defaultTo } = getDefaultSalesRange();
+
   const where = {
     companyId,
     date: {
-        gte: params.from ? startOfDay(parseLocalDay(params.from)) : undefined,
-        lte: params.to ? endOfDay(parseLocalDay(params.to)) : undefined,
+        gte: params.from ? startOfDay(parseLocalDay(params.from)) : defaultFrom,
+        lte: params.to ? endOfDay(parseLocalDay(params.to)) : endOfDay(defaultTo),
     }
   };
+
 
   const [sales, total] = await Promise.all([
     db.sale.findMany({
