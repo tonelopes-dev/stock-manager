@@ -12,6 +12,7 @@ import { UserRole } from "@prisma/client";
 interface SaleTableColumn extends SaleDto {
   products: ProductDto[];
   productOptions: ComboboxOption[];
+  customerOptions: ComboboxOption[];
 }
 
 interface SalesDataTableProps {
@@ -20,23 +21,25 @@ interface SalesDataTableProps {
   page: number;
   pageSize: number;
   userRole: UserRole;
+  customerOptions: ComboboxOption[];
 }
 
-export const SalesDataTable = ({ 
-  sales, 
-  total, 
-  page, 
-  pageSize, 
-  userRole 
+export const SalesDataTable = ({
+  sales,
+  total,
+  page,
+  pageSize,
+  userRole,
+  customerOptions,
 }: SalesDataTableProps) => {
   return (
-    <DataTable 
-      columns={saleTableColumns(userRole)} 
-      data={sales} 
+    <DataTable
+      columns={saleTableColumns(userRole, customerOptions)}
+      data={sales}
       pagination={{
         total,
         page,
-        pageSize
+        pageSize,
       }}
       emptyMessage={
         <EmptyState

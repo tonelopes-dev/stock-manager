@@ -449,15 +449,16 @@ enum GoalPeriod {
 }
 
 model Goal {
-  id     String     @id @default(cuid())
-  title  String
-  type   GoalType
-  period GoalPeriod @default(MONTHLY)
+  id          String     @id @default(cuid())
+  name        String
+  description String?    @db.Text
+  type        GoalType
+  period      GoalPeriod @default(MONTHLY)
 
   targetValue Decimal @db.Decimal(10, 2)
 
   startDate DateTime
-  endDate   DateTime
+  endDate   DateTime?
 
   productId String?
   product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)

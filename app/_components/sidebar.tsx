@@ -7,6 +7,7 @@ import {
   UsersIcon,
   HistoryIcon,
   SettingsIcon,
+  TargetIcon,
 } from "lucide-react";
 import SidebarButton from "./sidebar-button";
 import LogoutButton from "./logout-button";
@@ -15,7 +16,6 @@ import { UserSidebarProfile } from "./user-sidebar-profile";
 import { getCurrentUserRole } from "@/app/_lib/rbac";
 import { UserRole } from "@prisma/client";
 import { getCompanyPlan } from "../_data-access/company/get-company-plan";
-
 
 const Sidebar = async () => {
   const role = await getCurrentUserRole();
@@ -30,7 +30,7 @@ const Sidebar = async () => {
 
       {/* LOGO */}
       <div className="px-8 py-4">
-        <h1 className="text-xl font-black tracking-tighter text-primary italic">
+        <h1 className="text-xl font-black italic tracking-tighter text-primary">
           STOCKY
         </h1>
       </div>
@@ -54,6 +54,16 @@ const Sidebar = async () => {
         <SidebarButton href="/sales">
           <ShoppingBasketIcon size={20} />
           Vendas
+        </SidebarButton>
+
+        <SidebarButton href="/customers">
+          <UsersIcon size={20} />
+          Clientes
+        </SidebarButton>
+
+        <SidebarButton href="/goals">
+          <TargetIcon size={20} />
+          Metas
         </SidebarButton>
 
         {isOwner && (
@@ -96,13 +106,11 @@ const Sidebar = async () => {
           />
         )}
 
-
         {/* LOGOUT */}
         <LogoutButton />
       </div>
     </div>
   );
 };
-
 
 export default Sidebar;

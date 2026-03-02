@@ -5,7 +5,11 @@ import Header, {
   HeaderTitle,
 } from "../../_components/header";
 import { ComboboxOption } from "../../_components/ui/combobox";
-import { getProducts, ProductDto } from "../../_data-access/product/get-products";
+import {
+  getProducts,
+  ProductDto,
+} from "../../_data-access/product/get-products";
+import { getCustomers } from "../../_data-access/customer/get-customers";
 import { getSales } from "../../_data-access/sale/get-sales";
 import UpsertSaleButton from "./_components/create-sale-button";
 import { SalesDataTable } from "./_components/sales-data-table";
@@ -27,9 +31,9 @@ import { UserRole } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 interface HomeProps {
-  searchParams: { 
-    from?: string; 
-    to?: string; 
+  searchParams: {
+    from?: string;
+    to?: string;
     range?: string;
     page?: string;
     pageSize?: string;
@@ -46,15 +50,21 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
     value: product.id,
   }));
 
+  const customers = await getCustomers();
+  const customerOptions: ComboboxOption[] = customers.map((customer) => ({
+    label: `${customer.name} ${customer.phone ? `(${customer.phone})` : ""}`,
+    value: customer.id,
+  }));
+
   const view = searchParams.view || "gestao";
   const role = await getCurrentUserRole();
   const onboardingStats = await getOnboardingStats();
 
   const analytics = await getSalesAnalytics(
-    searchParams.from, 
+    searchParams.from,
     searchParams.to,
     searchParams.monthA,
-    searchParams.monthB
+    searchParams.monthB,
   );
 
   return (
@@ -75,6 +85,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
           <UpsertSaleButton
             products={products}
             productOptions={productOptions}
+            customerOptions={customerOptions}
             hasSales={onboardingStats?.hasSales ?? true}
           />
         </HeaderRight>
@@ -89,24 +100,25 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
 
       {view === "gestao" && (
         <div className="space-y-8">
-            <SalesSummary 
-                totalRevenue={analytics.totalRevenue}
-                totalProfit={analytics.totalProfit}
-                averageTicket={analytics.averageTicket}
-                totalSales={analytics.totalSales}
-            />
+          <SalesSummary
+            totalRevenue={analytics.totalRevenue}
+            totalProfit={analytics.totalProfit}
+            averageTicket={analytics.averageTicket}
+            totalSales={analytics.totalSales}
+          />
 
-            <Suspense fallback={<SaleTableSkeleton />}>
-                <SalesTableWrapper 
-                    productOptions={productOptions} 
-                    products={products} 
-                    from={searchParams.from} 
-                    to={searchParams.to} 
-                    page={Number(searchParams.page) || 1}
-                    pageSize={Number(searchParams.pageSize) || 10}
-                    userRole={role as UserRole}
-                />
-            </Suspense>
+          <Suspense fallback={<SaleTableSkeleton />}>
+            <SalesTableWrapper
+              customerOptions={customerOptions}
+              productOptions={productOptions}
+              products={products}
+              from={searchParams.from}
+              to={searchParams.to}
+              page={Number(searchParams.page) || 1}
+              pageSize={Number(searchParams.pageSize) || 10}
+              userRole={role as UserRole}
+            />
+          </Suspense>
         </div>
       )}
     </div>
@@ -123,30 +135,33 @@ interface SalesTableWrapperProps {
   userRole: UserRole;
 }
 
-const SalesTableWrapper = async ({ 
-  productOptions, 
+const SalesTableWrapper = async ({
+  productOptions,
   products,
   from,
   to,
   page,
   pageSize,
   userRole,
-}: SalesTableWrapperProps) => {
+  customerOptions,
+}: SalesTableWrapperProps & { customerOptions: ComboboxOption[] }) => {
   const { data: sales, total } = await getSales({ from, to, page, pageSize });
-  
+
   const tableData = sales.map((sale) => ({
     ...sale,
     products,
     productOptions,
+    customerOptions,
   }));
 
   return (
-    <SalesDataTable 
+    <SalesDataTable
       sales={tableData}
       total={total}
       page={page}
       pageSize={pageSize}
       userRole={userRole}
+      customerOptions={customerOptions}
     />
   );
 };

@@ -15,7 +15,15 @@ interface SaleTableColumn extends SaleDto {
 
 import { UserRole } from "@prisma/client";
 
-export const saleTableColumns = (userRole: UserRole): ColumnDef<SaleTableColumn>[] => [
+export const saleTableColumns = (
+  userRole: UserRole,
+  customerOptions: ComboboxOption[],
+): ColumnDef<SaleTableColumn>[] => [
+  {
+    accessorKey: "customerName",
+    header: "Cliente",
+    cell: ({ row: { original: sale } }) => sale.customerName || "-",
+  },
   {
     accessorKey: "productNames",
     header: "Produtos",
@@ -47,6 +55,7 @@ export const saleTableColumns = (userRole: UserRole): ColumnDef<SaleTableColumn>
         sale={sale}
         products={sale.products}
         productOptions={sale.productOptions}
+        customerOptions={customerOptions}
         userRole={userRole}
       />
     ),

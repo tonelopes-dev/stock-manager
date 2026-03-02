@@ -30,11 +30,12 @@ import { formatCurrency } from "@/app/_helpers/currency";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import {
+  ShoppingCartIcon,
+  CalendarIcon,
+  UsersIcon,
   CheckIcon,
   PlusIcon,
   TrashIcon,
-  ShoppingCartIcon,
-  CalendarIcon,
 } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -69,8 +70,10 @@ interface UpsertSheetContentProps {
   saleDate?: Date;
   products: ProductDto[];
   productOptions: ComboboxOption[];
+  customerOptions: ComboboxOption[];
   setSheetIsOpen: Dispatch<SetStateAction<boolean>>;
   defaultSelectedProducts?: SelectedProduct[];
+  customerId?: string | null;
   hasSales?: boolean;
 }
 
@@ -78,8 +81,10 @@ const UpsertSheetContent = ({
   isOpen,
   saleId,
   saleDate,
+  customerId: defaultCustomerId,
   products,
   productOptions,
+  customerOptions,
   setSheetIsOpen,
   defaultSelectedProducts,
 }: UpsertSheetContentProps) => {
@@ -90,6 +95,9 @@ const UpsertSheetContent = ({
     saleDate
       ? format(new Date(saleDate), "yyyy-MM-dd")
       : format(new Date(), "yyyy-MM-dd"),
+  );
+  const [customerId, setCustomerId] = useState<string | undefined>(
+    defaultCustomerId || undefined,
   );
 
   const { execute: executeUpsertSale, isPending } = useAction(upsertSale, {
@@ -126,11 +134,13 @@ const UpsertSheetContent = ({
           ? format(new Date(saleDate), "yyyy-MM-dd")
           : format(new Date(), "yyyy-MM-dd"),
       );
+      setCustomerId(defaultCustomerId || undefined);
     } else {
       form.reset();
       setSelectedProducts([]);
+      setCustomerId(undefined);
     }
-  }, [form, isOpen, defaultSelectedProducts, saleDate]);
+  }, [form, isOpen, defaultSelectedProducts, saleDate, defaultCustomerId]);
 
   const onSubmit = (data: FormSchema) => {
     const product = products.find((p) => p.id === data.productId);
@@ -194,6 +204,7 @@ const UpsertSheetContent = ({
     executeUpsertSale({
       id: saleId,
       date: date ? new Date(date + "T12:00:00") : undefined,
+      customerId,
       products: selectedProducts.map((p) => ({
         id: p.id,
         quantity: p.quantity,
@@ -245,6 +256,19 @@ const UpsertSheetContent = ({
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                   className="h-8 w-[130px] border-slate-200 p-2 text-[10px] font-bold focus-visible:ring-primary/20"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400">
+                  <UsersIcon size={12} className="text-secondary" />
+                  Cliente
+                </Label>
+                <Combobox
+                  options={customerOptions}
+                  value={customerId || ""}
+                  onChange={(val) => setCustomerId(val || undefined)}
+                  placeholder="Selecione o Cliente..."
                 />
               </div>
             </div>
