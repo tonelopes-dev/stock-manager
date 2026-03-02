@@ -19,6 +19,8 @@ export interface CustomerDto {
   _count: {
     sales: number;
   };
+  totalSpent: number;
+  lastSaleDate: Date | null;
 }
 
 export const getCustomers = async (
@@ -48,22 +50,40 @@ export const getCustomers = async (
           sales: true,
         },
       },
+      sales: {
+        where: { status: "ACTIVE" },
+        select: {
+          totalAmount: true,
+          date: true,
+        },
+        orderBy: { date: "desc" },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
 
-  return customers.map((customer) => ({
-    id: customer.id,
-    name: customer.name,
-    email: customer.email,
-    phone: customer.phone,
-    category: customer.category,
-    source: customer.source,
-    birthday: customer.birthday,
-    notes: customer.notes,
-    isActive: customer.isActive,
-    createdAt: customer.createdAt,
-    updatedAt: customer.updatedAt,
-    _count: customer._count,
-  }));
+  return customers.map((customer) => {
+    const totalSpent = customer.sales.reduce(
+      (acc, sale) => acc + Number(sale.totalAmount),
+      0,
+    );
+    const lastSaleDate = customer.sales.length > 0 ? customer.sales[0].date : null;
+
+    return {
+      id: customer.id,
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      category: customer.category,
+      source: customer.source,
+      birthday: customer.birthday,
+      notes: customer.notes,
+      isActive: customer.isActive,
+      createdAt: customer.createdAt,
+      updatedAt: customer.updatedAt,
+      _count: customer._count,
+      totalSpent,
+      lastSaleDate,
+    };
+  });
 };

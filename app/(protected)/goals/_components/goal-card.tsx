@@ -44,7 +44,7 @@ export const GoalCard = ({ goal, isAdmin, products }: GoalCardProps) => {
   const isProductGoal = goal.type === "PRODUCT";
   const progressColor =
     goal.progressPercentage >= 100
-      ? "bg-emerald-500"
+      ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
       : goal.progressPercentage >= 75
         ? "bg-blue-500"
         : goal.progressPercentage >= 50
@@ -176,7 +176,7 @@ export const GoalCard = ({ goal, isAdmin, products }: GoalCardProps) => {
         <div className="absolute bottom-0 left-0 h-1 w-full overflow-hidden bg-slate-50">
           <div
             className={`h-full opacity-50 transition-all duration-700 ${progressColor}`}
-            style={{ width: `${goal.progressPercentage}%` }}
+            style={{ width: `${Math.min(goal.progressPercentage, 100)}%` }}
           />
         </div>
       </Card>

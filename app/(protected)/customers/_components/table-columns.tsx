@@ -47,6 +47,30 @@ export const customerTableColumns = (
     },
   },
   {
+    accessorKey: "totalSpent",
+    header: "Total Gasto",
+    cell: ({ row: { original: customer } }) => {
+      const { formatCurrency } = require("@/app/_helpers/currency");
+      return (
+        <span className="font-bold text-slate-700">
+          {formatCurrency(customer.totalSpent)}
+        </span>
+      );
+    },
+  },
+  {
+    accessorKey: "lastSaleDate",
+    header: "Última Compra",
+    cell: ({ row: { original: customer } }) => {
+      if (!customer.lastSaleDate) return "-";
+      const { format } = require("date-fns");
+      const { ptBR } = require("date-fns/locale/pt-BR");
+      return format(new Date(customer.lastSaleDate), "dd/MM/yyyy", {
+        locale: ptBR,
+      });
+    },
+  },
+  {
     accessorKey: "salesCount",
     header: "Vendas",
     cell: ({ row: { original: customer } }) => customer._count.sales,

@@ -78,7 +78,7 @@ export const getGoals = async (): Promise<GoalDto[]> => {
       return {
         ...goal,
         currentValue,
-        progressPercentage: Math.min(progressPercentage, 100), // Cap at 100 for some UI cases, or don't? Let's leave it uncapped for now but maybe UI handles it.
+        progressPercentage,
       };
     })
   );
