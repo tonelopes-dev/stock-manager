@@ -17,6 +17,7 @@ export interface CustomerDto {
   birthday: Date | null;
   notes: string | null;
   isActive: boolean;
+  position: number;
   createdAt: Date;
   updatedAt: Date;
   _count: {
@@ -68,7 +69,7 @@ export const getCustomers = async (
         orderBy: { date: "desc" },
       },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ stageId: "asc" }, { position: "asc" }, { createdAt: "desc" }],
   });
 
   return customers.map((customer) => {
@@ -91,6 +92,7 @@ export const getCustomers = async (
       birthday: customer.birthday,
       notes: customer.notes,
       isActive: customer.isActive,
+      position: customer.position,
       createdAt: customer.createdAt,
       updatedAt: customer.updatedAt,
       _count: customer._count,

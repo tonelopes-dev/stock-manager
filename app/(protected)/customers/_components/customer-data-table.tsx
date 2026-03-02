@@ -1,5 +1,6 @@
 "use client";
 
+import { useOptimistic } from "react";
 import { DataTable } from "@/app/_components/ui/data-table";
 import { customerTableColumns } from "./table-columns";
 import { CustomerDto } from "@/app/_data-access/customer/get-customers";
@@ -15,15 +16,32 @@ interface CustomerDataTableProps {
 }
 
 export const CustomerDataTable = ({
-  customers,
+  customers: initialCustomers,
   userRole,
   categories,
   stages,
 }: CustomerDataTableProps) => {
+  const [optimisticCustomers, addOptimisticUpdate] = useOptimistic(
+    initialCustomers,
+    (
+      state: CustomerDto[],
+      action: { type: "DELETE"; payload: { customerId: string } },
+    ) => {
+      if (action.type === "DELETE") {
+        return state.filter((c) => c.id !== action.payload.customerId);
+      }
+      return state;
+    },
+  );
+
+  const handleDelete = (customerId: string) => {
+    addOptimisticUpdate({ type: "DELETE", payload: { customerId } });
+  };
+
   return (
     <DataTable
-      columns={customerTableColumns(userRole, categories, stages)}
-      data={customers}
+      columns={customerTableColumns(userRole, categories, stages, handleDelete)}
+      data={optimisticCustomers}
       emptyMessage={
         <EmptyState
           icon={UsersIcon}

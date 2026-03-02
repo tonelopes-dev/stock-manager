@@ -23,6 +23,7 @@ export const customerTableColumns = (
   userRole: UserRole,
   categories: { id: string; name: string }[],
   stages: { id: string; name: string }[],
+  onDelete?: (customerId: string) => void,
 ): ColumnDef<CustomerDto>[] => [
   {
     accessorKey: "name",
@@ -104,6 +105,7 @@ export const customerTableColumns = (
         userRole={userRole}
         categories={categories}
         stages={stages}
+        onDelete={onDelete}
       />
     ),
   },

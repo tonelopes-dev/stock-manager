@@ -40,44 +40,43 @@ export const KanbanBoard = ({
   // Optimistic UI for smooth transitions
   const [optimisticCustomers, addOptimisticUpdate] = useOptimistic(
     initialCustomers,
-    (state, { customerId, newStageId, newPosition }) => {
+    (state, action: { type: "MOVE" | "DELETE"; payload: any }) => {
+      if (action.type === "DELETE") {
+        return state.filter((c) => c.id !== action.payload.customerId);
+      }
+
+      const { customerId, newStageId, newPosition } = action.payload;
       const customerIndex = state.findIndex((c) => c.id === customerId);
       if (customerIndex === -1) return state;
 
-      const updatedCustomer = {
-        ...state[customerIndex],
-        stageId: newStageId,
-        position: newPosition,
-      };
-      const newState = [...state];
-      newState.splice(customerIndex, 1);
+      const activeCust = { ...state[customerIndex], stageId: newStageId };
+      const others = state.filter((c) => c.id !== customerId);
 
-      // Re-insert into new column at correct position
-      const columnCustomers = newState
+      // Re-insert into target column
+      const columnCustomers = others
         .filter((c) => c.stageId === newStageId)
-        .sort((a, b) => a.position - b.position);
+        .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
 
-      columnCustomers.splice(newPosition, 0, updatedCustomer);
+      columnCustomers.splice(newPosition, 0, activeCust);
 
       // Re-calculate positions for the affected columns
-      return newState.map((c) => {
-        if (c.id === customerId) return updatedCustomer;
+      return state.map((c) => {
+        if (c.id === customerId)
+          return { ...activeCust, position: newPosition };
 
-        // Update positions in NEW column
         if (c.stageId === newStageId) {
           const idx = columnCustomers.findIndex((cc) => cc.id === c.id);
           return { ...c, position: idx };
         }
 
-        // Update positions in OLD column
-        if (c.stageId === state[customerIndex].stageId) {
-          const oldColumn = state
-            .filter(
-              (cc) =>
-                cc.stageId === state[customerIndex].stageId &&
-                cc.id !== customerId,
-            )
-            .sort((a, b) => a.position - b.position);
+        // If moved between stages, update old column too
+        if (
+          state[customerIndex].stageId !== newStageId &&
+          c.stageId === state[customerIndex].stageId
+        ) {
+          const oldColumn = others
+            .filter((cc) => cc.stageId === state[customerIndex].stageId)
+            .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
           const idx = oldColumn.findIndex((cc) => cc.id === c.id);
           return { ...c, position: idx };
         }
@@ -105,15 +104,7 @@ export const KanbanBoard = ({
   };
 
   const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeId = active.id;
-    const overId = over.id;
-
-    if (activeId === overId) return;
-
-    // Over logic is largely handled by dnd-kit sortable
+    // dnd-kit auto sortable context takes over here
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -125,7 +116,8 @@ export const KanbanBoard = ({
     const customerId = active.id as string;
     const overId = over.id as string;
 
-    const activeCustomerData = initialCustomers.find(
+    // Use optimistic state to find data
+    const activeCustomerData = optimisticCustomers.find(
       (c) => c.id === customerId,
     );
     if (!activeCustomerData) return;
@@ -142,10 +134,12 @@ export const KanbanBoard = ({
       );
       newPosition = columnCustomers.length;
     } else {
-      const overCustomer = initialCustomers.find((c) => c.id === overId);
+      // Find the card we are dropping onto
+      const overCustomer = optimisticCustomers.find((c) => c.id === overId);
       if (overCustomer) {
         newStageId = overCustomer.stageId;
-        newPosition = overCustomer.position;
+        newPosition =
+          typeof overCustomer.position === "number" ? overCustomer.position : 0;
       }
     }
 
@@ -158,7 +152,10 @@ export const KanbanBoard = ({
 
     // 2. Perform Optimistic Update
     startTransition(async () => {
-      addOptimisticUpdate({ customerId, newStageId, newPosition });
+      addOptimisticUpdate({
+        type: "MOVE",
+        payload: { customerId, newStageId, newPosition },
+      });
 
       // 3. Persist to DB
       const result = await updateCustomerPosition({
@@ -167,10 +164,13 @@ export const KanbanBoard = ({
         newPosition,
       });
 
-      if (result?.validationErrors || result?.serverError) {
-        toast.error("Erro ao mover cliente. Sincronizando...");
-        // router.refresh() will happen automatically on transition end if successful,
-        // if not, the optimistic state is discarded by React automatically.
+      if (result?.validationErrors) {
+        const errorMsg = Object.values(result.validationErrors)
+          .flat()
+          .join(", ");
+        toast.error(`Erro de validação: ${errorMsg}`);
+      } else if (result?.serverError) {
+        toast.error("Erro no servidor ao reordenar cliente.");
       }
     });
   };
@@ -188,7 +188,7 @@ export const KanbanBoard = ({
           {stages.map((stage) => {
             const columnCustomers = optimisticCustomers
               .filter((c) => c.stageId === stage.id)
-              .sort((a, b) => a.position - b.position);
+              .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
 
             return (
               <KanbanColumn
@@ -217,8 +217,12 @@ export const KanbanBoard = ({
         {viewingCustomer && (
           <CustomerDetailsDialogContent
             customer={viewingCustomer}
-            categories={[]} // Will be loaded inside or passed if available
+            categories={categories}
             stages={stages}
+            onDelete={(customerId) => {
+              addOptimisticUpdate({ type: "DELETE", payload: { customerId } });
+              setViewingCustomer(null);
+            }}
           />
         )}
       </Dialog>

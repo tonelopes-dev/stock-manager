@@ -26,14 +26,41 @@ export const upsertCustomer = actionClient
     };
 
     if (id) {
-      await db.customer.update({
+      const existingCustomer = await db.customer.findUnique({
         where: { id, companyId },
-        data: customerData,
+        select: { stageId: true },
       });
+
+      if (existingCustomer && existingCustomer.stageId !== customerData.stageId) {
+        // Moved to a new stage via modal: calculate next position
+        const lastPosition = await db.customer.aggregate({
+          where: { companyId, stageId: customerData.stageId || "" },
+          _max: { position: true },
+        });
+        const nextPosition = (lastPosition._max.position ?? -1) + 1;
+        
+        await db.customer.update({
+          where: { id, companyId },
+          data: { ...customerData, position: nextPosition },
+        });
+      } else {
+        await db.customer.update({
+          where: { id, companyId },
+          data: customerData,
+        });
+      }
     } else {
+      // New customer: calculate next position
+      const lastPosition = await db.customer.aggregate({
+        where: { companyId, stageId: customerData.stageId || "" },
+        _max: { position: true },
+      });
+      const nextPosition = (lastPosition._max.position ?? -1) + 1;
+
       await db.customer.create({
         data: {
           ...customerData,
+          position: nextPosition,
           companyId,
         },
       });
