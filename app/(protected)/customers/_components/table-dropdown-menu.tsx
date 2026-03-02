@@ -11,10 +11,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/app/_components/ui/dropdown-menu";
-import { MoreHorizontalIcon, EditIcon, TrashIcon } from "lucide-react";
+import { MoreHorizontalIcon, EditIcon, TrashIcon, EyeIcon } from "lucide-react";
 import { useState } from "react";
 import DeleteCustomerDialogContent from "./delete-dialog-content";
 import UpsertCustomerDialogContent from "./upsert-dialog-content";
+import { CustomerDetailsDialogContent } from "./details-dialog-content";
 import { CustomerDto } from "@/app/_data-access/customer/get-customers";
 import { UserRole } from "@prisma/client";
 
@@ -33,6 +34,7 @@ const CustomerTableDropdownMenu = ({
 }: CustomerTableDropdownMenuProps) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
   const hasHistory = customer._count.sales > 0;
 
@@ -47,6 +49,14 @@ const CustomerTableDropdownMenu = ({
         <DropdownMenuContent>
           <DropdownMenuLabel>Ações</DropdownMenuLabel>
           <DropdownMenuSeparator />
+
+          <DropdownMenuItem
+            className="gap-1.5"
+            onClick={() => setDetailsDialogOpen(true)}
+          >
+            <EyeIcon size={16} />
+            Ver Detalhes
+          </DropdownMenuItem>
 
           <DropdownMenuItem
             className="gap-1.5"
@@ -67,6 +77,11 @@ const CustomerTableDropdownMenu = ({
           )}
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {/* Details Dialog */}
+      <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+        <CustomerDetailsDialogContent customer={customer} />
+      </Dialog>
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>

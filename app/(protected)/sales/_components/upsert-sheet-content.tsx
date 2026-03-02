@@ -36,6 +36,7 @@ import {
   CheckIcon,
   PlusIcon,
   TrashIcon,
+  AlertTriangle,
 } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -270,6 +271,12 @@ const UpsertSheetContent = ({
                   onChange={(val) => setCustomerId(val || undefined)}
                   placeholder="Selecione o Cliente..."
                 />
+                {!customerId && (
+                  <p className="flex animate-pulse items-center gap-1 text-[9px] font-bold uppercase text-amber-500">
+                    <AlertTriangle size={10} /> Vincule um cliente para
+                    histórico CRM
+                  </p>
+                )}
               </div>
             </div>
 

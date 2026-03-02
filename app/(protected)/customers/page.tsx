@@ -4,6 +4,9 @@ import { getCRMStages } from "../../_data-access/crm/get-crm-stages";
 import AddCustomerButton from "./_components/create-customer-button";
 import { CustomerCategoryFilter } from "./_components/category-filter";
 import { CustomerSearch } from "./_components/customer-search";
+import { CRMConfigModal } from "./_components/crm-config-modal";
+import { CustomerViewSwitcher } from "./_components/view-switcher";
+import { KanbanBoard } from "./_components/kanban/kanban-board";
 import { CustomerDataTable } from "./_components/customer-data-table";
 import Header, {
   HeaderLeft,
@@ -21,6 +24,7 @@ interface CustomersPageProps {
   searchParams: Promise<{
     category?: string;
     search?: string;
+    view?: "table" | "kanban";
   }>;
 }
 
@@ -29,18 +33,35 @@ export const dynamic = "force-dynamic";
 const CustomersPage = async ({ searchParams }: CustomersPageProps) => {
   const resolvedSearchParams = await searchParams;
   const categoryId = resolvedSearchParams?.category || "ALL";
+  const view = resolvedSearchParams?.view || "table";
+  const search = resolvedSearchParams?.search || "";
 
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
-      <Suspense key={categoryId} fallback={<CustomerTableSkeleton />}>
-        <CustomerTableWrapper categoryId={categoryId} />
+      <Suspense
+        key={`${categoryId}-${view}-${search}`}
+        fallback={<CustomerTableSkeleton />}
+      >
+        <CustomerTableWrapper
+          categoryId={categoryId}
+          view={view}
+          search={search}
+        />
       </Suspense>
     </div>
   );
 };
 
-const CustomerTableWrapper = async ({ categoryId }: { categoryId: string }) => {
-  const customers = await getCustomers(categoryId);
+const CustomerTableWrapper = async ({
+  categoryId,
+  view,
+  search,
+}: {
+  categoryId: string;
+  view: string;
+  search: string;
+}) => {
+  const customers = await getCustomers(categoryId, search);
   const role = await getCurrentUserRole();
   const isManagement = role === UserRole.OWNER || role === UserRole.ADMIN;
 
@@ -57,6 +78,8 @@ const CustomerTableWrapper = async ({ categoryId }: { categoryId: string }) => {
         </HeaderLeft>
         <HeaderRight>
           <div className="flex gap-3">
+            <CustomerViewSwitcher />
+            <CRMConfigModal categories={categories} stages={stages} />
             <CustomerSearch />
             <CustomerCategoryFilter categories={categories} />
             {isManagement && (
@@ -66,12 +89,16 @@ const CustomerTableWrapper = async ({ categoryId }: { categoryId: string }) => {
         </HeaderRight>
       </Header>
 
-      <CustomerDataTable
-        customers={customers}
-        userRole={role as UserRole}
-        categories={categories}
-        stages={stages}
-      />
+      {view === "table" ? (
+        <CustomerDataTable
+          customers={customers}
+          userRole={role as UserRole}
+          categories={categories}
+          stages={stages}
+        />
+      ) : (
+        <KanbanBoard initialCustomers={customers} stages={stages} />
+      )}
     </div>
   );
 };
