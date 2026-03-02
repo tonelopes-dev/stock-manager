@@ -21,11 +21,15 @@ import { UserRole } from "@prisma/client";
 interface CustomerTableDropdownMenuProps {
   customer: CustomerDto;
   userRole: UserRole;
+  categories: { id: string; name: string }[];
+  stages: { id: string; name: string }[];
 }
 
 const CustomerTableDropdownMenu = ({
   customer,
   userRole,
+  categories,
+  stages,
 }: CustomerTableDropdownMenuProps) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -72,13 +76,16 @@ const CustomerTableDropdownMenu = ({
             name: customer.name,
             email: customer.email || "",
             phone: customer.phone || "",
-            category: customer.category,
+            categoryId: customer.categoryId || "",
+            stageId: customer.stageId || "",
             birthday: customer.birthday
               ? customer.birthday.toISOString().split("T")[0]
               : "",
             notes: customer.notes || "",
           }}
           setDialogIsOpen={setEditDialogOpen}
+          categories={categories}
+          stages={stages}
         />
       </Dialog>
 

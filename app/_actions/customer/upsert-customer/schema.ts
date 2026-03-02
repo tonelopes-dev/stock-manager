@@ -7,7 +7,8 @@ export const upsertCustomerSchema = z.object({
   }),
   email: z.string().email({ message: "E-mail inválido." }).nullable().optional().or(z.literal("")),
   phone: z.string().trim().nullable().optional().or(z.literal("")),
-  category: z.enum(["LEAD", "REGULAR", "VIP", "INACTIVE"]).default("LEAD"),
+  categoryId: z.string().cuid().nullable().optional(),
+  stageId: z.string().cuid().nullable().optional(),
   birthday: z.string().nullable().optional(), // ISO date string from the form
   notes: z.string().trim().nullable().optional().or(z.literal("")),
 });

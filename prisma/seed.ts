@@ -98,6 +98,57 @@ async function main() {
     ingredients[iData.name] = ingredient;
   }
 
+  // 3.1 Create Customer Categories
+  console.log("🏷️ Seeding customer categories...");
+  const categoriesData = ["Coworking", "Restaurante", "Bistrô", "Evento", "Outros"];
+  const categories: Record<string, any> = {};
+  for (const name of categoriesData) {
+    const category = await prisma.customerCategory.upsert({
+      where: { name_companyId: { name, companyId: company.id } },
+      update: {},
+      create: { name, companyId: company.id },
+    });
+    categories[name] = category;
+  }
+
+  // 3.2 Create CRM Stages
+  console.log("📊 Seeding CRM stages...");
+  const stagesData = [
+    { name: "Prospecção", order: 0 },
+    { name: "Contato Feito", order: 1 },
+    { name: "Proposta Enviada", order: 2 },
+    { name: "Convertido", order: 3 },
+  ];
+  const stages: Record<string, any> = {};
+  for (const s of stagesData) {
+    const stage = await prisma.cRMStage.upsert({
+      where: { name_companyId: { name: s.name, companyId: company.id } },
+      update: { order: s.order },
+      create: { ...s, companyId: company.id },
+    });
+    stages[s.name] = stage;
+  }
+
+  // 3.3 Create Customers
+  console.log("👤 Seeding customers...");
+  const customers: any[] = [];
+  for (let i = 0; i < 20; i++) {
+    const categoryName = faker.helpers.arrayElement(categoriesData);
+    const stageName = faker.helpers.arrayElement(stagesData).name;
+    const customer = await prisma.customer.create({
+      data: {
+        name: faker.person.fullName(),
+        email: faker.internet.email(),
+        phone: faker.phone.number(),
+        categoryId: categories[categoryName].id,
+        stageId: stages[stageName].id,
+        companyId: company.id,
+        notes: faker.lorem.sentence(),
+      }
+    });
+    customers.push(customer);
+  }
+
   // 4. Create Products
   console.log("📦 Seeding products...");
   
@@ -243,6 +294,7 @@ async function main() {
             date: saleDate,
             companyId: company.id,
             userId: seller.id,
+            customerId: s % 2 === 0 ? faker.helpers.arrayElement(customers).id : null,
             status: SaleStatus.ACTIVE,
             totalAmount: 0, totalCost: 0, discountAmount: 0,
           }

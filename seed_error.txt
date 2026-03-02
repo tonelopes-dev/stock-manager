@@ -1,0 +1,21 @@
+🌱 Starting safe and dynamic seeding for Stocky...
+🏢 Seeding company...
+PrismaClientInitializationError: 
+Invalid `prisma.company.upsert()` invocation in
+C:\Projetos\stock-manager\prisma\seed.ts:15:40
+
+  12 
+  13 // 1. Create Company
+  14 console.log("🏢 Seeding company...");
+→ 15 const company = await prisma.company.upsert(
+Authentication failed against database server at `ep-super-base-ac3aj2i8-pooler.sa-east-1.aws.neon.tech`, the provided database credentials for `(not available)` are not valid.
+
+Please make sure to provide valid database credentials for the database server at `ep-super-base-ac3aj2i8-pooler.sa-east-1.aws.neon.tech`.
+    at Ln.handleRequestError (C:\Projetos\stock-manager\node_modules\@prisma\client\runtime\library.js:121:8053)
+    at Ln.handleAndLogRequestError (C:\Projetos\stock-manager\node_modules\@prisma\client\runtime\library.js:121:7061)
+    at Ln.request (C:\Projetos\stock-manager\node_modules\@prisma\client\runtime\library.js:121:6745)
+    at async l (C:\Projetos\stock-manager\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async main (C:\Projetos\stock-manager\prisma\seed.ts:15:19) {
+  clientVersion: '5.19.1',
+  errorCode: undefined
+}

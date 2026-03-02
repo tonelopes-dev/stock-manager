@@ -9,7 +9,13 @@ import {
   SelectValue,
 } from "@/app/_components/ui/select";
 
-export const CustomerCategoryFilter = () => {
+interface CustomerCategoryFilterProps {
+  categories: { id: string; name: string }[];
+}
+
+export const CustomerCategoryFilter = ({
+  categories,
+}: CustomerCategoryFilterProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentCategory = searchParams.get("category") || "ALL";
@@ -31,10 +37,11 @@ export const CustomerCategoryFilter = () => {
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="ALL">Todas as categorias</SelectItem>
-        <SelectItem value="LEAD">Leads</SelectItem>
-        <SelectItem value="REGULAR">Regulares</SelectItem>
-        <SelectItem value="VIP">VIPs</SelectItem>
-        <SelectItem value="INACTIVE">Inativos</SelectItem>
+        {categories.map((category) => (
+          <SelectItem key={category.id} value={category.id}>
+            {category.name}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );

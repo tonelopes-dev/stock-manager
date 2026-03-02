@@ -6,18 +6,27 @@ import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import UpsertCustomerDialogContent from "./upsert-dialog-content";
 
-const AddCustomerButton = () => {
+interface AddCustomerButtonProps {
+  categories: { id: string; name: string }[];
+  stages: { id: string; name: string }[];
+}
+
+const AddCustomerButton = ({ categories, stages }: AddCustomerButtonProps) => {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
 
   return (
     <Dialog open={dialogIsOpen} onOpenChange={setDialogIsOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-1.5 font-bold">
-          <PlusIcon size={18} />
+        <Button className="gap-2 font-bold">
+          <PlusIcon size={20} />
           Novo Cliente
         </Button>
       </DialogTrigger>
-      <UpsertCustomerDialogContent setDialogIsOpen={setDialogIsOpen} />
+      <UpsertCustomerDialogContent
+        setDialogIsOpen={setDialogIsOpen}
+        categories={categories}
+        stages={stages}
+      />
     </Dialog>
   );
 };

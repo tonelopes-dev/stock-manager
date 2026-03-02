@@ -41,11 +41,15 @@ import { Textarea } from "@/app/_components/ui/textarea";
 interface UpsertCustomerDialogContentProps {
   defaultValues?: UpsertCustomerSchema;
   setDialogIsOpen: Dispatch<SetStateAction<boolean>>;
+  categories: { id: string; name: string }[];
+  stages: { id: string; name: string }[];
 }
 
 const UpsertCustomerDialogContent = ({
   defaultValues,
   setDialogIsOpen,
+  categories,
+  stages,
 }: UpsertCustomerDialogContentProps) => {
   const { execute: executeUpsertCustomer } = useAction(upsertCustomer, {
     onSuccess: () => {
@@ -69,7 +73,8 @@ const UpsertCustomerDialogContent = ({
       name: "",
       email: "",
       phone: "",
-      category: "LEAD",
+      categoryId: "",
+      stageId: "",
       birthday: "",
       notes: "",
     },
@@ -146,13 +151,14 @@ const UpsertCustomerDialogContent = ({
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
-              name="category"
+              name="categoryId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Categoria</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    defaultValue={field.value || undefined}
+                    value={field.value || ""}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -160,10 +166,11 @@ const UpsertCustomerDialogContent = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="LEAD">Lead</SelectItem>
-                      <SelectItem value="REGULAR">Regular</SelectItem>
-                      <SelectItem value="VIP">VIP</SelectItem>
-                      <SelectItem value="INACTIVE">Inativo</SelectItem>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -173,19 +180,47 @@ const UpsertCustomerDialogContent = ({
 
             <FormField
               control={form.control}
-              name="birthday"
+              name="stageId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Data de Aniversário</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} value={field.value || ""} />
-                  </FormControl>
+                  <FormLabel>Estágio CRM</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value || undefined}
+                    value={field.value || ""}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o estágio" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {stages.map((stage) => (
+                        <SelectItem key={stage.id} value={stage.id}>
+                          {stage.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
 
+          <FormField
+            control={form.control}
+            name="birthday"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Data de Aniversário</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} value={field.value || ""} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="notes"

@@ -9,7 +9,10 @@ export interface CustomerDto {
   name: string;
   email: string | null;
   phone: string | null;
-  category: CustomerCategory;
+  categoryId: string | null;
+  category: { name: string } | null;
+  stageId: string | null;
+  stage: { name: string } | null;
   source: string;
   birthday: Date | null;
   notes: string | null;
@@ -24,14 +27,14 @@ export interface CustomerDto {
 }
 
 export const getCustomers = async (
-  category?: CustomerCategory | "ALL",
+  categoryId?: string | "ALL",
   search?: string,
 ): Promise<CustomerDto[]> => {
   const companyId = await getCurrentCompanyId();
 
   const where: Prisma.CustomerWhereInput = {
     companyId,
-    ...(category && category !== "ALL" ? { category } : {}),
+    ...(categoryId && categoryId !== "ALL" ? { categoryId } : {}),
   };
 
   if (search) {
@@ -49,6 +52,12 @@ export const getCustomers = async (
         select: {
           sales: true,
         },
+      },
+      category: {
+        select: { name: true },
+      },
+      stage: {
+        select: { name: true },
       },
       sales: {
         where: { status: "ACTIVE" },
@@ -74,7 +83,10 @@ export const getCustomers = async (
       name: customer.name,
       email: customer.email,
       phone: customer.phone,
+      categoryId: customer.categoryId,
       category: customer.category,
+      stageId: customer.stageId,
+      stage: customer.stage,
       source: customer.source,
       birthday: customer.birthday,
       notes: customer.notes,

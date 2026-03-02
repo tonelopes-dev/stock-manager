@@ -19,7 +19,8 @@ export const upsertCustomer = actionClient
       name: data.name,
       email: data.email || null,
       phone: data.phone || null,
-      category: data.category,
+      categoryId: data.categoryId || null,
+      stageId: data.stageId || null,
       notes: data.notes || null,
       birthday: birthday ? new Date(birthday) : null,
     };

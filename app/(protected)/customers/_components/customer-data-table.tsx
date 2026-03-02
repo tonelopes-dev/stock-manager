@@ -10,15 +10,19 @@ import { UserRole } from "@prisma/client";
 interface CustomerDataTableProps {
   customers: CustomerDto[];
   userRole: UserRole;
+  categories: { id: string; name: string }[];
+  stages: { id: string; name: string }[];
 }
 
 export const CustomerDataTable = ({
   customers,
   userRole,
+  categories,
+  stages,
 }: CustomerDataTableProps) => {
   return (
     <DataTable
-      columns={customerTableColumns(userRole)}
+      columns={customerTableColumns(userRole, categories, stages)}
       data={customers}
       emptyMessage={
         <EmptyState

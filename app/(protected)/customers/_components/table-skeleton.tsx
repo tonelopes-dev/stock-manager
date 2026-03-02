@@ -27,7 +27,13 @@ export const CustomerTableSkeleton = () => {
               <Skeleton className="h-4 w-20" />
             </TableHead>
             <TableHead>
+              <Skeleton className="h-4 w-20" />
+            </TableHead>
+            <TableHead>
               <Skeleton className="h-4 w-16" />
+            </TableHead>
+            <TableHead>
+              <Skeleton className="h-4 w-20" />
             </TableHead>
             <TableHead className="w-[100px] text-right">
               <Skeleton className="ml-auto h-4 w-12" />
@@ -37,6 +43,12 @@ export const CustomerTableSkeleton = () => {
         <TableBody>
           {Array.from({ length: 8 }).map((_, i) => (
             <TableRow key={i}>
+              <TableCell>
+                <Skeleton className="h-4 w-full" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-full" />
+              </TableCell>
               <TableCell>
                 <Skeleton className="h-4 w-full" />
               </TableCell>

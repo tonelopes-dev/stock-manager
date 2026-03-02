@@ -12,6 +12,7 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 model Product {
@@ -236,8 +237,10 @@ model Company {
   products         Product[]
   ingredients      Ingredient[]
   sales            Sale[]
-  customers        Customer[]
-  goals            Goal[]
+  customers          Customer[]
+  customerCategories CustomerCategory[]
+  crmStages          CRMStage[]
+  goals              Goal[]
   stockMovements   StockMovement[]
   invitations      CompanyInvitation[]
   productionOrders ProductionOrder[]
@@ -392,7 +395,7 @@ model AuditEvent {
 // CRM & Goals Models (Rota 360)
 // ──────────────────────────────────────────────
 
-enum CustomerCategory {
+enum CustomerCategoryEnum {
   LEAD
   REGULAR
   VIP
@@ -408,20 +411,28 @@ enum CustomerSource {
 }
 
 model Customer {
-  id         String           @id @default(cuid())
+  id         String   @id @default(cuid())
   name       String
   email      String?
   phone      String?
-  category   CustomerCategory @default(LEAD)
-  source     CustomerSource   @default(MANUAL)
-  externalId String? // ID de origem externa (ex: iFood, WhatsApp)
+  oldCategory CustomerCategoryEnum @default(LEAD)
+  source      CustomerSource       @default(MANUAL)
+  externalId String?
   birthday   DateTime?
-  notes      String?          @db.Text
-  isActive   Boolean          @default(true)
+  notes      String?  @db.Text
+  isActive   Boolean  @default(true)
 
   // Multi-tenancy
   companyId String
   company   Company @relation(fields: [companyId], references: [id])
+
+  // Categorização Dinâmica
+  categoryId String?
+  category   CustomerCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  // Fluxo de CRM (Kanban)
+  stageId String?
+  stage   CRMStage? @relation(fields: [stageId], references: [id], onDelete: SetNull)
 
   // Relacionamentos
   sales Sale[]
@@ -431,9 +442,35 @@ model Customer {
 
   @@unique([email, companyId])
   @@unique([phone, companyId])
-  @@unique([externalId, source, companyId]) // Evita duplicatas de import
-  @@index([companyId, category])
+  @@unique([externalId, source, companyId])
+  @@index([companyId, categoryId])
+  @@index([companyId, stageId])
   @@index([companyId, birthday])
+}
+
+model CustomerCategory {
+  id        String     @id @default(cuid())
+  name      String
+  companyId String
+  company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customers Customer[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([name, companyId])
+}
+
+model CRMStage {
+  id        String     @id @default(cuid())
+  name      String
+  order     Int        @default(0)
+  companyId String
+  company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customers Customer[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([name, companyId])
 }
 
 enum GoalType {

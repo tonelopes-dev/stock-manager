@@ -21,6 +21,8 @@ export const CUSTOMER_CATEGORY_LABELS: Record<
 
 export const customerTableColumns = (
   userRole: UserRole,
+  categories: { id: string; name: string }[],
+  stages: { id: string; name: string }[],
 ): ColumnDef<CustomerDto>[] => [
   {
     accessorKey: "name",
@@ -40,10 +42,28 @@ export const customerTableColumns = (
     accessorKey: "category",
     header: "Categoria",
     cell: ({ row: { original: customer } }) => {
-      const config =
-        CUSTOMER_CATEGORY_LABELS[customer.category] ||
-        CUSTOMER_CATEGORY_LABELS.LEAD;
-      return <Badge variant={config.variant}>{config.label}</Badge>;
+      if (!customer.category) return "-";
+      return (
+        <Badge variant="outline" className="border-slate-200 text-slate-600">
+          {customer.category.name}
+        </Badge>
+      );
+    },
+  },
+  {
+    accessorKey: "stage",
+    header: "Estágio CRM",
+    cell: ({ row: { original: customer } }) => {
+      if (!customer.stage) return "-";
+      return (
+        <Badge
+          variant={
+            customer.stage.name === "Convertido" ? "default" : "secondary"
+          }
+        >
+          {customer.stage.name}
+        </Badge>
+      );
     },
   },
   {
@@ -82,6 +102,8 @@ export const customerTableColumns = (
       <CustomerTableDropdownMenu
         customer={row.row.original}
         userRole={userRole}
+        categories={categories}
+        stages={stages}
       />
     ),
   },
