@@ -15,13 +15,14 @@ import { GoalsSummary } from "./_components/goals-summary";
 export const dynamic = "force-dynamic";
 
 interface HomeProps {
-  searchParams: { from?: string; to?: string; range?: string };
+  searchParams: Promise<{ from?: string; to?: string; range?: string }>;
 }
 
 const Home = async ({ searchParams }: HomeProps) => {
+  const resolvedSearchParams = await searchParams;
   const range =
-    (searchParams.range as DashboardRange) ||
-    (searchParams.from && searchParams.to ? "custom" : "30d");
+    (resolvedSearchParams.range as DashboardRange) ||
+    (resolvedSearchParams.from && resolvedSearchParams.to ? "custom" : "30d");
 
   return (
     <div className="mx-auto flex w-full max-w-[1600px] flex-col space-y-8 p-8">
@@ -32,8 +33,8 @@ const Home = async ({ searchParams }: HomeProps) => {
       <Suspense fallback={<DashboardLoadingSkeleton />}>
         <DashboardContent
           range={range}
-          from={searchParams.from}
-          to={searchParams.to}
+          from={resolvedSearchParams.from}
+          to={resolvedSearchParams.to}
         />
       </Suspense>
 

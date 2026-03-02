@@ -16,19 +16,22 @@ import { getCurrentUserRole } from "@/app/_lib/rbac";
 import { UserRole } from "@prisma/client";
 
 interface ProductsPageProps {
-  searchParams: {
+  searchParams: Promise<{
     status?: string;
-  };
+  }>;
 }
 
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";
 
 const ProductsPage = async ({ searchParams }: ProductsPageProps) => {
-  const statusParam = searchParams?.status?.toUpperCase();
-  const status = (["ACTIVE", "INACTIVE", "ALL"].includes(statusParam || "")
-    ? statusParam
-    : "ACTIVE") as "ACTIVE" | "INACTIVE" | "ALL";
+  const resolvedSearchParams = await searchParams;
+  const statusParam = resolvedSearchParams?.status?.toUpperCase();
+  const status = (
+    ["ACTIVE", "INACTIVE", "ALL"].includes(statusParam || "")
+      ? statusParam
+      : "ACTIVE"
+  ) as "ACTIVE" | "INACTIVE" | "ALL";
 
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
@@ -39,7 +42,11 @@ const ProductsPage = async ({ searchParams }: ProductsPageProps) => {
   );
 };
 
-const ProductTableWrapper = async ({ status }: { status: "ACTIVE" | "INACTIVE" | "ALL" }) => {
+const ProductTableWrapper = async ({
+  status,
+}: {
+  status: "ACTIVE" | "INACTIVE" | "ALL";
+}) => {
   const products = await getProducts(30, status);
   const role = await getCurrentUserRole();
   const onboardingStats = await getOnboardingStats();
@@ -54,10 +61,12 @@ const ProductTableWrapper = async ({ status }: { status: "ACTIVE" | "INACTIVE" |
         </HeaderLeft>
         <HeaderRight>
           <div className="flex gap-3">
-             <ProductStatusFilter />
-             {isManagement && (
-               <AddProductButton hasProducts={onboardingStats?.hasProducts ?? true} />
-             )}
+            <ProductStatusFilter />
+            {isManagement && (
+              <AddProductButton
+                hasProducts={onboardingStats?.hasProducts ?? true}
+              />
+            )}
           </div>
         </HeaderRight>
       </Header>
@@ -66,6 +75,5 @@ const ProductTableWrapper = async ({ status }: { status: "ACTIVE" | "INACTIVE" |
     </div>
   );
 };
-
 
 export default ProductsPage;

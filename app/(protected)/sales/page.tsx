@@ -31,7 +31,7 @@ import { UserRole } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 interface HomeProps {
-  searchParams: {
+  searchParams: Promise<{
     from?: string;
     to?: string;
     range?: string;
@@ -40,10 +40,11 @@ interface HomeProps {
     monthA?: string;
     monthB?: string;
     view?: "gestao" | "inteligencia";
-  };
+  }>;
 }
 
 const SalesPage = async ({ searchParams }: HomeProps) => {
+  const resolvedSearchParams = await searchParams;
   const products = await getProducts();
   const productOptions: ComboboxOption[] = products.map((product) => ({
     label: `${product.name} - ${Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(product.price))}`,
@@ -56,15 +57,15 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
     value: customer.id,
   }));
 
-  const view = searchParams.view || "gestao";
+  const view = resolvedSearchParams.view || "gestao";
   const role = await getCurrentUserRole();
   const onboardingStats = await getOnboardingStats();
 
   const analytics = await getSalesAnalytics(
-    searchParams.from,
-    searchParams.to,
-    searchParams.monthA,
-    searchParams.monthB,
+    resolvedSearchParams.from,
+    resolvedSearchParams.to,
+    resolvedSearchParams.monthA,
+    resolvedSearchParams.monthB,
   );
 
   return (
@@ -112,10 +113,10 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
               customerOptions={customerOptions}
               productOptions={productOptions}
               products={products}
-              from={searchParams.from}
-              to={searchParams.to}
-              page={Number(searchParams.page) || 1}
-              pageSize={Number(searchParams.pageSize) || 10}
+              from={resolvedSearchParams.from}
+              to={resolvedSearchParams.to}
+              page={Number(resolvedSearchParams.page) || 1}
+              pageSize={Number(resolvedSearchParams.pageSize) || 10}
               userRole={role as UserRole}
             />
           </Suspense>

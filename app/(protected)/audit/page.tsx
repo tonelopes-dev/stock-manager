@@ -19,22 +19,22 @@ import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 interface AuditPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     pageSize?: string;
-  };
+  }>;
 }
 
 const AuditPage = async ({ searchParams }: AuditPageProps) => {
+  const resolvedSearchParams = await searchParams;
   // 1. Role Guard - Enterprise Style (Server Side)
   const role = await getCurrentUserRole();
   if (!role || (role !== UserRole.OWNER && role !== UserRole.ADMIN)) {
     redirect("/dashboard");
   }
 
-
-  const page = Number(searchParams.page) || 1;
-  const pageSize = Number(searchParams.pageSize) || 10;
+  const page = Number(resolvedSearchParams.page) || 1;
+  const pageSize = Number(resolvedSearchParams.pageSize) || 10;
 
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
@@ -61,7 +61,10 @@ const AuditTableWrapper = async ({
   page: number;
   pageSize: number;
 }) => {
-  const { data: movements, total } = await getStockMovements({ page, pageSize });
+  const { data: movements, total } = await getStockMovements({
+    page,
+    pageSize,
+  });
 
   return (
     <DataTable

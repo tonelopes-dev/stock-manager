@@ -16,16 +16,17 @@ import { getCurrentUserRole } from "@/app/_lib/rbac";
 import { UserRole, CustomerCategory } from "@prisma/client";
 
 interface CustomersPageProps {
-  searchParams: {
+  searchParams: Promise<{
     category?: string;
     search?: string;
-  };
+  }>;
 }
 
 export const dynamic = "force-dynamic";
 
 const CustomersPage = async ({ searchParams }: CustomersPageProps) => {
-  const categoryParam = searchParams?.category?.toUpperCase();
+  const resolvedSearchParams = await searchParams;
+  const categoryParam = resolvedSearchParams?.category?.toUpperCase();
   const category = (
     ["LEAD", "REGULAR", "VIP", "INACTIVE", "ALL"].includes(categoryParam || "")
       ? categoryParam

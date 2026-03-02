@@ -1,0 +1,51 @@
+⚠ Invalid next.config.mjs options detected: 
+⚠     Unrecognized key(s) in object: 'turbo' at "experimental"
+⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Projetos\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Projetos\stock-manager\package-lock.json
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+- Experiments (use with caution):
+  ? turbo (invalid experimental key)
+
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 1 errors:
+./stock-manager/app/_actions/ingredient/adjust-ingredient-stock/index.ts:1:10
+Ecmascript file had an error
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { revalidatePath } [36mfrom[39m [32m"next/cache"[39m[33m;[39m
+ [90m   |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m { adjustIngredientStockSchema } [36mfrom[39m [32m"./schema"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { actionClient } [36mfrom[39m [32m"@/app/_lib/safe-action"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { getCurrentCompanyId } [36mfrom[39m [32m"@/app/_lib/get-current-company"[39m[33m;[39m[0m
+
+You're importing a component that needs "revalidatePath". That only works in a Server Component but one of its parents is marked with "use client", so it's a Client Component.
+Learn more: https://nextjs.org/docs/app/building-your-application/rendering
+
+
+
+Import traces:
+  Client Component Browser:
+    ./stock-manager/app/_actions/ingredient/adjust-ingredient-stock/index.ts [Client Component Browser]
+    ./stock-manager/app/(protected)/ingredients/_components/adjust-stock-dialog-content.tsx [Client Component Browser]
+    ./stock-manager/app/(protected)/ingredients/_components/table-dropdown-menu.tsx [Client Component Browser]
+    ./stock-manager/app/(protected)/ingredients/_components/table-columns.tsx [Client Component Browser]
+    ./stock-manager/app/(protected)/ingredients/_components/table-columns.tsx [Server Component]
+    ./stock-manager/app/(protected)/ingredients/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./stock-manager/app/_actions/ingredient/adjust-ingredient-stock/index.ts [Client Component SSR]
+    ./stock-manager/app/(protected)/ingredients/_components/adjust-stock-dialog-content.tsx [Client Component SSR]
+    ./stock-manager/app/(protected)/ingredients/_components/table-dropdown-menu.tsx [Client Component SSR]
+    ./stock-manager/app/(protected)/ingredients/_components/table-columns.tsx [Client Component SSR]
+    ./stock-manager/app/(protected)/ingredients/_components/table-columns.tsx [Server Component]
+    ./stock-manager/app/(protected)/ingredients/page.tsx [Server Component]
+
+
+    at <unknown> (./stock-manager/app/_actions/ingredient/adjust-ingredient-stock/index.ts:1:10)

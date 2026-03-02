@@ -27,7 +27,8 @@ export default async function ProtectedLayout({
 
   // Subscription & Trial Info
   const { subscriptionStatus, stripeCurrentPeriodEnd } = await getCompanyPlan();
-  const pathname = headers().get("x-pathname") || "";
+  const resolvedHeaders = await headers();
+  const pathname = resolvedHeaders.get("x-pathname") || "";
 
   // Routes where we should NOT block the user (payment, billing, plans)
   const isPaymentRoute =
