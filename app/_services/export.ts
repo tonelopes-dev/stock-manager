@@ -95,8 +95,8 @@ export const ExportService = {
 
     // --- WORKBOOK INITIALIZATION (Pure Code) ---
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = "Stockly";
-    workbook.lastModifiedBy = "Stockly";
+    workbook.creator = "Stocky";
+    workbook.lastModifiedBy = "Stocky";
     workbook.created = new Date();
     workbook.modified = new Date();
 
@@ -112,7 +112,7 @@ export const ExportService = {
     // Header styling
     summarySheet.mergeCells("A1:K4");
     summarySheet.getCell("A1").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-    summarySheet.getCell("B2").value = "STOCKLY | RELATÓRIO EXECUTIVO";
+    summarySheet.getCell("B2").value = "STOCKY | RELATÓRIO EXECUTIVO";
     summarySheet.getCell("B2").font = { name: "Segoe UI", size: 20, bold: true, color: { argb: "FFFFFFFF" } };
     summarySheet.getCell("B3").value = `Relatório Consolidado | Gerado em: ${format(new Date(), "PPpp", { locale: ptBR })}`;
     summarySheet.getCell("B3").font = { size: 10, color: { argb: "FF94A3B8" } };

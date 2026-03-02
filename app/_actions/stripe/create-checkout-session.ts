@@ -52,7 +52,8 @@ export const createCheckoutSession = actionClient.action(async () => {
   const stripeSession = await stripe.checkout.sessions.create({
     customer: customerId,
     mode: "subscription",
-    payment_method_types: ["card"],
+    // Payment methods are configured in the Stripe Dashboard
+    // This allows card, pix, and any other enabled methods to appear automatically
     line_items: [
       {
         price: process.env.STRIPE_PRO_PRICE_ID,

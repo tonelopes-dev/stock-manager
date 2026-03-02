@@ -31,7 +31,7 @@ const Sidebar = async () => {
       {/* LOGO */}
       <div className="px-8 py-4">
         <h1 className="text-xl font-black tracking-tighter text-primary italic">
-          STOCKLY
+          STOCKY
         </h1>
       </div>
       {/* BOTÕES */}

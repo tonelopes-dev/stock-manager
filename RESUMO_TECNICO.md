@@ -1,4 +1,4 @@
-# 📊 Resumo do Projeto: StockManager (STOCKLY)
+# 📊 Resumo do Projeto: StockManager (STOCKY)
 
 ### 🏗️ Stack Completa
 

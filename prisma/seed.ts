@@ -6,7 +6,7 @@ import { fakerPT_BR as faker } from "@faker-js/faker";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Starting safe and dynamic seeding for Stockly...");
+  console.log("🌱 Starting safe and dynamic seeding for Stocky...");
 
   const hashedPassword = await hash("senha123", 10);
 

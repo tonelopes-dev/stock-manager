@@ -37,7 +37,7 @@ export default function NotFound() {
 
         <div className="pt-12 flex items-center justify-center gap-2 grayscale opacity-30">
             <PackageIcon className="h-5 w-5 text-primary" />
-            <span className="text-lg font-bold tracking-tight text-primary">STOCKLY</span>
+            <span className="text-lg font-bold tracking-tight text-primary">STOCKY</span>
         </div>
       </div>
     </div>

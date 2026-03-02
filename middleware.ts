@@ -28,6 +28,41 @@ export default auth(async (req) => {
   // Redirect logged-in users away from login/register pages
   // UNLESS there is a reason/error param (indicating a forced logout/session invalidation from the server)
   const hasError = req.nextUrl.searchParams.has("error") || req.nextUrl.searchParams.has("reason");
+  const reason = req.nextUrl.searchParams.get("reason");
+
+  // Agressive session clearing for specific events
+  if (reason === "ownership_transferred" && pathname !== "/auth/clear-session") {
+    return NextResponse.redirect(new URL("/auth/clear-session", req.nextUrl.origin));
+  }
+
+  // Absolute cookie clearing when hitting the clear-session page
+  if (pathname === "/auth/clear-session") {
+    const response = NextResponse.next();
+    
+    // NUCLEAR OPTION: Clear-Site-Data
+    // This wipes everything in supporting browsers
+    response.headers.set("Clear-Site-Data", '"cookies", "storage", "cache"');
+    
+    // Disable any caching to ensure the browser always hits this logic
+    response.headers.set("Cache-Control", "no-store, max-age=0, must-revalidate");
+    response.headers.set("Pragma", "no-cache");
+    response.headers.set("Expires", "0");
+
+    // Manually delete cookies as a fallback with explicit options
+    const allCookies = req.cookies.getAll();
+    allCookies.forEach(cookie => {
+      if (cookie.name.includes("auth") || cookie.name.includes("session")) {
+        response.cookies.delete({
+          name: cookie.name,
+          path: "/",
+          secure: true,
+          httpOnly: true,
+        });
+      }
+    });
+    
+    return response;
+  }
 
   // Handle root route
   if (pathname === "/") {
