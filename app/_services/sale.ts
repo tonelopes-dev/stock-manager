@@ -174,16 +174,22 @@ export const SaleService = {
           },
         });
 
-        // 6. CRM Auto-upgrade (Lead -> Regular)
+        // 6. CRM Auto-upgrade (Move to Converted stage)
         if (customerId) {
-          const customer = await trx.customer.findUnique({
-            where: { id: customerId, companyId },
+          const convertedStage = await trx.cRMStage.findFirst({
+            where: {
+              companyId,
+              name: {
+                contains: "Convertido",
+                mode: "insensitive",
+              },
+            },
           });
 
-          if (customer && customer.category === "LEAD") {
+          if (convertedStage) {
             await trx.customer.update({
               where: { id: customerId },
-              data: { category: "REGULAR" },
+              data: { stageId: convertedStage.id },
             });
           }
         }
