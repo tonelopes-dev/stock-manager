@@ -17,6 +17,7 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { KanbanColumn } from "./kanban-column";
 import { KanbanCard } from "./kanban-card";
 import { updateCustomerStage } from "@/app/_actions/customer/update-customer-stage";
+import { updateCustomerPosition } from "@/app/_actions/customer/update-customer-position";
 import { toast } from "sonner";
 import { Dialog } from "@/app/_components/ui/dialog";
 import { CustomerDetailsDialogContent } from "../details-dialog-content";
@@ -24,20 +25,65 @@ import { CustomerDetailsDialogContent } from "../details-dialog-content";
 interface KanbanBoardProps {
   initialCustomers: any[];
   stages: { id: string; name: string; order: number }[];
+  categories: { id: string; name: string }[];
 }
 
-export const KanbanBoard = ({ initialCustomers, stages }: KanbanBoardProps) => {
+export const KanbanBoard = ({
+  initialCustomers,
+  stages,
+  categories,
+}: KanbanBoardProps) => {
   const [isPending, startTransition] = useTransition();
   const [activeCustomer, setActiveCustomer] = useState<any | null>(null);
   const [viewingCustomer, setViewingCustomer] = useState<any | null>(null);
 
   // Optimistic UI for smooth transitions
-  const [optimisticCustomers, addOptimisticCustomer] = useOptimistic(
+  const [optimisticCustomers, addOptimisticUpdate] = useOptimistic(
     initialCustomers,
-    (state, { customerId, newStageId }) => {
-      return state.map((c) =>
-        c.id === customerId ? { ...c, stageId: newStageId } : c,
-      );
+    (state, { customerId, newStageId, newPosition }) => {
+      const customerIndex = state.findIndex((c) => c.id === customerId);
+      if (customerIndex === -1) return state;
+
+      const updatedCustomer = {
+        ...state[customerIndex],
+        stageId: newStageId,
+        position: newPosition,
+      };
+      const newState = [...state];
+      newState.splice(customerIndex, 1);
+
+      // Re-insert into new column at correct position
+      const columnCustomers = newState
+        .filter((c) => c.stageId === newStageId)
+        .sort((a, b) => a.position - b.position);
+
+      columnCustomers.splice(newPosition, 0, updatedCustomer);
+
+      // Re-calculate positions for the affected columns
+      return newState.map((c) => {
+        if (c.id === customerId) return updatedCustomer;
+
+        // Update positions in NEW column
+        if (c.stageId === newStageId) {
+          const idx = columnCustomers.findIndex((cc) => cc.id === c.id);
+          return { ...c, position: idx };
+        }
+
+        // Update positions in OLD column
+        if (c.stageId === state[customerIndex].stageId) {
+          const oldColumn = state
+            .filter(
+              (cc) =>
+                cc.stageId === state[customerIndex].stageId &&
+                cc.id !== customerId,
+            )
+            .sort((a, b) => a.position - b.position);
+          const idx = oldColumn.findIndex((cc) => cc.id === c.id);
+          return { ...c, position: idx };
+        }
+
+        return c;
+      });
     },
   );
 
@@ -67,8 +113,7 @@ export const KanbanBoard = ({ initialCustomers, stages }: KanbanBoardProps) => {
 
     if (activeId === overId) return;
 
-    // Logic for jumping between columns is handled in handleDragEnd for simplicity
-    // and combined with Server Action call.
+    // Over logic is largely handled by dnd-kit sortable
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -80,27 +125,52 @@ export const KanbanBoard = ({ initialCustomers, stages }: KanbanBoardProps) => {
     const customerId = active.id as string;
     const overId = over.id as string;
 
-    // Check if over a column or another card
-    let newStageId = overId;
-    if (over.data.current?.type === "Customer") {
-      newStageId = over.data.current.customer.stageId;
+    const activeCustomerData = initialCustomers.find(
+      (c) => c.id === customerId,
+    );
+    if (!activeCustomerData) return;
+
+    let newStageId = activeCustomerData.stageId;
+    let newPosition = 0;
+
+    // 1. Determine new destination
+    const isOverAColumn = stages.some((s) => s.id === overId);
+    if (isOverAColumn) {
+      newStageId = overId;
+      const columnCustomers = optimisticCustomers.filter(
+        (c) => c.stageId === newStageId,
+      );
+      newPosition = columnCustomers.length;
+    } else {
+      const overCustomer = initialCustomers.find((c) => c.id === overId);
+      if (overCustomer) {
+        newStageId = overCustomer.stageId;
+        newPosition = overCustomer.position;
+      }
     }
 
-    const currentCustomer = initialCustomers.find((c) => c.id === customerId);
-    if (!currentCustomer || currentCustomer.stageId === newStageId) return;
+    // Optimization: same spot
+    if (
+      activeCustomerData.stageId === newStageId &&
+      activeCustomerData.position === newPosition
+    )
+      return;
 
-    // 1. Update UI Optimistically
+    // 2. Perform Optimistic Update
     startTransition(async () => {
-      addOptimisticCustomer({ customerId, newStageId });
+      addOptimisticUpdate({ customerId, newStageId, newPosition });
 
-      // 2. Persist to DB
-      const result = await updateCustomerStage({
+      // 3. Persist to DB
+      const result = await updateCustomerPosition({
         customerId,
-        stageId: newStageId,
+        newStageId,
+        newPosition,
       });
 
       if (result?.validationErrors || result?.serverError) {
-        toast.error("Erro ao mover cliente.");
+        toast.error("Erro ao mover cliente. Sincronizando...");
+        // router.refresh() will happen automatically on transition end if successful,
+        // if not, the optimistic state is discarded by React automatically.
       }
     });
   };
@@ -114,11 +184,12 @@ export const KanbanBoard = ({ initialCustomers, stages }: KanbanBoardProps) => {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="scrollbar-hide flex min-h-[600px] items-start gap-6 overflow-x-auto pb-6">
+        <div className="scrollbar-hide flex min-h-[600px] items-start gap-6 overflow-x-auto px-4 pb-6">
           {stages.map((stage) => {
-            const columnCustomers = optimisticCustomers.filter(
-              (c) => c.stageId === stage.id,
-            );
+            const columnCustomers = optimisticCustomers
+              .filter((c) => c.stageId === stage.id)
+              .sort((a, b) => a.position - b.position);
+
             return (
               <KanbanColumn
                 key={stage.id}
@@ -131,7 +202,11 @@ export const KanbanBoard = ({ initialCustomers, stages }: KanbanBoardProps) => {
         </div>
 
         <DragOverlay>
-          {activeCustomer ? <KanbanCard customer={activeCustomer} /> : null}
+          {activeCustomer ? (
+            <div className="rotate-3 scale-105 opacity-90 shadow-2xl">
+              <KanbanCard customer={activeCustomer} />
+            </div>
+          ) : null}
         </DragOverlay>
       </DndContext>
 
@@ -140,7 +215,11 @@ export const KanbanBoard = ({ initialCustomers, stages }: KanbanBoardProps) => {
         onOpenChange={(open) => !open && setViewingCustomer(null)}
       >
         {viewingCustomer && (
-          <CustomerDetailsDialogContent customer={viewingCustomer} />
+          <CustomerDetailsDialogContent
+            customer={viewingCustomer}
+            categories={[]} // Will be loaded inside or passed if available
+            stages={stages}
+          />
         )}
       </Dialog>
     </>

@@ -12,7 +12,6 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 model Product {
@@ -421,6 +420,7 @@ model Customer {
   birthday   DateTime?
   notes      String?  @db.Text
   isActive   Boolean  @default(true)
+  position   Int      @default(0)
 
   // Multi-tenancy
   companyId String
@@ -445,6 +445,7 @@ model Customer {
   @@unique([externalId, source, companyId])
   @@index([companyId, categoryId])
   @@index([companyId, stageId])
+  @@index([companyId, stageId, position])
   @@index([companyId, birthday])
 }
 

@@ -27,7 +27,7 @@ export const CustomerCategoryFilter = ({
     } else {
       params.set("category", value);
     }
-    router.push(`/customers?${params.toString()}`);
+    router.push(`/customers?${params.toString()}`, { scroll: false });
   };
 
   return (

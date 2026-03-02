@@ -25,7 +25,7 @@ export const CustomerSearch = () => {
     }
 
     startTransition(() => {
-      router.push(`/customers?${params.toString()}`);
+      router.push(`/customers?${params.toString()}`, { scroll: false });
     });
   }, [query, router, searchParams]);
 

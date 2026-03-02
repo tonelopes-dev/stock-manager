@@ -97,7 +97,11 @@ const CustomerTableWrapper = async ({
           stages={stages}
         />
       ) : (
-        <KanbanBoard initialCustomers={customers} stages={stages} />
+        <KanbanBoard
+          initialCustomers={customers}
+          stages={stages}
+          categories={categories}
+        />
       )}
     </div>
   );

@@ -80,7 +80,11 @@ const CustomerTableDropdownMenu = ({
 
       {/* Details Dialog */}
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
-        <CustomerDetailsDialogContent customer={customer} />
+        <CustomerDetailsDialogContent
+          customer={customer}
+          categories={categories}
+          stages={stages}
+        />
       </Dialog>
 
       {/* Edit Dialog */}
