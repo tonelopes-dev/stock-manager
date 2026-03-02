@@ -37,6 +37,7 @@ declare module "next-auth" {
 }
 
 export const authConfig = {
+  trustHost: true,
   providers: [], // Providers are defined in the full auth.ts to avoid Prisma Edge issues
   session: {
     strategy: "jwt",
