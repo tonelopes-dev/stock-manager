@@ -16,12 +16,15 @@ import {
 import { Loader2Icon, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { UNIT_CONFIG } from "@/app/_lib/units";
+import { UnitType } from "@prisma/client";
+
 const UNIT_OPTIONS = [
-  { value: "KG", label: "Kg" },
-  { value: "G", label: "g" },
-  { value: "L", label: "L" },
-  { value: "ML", label: "ml" },
-  { value: "UN", label: "Un" },
+  { value: "KG", label: "Kg", family: "MASS" },
+  { value: "G", label: "g", family: "MASS" },
+  { value: "L", label: "L", family: "VOLUME" },
+  { value: "ML", label: "ml", family: "VOLUME" },
+  { value: "UN", label: "Un", family: "UNIT" },
 ];
 
 interface AddIngredientFormProps {
@@ -36,6 +39,27 @@ export default function AddIngredientForm({
   const [ingredientId, setIngredientId] = useState("");
   const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState("");
+
+  const selectedIngredient = ingredientOptions.find(
+    (opt) => opt.value === ingredientId,
+  );
+  const selectedFamily = selectedIngredient?.unit
+    ? UNIT_CONFIG[selectedIngredient.unit as UnitType]?.family
+    : null;
+
+  const filteredUnitOptions = selectedFamily
+    ? UNIT_OPTIONS.filter((opt) => opt.family === selectedFamily)
+    : UNIT_OPTIONS;
+
+  const handleIngredientChange = (id: string) => {
+    setIngredientId(id);
+    const ingredient = ingredientOptions.find((opt) => opt.value === id);
+    if (ingredient?.unit) {
+      setUnit(ingredient.unit);
+    } else {
+      setUnit("");
+    }
+  };
 
   const { execute, isPending } = useAction(addRecipeIngredient, {
     onSuccess: () => {
@@ -65,19 +89,23 @@ export default function AddIngredientForm({
   };
 
   return (
-    <div className="flex items-end gap-3 pt-4 border-t">
+    <div className="flex items-end gap-3 border-t pt-4">
       <div className="flex-1 space-y-1">
-        <label className="text-xs font-medium text-muted-foreground">Insumo</label>
+        <label className="text-xs font-medium text-muted-foreground">
+          Insumo
+        </label>
         <Combobox
           value={ingredientId}
-          onChange={setIngredientId}
+          onChange={handleIngredientChange}
           options={ingredientOptions}
           placeholder="Selecionar insumo..."
         />
       </div>
 
       <div className="w-28 space-y-1">
-        <label className="text-xs font-medium text-muted-foreground">Quantidade</label>
+        <label className="text-xs font-medium text-muted-foreground">
+          Quantidade
+        </label>
         <Input
           type="number"
           step="0.01"
@@ -89,13 +117,15 @@ export default function AddIngredientForm({
       </div>
 
       <div className="w-24 space-y-1">
-        <label className="text-xs font-medium text-muted-foreground">Unidade</label>
+        <label className="text-xs font-medium text-muted-foreground">
+          Unidade
+        </label>
         <Select value={unit} onValueChange={setUnit}>
           <SelectTrigger>
             <SelectValue placeholder="Un." />
           </SelectTrigger>
           <SelectContent>
-            {UNIT_OPTIONS.map((opt) => (
+            {filteredUnitOptions.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
               </SelectItem>

@@ -29,9 +29,14 @@ import ProduceBatchModal from "./_components/produce-batch-modal";
 import { getIngredients } from "@/app/_data-access/ingredient/get-ingredients";
 
 const formatCurrency = (value: number) =>
-  Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
+    value,
+  );
 
-const PRODUCT_TYPE_LABELS: Record<string, { label: string; variant: "default" | "secondary" }> = {
+const PRODUCT_TYPE_LABELS: Record<
+  string,
+  { label: string; variant: "default" | "secondary" }
+> = {
   RESELL: { label: "Revenda", variant: "secondary" },
   PREPARED: { label: "Produção Própria", variant: "default" },
 };
@@ -51,7 +56,8 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
     notFound();
   }
 
-  const typeConfig = PRODUCT_TYPE_LABELS[product.type] || PRODUCT_TYPE_LABELS.RESELL;
+  const typeConfig =
+    PRODUCT_TYPE_LABELS[product.type] || PRODUCT_TYPE_LABELS.RESELL;
   const isPrepared = product.type === "PREPARED";
 
   return (
@@ -90,7 +96,7 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+            <div className="mb-1 flex items-center gap-2 text-muted-foreground">
               <DollarSignIcon size={14} />
               <span className="text-xs font-medium">Preço de Venda</span>
             </div>
@@ -100,7 +106,7 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+            <div className="mb-1 flex items-center gap-2 text-muted-foreground">
               <PackageIcon size={14} />
               <span className="text-xs font-medium">
                 {isPrepared ? "Custo (Receita)" : "Custo"}
@@ -112,7 +118,7 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+            <div className="mb-1 flex items-center gap-2 text-muted-foreground">
               <BarChart3Icon size={14} />
               <span className="text-xs font-medium">Margem</span>
             </div>
@@ -123,12 +129,14 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
         {!isPrepared && (
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <div className="mb-1 flex items-center gap-2 text-muted-foreground">
                 <BoxIcon size={14} />
                 <span className="text-xs font-medium">Estoque</span>
               </div>
               <p className="text-lg font-bold">{product.stock}</p>
-              <p className="text-xs text-muted-foreground">Mín: {product.minStock}</p>
+              <p className="text-xs text-muted-foreground">
+                Mín: {product.minStock}
+              </p>
             </CardContent>
           </Card>
         )}
@@ -136,12 +144,14 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
         {isPrepared && (
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <div className="mb-1 flex items-center gap-2 text-muted-foreground">
                 <BoxIcon size={14} />
                 <span className="text-xs font-medium">Estoque Produzido</span>
               </div>
               <p className="text-lg font-bold">{product.stock}</p>
-              <p className="text-xs text-muted-foreground">unidades disponíveis</p>
+              <p className="text-xs text-muted-foreground">
+                unidades disponíveis
+              </p>
             </CardContent>
           </Card>
         )}
@@ -160,12 +170,16 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <RecipeTable recipes={product.recipes} recipeCost={product.recipeCost} />
+            <RecipeTable
+              recipes={product.recipes}
+              recipeCost={product.recipeCost}
+            />
             <AddIngredientForm
               productId={product.id}
               ingredientOptions={ingredients.map((i) => ({
                 value: i.id,
                 label: `${i.name} (${i.unitLabel})`,
+                unit: i.unit,
               }))}
             />
           </CardContent>

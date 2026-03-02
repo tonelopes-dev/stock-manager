@@ -18,6 +18,7 @@ import { cn } from "@/app/_lib/utils";
 export interface ComboboxOption {
   value: string;
   label: string;
+  unit?: string;
 }
 
 interface ComboboxProps {

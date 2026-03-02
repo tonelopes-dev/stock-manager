@@ -26,6 +26,13 @@ export function normalizeQuantity(quantity: number | Decimal, unit: UnitType): D
 }
 
 /**
+ * Checks if two units belong to the same family
+ */
+export function isUnitCompatible(unitA: UnitType, unitB: UnitType): boolean {
+  return UNIT_CONFIG[unitA].family === UNIT_CONFIG[unitB].family;
+}
+
+/**
  * Calculates the required quantity in the "Stock Unit" based on the "Recipe Quantity/Unit"
  * Example: Recipe uses 150G, Stock is in KG.
  * Result: 0.15 KG
@@ -35,15 +42,13 @@ export function calculateStockDeduction(
   recipeUnit: UnitType,
   stockUnit: UnitType
 ): Decimal {
-  const recipeConfig = UNIT_CONFIG[recipeUnit];
-  const stockConfig = UNIT_CONFIG[stockUnit];
-
-  if (recipeConfig.family !== stockConfig.family) {
+  if (!isUnitCompatible(recipeUnit, stockUnit)) {
     throw new Error(
       `Incompatible unit families: Cannot convert ${recipeUnit} to ${stockUnit}`
     );
   }
 
+  const stockConfig = UNIT_CONFIG[stockUnit];
   const normalizedRecipeQty = normalizeQuantity(recipeQty, recipeUnit);
   return normalizedRecipeQty.div(stockConfig.ratio);
 }

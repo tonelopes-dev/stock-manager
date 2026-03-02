@@ -5,7 +5,9 @@ import { revalidatePath } from "next/cache";
 import { addRecipeIngredientSchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { isUnitCompatible } from "@/app/_lib/units";
 import { recalculateProductCost } from "./recalculate-cost";
+import { UnitType } from "@prisma/client";
 
 export const addRecipeIngredient = actionClient
   .schema(addRecipeIngredientSchema)
@@ -32,6 +34,13 @@ export const addRecipeIngredient = actionClient
 
     if (!ingredient) {
       throw new Error("Insumo não encontrado.");
+    }
+
+    // Check unit compatibility
+    if (!isUnitCompatible(unit as UnitType, ingredient.unit)) {
+      throw new Error(
+        `Unidade incompatível: O insumo ${ingredient.name} é estocado em ${ingredient.unit} e não pode ser convertido para ${unit}.`
+      );
     }
 
     // Check for duplicate (@@unique constraint)

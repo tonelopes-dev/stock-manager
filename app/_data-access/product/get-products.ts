@@ -71,13 +71,18 @@ export const getProducts = async (
     
     if (product.type === "PREPARED") {
       const recipeCost = product.recipes.reduce((sum, recipe) => {
-        const partialCost = calculateRealCost(
-          recipe.quantity,
-          recipe.unit as UnitType,
-          recipe.ingredient.unit as UnitType,
-          recipe.ingredient.cost
-        );
-        return sum + Number(partialCost);
+        try {
+          const partialCost = calculateRealCost(
+            recipe.quantity,
+            recipe.unit as UnitType,
+            recipe.ingredient.unit as UnitType,
+            recipe.ingredient.cost
+          );
+          return sum + Number(partialCost);
+        } catch (error) {
+          console.error(`Error calculating cost for product ${product.id} recipe item ${recipe.id}:`, error);
+          return sum;
+        }
       }, 0);
       
       // If the product has a recipe, use it. 

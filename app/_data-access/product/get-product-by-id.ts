@@ -64,22 +64,30 @@ export const getProductById = async (id: string): Promise<ProductDetailDto | nul
   if (!product) return null;
 
   const recipes: RecipeIngredientDto[] = product.recipes.map((recipe) => {
-    const partialCost = Number(
-      calculateRealCost(
-        recipe.quantity,
-        recipe.unit as UnitType,
-        recipe.ingredient.unit as UnitType,
-        recipe.ingredient.cost
-      )
-    );
+    let partialCost = 0;
+    let consumptionPerUnit = 0;
 
-    const consumptionPerUnit = Number(
-      calculateStockDeduction(
-        recipe.quantity,
-        recipe.unit as UnitType,
-        recipe.ingredient.unit as UnitType,
-      )
-    );
+    try {
+      partialCost = Number(
+        calculateRealCost(
+          recipe.quantity,
+          recipe.unit as UnitType,
+          recipe.ingredient.unit as UnitType,
+          recipe.ingredient.cost
+        )
+      );
+
+      consumptionPerUnit = Number(
+        calculateStockDeduction(
+          recipe.quantity,
+          recipe.unit as UnitType,
+          recipe.ingredient.unit as UnitType,
+        )
+      );
+    } catch (e) {
+      console.error(`Error calculating recipe values for ${recipe.id}:`, e);
+      // Incompatible units, keep values at 0
+    }
 
     return {
       id: recipe.id,

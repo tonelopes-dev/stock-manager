@@ -22,15 +22,21 @@ export async function recalculateProductCost(
   let totalCost = 0;
 
   for (const recipe of recipes) {
-    const partialCost = Number(
-      calculateRealCost(
-        recipe.quantity,
-        recipe.unit as UnitType,
-        recipe.ingredient.unit as UnitType,
-        recipe.ingredient.cost
-      )
-    );
-    totalCost += partialCost;
+    try {
+      const partialCost = Number(
+        calculateRealCost(
+          recipe.quantity,
+          recipe.unit as UnitType,
+          recipe.ingredient.unit as UnitType,
+          recipe.ingredient.cost
+        )
+      );
+      totalCost += partialCost;
+    } catch (error) {
+      console.error(`Error calculating cost for recipe item ${recipe.id}:`, error);
+      // If units are incompatible, we treat cost as 0 for this item to avoid crashing the whole product view
+      // The user will see a cost of 0 and hopefully realize something is wrong
+    }
   }
 
   await client.product.update({

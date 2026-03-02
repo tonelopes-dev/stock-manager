@@ -10,6 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/app/_components/ui/table";
+import { UNIT_CONFIG } from "@/app/_lib/units";
+import { UnitType } from "@prisma/client";
 import { RecipeIngredientDto } from "@/app/_data-access/product/get-product-by-id";
 import { Button } from "@/app/_components/ui/button";
 import { Input } from "@/app/_components/ui/input";
@@ -31,18 +33,25 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/app/_components/ui/alert-dialog";
-import { BeakerIcon, EditIcon, TrashIcon, CheckIcon, XIcon, Loader2Icon } from "lucide-react";
+import {
+  BeakerIcon,
+  EditIcon,
+  TrashIcon,
+  CheckIcon,
+  XIcon,
+  Loader2Icon,
+} from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { updateRecipeIngredient } from "@/app/_actions/product/recipe/update-ingredient";
 import { deleteRecipeIngredient } from "@/app/_actions/product/recipe/delete-ingredient";
 import { toast } from "sonner";
 
 const UNIT_OPTIONS = [
-  { value: "KG", label: "Kg" },
-  { value: "G", label: "g" },
-  { value: "L", label: "L" },
-  { value: "ML", label: "ml" },
-  { value: "UN", label: "Un" },
+  { value: "KG", label: "Kg", family: "MASS" },
+  { value: "G", label: "g", family: "MASS" },
+  { value: "L", label: "L", family: "VOLUME" },
+  { value: "ML", label: "ml", family: "VOLUME" },
+  { value: "UN", label: "Un", family: "UNIT" },
 ];
 
 interface RecipeTableProps {
@@ -51,31 +60,39 @@ interface RecipeTableProps {
 }
 
 const formatCurrency = (value: number) =>
-  Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
+    value,
+  );
 
 export default function RecipeTable({ recipes, recipeCost }: RecipeTableProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editQuantity, setEditQuantity] = useState("");
   const [editUnit, setEditUnit] = useState("");
 
-  const { execute: executeUpdate, isPending: isUpdating } = useAction(updateRecipeIngredient, {
-    onSuccess: () => {
-      toast.success("Insumo atualizado.");
-      setEditingId(null);
+  const { execute: executeUpdate, isPending: isUpdating } = useAction(
+    updateRecipeIngredient,
+    {
+      onSuccess: () => {
+        toast.success("Insumo atualizado.");
+        setEditingId(null);
+      },
+      onError: ({ error: { serverError } }) => {
+        toast.error(serverError || "Erro ao atualizar insumo.");
+      },
     },
-    onError: ({ error: { serverError } }) => {
-      toast.error(serverError || "Erro ao atualizar insumo.");
-    },
-  });
+  );
 
-  const { execute: executeDelete, isPending: isDeleting } = useAction(deleteRecipeIngredient, {
-    onSuccess: () => {
-      toast.success("Insumo removido da receita.");
+  const { execute: executeDelete, isPending: isDeleting } = useAction(
+    deleteRecipeIngredient,
+    {
+      onSuccess: () => {
+        toast.success("Insumo removido da receita.");
+      },
+      onError: ({ error: { serverError } }) => {
+        toast.error(serverError || "Erro ao remover insumo.");
+      },
     },
-    onError: ({ error: { serverError } }) => {
-      toast.error(serverError || "Erro ao remover insumo.");
-    },
-  });
+  );
 
   const startEditing = (recipe: RecipeIngredientDto) => {
     setEditingId(recipe.id);
@@ -99,10 +116,14 @@ export default function RecipeTable({ recipes, recipeCost }: RecipeTableProps) {
 
   if (recipes.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-3">
+      <div className="flex flex-col items-center justify-center gap-3 py-12 text-muted-foreground">
         <BeakerIcon size={40} strokeWidth={1.5} />
-        <p className="text-sm font-medium">Nenhum insumo cadastrado na receita</p>
-        <p className="text-xs">Adicione ingredientes abaixo para compor a receita deste produto.</p>
+        <p className="text-sm font-medium">
+          Nenhum insumo cadastrado na receita
+        </p>
+        <p className="text-xs">
+          Adicione ingredientes abaixo para compor a receita deste produto.
+        </p>
       </div>
     );
   }
@@ -125,14 +146,16 @@ export default function RecipeTable({ recipes, recipeCost }: RecipeTableProps) {
 
           return (
             <TableRow key={recipe.id}>
-              <TableCell className="font-medium">{recipe.ingredientName}</TableCell>
+              <TableCell className="font-medium">
+                {recipe.ingredientName}
+              </TableCell>
               <TableCell className="text-right">
                 {isEditing ? (
                   <Input
                     type="number"
                     step="0.01"
                     min="0.01"
-                    className="w-20 ml-auto h-8 text-right"
+                    className="ml-auto h-8 w-20 text-right"
                     value={editQuantity}
                     onChange={(e) => setEditQuantity(e.target.value)}
                   />
@@ -141,25 +164,34 @@ export default function RecipeTable({ recipes, recipeCost }: RecipeTableProps) {
                 )}
               </TableCell>
               <TableCell>
-                {isEditing ? (
-                  <Select value={editUnit} onValueChange={setEditUnit}>
-                    <SelectTrigger className="w-20 h-8">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {UNIT_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  recipe.unitLabel
-                )}
+                {isEditing
+                  ? (() => {
+                      const ingredientFamily =
+                        UNIT_CONFIG[recipe.ingredientUnit as UnitType]?.family;
+                      const filteredOptions = UNIT_OPTIONS.filter(
+                        (opt) => opt.family === ingredientFamily,
+                      );
+
+                      return (
+                        <Select value={editUnit} onValueChange={setEditUnit}>
+                          <SelectTrigger className="h-8 w-20">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {filteredOptions.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      );
+                    })()
+                  : recipe.unitLabel}
               </TableCell>
               <TableCell className="text-right">
-                {formatCurrency(recipe.ingredientCost)}/{recipe.ingredientUnitLabel}
+                {formatCurrency(recipe.ingredientCost)}/
+                {recipe.ingredientUnitLabel}
               </TableCell>
               <TableCell className="text-right font-medium">
                 {formatCurrency(recipe.partialCost)}
@@ -214,8 +246,9 @@ export default function RecipeTable({ recipes, recipeCost }: RecipeTableProps) {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Remover insumo</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Deseja remover <strong>{recipe.ingredientName}</strong> da receita?
-                              Esta ação não pode ser desfeita.
+                              Deseja remover{" "}
+                              <strong>{recipe.ingredientName}</strong> da
+                              receita? Esta ação não pode ser desfeita.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -225,7 +258,10 @@ export default function RecipeTable({ recipes, recipeCost }: RecipeTableProps) {
                               disabled={isDeleting}
                             >
                               {isDeleting ? (
-                                <Loader2Icon size={14} className="animate-spin mr-2" />
+                                <Loader2Icon
+                                  size={14}
+                                  className="mr-2 animate-spin"
+                                />
                               ) : null}
                               Remover
                             </AlertDialogAction>
