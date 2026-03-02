@@ -60,7 +60,7 @@
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "use-debounce": "^10.1.0",
-    "zod": "^3.23.8"
+    "zod": "^3.25.10"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.3.0",
@@ -84,7 +84,7 @@
     "cross-spawn": "^7.0.5",
     "nanoid": "^3.3.8",
     "minimatch": "^9.0.5",
-    "glob": "^10.4.5",
+    "glob": "^11.0.1",
     "lodash": "^4.17.21",
     "ajv": "^6.14.0",
     "js-yaml": "^4.1.0",
