@@ -28,23 +28,33 @@ loadEnv();
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("--- TABLE LIST ---");
-  const tables = await prisma.$queryRaw`SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'`;
-  console.log(tables);
+  const companyId = 'rota-360-id';
+  const start = new Date("2026-02-01T00:00:00Z");
+  const end = new Date("2026-03-03T00:00:00Z");
 
-  console.log("--- SALEPRODUCT COLUMNS ---");
-  try {
-    const cols = await prisma.$queryRaw`SELECT column_name FROM information_schema.columns WHERE table_name = 'SaleProduct'`;
-    console.log(cols);
-  } catch (e) {
-    console.log("Could not find SaleProduct, trying saleproduct or sale_item");
-    const cols2 = await prisma.$queryRaw`SELECT column_name FROM information_schema.columns WHERE table_name = 'saleproduct'`;
-    console.log(cols2);
+  console.log("--- RAW SQL DATA TEST ---");
+  
+  const results = await prisma.$queryRaw`
+    SELECT 
+      DATE_TRUNC('day', s."date") as day,
+      SUM(si."unitPrice" * si."quantity") as revenue,
+      SUM(si."baseCost" * si."quantity") as cogs
+    FROM "SaleProduct" si
+    JOIN "Sale" s ON s.id = si."saleId"
+    WHERE s."companyId" = ${companyId}
+      AND s."status" = 'ACTIVE'
+      AND s."date" >= ${start}
+      AND s."date" < ${end}
+    GROUP BY day
+    ORDER BY day ASC;
+  `;
+
+  console.log("Raw SQL results count:", (results as any[]).length);
+  if ((results as any[]).length > 0) {
+    console.log("First 3 results:", (results as any[]).slice(0, 3));
+  } else {
+      console.log("No results from Raw SQL query.");
   }
-
-  console.log("--- SAMPLE SALEPRODUCT ---");
-  const sample = await prisma.$queryRaw`SELECT * FROM "SaleProduct" LIMIT 1`;
-  console.log(sample);
 }
 
 main().finally(() => prisma.$disconnect());

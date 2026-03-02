@@ -260,10 +260,10 @@ async function main() {
   const saleCount = await prisma.sale.count({ where: { companyId: company.id } });
   
   if (saleCount === 0) {
-    console.log("📊 Generating 90-day demo history...");
-    const today = startOfDay(new Date()); // Use real today for better demo
+    console.log("📊 Generating 60-day demo history...");
+    const today = new Date("2026-03-02T12:00:00Z"); // Fixed base date as requested
 
-    for (let i = 90; i >= 0; i--) {
+    for (let i = 60; i >= 0; i--) {
       const currentDate = subDays(today, i);
       const isWknd = isWeekend(currentDate);
       

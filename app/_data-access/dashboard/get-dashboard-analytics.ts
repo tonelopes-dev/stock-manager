@@ -1,12 +1,10 @@
 import "server-only";
 
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { 
-  startOfDay, 
-  subDays, 
-  addDays,
-  format,
-} from "date-fns";
+import { startOfDay } from "date-fns/startOfDay";
+import { subDays } from "date-fns/subDays";
+import { addDays } from "date-fns/addDays";
+import { format } from "date-fns/format";
 import { 
     getFinancialOverview, 
     getDailySalesChart, 

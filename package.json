@@ -11,7 +11,7 @@
     "lint": "next lint",
     "prepare": "prisma generate",
     "db:seed": "prisma db seed",
-    "DANGER_DESTRUCTIVE_db:reset": "prisma migrate reset --force --skip-seed",
+    "db:sync": "node scripts/sync-db.ts",
     "DANGER_DESTRUCTIVE_db:fresh": "prisma migrate reset --force",
     "db:warning": "echo 'WARNING: Do not run reset or fresh in production!'"
   },
@@ -57,7 +57,7 @@
     "react-dom": "19.2.0",
     "react-hook-form": "^7.53.0",
     "react-number-format": "^5.4.2",
-    "recharts": "^2.12.7",
+    "recharts": "^2.15.0",
     "server-only": "^0.0.1",
     "sonner": "^1.5.0",
     "stripe": "^20.3.0",

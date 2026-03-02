@@ -2,16 +2,14 @@ import "server-only";
 
 import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { 
-  format,
-  eachDayOfInterval,
-  isSameDay,
-  startOfMonth,
-  endOfMonth,
-  subMonths,
-  addDays,
-  startOfDay
-} from "date-fns";
+import { format } from "date-fns/format";
+import { eachDayOfInterval } from "date-fns/eachDayOfInterval";
+import { isSameDay } from "date-fns/isSameDay";
+import { startOfMonth } from "date-fns/startOfMonth";
+import { endOfMonth } from "date-fns/endOfMonth";
+import { subMonths } from "date-fns/subMonths";
+import { addDays } from "date-fns/addDays";
+import { startOfDay } from "date-fns/startOfDay";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { parseLocalDay, getDefaultSalesRange } from "@/app/_lib/date";
 
@@ -94,11 +92,19 @@ export const getSalesAnalytics = async (
         }
     });
 
+    const salesMap = new Map();
+    sales.forEach(sale => {
+        const key = new Date(sale.date).toISOString().split("T")[0];
+        if (!salesMap.has(key)) salesMap.set(key, []);
+        salesMap.get(key).push(sale);
+    });
+
     const days = eachDayOfInterval({ start: startOfSelected, end: startOfSelected.getTime() > endOfSelected.getTime() ? startOfSelected : addDays(endOfSelected, -1) });
     const timeSeries = days.map(day => {
-        const daySales = sales.filter(sale => isSameDay(sale.date, day));
-        const dayRevenue = daySales.reduce((acc, sale) => {
-            return acc + sale.saleItems.reduce((sum, si) => sum + (Number(si.unitPrice) * Number(si.quantity)), 0);
+        const key = day.toISOString().split("T")[0];
+        const daySales = salesMap.get(key) || [];
+        const dayRevenue = daySales.reduce((acc: number, sale: any) => {
+            return acc + sale.saleItems.reduce((sum: number, si: any) => sum + (Number(si.unitPrice) * Number(si.quantity)), 0);
         }, 0);
 
         return {

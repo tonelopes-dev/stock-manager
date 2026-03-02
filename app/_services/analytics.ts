@@ -1,5 +1,7 @@
 import { db } from "@/app/_lib/prisma";
-import { startOfDay, format } from "date-fns";
+import { startOfDay } from "date-fns/startOfDay";
+import { format } from "date-fns/format";
+import { addDays } from "date-fns/addDays";
 
 export interface DateRange {
   startDate: Date;
@@ -120,9 +122,9 @@ export async function getDailySalesChart(
     ORDER BY day ASC;
   `;
 
-  // 2. Gap Filling using Local Dates
+  // 2. Gap Filling using UTC-safe ISO strings to prevent timezone shifts
   const resultMap = new Map(
-    results.map((r) => [format(new Date(r.day), "yyyy-MM-dd"), r])
+    results.map((r) => [new Date(r.day).toISOString().split("T")[0], r])
   );
 
   const filledResults: DailySalesData[] = [];
@@ -130,7 +132,7 @@ export async function getDailySalesChart(
   const finalDate = startOfDay(new Date(endDate));
 
   while (current < finalDate) {
-    const key = format(current, "yyyy-MM-dd");
+    const key = current.toISOString().split("T")[0];
     const data = resultMap.get(key);
 
     filledResults.push({
@@ -139,7 +141,7 @@ export async function getDailySalesChart(
       cogs: Number(data?.cogs ?? 0),
     });
 
-    current = new Date(current.setDate(current.getDate() + 1));
+    current = addDays(current, 1);
   }
 
   return filledResults;

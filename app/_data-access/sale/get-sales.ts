@@ -92,7 +92,15 @@ export const getSales = async ({
       ),
       customerName: sale.customer?.name || null,
       customerId: sale.customerId,
-      saleItems: sale.saleItems as SaleItemDto[],
+      saleItems: sale.saleItems.map((item: any) => ({
+        ...item,
+        unitPrice: Number(item.unitPrice),
+        baseCost: Number(item.baseCost),
+        quantity: Number(item.quantity),
+        discountAmount: Number(item.discountAmount),
+        totalAmount: Number(item.totalAmount),
+        totalCost: Number(item.totalCost),
+      })) as SaleItemDto[],
     })),
     total,
   };
