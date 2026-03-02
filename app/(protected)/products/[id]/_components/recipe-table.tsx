@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/app/_components/ui/table";
-import { UNIT_CONFIG } from "@/app/_lib/units";
+import { UNIT_CONFIG } from "@/app/_lib/units-shared";
 import { UnitType } from "@prisma/client";
 import { RecipeIngredientDto } from "@/app/_data-access/product/get-product-by-id";
 import { Button } from "@/app/_components/ui/button";

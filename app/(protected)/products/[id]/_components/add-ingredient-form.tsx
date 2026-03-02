@@ -16,7 +16,7 @@ import {
 import { Loader2Icon, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import { UNIT_CONFIG } from "@/app/_lib/units";
+import { UNIT_CONFIG } from "@/app/_lib/units-shared";
 import { UnitType } from "@prisma/client";
 
 const UNIT_OPTIONS = [
