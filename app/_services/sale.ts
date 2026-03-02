@@ -1,6 +1,5 @@
 import { db } from "@/app/_lib/prisma";
 import { recordStockMovement } from "@/app/_lib/stock";
-import * as Sentry from "@sentry/nextjs";
 import { BusinessError } from "@/app/_lib/errors";
 import { calculateRealCost } from "@/app/_lib/units";
 import { UnitType } from "@prisma/client";
@@ -197,18 +196,7 @@ export const SaleService = {
         throw error;
       }
       
-      Sentry.captureException(error, {
-        tags: {
-          feature: "sale",
-          action: id ? "update" : "create",
-        },
-        extra: {
-          companyId,
-          userId,
-          saleId: id,
-          payload: { date, products },
-        },
-      });
+      console.error(error);
       throw error;
     }
   },

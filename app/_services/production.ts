@@ -2,7 +2,6 @@ import { db } from "@/app/_lib/prisma";
 import { recordStockMovement } from "@/app/_lib/stock";
 import { calculateStockDeduction, calculateRealCost } from "@/app/_lib/units";
 import { BusinessError } from "@/app/_lib/errors";
-import * as Sentry from "@sentry/nextjs";
 import { Prisma, UnitType } from "@prisma/client";
 
 const Decimal = Prisma.Decimal;
@@ -177,18 +176,7 @@ export const ProductionService = {
         throw error;
       }
 
-      Sentry.captureException(error, {
-        tags: {
-          feature: "production",
-          action: "produce",
-        },
-        extra: {
-          productId,
-          quantity,
-          companyId,
-          userId,
-        },
-      });
+      console.error(error);
       throw error;
     }
   },

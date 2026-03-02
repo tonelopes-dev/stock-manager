@@ -1,7 +1,6 @@
 import { db } from "./prisma";
 import { StockMovementType, Prisma } from "@prisma/client";
 import { BusinessError } from "./errors";
-import * as Sentry from "@sentry/nextjs";
 
 type Decimal = Prisma.Decimal;
 const Decimal = Prisma.Decimal;
@@ -119,15 +118,7 @@ export const recordStockMovement = async (
       throw error;
     }
 
-    Sentry.captureException(error, {
-      tags: {
-        feature: "inventory",
-        action: "record_movement",
-      },
-      extra: { 
-        payload: params 
-      },
-    });
+    console.error(error);
     throw error;
   }
 };

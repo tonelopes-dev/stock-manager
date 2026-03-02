@@ -1,6 +1,5 @@
 import { db } from "@/app/_lib/prisma";
 import { Prisma } from "@prisma/client";
-import * as Sentry from "@sentry/nextjs";
 import { BusinessError } from "@/app/_lib/errors";
 
 interface AdjustIngredientStockParams {
@@ -73,13 +72,7 @@ export const IngredientService = {
         throw error;
       }
 
-      Sentry.captureException(error, {
-        tags: {
-          feature: "ingredient",
-          action: "adjust_stock",
-        },
-        extra: { payload: params },
-      });
+      console.error(error);
       throw error;
     }
   },
