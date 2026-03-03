@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useOptimistic, useTransition } from "react";
+import { useState, useOptimistic, useTransition, useEffect } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -12,6 +12,8 @@ import {
   DragStartEvent,
   DragOverEvent,
   DragEndEvent,
+  defaultDropAnimationSideEffects,
+  DropAnimation,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { KanbanColumn } from "./kanban-column";
@@ -36,6 +38,14 @@ export const KanbanBoard = ({
   const [isPending, startTransition] = useTransition();
   const [activeCustomer, setActiveCustomer] = useState<any | null>(null);
   const [viewingCustomer, setViewingCustomer] = useState<any | null>(null);
+
+  // Local state for "live" drag reordering
+  const [items, setItems] = useState(initialCustomers);
+
+  // Sync with server data
+  useEffect(() => {
+    setItems(initialCustomers);
+  }, [initialCustomers]);
 
   // Optimistic UI for smooth transitions
   const [optimisticCustomers, addOptimisticUpdate] = useOptimistic(
@@ -98,81 +108,134 @@ export const KanbanBoard = ({
   );
 
   const handleDragStart = (event: DragStartEvent) => {
-    if (event.active.data.current?.type === "Customer") {
-      setActiveCustomer(event.active.data.current.customer);
+    const { active } = event;
+    const customer = items.find((c) => c.id === active.id);
+    if (customer) {
+      setActiveCustomer(customer);
     }
   };
 
   const handleDragOver = (event: DragOverEvent) => {
-    // dnd-kit auto sortable context takes over here
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeId = active.id;
+    const overId = over.id;
+
+    if (activeId === overId) return;
+
+    const activeCust = items.find((c) => c.id === activeId);
+    if (!activeCust) return;
+
+    // Find containers
+    const overIsAColumn = stages.some((s) => s.id === overId);
+    const overCust = items.find((c) => c.id === overId);
+
+    const overContainerId = overIsAColumn
+      ? (overId as string)
+      : overCust?.stageId;
+    const activeContainerId = activeCust.stageId;
+
+    if (!overContainerId || activeContainerId === overContainerId) {
+      // Same container: Dnd-kit handles this visually.
+      return;
+    }
+
+    // Moving between columns
+    setItems((prev) => {
+      const activeIndex = prev.findIndex((i) => i.id === activeId);
+      const overIndex = overIsAColumn
+        ? prev.length
+        : prev.findIndex((i) => i.id === overId);
+
+      const updatedActiveCust = {
+        ...prev[activeIndex],
+        stageId: overContainerId,
+      };
+      const newItems = [...prev];
+      newItems[activeIndex] = updatedActiveCust;
+
+      return arrayMove(newItems, activeIndex, overIndex);
+    });
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     setActiveCustomer(null);
     const { active, over } = event;
 
-    if (!over) return;
-
-    const customerId = active.id as string;
-    const overId = over.id as string;
-
-    // Use optimistic state to find data
-    const activeCustomerData = optimisticCustomers.find(
-      (c) => c.id === customerId,
-    );
-    if (!activeCustomerData) return;
-
-    let newStageId = activeCustomerData.stageId;
-    let newPosition = 0;
-
-    // 1. Determine new destination
-    const isOverAColumn = stages.some((s) => s.id === overId);
-    if (isOverAColumn) {
-      newStageId = overId;
-      const columnCustomers = optimisticCustomers.filter(
-        (c) => c.stageId === newStageId,
-      );
-      newPosition = columnCustomers.length;
-    } else {
-      // Find the card we are dropping onto
-      const overCustomer = optimisticCustomers.find((c) => c.id === overId);
-      if (overCustomer) {
-        newStageId = overCustomer.stageId;
-        newPosition =
-          typeof overCustomer.position === "number" ? overCustomer.position : 0;
-      }
+    if (!over) {
+      setItems(initialCustomers);
+      return;
     }
 
-    // Optimization: same spot
-    if (
-      activeCustomerData.stageId === newStageId &&
-      activeCustomerData.position === newPosition
-    )
-      return;
+    const activeId = active.id as string;
+    const overId = over.id as string;
 
-    // 2. Perform Optimistic Update
+    const activeIndex = items.findIndex((i) => i.id === activeId);
+    const overIndex = items.findIndex((i) => i.id === overId);
+
+    // Final state update on drop
+    const activeCust = items[activeIndex];
+    const overIsAColumn = stages.some((s) => s.id === overId);
+    const overCust = items.find((c) => c.id === overId);
+    const overContainerId = overIsAColumn
+      ? (overId as string)
+      : overCust?.stageId;
+
+    let updatedItems = items;
+    if (
+      activeCust &&
+      overContainerId &&
+      (activeCust.stageId !== overContainerId || activeId !== overId)
+    ) {
+      updatedItems = arrayMove(items, activeIndex, overIndex);
+      if (activeCust.stageId !== overContainerId) {
+        updatedItems[overIndex] = {
+          ...updatedItems[overIndex],
+          stageId: overContainerId,
+        };
+      }
+      setItems(updatedItems);
+    }
+
+    const customerId = activeId;
+    const finalCust = updatedItems.find((c) => c.id === customerId);
+    if (!finalCust) return;
+
+    const newStageId = finalCust.stageId;
+    const columnCustomers = updatedItems.filter(
+      (c) => c.stageId === newStageId,
+    );
+    const newPosition = columnCustomers.findIndex((c) => c.id === customerId);
+
+    // Persist
     startTransition(async () => {
       addOptimisticUpdate({
         type: "MOVE",
         payload: { customerId, newStageId, newPosition },
       });
 
-      // 3. Persist to DB
       const result = await updateCustomerPosition({
         customerId,
         newStageId,
         newPosition,
       });
 
-      if (result?.validationErrors) {
-        const errorMsg = Object.values(result.validationErrors)
-          .flat()
-          .join(", ");
-        toast.error(`Erro de validação: ${errorMsg}`);
-      } else if (result?.serverError) {
-        toast.error("Erro no servidor ao reordenar cliente.");
+      if (result?.validationErrors || result?.serverError) {
+        toast.error("Erro ao sincronizar posição com o servidor.");
+        setItems(initialCustomers);
       }
     });
+  };
+
+  const dropAnimation: DropAnimation = {
+    sideEffects: defaultDropAnimationSideEffects({
+      styles: {
+        active: {
+          opacity: "0.5",
+        },
+      },
+    }),
   };
 
   return (
@@ -186,9 +249,10 @@ export const KanbanBoard = ({
       >
         <div className="scrollbar-hide flex min-h-[600px] items-start gap-6 overflow-x-auto px-4 pb-6">
           {stages.map((stage) => {
-            const columnCustomers = optimisticCustomers
-              .filter((c) => c.stageId === stage.id)
-              .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+            const displayItems = isPending ? optimisticCustomers : items;
+            const columnCustomers = displayItems.filter(
+              (c) => c.stageId === stage.id,
+            );
 
             return (
               <KanbanColumn
@@ -201,7 +265,7 @@ export const KanbanBoard = ({
           })}
         </div>
 
-        <DragOverlay>
+        <DragOverlay dropAnimation={dropAnimation}>
           {activeCustomer ? (
             <div className="rotate-3 scale-105 opacity-90 shadow-2xl">
               <KanbanCard customer={activeCustomer} />
