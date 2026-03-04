@@ -23,62 +23,76 @@ export const updateCustomerPosition = actionClient
     const oldPosition = customer.position;
 
     await db.$transaction(async (tx) => {
-      if (oldStageId === newStageId) {
-        // Move inside the same column
-        if (oldPosition === newPosition) return;
+      // 1. Get all customers from affected columns
+      const affectedStages =
+        oldStageId === newStageId ? [oldStageId] : [oldStageId, newStageId];
 
-        if (oldPosition < newPosition) {
-          // Moving down: Shift others up
-          await tx.customer.updateMany({
-            where: {
-              companyId,
-              stageId: oldStageId,
-              position: { gt: oldPosition, lte: newPosition },
-            },
-            data: { position: { decrement: 1 } },
-          });
-        } else {
-          // Moving up: Shift others down
-          await tx.customer.updateMany({
-            where: {
-              companyId,
-              stageId: oldStageId,
-              position: { lt: oldPosition, gte: newPosition },
-            },
-            data: { position: { increment: 1 } },
-          });
+      const allAffectedCustomers = await tx.customer.findMany({
+        where: {
+          companyId,
+          stageId: { in: affectedStages.filter((s): s is string => !!s) },
+        },
+        orderBy: { position: "asc" },
+      });
+
+      // 2. Separate into columns
+      const columns: Record<string, any[]> = {};
+      affectedStages.forEach((s) => {
+        if (s) columns[s] = [];
+      });
+      allAffectedCustomers.forEach((c) => {
+        if (c.stageId && columns[c.stageId]) {
+          columns[c.stageId].push(c);
+        }
+      });
+
+      // 3. Apply the move in-memory
+      if (oldStageId === newStageId) {
+        const colId = oldStageId!;
+        const items = columns[colId];
+        const activeIdx = items.findIndex((c) => c.id === customerId);
+        if (activeIdx !== -1) {
+          const [movedItem] = items.splice(activeIdx, 1);
+          items.splice(newPosition, 0, movedItem);
         }
       } else {
-        // Move between columns
-        // 1. Close gap in the old column
-        await tx.customer.updateMany({
-          where: {
-            companyId,
-            stageId: oldStageId,
-            position: { gt: oldPosition },
-          },
-          data: { position: { decrement: 1 } },
-        });
-
-        // 2. Open gap in the new column
-        await tx.customer.updateMany({
-          where: {
-            companyId,
-            stageId: newStageId,
-            position: { gte: newPosition },
-          },
-          data: { position: { increment: 1 } },
-        });
+        // Remove from old
+        if (oldStageId && columns[oldStageId]) {
+          const oldIdx = columns[oldStageId].findIndex(
+            (c) => c.id === customerId,
+          );
+          if (oldIdx !== -1) {
+            columns[oldStageId].splice(oldIdx, 1);
+          }
+        }
+        // Add to new
+        if (newStageId && columns[newStageId]) {
+          const activeCust = allAffectedCustomers.find(
+            (c) => c.id === customerId,
+          );
+          if (activeCust) {
+            const updatedCust = { ...activeCust, stageId: newStageId };
+            columns[newStageId].splice(newPosition, 0, updatedCust);
+          }
+        }
       }
 
-      // 3. Update the customer itself
-      await tx.customer.update({
-        where: { id: customerId, companyId },
-        data: {
-          stageId: newStageId,
-          position: newPosition,
-        },
-      });
+      // 4. Persist all changes with sequential positions
+      for (const stageId of affectedStages) {
+        if (!stageId || !columns[stageId]) continue;
+        const items = columns[stageId];
+        await Promise.all(
+          items.map((item, index) =>
+            tx.customer.update({
+              where: { id: item.id },
+              data: {
+                stageId,
+                position: index,
+              },
+            }),
+          ),
+        );
+      }
     });
 
     revalidatePath("/customers");

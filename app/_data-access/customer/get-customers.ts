@@ -69,7 +69,11 @@ export const getCustomers = async (
         orderBy: { date: "desc" },
       },
     },
-    orderBy: [{ stageId: "asc" }, { position: "asc" }, { createdAt: "desc" }],
+    orderBy: [
+      { stage: { order: "asc" } },
+      { position: "asc" },
+      { createdAt: "desc" },
+    ],
   });
 
   return customers.map((customer) => {
