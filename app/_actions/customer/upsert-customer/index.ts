@@ -25,6 +25,22 @@ export const upsertCustomer = actionClient
       birthday: birthday ? new Date(birthday) : null,
     };
 
+    // Check for duplicate email (only if email is provided)
+    if (customerData.email) {
+      const existingByEmail = await db.customer.findFirst({
+        where: {
+          companyId,
+          email: customerData.email,
+          ...(id ? { id: { not: id } } : {}),
+        },
+        select: { id: true },
+      });
+
+      if (existingByEmail) {
+        throw new Error("Já existe um cliente cadastrado com este email.");
+      }
+    }
+
     if (id) {
       const existingCustomer = await db.customer.findUnique({
         where: { id, companyId },

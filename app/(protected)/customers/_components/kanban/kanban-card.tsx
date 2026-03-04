@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent } from "@/app/_components/ui/card";
@@ -17,7 +18,7 @@ interface KanbanCardProps {
   onClick?: () => void;
 }
 
-export const KanbanCard = ({ customer, onClick }: KanbanCardProps) => {
+export const KanbanCard = memo(({ customer, onClick }: KanbanCardProps) => {
   const {
     attributes,
     listeners,
@@ -84,4 +85,6 @@ export const KanbanCard = ({ customer, onClick }: KanbanCardProps) => {
       </CardContent>
     </Card>
   );
-};
+});
+
+KanbanCard.displayName = "KanbanCard";
