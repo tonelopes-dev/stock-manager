@@ -28,7 +28,7 @@ export const upsertCustomer = actionClient
 
     if (categoryIds) {
       customerData.categories = {
-        set: categoryIds.map((id) => ({ id })),
+        [id ? "set" : "connect"]: categoryIds.map((id) => ({ id })),
       };
     }
 
