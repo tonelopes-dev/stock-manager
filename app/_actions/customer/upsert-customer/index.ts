@@ -15,15 +15,22 @@ export const upsertCustomer = actionClient
     await assertRole(ALL_ROLES);
     await requireActiveSubscription(companyId);
 
-    const customerData = {
-      name: data.name,
-      email: data.email || null,
-      phone: data.phone || null,
-      categoryId: data.categoryId || null,
-      stageId: data.stageId || null,
-      notes: data.notes || null,
+    const { categoryIds, ...otherData } = data;
+
+    const customerData: any = {
+      name: otherData.name,
+      email: otherData.email || null,
+      phone: otherData.phone || null,
+      stageId: otherData.stageId || null,
+      notes: otherData.notes || null,
       birthday: birthday ? new Date(birthday) : null,
     };
+
+    if (categoryIds) {
+      customerData.categories = {
+        set: categoryIds.map((id) => ({ id })),
+      };
+    }
 
     // Check for duplicate email (only if email is provided)
     if (customerData.email) {
@@ -47,14 +54,17 @@ export const upsertCustomer = actionClient
         select: { stageId: true },
       });
 
-      if (existingCustomer && existingCustomer.stageId !== customerData.stageId) {
+      if (
+        existingCustomer &&
+        existingCustomer.stageId !== customerData.stageId
+      ) {
         // Moved to a new stage via modal: calculate next position
         const lastPosition = await db.customer.aggregate({
           where: { companyId, stageId: customerData.stageId || "" },
           _max: { position: true },
         });
         const nextPosition = (lastPosition._max.position ?? -1) + 1;
-        
+
         await db.customer.update({
           where: { id, companyId },
           data: { ...customerData, position: nextPosition },

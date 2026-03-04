@@ -12,6 +12,7 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
+  
 }
 
 model Product {
@@ -55,6 +56,7 @@ model Sale {
 
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+  paymentMethod  PaymentMethod?
   saleItems      SaleItem[]
   stockMovements StockMovement[]
 
@@ -152,6 +154,13 @@ enum SaleStatus {
   DRAFT
   ACTIVE
   CANCELED
+}
+
+enum PaymentMethod {
+  CASH
+  PIX
+  CREDIT_CARD
+  DEBIT_CARD
 }
 
 enum InvitationStatus {
@@ -427,8 +436,7 @@ model Customer {
   company   Company @relation(fields: [companyId], references: [id])
 
   // Categorização Dinâmica
-  categoryId String?
-  category   CustomerCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categories CustomerCategory[]
 
   // Fluxo de CRM (Kanban)
   stageId String?
@@ -443,7 +451,6 @@ model Customer {
   @@unique([email, companyId])
   @@unique([phone, companyId])
   @@unique([externalId, source, companyId])
-  @@index([companyId, categoryId])
   @@index([companyId, stageId])
   @@index([companyId, stageId, position])
   @@index([companyId, birthday])
@@ -452,6 +459,7 @@ model Customer {
 model CustomerCategory {
   id        String     @id @default(cuid())
   name      String
+  color     String?    // Adicionado para suportar paleta de cores sugerida
   companyId String
   company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
   customers Customer[]

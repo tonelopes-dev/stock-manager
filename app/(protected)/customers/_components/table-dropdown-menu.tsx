@@ -98,7 +98,7 @@ const CustomerTableDropdownMenu = ({
             name: customer.name,
             email: customer.email || "",
             phone: customer.phone || "",
-            categoryId: customer.categoryId || "",
+            categoryIds: customer.categories.map((c) => c.id),
             stageId: customer.stageId || "",
             birthday: customer.birthday
               ? customer.birthday.toISOString().split("T")[0]

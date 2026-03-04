@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { SalesTimeline } from "./sales-timeline";
 import { format } from "date-fns/format";
+import { MultiSelect } from "@/app/_components/ui/multi-select";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/app/_components/ui/button";
 import { Input } from "@/app/_components/ui/input";
@@ -69,7 +70,7 @@ export const CustomerDetailsDialogContent = ({
     name: customer.name,
     email: customer.email || "",
     phone: customer.phone || "",
-    categoryId: customer.categoryId || "NONE",
+    categoryIds: customer.categories?.map((c: any) => c.id) || [],
     stageId: customer.stageId || "NONE",
     notes: customer.notes || "",
   });
@@ -79,8 +80,7 @@ export const CustomerDetailsDialogContent = ({
       const result = await upsertCustomer({
         id: customer.id,
         ...formData,
-        categoryId:
-          formData.categoryId === "NONE" ? undefined : formData.categoryId,
+        categoryIds: formData.categoryIds,
         stageId: formData.stageId === "NONE" ? undefined : formData.stageId,
       });
 
@@ -198,26 +198,16 @@ export const CustomerDetailsDialogContent = ({
                   <div className="space-y-3">
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold uppercase text-slate-400">
-                        Categoria
+                        Categorias
                       </label>
-                      <Select
-                        value={formData.categoryId}
-                        onValueChange={(v) =>
-                          setFormData({ ...formData, categoryId: v })
+                      <MultiSelect
+                        options={categories}
+                        selected={formData.categoryIds}
+                        onChange={(ids) =>
+                          setFormData({ ...formData, categoryIds: ids })
                         }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Categoria" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="NONE">Nenhuma</SelectItem>
-                          {categories.map((c) => (
-                            <SelectItem key={c.id} value={c.id}>
-                              {c.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        placeholder="Categorias"
+                      />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold uppercase text-slate-400">
@@ -245,13 +235,24 @@ export const CustomerDetailsDialogContent = ({
                   </div>
                 ) : (
                   <div className="flex flex-wrap gap-2">
-                    {customer.category ? (
-                      <Badge
-                        variant="secondary"
-                        className="bg-slate-100 text-[10px] font-black uppercase text-slate-500"
-                      >
-                        {customer.category.name}
-                      </Badge>
+                    {customer.categories && customer.categories.length > 0 ? (
+                      customer.categories.map((c: any) => (
+                        <Badge
+                          key={c.id}
+                          variant="secondary"
+                          style={
+                            c.color
+                              ? {
+                                  backgroundColor: `${c.color}20`,
+                                  color: c.color,
+                                }
+                              : undefined
+                          }
+                          className="text-[10px] font-black uppercase"
+                        >
+                          {c.name}
+                        </Badge>
+                      ))
                     ) : (
                       <Badge
                         variant="outline"

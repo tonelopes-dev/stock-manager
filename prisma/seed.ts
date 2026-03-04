@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole, SaleStatus, StockMovementType, ProductType, UnitType, AuditSeverity, AuditEventType, SubscriptionStatus } from "@prisma/client";
+import { PrismaClient, UserRole, SaleStatus, StockMovementType, ProductType, UnitType, AuditSeverity, AuditEventType, SubscriptionStatus, PaymentMethod } from "@prisma/client";
 import { hash } from "bcryptjs";
 import { subDays, startOfDay, addHours, isWeekend } from "date-fns";
 import { fakerPT_BR as faker } from "@faker-js/faker";
@@ -140,7 +140,9 @@ async function main() {
         name: faker.person.fullName(),
         email: faker.internet.email(),
         phone: faker.phone.number(),
-        categoryId: categories[categoryName].id,
+        categories: {
+          connect: { id: categories[categoryName].id },
+        },
         stageId: stages[stageName].id,
         companyId: company.id,
         notes: faker.lorem.sentence(),
@@ -296,8 +298,16 @@ async function main() {
             userId: seller.id,
             customerId: s % 2 === 0 ? faker.helpers.arrayElement(customers).id : null,
             status: SaleStatus.ACTIVE,
-            totalAmount: 0, totalCost: 0, discountAmount: 0,
-          }
+            paymentMethod: faker.helpers.arrayElement([
+              PaymentMethod.CASH,
+              PaymentMethod.PIX,
+              PaymentMethod.CREDIT_CARD,
+              PaymentMethod.DEBIT_CARD,
+            ]),
+            totalAmount: 0,
+            totalCost: 0,
+            discountAmount: 0,
+          },
         });
 
         const itemCount = faker.number.int({ min: 1, max: 3 });

@@ -12,7 +12,7 @@ interface KanbanCardProps {
     id: string;
     name: string;
     totalSpent: number;
-    category?: { name: string } | null;
+    categories?: { id: string; name: string; color: string | null }[];
     sales?: any[];
   };
   onClick?: () => void;
@@ -66,12 +66,30 @@ export const KanbanCard = memo(({ customer, onClick }: KanbanCardProps) => {
         </div>
 
         <div className="flex flex-wrap gap-1">
-          {customer.category && (
+          {customer.categories &&
+            customer.categories.slice(0, 2).map((category: any) => (
+              <Badge
+                key={category.id}
+                variant="secondary"
+                style={
+                  category.color
+                    ? {
+                        backgroundColor: `${category.color}20`,
+                        color: category.color,
+                      }
+                    : undefined
+                }
+                className="border-none px-1 py-0 text-[10px] font-black uppercase"
+              >
+                {category.name}
+              </Badge>
+            ))}
+          {customer.categories && customer.categories.length > 2 && (
             <Badge
               variant="secondary"
-              className="border-none bg-slate-100 px-1 py-0 text-[10px] font-black uppercase text-slate-500"
+              className="border-none bg-slate-100 px-1 py-0 text-[10px] font-black uppercase text-slate-400"
             >
-              {customer.category.name}
+              +{customer.categories.length - 2}
             </Badge>
           )}
         </div>

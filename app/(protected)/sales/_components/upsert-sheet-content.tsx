@@ -30,23 +30,35 @@ import { formatCurrency } from "@/app/_helpers/currency";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import {
-  ShoppingCartIcon,
+  AlertTriangle,
+  CreditCardIcon,
+  WalletIcon,
+  SmartphoneIcon,
+  BanknoteIcon,
+  PlusIcon,
   CalendarIcon,
   UsersIcon,
-  CheckIcon,
-  PlusIcon,
   TrashIcon,
-  AlertTriangle,
+  ShoppingCartIcon,
+  CheckIcon,
 } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { PaymentMethod } from "@prisma/client";
 import { upsertSale } from "@/app/_actions/sale/upsert-sale";
 import { toast } from "sonner";
 import { useAction } from "next-safe-action/hooks";
 import { flattenValidationErrors } from "next-safe-action";
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { QuantityStepper } from "@/app/_components/ui/quantity-stepper";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/_components/ui/select";
 
 const formSchema = z.object({
   productId: z.string().uuid({
@@ -75,6 +87,7 @@ interface UpsertSheetContentProps {
   setSheetIsOpen: Dispatch<SetStateAction<boolean>>;
   defaultSelectedProducts?: SelectedProduct[];
   customerId?: string | null;
+  paymentMethod?: PaymentMethod | null;
   hasSales?: boolean;
 }
 
@@ -88,6 +101,7 @@ const UpsertSheetContent = ({
   customerOptions,
   setSheetIsOpen,
   defaultSelectedProducts,
+  paymentMethod: defaultPaymentMethod,
 }: UpsertSheetContentProps) => {
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>(
     defaultSelectedProducts ?? [],
@@ -99,6 +113,9 @@ const UpsertSheetContent = ({
   );
   const [customerId, setCustomerId] = useState<string | undefined>(
     defaultCustomerId || undefined,
+  );
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | undefined>(
+    (defaultPaymentMethod as PaymentMethod) || undefined,
   );
 
   const { execute: executeUpsertSale, isPending } = useAction(upsertSale, {
@@ -136,12 +153,21 @@ const UpsertSheetContent = ({
           : format(new Date(), "yyyy-MM-dd"),
       );
       setCustomerId(defaultCustomerId || undefined);
+      setPaymentMethod((defaultPaymentMethod as PaymentMethod) || undefined);
     } else {
       form.reset();
       setSelectedProducts([]);
       setCustomerId(undefined);
+      setPaymentMethod(undefined);
     }
-  }, [form, isOpen, defaultSelectedProducts, saleDate, defaultCustomerId]);
+  }, [
+    form,
+    isOpen,
+    defaultSelectedProducts,
+    saleDate,
+    defaultCustomerId,
+    defaultPaymentMethod,
+  ]);
 
   const onSubmit = (data: FormSchema) => {
     const product = products.find((p) => p.id === data.productId);
@@ -206,13 +232,13 @@ const UpsertSheetContent = ({
       id: saleId,
       date: date ? new Date(date + "T12:00:00") : undefined,
       customerId,
+      paymentMethod,
       products: selectedProducts.map((p) => ({
         id: p.id,
         quantity: p.quantity,
       })),
     });
   };
-
   return (
     <SheetContent className="flex h-full !max-w-[700px] flex-col border-none p-0">
       <div className="flex h-full flex-col">
@@ -466,6 +492,52 @@ const UpsertSheetContent = ({
                 {formatCurrency(totals.subtotal)}
               </h2>
             </div>
+          </div>
+
+          <div className="mb-6 space-y-2">
+            <Label className="text-[10px] font-black uppercase italic tracking-tighter text-slate-400">
+              Forma de Pagamento
+            </Label>
+            <Select
+              value={paymentMethod}
+              onValueChange={(val) => setPaymentMethod(val as PaymentMethod)}
+            >
+              <SelectTrigger className="h-12 border-slate-200 font-bold focus:ring-primary/20">
+                <SelectValue placeholder="Selecione como recebeu..." />
+              </SelectTrigger>
+              <SelectContent className="border-slate-100">
+                <SelectItem value="CASH" className="font-bold text-slate-700">
+                  <div className="flex items-center gap-2">
+                    <BanknoteIcon size={16} className="text-emerald-500" />
+                    Dinheiro
+                  </div>
+                </SelectItem>
+                <SelectItem value="PIX" className="font-bold text-slate-700">
+                  <div className="flex items-center gap-2">
+                    <SmartphoneIcon size={16} className="text-cyan-500" />
+                    PIX
+                  </div>
+                </SelectItem>
+                <SelectItem
+                  value="CREDIT_CARD"
+                  className="font-bold text-slate-700"
+                >
+                  <div className="flex items-center gap-2">
+                    <CreditCardIcon size={16} className="text-indigo-500" />
+                    Cartão de Crédito
+                  </div>
+                </SelectItem>
+                <SelectItem
+                  value="DEBIT_CARD"
+                  className="font-bold text-slate-700"
+                >
+                  <div className="flex items-center gap-2">
+                    <WalletIcon size={16} className="text-blue-500" />
+                    Cartão de Débito
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <Button

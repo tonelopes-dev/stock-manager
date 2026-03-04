@@ -2,7 +2,7 @@ import { db } from "@/app/_lib/prisma";
 import { recordStockMovement } from "@/app/_lib/stock";
 import { BusinessError } from "@/app/_lib/errors";
 import { calculateRealCost } from "@/app/_lib/units";
-import { UnitType } from "@prisma/client";
+import { UnitType, PaymentMethod } from "@prisma/client";
 
 interface UpsertSaleParams {
   id?: string;
@@ -10,6 +10,7 @@ interface UpsertSaleParams {
   companyId: string;
   userId: string;
   customerId?: string;
+  paymentMethod?: PaymentMethod;
   products: {
     id: string;
     quantity: number;
@@ -17,7 +18,7 @@ interface UpsertSaleParams {
 }
 
 export const SaleService = {
-  async upsertSale({ id, date, companyId, userId, customerId, products }: UpsertSaleParams) {
+  async upsertSale({ id, date, companyId, userId, customerId, paymentMethod, products }: UpsertSaleParams) {
     try {
       return await db.$transaction(async (trx) => {
         const isUpdate = Boolean(id);
@@ -75,6 +76,7 @@ export const SaleService = {
               companyId,
               userId,
               customerId: customerId || null,
+              paymentMethod: paymentMethod || null,
             },
           });
           saleId = newSale.id;
@@ -86,6 +88,7 @@ export const SaleService = {
               date: date || undefined,
               userId,
               customerId: customerId || undefined,
+              paymentMethod: paymentMethod || undefined,
             },
           });
         }
