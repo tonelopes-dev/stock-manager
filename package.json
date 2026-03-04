@@ -3,18 +3,18 @@
   "version": "1.4.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "stripe:dev": "concurrently \"next dev\" \"npm run stripe:listen\"",
-    "stripe:listen": "npx -y @stripe/stripe-cli listen --forward-to localhost:3000/api/webhooks/stripe",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "prepare": "prisma generate",
-    "db:seed": "prisma db seed",
-    "db:sync": "node scripts/sync-db.ts",
-    "DANGER_DESTRUCTIVE_db:fresh": "prisma migrate reset --force",
-    "db:warning": "echo 'WARNING: Do not run reset or fresh in production!'"
-  },
+  "dev": "next dev",
+  "stripe:dev": "concurrently \"next dev\" \"npm run stripe:listen\"",
+  "stripe:listen": "npx -y @stripe/stripe-cli listen --forward-to localhost:3000/api/webhooks/stripe",
+  "build": "prisma generate && prisma migrate deploy && next build",
+  "start": "next start",
+  "lint": "next lint",
+  "prepare": "prisma generate",
+  "db:seed": "prisma db seed",
+  "db:sync": "node scripts/sync-db.ts",
+  "DANGER_DESTRUCTIVE_db:fresh": "prisma migrate reset --force",
+  "db:warning": "echo 'WARNING: Do not run reset or fresh in production!'"
+},
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
   },
