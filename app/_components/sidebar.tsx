@@ -58,7 +58,7 @@ const Sidebar = async () => {
 
         <SidebarButton href="/customers">
           <UsersIcon size={20} />
-          Clientes
+          CRM
         </SidebarButton>
 
         <SidebarButton href="/goals">
@@ -66,19 +66,19 @@ const Sidebar = async () => {
           Metas
         </SidebarButton>
 
-        {isOwner && (
-          <SidebarButton href="/plans">
-            <CreditCardIcon size={20} />
-            Assinatura
-          </SidebarButton>
-        )}
-
         <div className="my-2 border-t border-gray-100" />
 
         {isAdminOrOwner && (
           <SidebarButton href="/settings/team">
             <UsersIcon size={20} />
             Equipe
+          </SidebarButton>
+        )}
+
+        {isOwner && (
+          <SidebarButton href="/plans">
+            <CreditCardIcon size={20} />
+            Assinatura
           </SidebarButton>
         )}
 
