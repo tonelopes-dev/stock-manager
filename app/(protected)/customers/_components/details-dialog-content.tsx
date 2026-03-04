@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogClose,
 } from "@/app/_components/ui/dialog";
 import { Badge } from "@/app/_components/ui/badge";
 import {
@@ -116,16 +117,6 @@ export const CustomerDetailsDialogContent = ({
             </DialogTitle>
           </DialogHeader>
           <div className="flex items-center gap-2">
-            {!isEditing && (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-8 w-8 p-0 text-red-500 hover:bg-red-50 hover:text-red-600"
-                onClick={() => setShowDeleteConfirm(true)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
             {!isEditing ? (
               <Button
                 size="sm"
@@ -336,6 +327,26 @@ export const CustomerDetailsDialogContent = ({
             </h3>
             <SalesTimeline sales={customer.sales || []} />
           </div>
+        </div>
+
+        <div className="sticky bottom-0 z-10 flex items-center justify-between border-t border-slate-100 bg-white/80 px-6 py-4 backdrop-blur-md">
+          <div>
+            {!isEditing && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 text-red-500 hover:bg-red-50 hover:text-red-600"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <DialogClose asChild>
+            <Button size="sm" variant="outline" className="border-slate-200">
+              Fechar
+            </Button>
+          </DialogClose>
         </div>
       </DialogContent>
 
