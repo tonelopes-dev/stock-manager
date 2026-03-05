@@ -107,6 +107,12 @@ export default function RecipeTable({ recipes, recipeCost }: RecipeTableProps) {
   };
 
   const saveEdit = (id: string) => {
+    // Validation for integer units
+    if (editUnit === "UN" && !Number.isInteger(Number(editQuantity))) {
+      toast.error("Quantidade deve ser um número inteiro para a unidade 'Un'.");
+      return;
+    }
+
     executeUpdate({
       id,
       quantity: Number(editQuantity),
@@ -143,6 +149,9 @@ export default function RecipeTable({ recipes, recipeCost }: RecipeTableProps) {
       <TableBody>
         {recipes.map((recipe) => {
           const isEditing = editingId === recipe.id;
+          const selectedUnitConfig = editUnit
+            ? UNIT_CONFIG[editUnit as UnitType]
+            : null;
 
           return (
             <TableRow key={recipe.id}>
@@ -153,8 +162,8 @@ export default function RecipeTable({ recipes, recipeCost }: RecipeTableProps) {
                 {isEditing ? (
                   <Input
                     type="number"
-                    step="0.01"
-                    min="0.01"
+                    step={selectedUnitConfig?.step || "0.01"}
+                    min={selectedUnitConfig?.min || "0.01"}
                     className="ml-auto h-8 w-20 text-right"
                     value={editQuantity}
                     onChange={(e) => setEditQuantity(e.target.value)}

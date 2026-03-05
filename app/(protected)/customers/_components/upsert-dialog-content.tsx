@@ -23,6 +23,7 @@ import {
   Form,
 } from "@/app/_components/ui/form";
 import { Input } from "@/app/_components/ui/input";
+import { MultiSelect } from "@/app/_components/ui/multi-select";
 import {
   Select,
   SelectContent,
@@ -73,7 +74,7 @@ const UpsertCustomerDialogContent = ({
       name: "",
       email: "",
       phone: "",
-      categoryId: "",
+      categoryIds: [],
       stageId: "",
       birthday: "",
       notes: "",
@@ -151,28 +152,18 @@ const UpsertCustomerDialogContent = ({
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
-              name="categoryId"
+              name="categoryIds"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Categoria</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value || undefined}
-                    value={field.value || ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a categoria" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Categorias</FormLabel>
+                  <FormControl>
+                    <MultiSelect
+                      options={categories}
+                      selected={field.value || []}
+                      onChange={field.onChange}
+                      placeholder="Selecione as categorias"
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

@@ -6,6 +6,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { List } from "react-window";
 import { KanbanCard } from "./kanban-card";
 import { Badge } from "@/app/_components/ui/badge";
 
@@ -30,8 +31,30 @@ export const KanbanColumn = memo(
 
     const customerIds = customers.map((c) => c.id);
 
+    // Row renderer for virtualization react-window 2.x
+    const Row = ({
+      index,
+      style,
+      ariaAttributes,
+    }: {
+      index: number;
+      style: React.CSSProperties;
+      ariaAttributes?: React.HTMLAttributes<HTMLDivElement>;
+    }) => {
+      const customer = customers[index];
+      if (!customer) return null;
+      return (
+        <div style={style} className="pb-3 pr-2" {...ariaAttributes}>
+          <KanbanCard
+            customer={customer}
+            onClick={() => onCardClick?.(customer)}
+          />
+        </div>
+      );
+    };
+
     return (
-      <div className="flex w-[300px] min-w-[300px] flex-col gap-4 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+      <div className="flex h-[calc(100vh-180px)] w-[300px] min-w-[300px] flex-col gap-4 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-xs font-black uppercase italic tracking-tighter text-slate-500">
             {stage.name}
@@ -44,23 +67,25 @@ export const KanbanColumn = memo(
           </Badge>
         </div>
 
-        <div ref={setNodeRef} className="flex min-h-[500px] flex-col gap-3">
+        <div ref={setNodeRef} className="flex flex-1 flex-col overflow-hidden">
           <SortableContext
             items={customerIds}
             strategy={verticalListSortingStrategy}
           >
-            {customers.map((customer) => (
-              <KanbanCard
-                key={customer.id}
-                customer={customer}
-                onClick={() => onCardClick?.(customer)}
-              />
-            ))}
+            <List
+              rowCount={customers.length}
+              rowHeight={130}
+              rowComponent={Row as any}
+              rowProps={{}}
+              className="scrollbar-hide"
+              style={{ height: "100%", width: "100%" }}
+            />
           </SortableContext>
         </div>
       </div>
     );
   },
+
   (prevProps, nextProps) => {
     // Only re-render if the column's customer ids/order changed
     if (prevProps.stage.id !== nextProps.stage.id) return false;

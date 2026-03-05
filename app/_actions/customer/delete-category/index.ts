@@ -12,7 +12,7 @@ export const deleteCustomerCategory = actionClient
     const companyId = await getCurrentCompanyId();
 
     const customersCount = await db.customer.count({
-      where: { categoryId: id, companyId },
+      where: { categories: { some: { id } }, companyId },
     });
 
     if (customersCount > 0 && !destinationId) {
@@ -21,10 +21,22 @@ export const deleteCustomerCategory = actionClient
 
     await db.$transaction(async (tx) => {
       if (customersCount > 0 && destinationId) {
-        await tx.customer.updateMany({
-          where: { categoryId: id, companyId },
-          data: { categoryId: destinationId },
+        const customersToMigrate = await tx.customer.findMany({
+          where: { categories: { some: { id } }, companyId },
+          select: { id: true },
         });
+
+        for (const customer of customersToMigrate) {
+          await tx.customer.update({
+            where: { id: customer.id },
+            data: {
+              categories: {
+                disconnect: { id },
+                connect: { id: destinationId },
+              },
+            },
+          });
+        }
       }
 
       await tx.customerCategory.delete({

@@ -53,6 +53,7 @@ export default function AddIngredientForm({
 
   const handleIngredientChange = (id: string) => {
     setIngredientId(id);
+    setQuantity(""); // Clear quantity when ingredient changes
     const ingredient = ingredientOptions.find((opt) => opt.value === id);
     if (ingredient?.unit) {
       setUnit(ingredient.unit);
@@ -80,6 +81,12 @@ export default function AddIngredientForm({
       return;
     }
 
+    // Validation for integer units
+    if (unit === "UN" && !Number.isInteger(Number(quantity))) {
+      toast.error("Quantidade deve ser um número inteiro para a unidade 'Un'.");
+      return;
+    }
+
     execute({
       productId,
       ingredientId,
@@ -87,6 +94,8 @@ export default function AddIngredientForm({
       unit: unit as "KG" | "G" | "L" | "ML" | "UN",
     });
   };
+
+  const selectedUnitConfig = unit ? UNIT_CONFIG[unit as UnitType] : null;
 
   return (
     <div className="flex items-end gap-3 border-t pt-4">
@@ -108,9 +117,9 @@ export default function AddIngredientForm({
         </label>
         <Input
           type="number"
-          step="0.01"
-          min="0.01"
-          placeholder="Ex: 150"
+          step={selectedUnitConfig?.step || "0.01"}
+          min={selectedUnitConfig?.min || "0.01"}
+          placeholder={selectedUnitConfig?.placeholder || "Ex: 150"}
           value={quantity}
           onChange={(e) => setQuantity(e.target.value)}
         />

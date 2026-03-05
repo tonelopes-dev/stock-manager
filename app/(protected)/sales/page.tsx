@@ -51,7 +51,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
     value: product.id,
   }));
 
-  const customers = await getCustomers();
+  const { data: customers } = await getCustomers(undefined, undefined, 1, 1000);
   const customerOptions: ComboboxOption[] = customers.map((customer) => ({
     label: `${customer.name} ${customer.phone ? `(${customer.phone})` : ""}`,
     value: customer.id,

@@ -1,6 +1,6 @@
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
-import { SaleStatus, SaleItem, Product, Prisma } from "@prisma/client";
+import { SaleStatus, SaleItem, Product, Prisma, PaymentMethod } from "@prisma/client";
 
 export interface SaleItemDto extends SaleItem {
   product: Pick<Product, "name">;
@@ -16,6 +16,7 @@ export interface SaleDto {
   totalProducts: number;
   customerName: string | null;
   customerId: string | null;
+  paymentMethod: PaymentMethod | null;
   saleItems: SaleItemDto[];
 }
 
@@ -92,6 +93,7 @@ export const getSales = async ({
       ),
       customerName: sale.customer?.name || null,
       customerId: sale.customerId,
+      paymentMethod: sale.paymentMethod,
       saleItems: sale.saleItems.map((item: any) => ({
         ...item,
         unitPrice: Number(item.unitPrice),

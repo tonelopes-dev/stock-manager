@@ -85,8 +85,10 @@ export const KanbanBoard = ({
 
   // Sync with server data (only when server sends new data)
   useEffect(() => {
-    setColumnMap(buildColumnMap(initialCustomers, stages));
-  }, [initialCustomers, stages, setColumnMap]);
+    if (!activeCustomer && !isPending) {
+      setColumnMap(buildColumnMap(initialCustomers, stages));
+    }
+  }, [initialCustomers, stages, setColumnMap, activeCustomer, isPending]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -146,9 +148,6 @@ export const KanbanBoard = ({
         const overIndex = activeItems.findIndex((c) => c.id === overId);
         if (overIndex === -1 || activeIndex === overIndex) return prev;
 
-        console.log(
-          `[DragOver][SameCol] "${activeItems[activeIndex].name}" ${activeIndex} → ${overIndex}`,
-        );
         return {
           ...prev,
           [activeCol]: arrayMove(activeItems, activeIndex, overIndex),
@@ -170,9 +169,6 @@ export const KanbanBoard = ({
         insertIndex = overIndex >= 0 ? overIndex : overItems.length;
       }
 
-      console.log(
-        `[DragOver][CrossCol] "${activeCust.name}" → col:${overCol}, pos:${insertIndex}`,
-      );
       overItems.splice(insertIndex, 0, activeCust);
 
       return {
@@ -209,10 +205,6 @@ export const KanbanBoard = ({
       setColumnMap(buildColumnMap(initialCustomers, stages));
       return;
     }
-
-    console.log(
-      `[DragEnd] Persisting: "${colCustomers[newPosition].name}" → stage:${newStageId}, position:${newPosition}`,
-    );
 
     startTransition(async () => {
       const result = await updateCustomerPosition({
@@ -279,6 +271,24 @@ export const KanbanBoard = ({
             customer={viewingCustomer}
             categories={categories}
             stages={stages}
+            onUpdate={(updatedCustomer) => {
+              setColumnMap((prev) => {
+                const newMap = { ...prev };
+                // Remove from any column it might be in
+                for (const stageId in newMap) {
+                  newMap[stageId] = newMap[stageId].filter(
+                    (c) => c.id !== updatedCustomer.id,
+                  );
+                }
+                // Add to the correct column
+                const stageId = updatedCustomer.stageId || "NONE";
+                if (newMap[stageId]) {
+                  newMap[stageId].push(updatedCustomer);
+                }
+                return newMap;
+              });
+              setViewingCustomer(updatedCustomer);
+            }}
             onDelete={(customerId) => {
               // Optimistic delete in local map
               setColumnMap((prev) => {

@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogClose,
 } from "@/app/_components/ui/dialog";
 import { Badge } from "@/app/_components/ui/badge";
 import {
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 import { SalesTimeline } from "./sales-timeline";
 import { format } from "date-fns/format";
+import { MultiSelect } from "@/app/_components/ui/multi-select";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/app/_components/ui/button";
 import { Input } from "@/app/_components/ui/input";
@@ -53,6 +55,7 @@ interface CustomerDetailsDialogContentProps {
   categories: { id: string; name: string }[];
   stages: { id: string; name: string }[];
   onDelete?: (id: string) => void;
+  onUpdate?: (customer: any) => void;
 }
 
 export const CustomerDetailsDialogContent = ({
@@ -60,6 +63,7 @@ export const CustomerDetailsDialogContent = ({
   categories,
   stages,
   onDelete,
+  onUpdate,
 }: CustomerDetailsDialogContentProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -68,7 +72,7 @@ export const CustomerDetailsDialogContent = ({
     name: customer.name,
     email: customer.email || "",
     phone: customer.phone || "",
-    categoryId: customer.categoryId || "NONE",
+    categoryIds: customer.categories?.map((c: any) => c.id) || [],
     stageId: customer.stageId || "NONE",
     notes: customer.notes || "",
   });
@@ -78,8 +82,7 @@ export const CustomerDetailsDialogContent = ({
       const result = await upsertCustomer({
         id: customer.id,
         ...formData,
-        categoryId:
-          formData.categoryId === "NONE" ? undefined : formData.categoryId,
+        categoryIds: formData.categoryIds,
         stageId: formData.stageId === "NONE" ? undefined : formData.stageId,
       });
 
@@ -87,6 +90,15 @@ export const CustomerDetailsDialogContent = ({
         toast.error("Erro ao atualizar cliente.");
       } else {
         toast.success("Cliente atualizado!");
+        if (onUpdate) {
+          onUpdate({
+            ...customer,
+            ...formData,
+            categories: categories.filter((c) =>
+              formData.categoryIds.includes(c.id),
+            ),
+          });
+        }
         setIsEditing(false);
       }
     });
@@ -116,16 +128,6 @@ export const CustomerDetailsDialogContent = ({
             </DialogTitle>
           </DialogHeader>
           <div className="flex items-center gap-2">
-            {!isEditing && (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-8 w-8 p-0 text-red-500 hover:bg-red-50 hover:text-red-600"
-                onClick={() => setShowDeleteConfirm(true)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
             {!isEditing ? (
               <Button
                 size="sm"
@@ -207,26 +209,16 @@ export const CustomerDetailsDialogContent = ({
                   <div className="space-y-3">
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold uppercase text-slate-400">
-                        Categoria
+                        Categorias
                       </label>
-                      <Select
-                        value={formData.categoryId}
-                        onValueChange={(v) =>
-                          setFormData({ ...formData, categoryId: v })
+                      <MultiSelect
+                        options={categories}
+                        selected={formData.categoryIds}
+                        onChange={(ids) =>
+                          setFormData({ ...formData, categoryIds: ids })
                         }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Categoria" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="NONE">Nenhuma</SelectItem>
-                          {categories.map((c) => (
-                            <SelectItem key={c.id} value={c.id}>
-                              {c.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        placeholder="Categorias"
+                      />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold uppercase text-slate-400">
@@ -254,13 +246,24 @@ export const CustomerDetailsDialogContent = ({
                   </div>
                 ) : (
                   <div className="flex flex-wrap gap-2">
-                    {customer.category ? (
-                      <Badge
-                        variant="secondary"
-                        className="bg-slate-100 text-[10px] font-black uppercase text-slate-500"
-                      >
-                        {customer.category.name}
-                      </Badge>
+                    {customer.categories && customer.categories.length > 0 ? (
+                      customer.categories.map((c: any) => (
+                        <Badge
+                          key={c.id}
+                          variant="secondary"
+                          style={
+                            c.color
+                              ? {
+                                  backgroundColor: `${c.color}20`,
+                                  color: c.color,
+                                }
+                              : undefined
+                          }
+                          className="text-[10px] font-black uppercase"
+                        >
+                          {c.name}
+                        </Badge>
+                      ))
                     ) : (
                       <Badge
                         variant="outline"
@@ -336,6 +339,26 @@ export const CustomerDetailsDialogContent = ({
             </h3>
             <SalesTimeline sales={customer.sales || []} />
           </div>
+        </div>
+
+        <div className="sticky bottom-0 z-10 flex items-center justify-between border-t border-slate-100 bg-white/80 px-6 py-4 backdrop-blur-md">
+          <div>
+            {!isEditing && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 text-red-500 hover:bg-red-50 hover:text-red-600"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <DialogClose asChild>
+            <Button size="sm" variant="outline" className="border-slate-200">
+              Fechar
+            </Button>
+          </DialogClose>
         </div>
       </DialogContent>
 

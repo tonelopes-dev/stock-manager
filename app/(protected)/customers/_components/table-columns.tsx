@@ -40,14 +40,36 @@ export const customerTableColumns = (
     cell: ({ row: { original: customer } }) => customer.phone || "-",
   },
   {
-    accessorKey: "category",
-    header: "Categoria",
+    accessorKey: "categories",
+    header: "Categorias",
     cell: ({ row: { original: customer } }) => {
-      if (!customer.category) return "-";
+      if (!customer.categories || customer.categories.length === 0) return "-";
       return (
-        <Badge variant="outline" className="border-slate-200 text-slate-600">
-          {customer.category.name}
-        </Badge>
+        <div className="flex flex-wrap gap-1">
+          {customer.categories.slice(0, 1).map((category) => (
+            <Badge
+              key={category.id}
+              variant="outline"
+              style={
+                category.color
+                  ? {
+                      borderColor: `${category.color}40`,
+                      color: category.color,
+                      backgroundColor: `${category.color}10`,
+                    }
+                  : undefined
+              }
+              className="border-slate-200 text-slate-600"
+            >
+              {category.name}
+            </Badge>
+          ))}
+          {customer.categories.length > 1 && (
+            <Badge variant="secondary" className="bg-slate-100 text-slate-400">
+              +{customer.categories.length - 1}
+            </Badge>
+          )}
+        </div>
       );
     },
   },

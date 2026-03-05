@@ -9,8 +9,7 @@ export interface CustomerDto {
   name: string;
   email: string | null;
   phone: string | null;
-  categoryId: string | null;
-  category: { name: string } | null;
+  categories: { id: string; name: string; color: string | null }[];
   stageId: string | null;
   stage: { name: string } | null;
   source: string;
@@ -25,17 +24,27 @@ export interface CustomerDto {
   };
   totalSpent: number;
   lastSaleDate: Date | null;
+  sales: { 
+    totalAmount: number; 
+    date: Date;
+    products: { name: string; quantity: number }[];
+  }[];
 }
 
 export const getCustomers = async (
   categoryId?: string | "ALL",
   search?: string,
-): Promise<CustomerDto[]> => {
+  page: number = 1,
+  pageSize: number = 10,
+  minimal: boolean = false,
+): Promise<{ data: CustomerDto[]; total: number }> => {
   const companyId = await getCurrentCompanyId();
 
   const where: Prisma.CustomerWhereInput = {
     companyId,
-    ...(categoryId && categoryId !== "ALL" ? { categoryId } : {}),
+    ...(categoryId && categoryId !== "ALL"
+      ? { categories: { some: { id: categoryId } } }
+      : {}),
   };
 
   if (search) {
@@ -46,46 +55,66 @@ export const getCustomers = async (
     ];
   }
 
-  const customers = await db.customer.findMany({
-    where,
-    include: {
-      _count: {
-        select: {
-          sales: true,
+  const [customers, total] = await Promise.all([
+    db.customer.findMany({
+      where,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      include: {
+        _count: {
+          select: {
+            sales: true,
+          },
         },
-      },
-      category: {
-        select: { name: true },
-      },
-      stage: {
-        select: { name: true },
-      },
-      sales: {
-        where: { status: "ACTIVE" },
-        select: {
-          totalAmount: true,
-          date: true,
+        categories: {
+          select: { id: true, name: true, color: true },
         },
-        orderBy: { date: "desc" },
+        stage: {
+          select: { name: true },
+        },
+        ...(!minimal
+          ? {
+              sales: {
+                where: { status: "ACTIVE" },
+                include: {
+                  saleItems: {
+                    include: {
+                      product: {
+                        select: { name: true },
+                      },
+                    },
+                  },
+                },
+                orderBy: { date: "desc" },
+              },
+            }
+          : {}),
       },
-    },
-    orderBy: [{ stageId: "asc" }, { position: "asc" }, { createdAt: "desc" }],
-  });
+      orderBy: [
+        { stage: { order: "asc" } },
+        { position: "asc" },
+        { createdAt: "desc" },
+      ],
+    }),
+    db.customer.count({ where }),
+  ]);
 
-  return customers.map((customer) => {
-    const totalSpent = customer.sales.reduce(
-      (acc, sale) => acc + Number(sale.totalAmount),
+
+  const data = customers.map((customer: any) => {
+    const totalSpent = customer.sales?.reduce(
+      (acc: number, sale: any) => acc + Number(sale.totalAmount),
       0,
-    );
-    const lastSaleDate = customer.sales.length > 0 ? customer.sales[0].date : null;
+    ) || Number(customer.totalSpent ?? 0);
+
+    const lastSaleDate =
+      customer.sales && customer.sales.length > 0 ? (customer.sales[0] as any).date : null;
 
     return {
       id: customer.id,
       name: customer.name,
       email: customer.email,
       phone: customer.phone,
-      categoryId: customer.categoryId,
-      category: customer.category,
+      categories: customer.categories,
       stageId: customer.stageId,
       stage: customer.stage,
       source: customer.source,
@@ -98,6 +127,18 @@ export const getCustomers = async (
       _count: customer._count,
       totalSpent,
       lastSaleDate,
+      sales: customer.sales?.map((sale: any) => ({
+        totalAmount: Number(sale.totalAmount),
+        date: sale.date,
+        products: sale.saleItems?.map((item: any) => ({
+          name: item.product.name,
+          quantity: Number(item.quantity),
+        })) || [],
+      })) || [],
     };
   });
+
+
+
+  return { data, total };
 };
