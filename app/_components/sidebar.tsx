@@ -99,7 +99,7 @@ const Sidebar = async () => {
 
       <div className="mt-auto flex flex-col gap-4 p-4">
         {/* SUBSCRIPTION PANEL */}
-        {isOwner && (
+        {isOwner && subscriptionStatus !== "ACTIVE" && (
           <SubscriptionPanel
             status={subscriptionStatus}
             periodEnd={stripeCurrentPeriodEnd}

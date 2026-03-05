@@ -36,6 +36,7 @@ export const getCustomers = async (
   search?: string,
   page: number = 1,
   pageSize: number = 10,
+  minimal: boolean = false,
 ): Promise<{ data: CustomerDto[]; total: number }> => {
   const companyId = await getCurrentCompanyId();
 
@@ -71,19 +72,23 @@ export const getCustomers = async (
         stage: {
           select: { name: true },
         },
-        sales: {
-          where: { status: "ACTIVE" },
-          include: {
-            saleItems: {
-              include: {
-                product: {
-                  select: { name: true },
+        ...(!minimal
+          ? {
+              sales: {
+                where: { status: "ACTIVE" },
+                include: {
+                  saleItems: {
+                    include: {
+                      product: {
+                        select: { name: true },
+                      },
+                    },
+                  },
                 },
+                orderBy: { date: "desc" },
               },
-            },
-          },
-          orderBy: { date: "desc" },
-        },
+            }
+          : {}),
       },
       orderBy: [
         { stage: { order: "asc" } },
@@ -94,13 +99,15 @@ export const getCustomers = async (
     db.customer.count({ where }),
   ]);
 
-  const data = customers.map((customer) => {
-    const totalSpent = customer.sales.reduce(
-      (acc, sale) => acc + Number(sale.totalAmount),
+
+  const data = customers.map((customer: any) => {
+    const totalSpent = customer.sales?.reduce(
+      (acc: number, sale: any) => acc + Number(sale.totalAmount),
       0,
-    );
+    ) || Number(customer.totalSpent ?? 0);
+
     const lastSaleDate =
-      customer.sales.length > 0 ? customer.sales[0].date : null;
+      customer.sales && customer.sales.length > 0 ? (customer.sales[0] as any).date : null;
 
     return {
       id: customer.id,
@@ -120,16 +127,18 @@ export const getCustomers = async (
       _count: customer._count,
       totalSpent,
       lastSaleDate,
-      sales: customer.sales.map((sale) => ({
+      sales: customer.sales?.map((sale: any) => ({
         totalAmount: Number(sale.totalAmount),
         date: sale.date,
-        products: sale.saleItems.map((item) => ({
+        products: sale.saleItems?.map((item: any) => ({
           name: item.product.name,
           quantity: Number(item.quantity),
-        })),
-      })),
+        })) || [],
+      })) || [],
     };
   });
+
+
 
   return { data, total };
 };

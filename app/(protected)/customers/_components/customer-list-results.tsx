@@ -28,6 +28,7 @@ export const CustomerListResults = async ({
     search,
     isTable ? page : 1,
     isTable ? pageSize : 1000,
+    !isTable,
   );
 
   const role = await getCurrentUserRole();
