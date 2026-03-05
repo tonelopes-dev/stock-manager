@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 const CustomersPage = async ({ searchParams }: CustomersPageProps) => {
   const resolvedSearchParams = await searchParams;
   const categoryId = resolvedSearchParams?.category || "ALL";
-  const view = resolvedSearchParams?.view || "table";
+  const view = resolvedSearchParams?.view || "kanban";
   const search = resolvedSearchParams?.search || "";
   const page = Number(resolvedSearchParams?.page) || 1;
   const pageSize = Number(resolvedSearchParams?.pageSize) || 10;

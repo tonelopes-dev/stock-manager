@@ -271,6 +271,24 @@ export const KanbanBoard = ({
             customer={viewingCustomer}
             categories={categories}
             stages={stages}
+            onUpdate={(updatedCustomer) => {
+              setColumnMap((prev) => {
+                const newMap = { ...prev };
+                // Remove from any column it might be in
+                for (const stageId in newMap) {
+                  newMap[stageId] = newMap[stageId].filter(
+                    (c) => c.id !== updatedCustomer.id,
+                  );
+                }
+                // Add to the correct column
+                const stageId = updatedCustomer.stageId || "NONE";
+                if (newMap[stageId]) {
+                  newMap[stageId].push(updatedCustomer);
+                }
+                return newMap;
+              });
+              setViewingCustomer(updatedCustomer);
+            }}
             onDelete={(customerId) => {
               // Optimistic delete in local map
               setColumnMap((prev) => {

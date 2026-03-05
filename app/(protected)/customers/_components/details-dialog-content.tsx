@@ -55,6 +55,7 @@ interface CustomerDetailsDialogContentProps {
   categories: { id: string; name: string }[];
   stages: { id: string; name: string }[];
   onDelete?: (id: string) => void;
+  onUpdate?: (customer: any) => void;
 }
 
 export const CustomerDetailsDialogContent = ({
@@ -62,6 +63,7 @@ export const CustomerDetailsDialogContent = ({
   categories,
   stages,
   onDelete,
+  onUpdate,
 }: CustomerDetailsDialogContentProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -88,6 +90,15 @@ export const CustomerDetailsDialogContent = ({
         toast.error("Erro ao atualizar cliente.");
       } else {
         toast.success("Cliente atualizado!");
+        if (onUpdate) {
+          onUpdate({
+            ...customer,
+            ...formData,
+            categories: categories.filter((c) =>
+              formData.categoryIds.includes(c.id),
+            ),
+          });
+        }
         setIsEditing(false);
       }
     });

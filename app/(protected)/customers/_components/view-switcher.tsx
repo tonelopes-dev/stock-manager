@@ -14,7 +14,7 @@ export const CustomerViewSwitcher = ({
 }: CustomerViewSwitcherProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentView = searchParams.get("view") || "table";
+  const currentView = searchParams.get("view") || "kanban";
 
   const handleViewChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());

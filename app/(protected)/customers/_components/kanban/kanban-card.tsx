@@ -12,6 +12,7 @@ interface KanbanCardProps {
     id: string;
     name: string;
     totalSpent: number;
+    notes: string | null;
     categories?: { id: string; name: string; color: string | null }[];
     sales?: any[];
   };
@@ -64,6 +65,12 @@ export const KanbanCard = memo(({ customer, onClick }: KanbanCardProps) => {
             {customer.name}
           </span>
         </div>
+
+        {customer.notes && (
+          <p className="line-clamp-2 text-[10px] italic leading-tight text-slate-500">
+            {customer.notes}
+          </p>
+        )}
 
         <div className="flex flex-wrap gap-1">
           {customer.categories &&
