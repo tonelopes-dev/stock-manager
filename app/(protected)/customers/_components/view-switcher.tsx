@@ -3,8 +3,15 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 import { LayoutList, LayoutDashboard } from "lucide-react";
+import { TransitionStartFunction } from "react";
 
-export const CustomerViewSwitcher = () => {
+interface CustomerViewSwitcherProps {
+  startTransition: TransitionStartFunction;
+}
+
+export const CustomerViewSwitcher = ({
+  startTransition,
+}: CustomerViewSwitcherProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentView = searchParams.get("view") || "table";
@@ -12,7 +19,10 @@ export const CustomerViewSwitcher = () => {
   const handleViewChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("view", value);
-    router.push(`/customers?${params.toString()}`);
+
+    startTransition(() => {
+      router.push(`/customers?${params.toString()}`);
+    });
   };
 
   return (

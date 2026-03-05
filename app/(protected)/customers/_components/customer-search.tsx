@@ -3,15 +3,22 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/app/_components/ui/input";
 import { SearchIcon, XIcon } from "lucide-react";
-import { useTransition, useEffect, useState } from "react";
+import { TransitionStartFunction, useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
 
-export const CustomerSearch = () => {
+interface CustomerSearchProps {
+  startTransition: TransitionStartFunction;
+  isPending: boolean;
+}
+
+export const CustomerSearch = ({
+  startTransition,
+  isPending,
+}: CustomerSearchProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [text, setText] = useState(searchParams.get("search") || "");
-  const [query] = useDebounce(text, 500);
-  const [isPending, startTransition] = useTransition();
+  const [query] = useDebounce(text, 300);
 
   useEffect(() => {
     const currentSearch = searchParams.get("search") || "";
@@ -27,7 +34,9 @@ export const CustomerSearch = () => {
     startTransition(() => {
       router.push(`/customers?${params.toString()}`, { scroll: false });
     });
-  }, [query, router, searchParams]);
+  }, [query, router, searchParams, startTransition]);
+
+  /* Removed sync effect that was causing loops. Input state is now primarily controlled by the user. */
 
   return (
     <div className="relative w-[300px]">

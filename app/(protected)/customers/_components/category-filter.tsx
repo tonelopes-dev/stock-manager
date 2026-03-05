@@ -8,13 +8,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/_components/ui/select";
+import { TransitionStartFunction } from "react";
 
 interface CustomerCategoryFilterProps {
   categories: { id: string; name: string }[];
+  startTransition: TransitionStartFunction;
 }
 
 export const CustomerCategoryFilter = ({
   categories,
+  startTransition,
 }: CustomerCategoryFilterProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -27,7 +30,10 @@ export const CustomerCategoryFilter = ({
     } else {
       params.set("category", value);
     }
-    router.push(`/customers?${params.toString()}`, { scroll: false });
+
+    startTransition(() => {
+      router.push(`/customers?${params.toString()}`, { scroll: false });
+    });
   };
 
   return (

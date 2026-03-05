@@ -29,7 +29,9 @@ export interface CustomerDto {
 export const getCustomers = async (
   categoryId?: string | "ALL",
   search?: string,
-): Promise<CustomerDto[]> => {
+  page: number = 1,
+  pageSize: number = 10,
+): Promise<{ data: CustomerDto[]; total: number }> => {
   const companyId = await getCurrentCompanyId();
 
   const where: Prisma.CustomerWhereInput = {
@@ -47,42 +49,48 @@ export const getCustomers = async (
     ];
   }
 
-  const customers = await db.customer.findMany({
-    where,
-    include: {
-      _count: {
-        select: {
-          sales: true,
+  const [customers, total] = await Promise.all([
+    db.customer.findMany({
+      where,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      include: {
+        _count: {
+          select: {
+            sales: true,
+          },
+        },
+        categories: {
+          select: { id: true, name: true, color: true },
+        },
+        stage: {
+          select: { name: true },
+        },
+        sales: {
+          where: { status: "ACTIVE" },
+          select: {
+            totalAmount: true,
+            date: true,
+          },
+          orderBy: { date: "desc" },
         },
       },
-      categories: {
-        select: { id: true, name: true, color: true },
-      },
-      stage: {
-        select: { name: true },
-      },
-      sales: {
-        where: { status: "ACTIVE" },
-        select: {
-          totalAmount: true,
-          date: true,
-        },
-        orderBy: { date: "desc" },
-      },
-    },
-    orderBy: [
-      { stage: { order: "asc" } },
-      { position: "asc" },
-      { createdAt: "desc" },
-    ],
-  });
+      orderBy: [
+        { stage: { order: "asc" } },
+        { position: "asc" },
+        { createdAt: "desc" },
+      ],
+    }),
+    db.customer.count({ where }),
+  ]);
 
-  return customers.map((customer) => {
+  const data = customers.map((customer) => {
     const totalSpent = customer.sales.reduce(
       (acc, sale) => acc + Number(sale.totalAmount),
       0,
     );
-    const lastSaleDate = customer.sales.length > 0 ? customer.sales[0].date : null;
+    const lastSaleDate =
+      customer.sales.length > 0 ? customer.sales[0].date : null;
 
     return {
       id: customer.id,
@@ -104,4 +112,6 @@ export const getCustomers = async (
       lastSaleDate,
     };
   });
+
+  return { data, total };
 };
