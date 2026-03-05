@@ -9,6 +9,7 @@ interface SalesTimelineProps {
   sales: {
     totalAmount: number;
     date: Date;
+    products: { name: string; quantity: number }[];
   }[];
 }
 
@@ -40,7 +41,19 @@ export const SalesTimeline = ({ sales }: SalesTimelineProps) => {
               </span>
             </div>
 
-            <div className="flex items-center gap-2 text-[10px] font-bold uppercase text-slate-400">
+            <div className="flex flex-wrap gap-x-2 gap-y-1">
+              {sale.products.map((product, pIndex) => (
+                <span
+                  key={pIndex}
+                  className="text-[10px] font-bold text-slate-500"
+                >
+                  {product.quantity}x {product.name}
+                  {pIndex < sale.products.length - 1 && ","}
+                </span>
+              ))}
+            </div>
+
+            <div className="mt-1 flex items-center gap-2 text-[10px] font-bold uppercase text-slate-400">
               <Calendar className="h-3 w-3" />
               {format(new Date(sale.date), "dd 'de' MMMM 'de' yyyy", {
                 locale: ptBR,

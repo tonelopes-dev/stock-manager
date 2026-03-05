@@ -60,7 +60,7 @@ export const KanbanCard = memo(({ customer, onClick }: KanbanCardProps) => {
     >
       <CardContent className="space-y-2 p-3">
         <div className="flex items-start justify-between">
-          <span className="line-clamp-1 text-sm font-black uppercase italic tracking-tighter text-slate-800">
+          <span className="line-clamp-1 pr-1 text-sm font-black uppercase italic tracking-tighter text-slate-800">
             {customer.name}
           </span>
         </div>

@@ -24,6 +24,11 @@ export interface CustomerDto {
   };
   totalSpent: number;
   lastSaleDate: Date | null;
+  sales: { 
+    totalAmount: number; 
+    date: Date;
+    products: { name: string; quantity: number }[];
+  }[];
 }
 
 export const getCustomers = async (
@@ -68,9 +73,14 @@ export const getCustomers = async (
         },
         sales: {
           where: { status: "ACTIVE" },
-          select: {
-            totalAmount: true,
-            date: true,
+          include: {
+            saleItems: {
+              include: {
+                product: {
+                  select: { name: true },
+                },
+              },
+            },
           },
           orderBy: { date: "desc" },
         },
@@ -110,6 +120,14 @@ export const getCustomers = async (
       _count: customer._count,
       totalSpent,
       lastSaleDate,
+      sales: customer.sales.map((sale) => ({
+        totalAmount: Number(sale.totalAmount),
+        date: sale.date,
+        products: sale.saleItems.map((item) => ({
+          name: item.product.name,
+          quantity: Number(item.quantity),
+        })),
+      })),
     };
   });
 
