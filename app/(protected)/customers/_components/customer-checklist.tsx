@@ -525,12 +525,21 @@ export const CustomerChecklist = ({
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 font-bold uppercase italic tracking-tighter hover:bg-red-700"
-              onClick={() =>
+              onClick={(e) => {
+                e.preventDefault();
                 deletingChecklistId &&
-                handleDeleteChecklist(deletingChecklistId)
-              }
+                  handleDeleteChecklist(deletingChecklistId);
+              }}
+              disabled={isPending}
             >
-              Excluir permanentemente
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                "Excluir permanentemente"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -551,9 +560,20 @@ export const CustomerChecklist = ({
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 font-bold uppercase italic tracking-tighter hover:bg-red-700"
-              onClick={() => deletingItemId && handleDeleteItem(deletingItemId)}
+              onClick={(e) => {
+                e.preventDefault();
+                deletingItemId && handleDeleteItem(deletingItemId);
+              }}
+              disabled={isPending}
             >
-              Excluir
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                "Excluir"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
