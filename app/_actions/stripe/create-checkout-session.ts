@@ -53,7 +53,7 @@ export const createCheckoutSession = actionClient.action(async () => {
     customer: customerId,
     payment_method_types: ["card", "boleto"],
     tax_id_collection: { enabled: true },
-    customer_update: { name: "auto" },
+    customer_update: { name: "auto", address: "auto" },
     line_items: [
       {
         price: process.env.STRIPE_PRO_PRICE_ID,
