@@ -27,6 +27,20 @@ const deleteChecklistSchema = z.object({
   id: z.string(),
 });
 
+const createItemSchema = z.object({
+  checklistId: z.string(),
+  title: z.string().min(1, "O título é obrigatório"),
+});
+
+const updateItemTitleSchema = z.object({
+  id: z.string(),
+  title: z.string().min(1, "O título é obrigatório"),
+});
+
+const deleteItemSchema = z.object({
+  id: z.string(),
+});
+
 // ACTIONS
 export const toggleChecklistItem = actionClient
   .schema(toggleItemSchema)
@@ -100,6 +114,59 @@ export const deleteChecklist = actionClient
     await assertRole(ALL_ROLES);
 
     await db.checklist.delete({
+      where: { id, companyId },
+    });
+
+    revalidatePath("/customers");
+  });
+
+export const createChecklistItem = actionClient
+  .schema(createItemSchema)
+  .action(async ({ parsedInput: { checklistId, title } }) => {
+    const companyId = await getCurrentCompanyId();
+    await assertRole(ALL_ROLES);
+
+    // Get the last order position
+    const lastItem = await db.checklistItem.findFirst({
+      where: { checklistId, companyId },
+      orderBy: { order: "desc" },
+    });
+
+    const order = lastItem ? lastItem.order + 1 : 0;
+
+    await db.checklistItem.create({
+      data: {
+        checklistId,
+        title,
+        order,
+        companyId,
+      },
+    });
+
+    revalidatePath("/customers");
+  });
+
+export const updateChecklistItemTitle = actionClient
+  .schema(updateItemTitleSchema)
+  .action(async ({ parsedInput: { id, title } }) => {
+    const companyId = await getCurrentCompanyId();
+    await assertRole(ALL_ROLES);
+
+    await db.checklistItem.update({
+      where: { id, companyId },
+      data: { title },
+    });
+
+    revalidatePath("/customers");
+  });
+
+export const deleteChecklistItem = actionClient
+  .schema(deleteItemSchema)
+  .action(async ({ parsedInput: { id } }) => {
+    const companyId = await getCurrentCompanyId();
+    await assertRole(ALL_ROLES);
+
+    await db.checklistItem.delete({
       where: { id, companyId },
     });
 

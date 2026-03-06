@@ -495,6 +495,7 @@ export const CustomerDetailsDialogContent = ({
               customerId={customer.id}
               checklists={fullCustomer.checklists || []}
               templates={checklistTemplates}
+              refreshData={fetchFullCustomer}
             />
           </div>
 
