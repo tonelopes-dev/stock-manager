@@ -79,7 +79,7 @@ export const getStockMovements = async (
     quantity: Number(m.quantityDecimal ?? 0),
     reason: m.reason,
     createdAt: m.createdAt,
-    user: m.user,
+    user: m.user || { name: "Usuário Removido", email: "" },
     product: m.product,
     ingredient: m.ingredient,
   }));

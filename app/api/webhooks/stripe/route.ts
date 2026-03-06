@@ -118,6 +118,9 @@ async function syncSubscription(subscription: Stripe.Subscription) {
     stripePriceId: priceId,
     stripeCurrentPeriodEnd: currentPeriodEnd,
     plan,
+    // Clear boleto flags if the subscription is now active/trialing
+    isBoletoPending: false,
+    stripeInvoiceUrl: null,
   };
 
   await db.company.update({
@@ -215,13 +218,54 @@ export async function POST(req: Request) {
         break;
       }
 
-      case "invoice.payment_failed": {
+      case "invoice.payment_failed":
+      case "invoice.voided": {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const invoice = event.data.object as any;
         const subId: string | null = invoice.subscription ?? null;
+
+        // Clear boleto flags on failure/void
+        const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+        if (customerId) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const clearBoleto: any = {
+            isBoletoPending: false,
+            stripeInvoiceUrl: null,
+          };
+          await db.company.updateMany({
+            where: { stripeCustomerId: customerId },
+            data: clearBoleto,
+          });
+        }
+
         if (subId) {
           const subscription = await stripe.subscriptions.retrieve(subId);
-          await syncSubscription(subscription); // Will set PAST_DUE
+          await syncSubscription(subscription); // Will set PAST_DUE or keep status
+        }
+        break;
+      }
+
+      case "invoice.payment_action_required": {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const invoice = event.data.object as any;
+        if (invoice.subscription) {
+          const subId = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription.id;
+          const company = await db.company.findUnique({
+            where: { stripeSubscriptionId: subId },
+          });
+
+          if (company) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const companyUpdate: any = {
+              isBoletoPending: true,
+              stripeInvoiceUrl: invoice.hosted_invoice_url,
+            };
+            await db.company.update({
+              where: { id: company.id },
+              data: companyUpdate,
+            });
+            console.log(`[Webhook] 🧾 Boleto generated for company ${company.id}`);
+          }
         }
         break;
       }

@@ -19,9 +19,16 @@ import { CheckIcon, CalendarIcon, ShieldCheckIcon } from "lucide-react";
 import { Badge } from "@/app/_components/ui/badge";
 
 const PlansPage = async () => {
-  const { subscriptionStatus, stripeCurrentPeriodEnd } = await getCompanyPlan();
-  const uiState = getSubscriptionUIState(subscriptionStatus, stripeCurrentPeriodEnd);
-
+  const {
+    subscriptionStatus,
+    stripeCurrentPeriodEnd,
+    isBoletoPending,
+    stripeInvoiceUrl,
+  } = await getCompanyPlan();
+  const uiState = getSubscriptionUIState(
+    subscriptionStatus,
+    stripeCurrentPeriodEnd,
+  );
 
   const features = [
     "Produtos ilimitados (Sem restrições)",
@@ -50,54 +57,71 @@ const PlansPage = async () => {
             <SubscriptionStatus subscriptionStatus={subscriptionStatus} />
           </div>
         </HeaderLeft>
-
       </Header>
 
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
         {/* CARD PRINCIPAL DE STATUS */}
-        <Card className="flex-1 shadow-md border-2 border-primary/10">
+        <Card className="flex-1 border-2 border-primary/10 shadow-md">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-2xl font-bold">{uiState.statusLabel}</CardTitle>
-                <CardDescription className="mt-1">{uiState.description}</CardDescription>
+                <CardTitle className="text-2xl font-bold">
+                  {uiState.statusLabel}
+                </CardTitle>
+                <CardDescription className="mt-1">
+                  {uiState.description}
+                </CardDescription>
               </div>
-              <Badge variant={uiState.severity === "success" ? "default" : "secondary"}>
+              <Badge
+                variant={
+                  uiState.severity === "success" ? "default" : "secondary"
+                }
+              >
                 {subscriptionStatus || "FREE"}
               </Badge>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex flex-col gap-4 rounded-lg bg-gray-50 p-4 border border-gray-100">
+            <div className="flex flex-col gap-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
               <div className="flex items-center gap-3">
-                <div className={`rounded-full p-2 bg-white shadow-sm ${severityColors[uiState.severity]}`}>
-                   <CalendarIcon size={18} />
+                <div
+                  className={`rounded-full bg-white p-2 shadow-sm ${severityColors[uiState.severity]}`}
+                >
+                  <CalendarIcon size={18} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-gray-500 uppercase">Período atual</p>
+                  <p className="text-xs font-bold uppercase text-gray-500">
+                    Período atual
+                  </p>
                   <p className="text-sm font-semibold">
-                    {stripeCurrentPeriodEnd 
-                      ? `Até ${new Date(stripeCurrentPeriodEnd).toLocaleDateString()}` 
+                    {stripeCurrentPeriodEnd
+                      ? `Até ${new Date(stripeCurrentPeriodEnd).toLocaleDateString()}`
                       : "Sem período ativo"}
                   </p>
                 </div>
               </div>
 
               {subscriptionStatus === "ACTIVE" && (
-                 <div className="flex items-center gap-3">
-                    <div className="rounded-full p-2 bg-white shadow-sm text-green-600">
-                        <ShieldCheckIcon size={18} />
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold text-gray-500 uppercase">Benefícios</p>
-                        <p className="text-sm font-semibold text-green-700">Acesso Pro Desbloqueado</p>
-                    </div>
-                 </div>
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-white p-2 text-green-600 shadow-sm">
+                    <ShieldCheckIcon size={18} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase text-gray-500">
+                      Benefícios
+                    </p>
+                    <p className="text-sm font-semibold text-green-700">
+                      Acesso Pro Desbloqueado
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
 
             <div className="space-y-3">
-              <p className="text-sm font-bold text-gray-700 uppercase tracking-tight">O que está incluído:</p>
+              <p className="text-sm font-bold uppercase tracking-tight text-gray-700">
+                O que está incluído:
+              </p>
               <ul className="grid grid-cols-1 gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
                 {features.map((feature) => (
                   <li key={feature} className="flex items-center gap-2">
@@ -108,32 +132,41 @@ const PlansPage = async () => {
               </ul>
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col gap-3 py-6 bg-gray-50/50">
-             <PlanActions 
-                planName="Pro" 
-                isPro={subscriptionStatus === "ACTIVE"} 
-                isCurrent={subscriptionStatus === "ACTIVE"} 
-                actionLabel={uiState.primaryCTA.label}
-              />
-              {uiState.secondaryCTA && (
-                <p className="text-[10px] text-center text-gray-400 font-medium">
-                   Deseja cancelar? Você pode gerenciar sua assinatura no <span className="font-bold underline cursor-pointer">Portal do Cliente</span>.
-                </p>
-              )}
+          <CardFooter className="flex flex-col gap-3 bg-gray-50/50 py-6">
+            <PlanActions
+              planName="Pro"
+              isPro={subscriptionStatus === "ACTIVE"}
+              isCurrent={subscriptionStatus === "ACTIVE"}
+              actionLabel={uiState.primaryCTA.label}
+              externalLink={isBoletoPending ? stripeInvoiceUrl : null}
+              externalLabel="Visualizar Boleto"
+            />
+            {uiState.secondaryCTA && (
+              <p className="text-center text-[10px] font-medium text-gray-400">
+                Deseja cancelar? Você pode gerenciar sua assinatura no{" "}
+                <span className="cursor-pointer font-bold underline">
+                  Portal do Cliente
+                </span>
+                .
+              </p>
+            )}
           </CardFooter>
         </Card>
 
         {/* INFO ADICIONAL (Opcional) */}
-        <div className="w-full lg:w-80 space-y-4">
-           <div className="rounded-xl border bg-white p-6 shadow-sm">
-             <h3 className="font-bold text-gray-900 mb-2">Dúvidas sobre faturamento?</h3>
-             <p className="text-sm text-gray-500 mb-4">
-               Nosso sistema utiliza o Stripe para pagamentos seguros. Você pode atualizar seu cartão ou baixar faturas a qualquer momento.
-             </p>
-             <button className="text-sm font-bold text-primary hover:underline">
-               Falar com suporte
-             </button>
-           </div>
+        <div className="w-full space-y-4 lg:w-80">
+          <div className="rounded-xl border bg-white p-6 shadow-sm">
+            <h3 className="mb-2 font-bold text-gray-900">
+              Dúvidas sobre faturamento?
+            </h3>
+            <p className="mb-4 text-sm text-gray-500">
+              Nosso sistema utiliza o Stripe para pagamentos seguros. Você pode
+              atualizar seu cartão ou baixar faturas a qualquer momento.
+            </p>
+            <button className="text-sm font-bold text-primary hover:underline">
+              Falar com suporte
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -141,4 +174,3 @@ const PlansPage = async () => {
 };
 
 export default PlansPage;
-

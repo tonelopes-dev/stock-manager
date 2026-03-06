@@ -15,9 +15,19 @@ interface PlanActionsProps {
   isCurrent: boolean;
   actionLabel: string;
   externalProcessing?: boolean;
+  externalLink?: string | null;
+  externalLabel?: string;
 }
 
-const PlanActions = ({ planName, isPro, isCurrent, actionLabel, externalProcessing }: PlanActionsProps) => {
+const PlanActions = ({
+  planName,
+  isPro,
+  isCurrent,
+  actionLabel,
+  externalProcessing,
+  externalLink,
+  externalLabel,
+}: PlanActionsProps) => {
   const searchParams = useSearchParams();
   const isRedirectingSuccess = searchParams.get("success") === "true";
   const checkoutAction = useAction(createCheckoutSession, {
@@ -45,6 +55,11 @@ const PlanActions = ({ planName, isPro, isCurrent, actionLabel, externalProcessi
   });
 
   const handleAction = () => {
+    if (externalLink) {
+      window.location.href = externalLink;
+      return;
+    }
+
     if (planName === "Pro") {
       if (isPro) {
         portalAction.execute();
@@ -54,13 +69,13 @@ const PlanActions = ({ planName, isPro, isCurrent, actionLabel, externalProcessi
     }
   };
 
-  const isLoading = 
-    checkoutAction.status === "executing" || 
+  const isLoading =
+    checkoutAction.status === "executing" ||
     portalAction.status === "executing" ||
     externalProcessing ||
     (isRedirectingSuccess && !isPro);
 
-  if (isCurrent && planName === "Free") {
+  if (isCurrent && planName === "Free" && !externalLink) {
     return (
       <Button className="w-full" disabled variant="outline">
         {actionLabel}
@@ -69,15 +84,27 @@ const PlanActions = ({ planName, isPro, isCurrent, actionLabel, externalProcessi
   }
 
   return (
-    <Button
-      className="w-full"
-      variant={planName === "Pro" ? "default" : "outline"}
-      onClick={handleAction}
-      disabled={isLoading || (isCurrent && planName === "Free")}
-    >
-      {isLoading && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
-      {isRedirectingSuccess ? "Processando..." : actionLabel}
-    </Button>
+    <div className="flex w-full flex-col gap-2">
+      {externalLink && (
+        <Button
+          className="w-full bg-amber-600 font-bold text-white hover:bg-amber-700"
+          onClick={() => (window.location.href = externalLink)}
+        >
+          {externalLabel || "Visualizar Boleto"}
+        </Button>
+      )}
+      <Button
+        className="w-full"
+        variant={planName === "Pro" ? "default" : "outline"}
+        onClick={handleAction}
+        disabled={
+          isLoading || (isCurrent && planName === "Free" && !externalLink)
+        }
+      >
+        {isLoading && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
+        {isRedirectingSuccess ? "Processando..." : actionLabel}
+      </Button>
+    </div>
   );
 };
 

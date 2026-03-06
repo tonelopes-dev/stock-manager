@@ -1,51 +1,40 @@
-⚠ Invalid next.config.mjs options detected: 
-⚠     Unrecognized key(s) in object: 'turbo' at "experimental"
-⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
-⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
- We detected multiple lockfiles and selected the directory of C:\Projetos\package-lock.json as the root directory.
- To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
-   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
- Detected additional lockfiles: 
-   * C:\Projetos\stock-manager\package-lock.json
 
+> stocky@1.4.0 build
+> prisma generate && prisma migrate deploy && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+
+✔ Generated Prisma Client (v5.19.1) to .\node_modules\@prisma\client in 338ms
+
+Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
+
+Tip: Easily identify and fix slow SQL queries in your app. Optimize helps you enhance your visibility: https://pris.ly/--optimize
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": PostgreSQL database "stocklydb", schema "public" at "ep-orange-wind-acur347n.sa-east-1.aws.neon.tech"
+
+34 migrations found in prisma/migrations
+
+
+No pending migrations to apply.
 ▲ Next.js 16.1.6 (Turbopack)
-- Environments: .env
-- Experiments (use with caution):
-  ? turbo (invalid experimental key)
+- Environments: .env.local, .env
 
   Creating an optimized production build ...
+✓ Compiled successfully in 10.7s
+  Running TypeScript ...
+Failed to compile.
 
-> Build error occurred
-Error: Turbopack build failed with 1 errors:
-./stock-manager/app/_actions/ingredient/adjust-ingredient-stock/index.ts:1:10
-Ecmascript file had an error
-[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { revalidatePath } [36mfrom[39m [32m"next/cache"[39m[33m;[39m
- [90m   |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
- [90m 2 |[39m [36mimport[39m { adjustIngredientStockSchema } [36mfrom[39m [32m"./schema"[39m[33m;[39m
- [90m 3 |[39m [36mimport[39m { actionClient } [36mfrom[39m [32m"@/app/_lib/safe-action"[39m[33m;[39m
- [90m 4 |[39m [36mimport[39m { getCurrentCompanyId } [36mfrom[39m [32m"@/app/_lib/get-current-company"[39m[33m;[39m[0m
+./app/(protected)/layout.tsx:29:31
+Type error: Property 'stripeCurrentPeriodEnd' does not exist on type '{ id: string; name: string; plan: string; allowNegativeStock: boolean; createdAt: Date; stripeCustomerId: string | null; stripeSubscriptionId: string | null; subscriptionStatus: SubscriptionStatus | null; stripeInvoiceUrl: string | null; isBoletoPending: boolean; deletedAt: Date | null; }'.
 
-You're importing a component that needs "revalidatePath". That only works in a Server Component but one of its parents is marked with "use client", so it's a Client Component.
-Learn more: https://nextjs.org/docs/app/building-your-application/rendering
-
-
-
-Import traces:
-  Client Component Browser:
-    ./stock-manager/app/_actions/ingredient/adjust-ingredient-stock/index.ts [Client Component Browser]
-    ./stock-manager/app/(protected)/ingredients/_components/adjust-stock-dialog-content.tsx [Client Component Browser]
-    ./stock-manager/app/(protected)/ingredients/_components/table-dropdown-menu.tsx [Client Component Browser]
-    ./stock-manager/app/(protected)/ingredients/_components/table-columns.tsx [Client Component Browser]
-    ./stock-manager/app/(protected)/ingredients/_components/table-columns.tsx [Server Component]
-    ./stock-manager/app/(protected)/ingredients/page.tsx [Server Component]
-
-  Client Component SSR:
-    ./stock-manager/app/_actions/ingredient/adjust-ingredient-stock/index.ts [Client Component SSR]
-    ./stock-manager/app/(protected)/ingredients/_components/adjust-stock-dialog-content.tsx [Client Component SSR]
-    ./stock-manager/app/(protected)/ingredients/_components/table-dropdown-menu.tsx [Client Component SSR]
-    ./stock-manager/app/(protected)/ingredients/_components/table-columns.tsx [Client Component SSR]
-    ./stock-manager/app/(protected)/ingredients/_components/table-columns.tsx [Server Component]
-    ./stock-manager/app/(protected)/ingredients/page.tsx [Server Component]
-
-
-    at <unknown> (./stock-manager/app/_actions/ingredient/adjust-ingredient-stock/index.ts:1:10)
+[0m [90m 27 |[39m
+ [90m 28 |[39m   [90m// Subscription & Trial Info[39m
+[31m[1m>[22m[39m[90m 29 |[39m   [36mconst[39m { subscriptionStatus[33m,[39m stripeCurrentPeriodEnd } [33m=[39m [36mawait[39m getCompanyPlan()[33m;[39m
+ [90m    |[39m                               [31m[1m^[22m[39m
+ [90m 30 |[39m   [36mconst[39m resolvedHeaders [33m=[39m [36mawait[39m headers()[33m;[39m
+ [90m 31 |[39m   [36mconst[39m pathname [33m=[39m resolvedHeaders[33m.[39m[36mget[39m([32m"x-pathname"[39m) [33m||[39m [32m""[39m[33m;[39m
+ [90m 32 |[39m[0m
+Next.js build worker exited with code: 1 and signal: null

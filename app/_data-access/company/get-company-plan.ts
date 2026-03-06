@@ -10,6 +10,8 @@ export const getCompanyPlan = async () => {
       stripeSubscriptionId: true,
       stripeCurrentPeriodEnd: true,
       subscriptionStatus: true,
+      stripeInvoiceUrl: true,
+      isBoletoPending: true,
     },
 
   });
