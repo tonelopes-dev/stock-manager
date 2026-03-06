@@ -9,7 +9,14 @@ import {
   DialogTrigger,
 } from "@/app/_components/ui/dialog";
 import { Button } from "@/app/_components/ui/button";
-import { Settings2, Plus, Pencil, Trash2, GripVertical } from "lucide-react";
+import {
+  Settings2,
+  Plus,
+  Pencil,
+  Trash2,
+  GripVertical,
+  Loader2,
+} from "lucide-react";
 import {
   Tabs,
   TabsContent,
@@ -215,7 +222,7 @@ export const CRMConfigModal = ({ categories, stages }: CRMConfigModalProps) => {
                 Cancelar
               </Button>
               <Button
-                className="flex-1"
+                className="flex-1 gap-1.5"
                 disabled={!migrationDestinationId || isPending}
                 onClick={() => {
                   if (migrationData.type === "category") {
@@ -228,6 +235,7 @@ export const CRMConfigModal = ({ categories, stages }: CRMConfigModalProps) => {
                   }
                 }}
               >
+                {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 {isPending ? "Processando..." : "Migrar e Excluir"}
               </Button>
             </div>
@@ -252,7 +260,11 @@ export const CRMConfigModal = ({ categories, stages }: CRMConfigModalProps) => {
                   onClick={handleAddCategory}
                   disabled={isPending}
                 >
-                  <Plus className="h-4 w-4" />
+                  {isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
               <div className="max-h-[300px] space-y-2 overflow-auto pr-2">
@@ -271,8 +283,13 @@ export const CRMConfigModal = ({ categories, stages }: CRMConfigModalProps) => {
                         <Button
                           size="sm"
                           onClick={() => handleUpdateCategory(category.id)}
+                          disabled={isPending}
                         >
-                          OK
+                          {isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            "OK"
+                          )}
                         </Button>
                         <Button
                           size="sm"
@@ -328,7 +345,11 @@ export const CRMConfigModal = ({ categories, stages }: CRMConfigModalProps) => {
                   onClick={handleAddStage}
                   disabled={isPending}
                 >
-                  <Plus className="h-4 w-4" />
+                  {isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
               <div className="max-h-[300px] space-y-2 overflow-auto pr-2">

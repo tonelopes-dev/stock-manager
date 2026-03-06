@@ -17,6 +17,7 @@ import {
   toggleChecklistItem,
   applyChecklistTemplate,
   deleteChecklist,
+  createChecklist,
 } from "@/app/_actions/checklist";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -72,6 +73,20 @@ export const CustomerChecklist = ({
     });
   };
 
+  const handleCreateManual = () => {
+    startTransition(async () => {
+      const result = await createChecklist({
+        customerId,
+        title: "Minha Jornada",
+      });
+      if (result?.serverError) {
+        toast.error("Erro ao iniciar jornada.");
+      } else {
+        toast.success("Jornada iniciada com sucesso!");
+      }
+    });
+  };
+
   return (
     <div className="space-y-6">
       {checklists.length === 0 && (
@@ -100,9 +115,15 @@ export const CustomerChecklist = ({
                 </Button>
               ))
             ) : (
-              <span className="text-[10px] font-bold uppercase italic text-slate-400">
-                Nenhum template disponível
-              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
+                onClick={handleCreateManual}
+                disabled={isPending}
+              >
+                <Plus className="h-3 w-3" /> Jornada Personalizada
+              </Button>
             )}
           </div>
         </div>

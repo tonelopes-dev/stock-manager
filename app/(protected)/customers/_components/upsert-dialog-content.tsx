@@ -52,19 +52,45 @@ const UpsertCustomerDialogContent = ({
   categories = [],
   stages = [],
 }: UpsertCustomerDialogContentProps) => {
-  const { execute: executeUpsertCustomer } = useAction(upsertCustomer, {
-    onSuccess: () => {
-      const isCreate = !defaultValues;
-      toast.success(
-        `Cliente ${isCreate ? "criado" : "atualizado"} com sucesso.`,
-      );
-      setDialogIsOpen(false);
+  const { execute: executeUpsertCustomer, isPending } = useAction(
+    upsertCustomer,
+    {
+      onSuccess: () => {
+        const isCreate = !defaultValues;
+        toast.success(
+          `Cliente ${isCreate ? "criado" : "atualizado"} com sucesso.`,
+        );
+        setDialogIsOpen(false);
+      },
+      onError: ({ error: { serverError, validationErrors } }) => {
+        if (validationErrors) {
+          Object.entries(validationErrors).forEach(([field, errors]) => {
+            let message: string | undefined;
+
+            if (Array.isArray(errors) && errors.length > 0) {
+              message = errors[0] as string;
+            } else if (typeof errors === "object" && errors !== null) {
+              const fieldErrors = (errors as any)._errors;
+              if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
+                message = fieldErrors[0] as string;
+              }
+            }
+
+            if (message) {
+              form.setError(field as any, {
+                type: "manual",
+                message,
+              });
+            }
+          });
+        }
+
+        if (serverError) {
+          toast.error(serverError || "Ocorreu um erro ao salvar o cliente.");
+        }
+      },
     },
-    onError: ({ error: { serverError, validationErrors } }) => {
-      const firstError = validationErrors?._errors?.[0] || serverError;
-      toast.error(firstError || "Ocorreu um erro ao salvar o cliente.");
-    },
-  });
+  );
 
   const form = useForm<UpsertCustomerSchema>({
     shouldUnregister: true,
@@ -236,15 +262,9 @@ const UpsertCustomerDialogContent = ({
                 Cancelar
               </Button>
             </DialogClose>
-            <Button
-              type="submit"
-              disabled={form.formState.isSubmitting}
-              className="gap-1.5"
-            >
-              {form.formState.isSubmitting && (
-                <Loader2Icon className="animate-spin" size={16} />
-              )}
-              Salvar
+            <Button type="submit" disabled={isPending} className="gap-1.5">
+              {isPending && <Loader2Icon className="animate-spin" size={16} />}
+              {isPending ? "Salvando..." : "Salvar"}
             </Button>
           </DialogFooter>
         </form>

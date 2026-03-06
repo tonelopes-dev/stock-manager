@@ -82,23 +82,26 @@ export const getCustomers = async (
         stage: {
           select: { name: true },
         },
-        ...(!minimal
-          ? {
-              sales: {
-                where: { status: "ACTIVE" },
-                include: {
+        sales: {
+          where: { status: "ACTIVE" },
+          select: {
+            totalAmount: true,
+            date: true,
+            ...(minimal
+              ? {}
+              : {
                   saleItems: {
-                    include: {
+                    select: {
+                      quantity: true,
                       product: {
                         select: { name: true },
                       },
                     },
                   },
-                },
-                orderBy: { date: "desc" },
-              },
-            }
-          : {}),
+                }),
+          },
+          orderBy: { date: "desc" },
+        },
         checklists: {
           include: {
             items: {

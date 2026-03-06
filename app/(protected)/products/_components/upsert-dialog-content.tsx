@@ -56,21 +56,24 @@ const UpsertProductDialogContent = ({
   defaultValues,
   setDialogIsOpen,
 }: UpsertProductDialogContentProps) => {
-  const { execute: executeUpsertProduct } = useAction(upsertProduct, {
-    onSuccess: () => {
-      const isCreate = !defaultValues;
+  const { execute: executeUpsertProduct, isPending } = useAction(
+    upsertProduct,
+    {
+      onSuccess: () => {
+        const isCreate = !defaultValues;
 
-      toast.success(
-        `Produto ${isCreate ? "criado" : "atualizado"} com sucesso.`,
-      );
+        toast.success(
+          `Produto ${isCreate ? "criado" : "atualizado"} com sucesso.`,
+        );
 
-      setDialogIsOpen(false);
+        setDialogIsOpen(false);
+      },
+      onError: ({ error: { serverError, validationErrors } }) => {
+        const firstError = validationErrors?._errors?.[0] || serverError;
+        toast.error(firstError || "Ocorreu um erro ao salvar o produto.");
+      },
     },
-    onError: ({ error: { serverError, validationErrors } }) => {
-      const firstError = validationErrors?._errors?.[0] || serverError;
-      toast.error(firstError || "Ocorreu um erro ao salvar o produto.");
-    },
-  });
+  );
   const form = useForm<UpsertProductSchema>({
     shouldUnregister: true,
     resolver: zodResolver(upsertProductSchema),
@@ -299,15 +302,9 @@ const UpsertProductDialogContent = ({
                 Cancelar
               </Button>
             </DialogClose>
-            <Button
-              type="submit"
-              disabled={form.formState.isSubmitting}
-              className="gap-1.5"
-            >
-              {form.formState.isSubmitting && (
-                <Loader2Icon className="animate-spin" size={16} />
-              )}
-              Salvar
+            <Button type="submit" disabled={isPending} className="gap-1.5">
+              {isPending && <Loader2Icon className="animate-spin" size={16} />}
+              {isPending ? "Salvando..." : "Salvar"}
             </Button>
           </DialogFooter>
         </form>

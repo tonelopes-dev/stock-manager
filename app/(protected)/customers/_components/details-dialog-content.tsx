@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
 import {
   DialogContent,
   DialogHeader,
@@ -8,6 +8,13 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/app/_components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/app/_components/ui/dropdown-menu";
 import { Badge } from "@/app/_components/ui/badge";
 import {
   User,
@@ -22,14 +29,22 @@ import {
   X,
   Trash2,
   ListChecks,
+  Loader2Icon,
+  Plus,
+  Sparkles,
 } from "lucide-react";
 import { SalesTimeline } from "./sales-timeline";
 import { CustomerChecklist } from "./customer-checklist";
+import { getCustomerAction } from "@/app/_actions/customer/get-customer";
 import { format } from "date-fns/format";
 import { MultiSelect } from "@/app/_components/ui/multi-select";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/app/_components/ui/button";
 import { Input } from "@/app/_components/ui/input";
+import {
+  applyChecklistTemplate,
+  createChecklist,
+} from "@/app/_actions/checklist";
 import {
   Select,
   SelectContent,
@@ -83,6 +98,52 @@ export const CustomerDetailsDialogContent = ({
       ? format(new Date(customer.birthday), "yyyy-MM-dd")
       : "",
   });
+
+  const [fullCustomer, setFullCustomer] = useState(customer);
+  const [isLoadingFull, setIsLoadingFull] = useState(false);
+
+  const fetchFullCustomer = useCallback(async () => {
+    setIsLoadingFull(true);
+    const result = await getCustomerAction({ id: customer.id });
+    if (result?.data) {
+      setFullCustomer(result.data);
+    }
+    setIsLoadingFull(false);
+  }, [customer.id]);
+
+  useEffect(() => {
+    fetchFullCustomer();
+  }, [fetchFullCustomer]);
+
+  const handleApplyTemplate = (templateId: string) => {
+    startTransition(async () => {
+      const result = await applyChecklistTemplate({
+        customerId: customer.id,
+        templateId,
+      });
+      if (result?.serverError) {
+        toast.error("Erro ao aplicar template.");
+      } else {
+        toast.success("Jornada aplicada!");
+        fetchFullCustomer();
+      }
+    });
+  };
+
+  const handleCreateManualChecklist = () => {
+    startTransition(async () => {
+      const result = await createChecklist({
+        customerId: customer.id,
+        title: "Minha Jornada",
+      });
+      if (result?.serverError) {
+        toast.error("Erro ao iniciar jornada.");
+      } else {
+        toast.success("Jornada iniciada!");
+        fetchFullCustomer();
+      }
+    });
+  };
 
   const handleSave = () => {
     startTransition(async () => {
@@ -381,12 +442,58 @@ export const CustomerDetailsDialogContent = ({
           </div>
 
           <div className="mt-12 border-t border-slate-100 pt-8">
-            <h3 className="mb-6 flex items-center gap-2 text-xs font-black uppercase italic tracking-tighter text-slate-800">
-              <ListChecks className="h-4 w-4" /> Jornada do Cliente
-            </h3>
+            <div className="mb-6 flex items-center justify-between">
+              <h3 className="flex items-center gap-2 text-xs font-black uppercase italic tracking-tighter text-slate-800">
+                <ListChecks className="h-4 w-4" /> Jornada do Cliente
+              </h3>
+
+              {checklistTemplates.length > 0 ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 gap-1.5 border-primary/20 bg-primary/5 text-[10px] font-black uppercase text-primary hover:bg-primary/10"
+                      disabled={isPending}
+                    >
+                      <Plus className="h-3 w-3" /> Iniciar Jornada
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {checklistTemplates.map((t) => (
+                      <DropdownMenuItem
+                        key={t.id}
+                        className="gap-2 text-xs font-medium"
+                        onClick={() => handleApplyTemplate(t.id)}
+                      >
+                        <Sparkles className="h-3 w-3 text-primary" />
+                        {t.name}
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="gap-2 text-xs font-medium italic"
+                      onClick={handleCreateManualChecklist}
+                    >
+                      <Plus className="h-3 w-3" /> Jornada Personalizada
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 gap-1.5 border-primary/20 bg-primary/5 text-[10px] font-black uppercase text-primary hover:bg-primary/10"
+                  disabled={isPending}
+                  onClick={handleCreateManualChecklist}
+                >
+                  <Plus className="h-3 w-3" /> Iniciar Jornada
+                </Button>
+              )}
+            </div>
             <CustomerChecklist
               customerId={customer.id}
-              checklists={customer.checklists || []}
+              checklists={fullCustomer.checklists || []}
               templates={checklistTemplates}
             />
           </div>
@@ -395,7 +502,13 @@ export const CustomerDetailsDialogContent = ({
             <h3 className="mb-6 flex items-center gap-2 text-xs font-black uppercase italic tracking-tighter text-slate-800">
               <ShoppingBag className="h-4 w-4" /> Histórico de Compras
             </h3>
-            <SalesTimeline sales={customer.sales || []} />
+            {isLoadingFull ? (
+              <div className="flex items-center justify-center py-10">
+                <Loader2Icon className="h-6 w-6 animate-spin text-slate-300" />
+              </div>
+            ) : (
+              <SalesTimeline sales={fullCustomer.sales || []} />
+            )}
           </div>
         </div>
 

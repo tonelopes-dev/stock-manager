@@ -6,6 +6,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent } from "@/app/_components/ui/card";
 import { Badge } from "@/app/_components/ui/badge";
 import { formatCurrency } from "@/app/_lib/utils";
+import { Progress } from "@/app/_components/ui/progress";
+import { ListChecks } from "lucide-react";
 
 interface KanbanCardProps {
   customer: {
@@ -15,6 +17,7 @@ interface KanbanCardProps {
     notes: string | null;
     categories?: { id: string; name: string; color: string | null }[];
     sales?: any[];
+    checklists?: any[];
   };
   onClick?: () => void;
   style?: React.CSSProperties;
@@ -42,6 +45,15 @@ export const KanbanCard = memo(
       transition,
       transform: CSS.Translate.toString(transform),
     };
+
+    const checklistItems =
+      customer.checklists?.flatMap((c: any) => c.items) || [];
+    const totalItems = checklistItems.length;
+    const completedItems = checklistItems.filter(
+      (i: any) => i.isChecked,
+    ).length;
+    const progress =
+      totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
     if (isDragging) {
       return (
@@ -110,6 +122,22 @@ export const KanbanCard = memo(
               {formatCurrency(Number(customer.totalSpent))}
             </span>
           </div>
+
+          {totalItems > 0 && (
+            <div className="pt-2">
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-tighter">
+                  <span className="flex items-center gap-1 text-slate-500">
+                    <ListChecks className="h-3 w-3" /> Jornada
+                  </span>
+                  <span className={progress === 100 ? "text-green-600" : ""}>
+                    {completedItems}/{totalItems}
+                  </span>
+                </div>
+                <Progress value={progress} className="h-1.5 bg-slate-100" />
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     );

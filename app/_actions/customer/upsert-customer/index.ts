@@ -4,6 +4,7 @@ import { db } from "@/app/_lib/prisma";
 import { revalidatePath } from "next/cache";
 import { upsertCustomerSchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
+import { returnValidationErrors } from "next-safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
 import { ALL_ROLES, assertRole } from "@/app/_lib/rbac";
@@ -44,7 +45,27 @@ export const upsertCustomer = actionClient
       });
 
       if (existingByEmail) {
-        throw new Error("Já existe um cliente cadastrado com este email.");
+        returnValidationErrors(upsertCustomerSchema, {
+          email: { _errors: ["Já existe um cliente cadastrado com este e-mail."] },
+        });
+      }
+    }
+
+    // Check for duplicate phone (only if phone is provided)
+    if (customerData.phone) {
+      const existingByPhone = await db.customer.findFirst({
+        where: {
+          companyId,
+          phone: customerData.phone,
+          ...(id ? { id: { not: id } } : {}),
+        },
+        select: { id: true },
+      });
+
+      if (existingByPhone) {
+        returnValidationErrors(upsertCustomerSchema, {
+          phone: { _errors: ["Já existe um cliente cadastrado com este telefone."] },
+        });
       }
     }
 
