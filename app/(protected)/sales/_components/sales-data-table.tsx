@@ -22,6 +22,7 @@ interface SalesDataTableProps {
   pageSize: number;
   userRole: UserRole;
   customerOptions: ComboboxOption[];
+  companyId: string;
 }
 
 export const SalesDataTable = ({
@@ -31,10 +32,11 @@ export const SalesDataTable = ({
   pageSize,
   userRole,
   customerOptions,
+  companyId,
 }: SalesDataTableProps) => {
   return (
     <DataTable
-      columns={saleTableColumns(userRole, customerOptions)}
+      columns={saleTableColumns(userRole, customerOptions, companyId)}
       data={sales}
       pagination={{
         total,

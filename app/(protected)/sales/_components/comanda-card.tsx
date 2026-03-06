@@ -24,7 +24,7 @@ export const ComandaCard = ({ comanda, onClick }: ComandaCardProps) => {
     return () => clearInterval(timer);
   }, []);
 
-  const hoursElapsed = differenceInHours(now, comanda.lastOrderAt);
+  const hoursElapsed = differenceInHours(now, comanda.firstOrderAt);
   const isForgotten = hoursElapsed >= 4;
 
   return (

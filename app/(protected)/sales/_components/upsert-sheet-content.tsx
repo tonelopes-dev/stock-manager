@@ -47,6 +47,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { PaymentMethod } from "@prisma/client";
 import { upsertSale } from "@/app/_actions/sale/upsert-sale";
+import { createOrderAction } from "@/app/_actions/order/create-order";
 import { toast } from "sonner";
 import { useAction } from "next-safe-action/hooks";
 import { flattenValidationErrors } from "next-safe-action";
@@ -89,6 +90,7 @@ interface UpsertSheetContentProps {
   customerId?: string | null;
   paymentMethod?: PaymentMethod | null;
   hasSales?: boolean;
+  companyId: string;
 }
 
 const UpsertSheetContent = ({
@@ -102,6 +104,7 @@ const UpsertSheetContent = ({
   setSheetIsOpen,
   defaultSelectedProducts,
   paymentMethod: defaultPaymentMethod,
+  companyId,
 }: UpsertSheetContentProps) => {
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>(
     defaultSelectedProducts ?? [],
@@ -118,16 +121,34 @@ const UpsertSheetContent = ({
     (defaultPaymentMethod as PaymentMethod) || undefined,
   );
 
-  const { execute: executeUpsertSale, isPending } = useAction(upsertSale, {
-    onError: ({ error: { validationErrors, serverError } }) => {
-      const flattenedErrors = flattenValidationErrors(validationErrors);
-      toast.error(serverError ?? flattenedErrors.formErrors[0]);
+  const { execute: executeUpsertSale, isPending: isUpsertPending } = useAction(
+    upsertSale,
+    {
+      onError: ({ error: { validationErrors, serverError } }) => {
+        const flattenedErrors = flattenValidationErrors(validationErrors);
+        toast.error(serverError ?? flattenedErrors.formErrors[0]);
+      },
+      onSuccess: () => {
+        toast.success("Venda realizada com sucesso.");
+        setSheetIsOpen(false);
+      },
     },
-    onSuccess: () => {
-      toast.success("Venda realizada com sucesso.");
-      setSheetIsOpen(false);
+  );
+
+  const { execute: executeCreateOrder, isPending: isOrderPending } = useAction(
+    createOrderAction,
+    {
+      onError: ({ error: { serverError } }) => {
+        toast.error(serverError || "Erro ao criar comanda.");
+      },
+      onSuccess: () => {
+        toast.success("Comanda (Pedido) criada com sucesso! 📝");
+        setSheetIsOpen(false);
+      },
     },
-  });
+  );
+
+  const isPending = isUpsertPending || isOrderPending;
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
@@ -228,16 +249,39 @@ const UpsertSheetContent = ({
   }, [selectedProducts]);
 
   const onSubmitSale = () => {
-    executeUpsertSale({
-      id: saleId,
-      date: date ? new Date(date + "T12:00:00") : undefined,
-      customerId,
-      paymentMethod,
-      products: selectedProducts.map((p) => ({
-        id: p.id,
-        quantity: p.quantity,
-      })),
-    });
+    if (selectedProducts.length === 0) return;
+
+    if (!paymentMethod) {
+      // Automatic Comanda Flow
+      if (!customerId) {
+        toast.error(
+          "Para abrir uma comanda (sem pagamento imediato), você deve selecionar um cliente.",
+        );
+        return;
+      }
+
+      executeCreateOrder({
+        companyId,
+        customerId,
+        items: selectedProducts.map((p) => ({
+          productId: p.id,
+          quantity: p.quantity,
+        })),
+        notes: "Criado via Painel de Gestão",
+      });
+    } else {
+      // Regular Sale Flow
+      executeUpsertSale({
+        id: saleId,
+        date: date ? new Date(date + "T12:00:00") : undefined,
+        customerId,
+        paymentMethod,
+        products: selectedProducts.map((p) => ({
+          id: p.id,
+          quantity: p.quantity,
+        })),
+      });
+    }
   };
   return (
     <SheetContent className="flex h-full !max-w-[700px] flex-col border-none p-0">
@@ -550,7 +594,11 @@ const UpsertSheetContent = ({
             ) : (
               <>
                 <CheckIcon size={18} />
-                {saleId ? "Salvar Alterações" : "Finalizar Venda"}
+                {!paymentMethod
+                  ? "Abrir Comanda"
+                  : saleId
+                    ? "Salvar Alterações"
+                    : "Finalizar Venda"}
               </>
             )}
           </Button>

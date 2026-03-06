@@ -46,6 +46,7 @@ interface SalesTableDropdownMenuProps {
   customerOptions: ComboboxOption[];
   products: ProductDto[];
   userRole: UserRole;
+  companyId: string;
 }
 
 const SalesTableDropdownMenu = ({
@@ -54,6 +55,7 @@ const SalesTableDropdownMenu = ({
   productOptions,
   customerOptions,
   userRole,
+  companyId,
 }: SalesTableDropdownMenuProps) => {
   const [upsertSheetIsOpen, setUpsertSheetIsOpen] = useState(false);
   const { execute } = useAction(deleteSale, {
@@ -134,6 +136,7 @@ const SalesTableDropdownMenu = ({
         customerOptions={customerOptions}
         products={products}
         setSheetIsOpen={setUpsertSheetIsOpen}
+        companyId={companyId}
         defaultSelectedProducts={sale.saleItems.map((item) => {
           const product = products.find((p) => p.id === item.productId);
           return {

@@ -106,6 +106,8 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
             productOptions={productOptions}
             customerOptions={customerOptions}
             hasSales={onboardingStats?.hasSales ?? true}
+            view={view as "gestao" | "inteligencia"}
+            companyId={companyId || ""}
           />
         </HeaderRight>
       </Header>
@@ -134,6 +136,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
                 page={Number(resolvedSearchParams.page) || 1}
                 pageSize={Number(resolvedSearchParams.pageSize) || 10}
                 userRole={role as UserRole}
+                companyId={companyId || ""}
               />
             </Suspense>
           </div>
@@ -160,6 +163,7 @@ interface SalesTableWrapperProps {
   page: number;
   pageSize: number;
   userRole: UserRole;
+  companyId: string;
 }
 
 const SalesTableWrapper = async ({
@@ -171,6 +175,7 @@ const SalesTableWrapper = async ({
   pageSize,
   userRole,
   customerOptions,
+  companyId,
 }: SalesTableWrapperProps & { customerOptions: ComboboxOption[] }) => {
   const { data: sales, total } = await getSales({ from, to, page, pageSize });
 
@@ -189,6 +194,7 @@ const SalesTableWrapper = async ({
       pageSize={pageSize}
       userRole={userRole}
       customerOptions={customerOptions}
+      companyId={companyId}
     />
   );
 };

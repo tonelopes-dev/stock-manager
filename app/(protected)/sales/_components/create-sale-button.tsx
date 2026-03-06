@@ -13,6 +13,8 @@ interface UpsertSaleButtonProps {
   productOptions: ComboboxOption[];
   customerOptions: ComboboxOption[];
   hasSales?: boolean;
+  view?: "gestao" | "inteligencia";
+  companyId: string;
 }
 
 const UpsertSaleButton = ({
@@ -20,6 +22,8 @@ const UpsertSaleButton = ({
   productOptions,
   customerOptions,
   hasSales,
+  view,
+  companyId,
 }: UpsertSaleButtonProps) => {
   const [sheetIsOpen, setSheetIsOpen] = useState(false);
 
@@ -28,7 +32,7 @@ const UpsertSaleButton = ({
       <SheetTrigger asChild>
         <Button className="gap-2">
           <PlusIcon size={20} />
-          Nova Venda
+          {view === "gestao" ? "Nova Venda/Comanda" : "Nova Venda"}
         </Button>
       </SheetTrigger>
       <UpsertSheetContent
@@ -38,6 +42,7 @@ const UpsertSaleButton = ({
         productOptions={productOptions}
         customerOptions={customerOptions}
         hasSales={hasSales}
+        companyId={companyId}
       />
     </Sheet>
   );

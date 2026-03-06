@@ -23,6 +23,7 @@ interface SaleTableColumn extends SaleDto {
 export const saleTableColumns = (
   userRole: UserRole,
   customerOptions: ComboboxOption[],
+  companyId: string,
 ): ColumnDef<SaleTableColumn>[] => [
   {
     accessorKey: "customerName",
@@ -103,6 +104,7 @@ export const saleTableColumns = (
         productOptions={sale.productOptions}
         customerOptions={customerOptions}
         userRole={userRole}
+        companyId={companyId}
       />
     ),
   },
