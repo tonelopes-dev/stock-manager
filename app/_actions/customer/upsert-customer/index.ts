@@ -10,7 +10,7 @@ import { ALL_ROLES, assertRole } from "@/app/_lib/rbac";
 
 export const upsertCustomer = actionClient
   .schema(upsertCustomerSchema)
-  .action(async ({ parsedInput: { id, birthday, createdAt, ...data } }) => {
+  .action(async ({ parsedInput: { id, birthday, ...data } }) => {
     const companyId = await getCurrentCompanyId();
     await assertRole(ALL_ROLES);
     await requireActiveSubscription(companyId);
@@ -24,7 +24,6 @@ export const upsertCustomer = actionClient
       stageId: otherData.stageId || null,
       notes: otherData.notes || null,
       birthday: birthday ? new Date(birthday) : null,
-      createdAt: createdAt ? new Date(createdAt) : undefined,
     };
 
     if (categoryIds) {

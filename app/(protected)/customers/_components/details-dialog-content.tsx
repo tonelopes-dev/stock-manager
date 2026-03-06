@@ -78,9 +78,6 @@ export const CustomerDetailsDialogContent = ({
     birthday: customer.birthday
       ? format(new Date(customer.birthday), "yyyy-MM-dd")
       : "",
-    createdAt: customer.createdAt
-      ? format(new Date(customer.createdAt), "yyyy-MM-dd")
-      : "",
   });
 
   const handleSave = () => {
@@ -103,9 +100,6 @@ export const CustomerDetailsDialogContent = ({
             birthday: formData.birthday
               ? new Date(formData.birthday).toISOString()
               : null,
-            createdAt: formData.createdAt
-              ? new Date(formData.createdAt).toISOString()
-              : customer.createdAt,
             categories: categories.filter((c) =>
               formData.categoryIds.includes(c.id),
             ),
@@ -310,34 +304,17 @@ export const CustomerDetailsDialogContent = ({
                   <Calendar className="h-3 w-3" /> Outros Detalhes
                 </span>
                 {isEditing ? (
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase text-slate-400">
-                        Aniversário
-                      </label>
-                      <Input
-                        type="date"
-                        value={formData.birthday}
-                        onChange={(e) =>
-                          setFormData({ ...formData, birthday: e.target.value })
-                        }
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase text-slate-400">
-                        Data de Cadastro
-                      </label>
-                      <Input
-                        type="date"
-                        value={formData.createdAt}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            createdAt: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase text-slate-400">
+                      Aniversário
+                    </label>
+                    <Input
+                      type="date"
+                      value={formData.birthday}
+                      onChange={(e) =>
+                        setFormData({ ...formData, birthday: e.target.value })
+                      }
+                    />
                   </div>
                 ) : (
                   <div className="space-y-4">
