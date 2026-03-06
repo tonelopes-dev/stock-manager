@@ -24,7 +24,7 @@ export const identifyCustomerAction = actionClient
     // Check if exists one last time (concurrency)
     const existing = await db.customer.findFirst({
       where: {
-        phoneNumber: normalizedPhone,
+        phone: normalizedPhone,
         companyId,
       },
       select: { id: true },
@@ -36,7 +36,7 @@ export const identifyCustomerAction = actionClient
         data: {
           name,
           ...(email ? { email } : {}),
-          ...(birthDate ? { birthDate: new Date(birthDate) } : {}),
+          ...(birthDate ? { birthday: new Date(birthDate) } : {}),
         },
       });
 
@@ -48,9 +48,9 @@ export const identifyCustomerAction = actionClient
     const customer = await db.customer.create({
       data: {
         name,
-        phoneNumber: normalizedPhone,
+        phone: normalizedPhone,
         email: email || null,
-        birthDate: birthDate ? new Date(birthDate) : null,
+        birthday: birthDate ? new Date(birthDate) : null,
         source: "MENU", 
         companyId,
         position: 0,

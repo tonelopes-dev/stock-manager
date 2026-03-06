@@ -18,9 +18,9 @@ async function main() {
 
   // Agrupar por empresa e telefone normalizado
   for (const customer of customers) {
-    if (!customer.phoneNumber) continue;
+    if (!customer.phone) continue;
 
-    const normalized = customer.phoneNumber.replace(/\D/g, "");
+    const normalized = customer.phone.replace(/\D/g, "");
     
     if (!companyGroups[customer.companyId]) {
       companyGroups[customer.companyId] = {};
@@ -39,10 +39,10 @@ async function main() {
 
       // Atualizar todos para o telefone normalizado
       for (const c of group) {
-        if (c.phoneNumber !== phone) {
+        if (c.phone !== phone) {
           await prisma.customer.update({
             where: { id: c.id },
-            data: { phoneNumber: phone },
+            data: { phone: phone },
           });
           console.log(`✅ Telefone de ${c.name} (${c.id}) normalizado para ${phone}`);
         }

@@ -16,14 +16,14 @@ export const checkCustomerPhoneAction = actionClient
 
     const customer = await db.customer.findFirst({
       where: {
-        phoneNumber: normalizedPhone,
+        phone: normalizedPhone,
         companyId,
       },
       select: { 
         id: true, 
         name: true,
         email: true,
-        birthDate: true,
+        birthday: true,
       },
     });
 

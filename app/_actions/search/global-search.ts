@@ -25,11 +25,11 @@ export const globalSearch = async (query: string): Promise<SearchResult[]> => {
         companyId,
         OR: [
           { name: { contains: searchTerm, mode: "insensitive" } },
-          { phoneNumber: { contains: searchTerm, mode: "insensitive" } },
+          { phone: { contains: searchTerm, mode: "insensitive" } },
           { email: { contains: searchTerm, mode: "insensitive" } },
         ],
       },
-      select: { id: true, name: true, phoneNumber: true },
+      select: { id: true, name: true, phone: true },
       take: 5,
     }),
     db.product.findMany({
@@ -63,7 +63,7 @@ export const globalSearch = async (query: string): Promise<SearchResult[]> => {
       id: c.id,
       type: "customer" as const,
       title: c.name,
-      subtitle: c.phoneNumber || "Sem telefone",
+      subtitle: c.phone || "Sem telefone",
       href: `/customers`,
     })),
     ...products.map((p) => ({

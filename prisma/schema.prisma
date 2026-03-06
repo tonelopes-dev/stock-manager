@@ -27,8 +27,7 @@ model Product {
   updatedAt        DateTime          @updatedAt
   companyId        String
   company          Company           @relation(fields: [companyId], references: [id])
-  categoryId       String?
-  productCategory  ProductCategory?  @relation(fields: [categoryId], references: [id])
+  productCategories ProductCategory[]
   
   goals            Goal[]
   orderItems       OrderItem[]
@@ -391,8 +390,8 @@ model Order {
   totalAmount   Decimal         @default(0) @db.Decimal(10, 2)
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
-  Company       Company         @relation(fields: [companyId], references: [id])
-  Customer      Customer?       @relation(fields: [customerId], references: [id])
+  company       Company         @relation(fields: [companyId], references: [id])
+  customer      Customer?       @relation(fields: [customerId], references: [id])
   orderItems    OrderItem[]
   sale          Sale?
   stockMovements StockMovement[]

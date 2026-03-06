@@ -1,0 +1,140 @@
+"use client";
+
+import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
+import { ComandaCard } from "./comanda-card";
+import { useState, useEffect, useCallback } from "react";
+import { RefreshCcw, Search, ShoppingBag } from "lucide-react";
+import { Input } from "@/app/_components/ui/input";
+import { Button } from "@/app/_components/ui/button";
+import { useRouter } from "next/navigation";
+import { ComandaDetailsSheet } from "./comanda-details-sheet";
+
+interface ComandasGridProps {
+  initialComandas: ComandaDto[];
+  companyId: string;
+}
+
+export const ComandasGrid = ({
+  initialComandas,
+  companyId,
+}: ComandasGridProps) => {
+  const [comandas, setComandas] = useState<ComandaDto[]>(initialComandas);
+  const [search, setSearch] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedComanda, setSelectedComanda] = useState<ComandaDto | null>(
+    null,
+  );
+  const router = useRouter();
+
+  // Sync with initialComandas
+  useEffect(() => {
+    setComandas(initialComandas);
+  }, [initialComandas]);
+
+  // Real-time Updates via SSE
+  useEffect(() => {
+    // We use the central KDS events endpoint
+    const eventSource = new EventSource("/api/kds/events");
+
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      // If the event belongs to this company, refresh the data
+      if (data.companyId === companyId) {
+        router.refresh();
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error("SSE Connection Error:", error);
+      eventSource.close();
+    };
+
+    return () => eventSource.close();
+  }, [companyId, router]);
+
+  const filteredComandas = comandas.filter(
+    (c) =>
+      c.customerName.toLowerCase().includes(search.toLowerCase()) ||
+      c.customerPhone?.includes(search),
+  );
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    router.refresh();
+    // Simulate a bit of loading for UX feedback if refresh is too fast
+    setTimeout(() => setIsRefreshing(false), 800);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header Operational Actions */}
+      <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+        <div className="relative w-full md:max-w-md">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Input
+            placeholder="Buscar por cliente ou celular..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 pl-10 font-bold transition-all placeholder:font-medium placeholder:text-slate-400 focus:bg-white"
+          />
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          className="h-12 gap-2 rounded-2xl border-slate-200 px-6 font-black uppercase italic tracking-tighter transition-colors hover:bg-slate-50"
+          disabled={isRefreshing}
+        >
+          <RefreshCcw
+            className={cn(
+              "h-4 w-4 text-primary",
+              isRefreshing && "animate-spin",
+            )}
+          />
+          {isRefreshing ? "Atualizando..." : "Atualizar Painel"}
+        </Button>
+      </div>
+
+      {/* Grid of Comandas */}
+      {filteredComandas.length > 0 ? (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {filteredComandas.map((comanda) => (
+            <ComandaCard
+              key={comanda.customerId}
+              comanda={comanda}
+              onClick={() => setSelectedComanda(comanda)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex h-[400px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-100 bg-slate-50/30 text-center">
+          <div className="mb-4 rounded-full bg-slate-100 p-6 text-slate-300">
+            <ShoppingBag size={48} />
+          </div>
+          <h3 className="text-xl font-black uppercase italic tracking-tighter text-slate-400">
+            {search ? "Nenhum resultado" : "Aguardando Pedidos"}
+          </h3>
+          <p className="mt-1 max-w-[300px] text-xs font-bold leading-relaxed text-slate-400/80">
+            {search
+              ? `Não encontramos comandas para "${search}". Verifique se o nome está correto.`
+              : "As comandas aparecerão aqui automaticamente assim que um cliente fizer um pedido pelo Menu Digital."}
+          </p>
+        </div>
+      )}
+
+      {/* Comanda Details Sheet */}
+      <ComandaDetailsSheet
+        comanda={selectedComanda}
+        isOpen={!!selectedComanda}
+        onClose={() => setSelectedComanda(null)}
+        companyId={companyId}
+      />
+    </div>
+  );
+};
+
+// Internal utility
+function cn(...classes: any[]) {
+  return classes.filter(Boolean).join(" ");
+}

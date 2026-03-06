@@ -94,8 +94,8 @@ export const CustomerDetailsDialogContent = ({
     categoryIds: customer.categories?.map((c: any) => c.id) || [],
     stageId: customer.stageId || "NONE",
     notes: customer.notes || "",
-    birthday: customer.birthday
-      ? format(new Date(customer.birthday), "yyyy-MM-dd")
+    birthday: customer.birthDate
+      ? format(new Date(customer.birthDate), "yyyy-MM-dd")
       : "",
   });
 

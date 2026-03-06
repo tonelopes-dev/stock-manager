@@ -1,0 +1,77 @@
+
+> stocky@1.4.0 build
+> prisma generate && prisma migrate deploy && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+
+✔ Generated Prisma Client (v5.19.1) to .\node_modules\@prisma\client in 385ms
+
+Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
+
+Tip: Interested in query caching in just a few lines of code? Try Accelerate today! https://pris.ly/tip-3-accelerate
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": PostgreSQL database "stocklydb", schema "public" at "ep-orange-wind-acur347n.sa-east-1.aws.neon.tech"
+
+42 migrations found in prisma/migrations
+
+
+No pending migrations to apply.
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local, .env
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 13.2s
+  Running TypeScript ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/20) ...
+  Generating static pages using 11 workers (5/20) 
+  Generating static pages using 11 workers (10/20) 
+  Generating static pages using 11 workers (15/20) 
+✓ Generating static pages using 11 workers (20/20) in 692.7ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/kds/events
+├ ƒ /api/sales/export
+├ ƒ /api/sales/export/xlsx
+├ ƒ /api/webhooks/stripe
+├ ƒ /audit
+├ ƒ /auth/clear-session
+├ ○ /auth/forgot-password
+├ ○ /auth/reset-password
+├ ƒ /billing-required
+├ ƒ /checkout/success
+├ ƒ /customers
+├ ƒ /dashboard
+├ ƒ /goals
+├ ƒ /ingredients
+├ ƒ /invite/[id]
+├ ƒ /kds
+├ ○ /login
+├ ƒ /menu-management
+├ ƒ /menu/[companyId]
+├ ƒ /menu/[companyId]/my-orders
+├ ƒ /menu/[companyId]/order/[orderId]
+├ ƒ /plans
+├ ƒ /products
+├ ƒ /products/[id]
+├ ƒ /profile
+├ ○ /register
+├ ƒ /sales
+├ ƒ /settings/audit
+├ ƒ /settings/company
+├ ƒ /settings/company/restore
+└ ƒ /settings/team
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

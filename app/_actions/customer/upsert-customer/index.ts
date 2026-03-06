@@ -21,10 +21,10 @@ export const upsertCustomer = actionClient
     const customerData: any = {
       name: otherData.name,
       email: otherData.email || null,
-      phoneNumber: otherData.phoneNumber || null,
+      phone: otherData.phoneNumber || null,
       stageId: otherData.stageId || null,
       notes: otherData.notes || null,
-      birthDate: birthDate ? new Date(birthDate) : null,
+      birthday: birthDate ? new Date(birthDate) : null,
     };
 
     if (categoryIds) {
@@ -64,7 +64,7 @@ export const upsertCustomer = actionClient
 
       if (existingByPhone) {
         returnValidationErrors(upsertCustomerSchema, {
-          phone: { _errors: ["Já existe um cliente cadastrado com este telefone."] },
+          phoneNumber: { _errors: ["Já existe um cliente cadastrado com este telefone."] },
         });
       }
     }

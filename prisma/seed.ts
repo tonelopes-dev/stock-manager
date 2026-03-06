@@ -139,7 +139,7 @@ async function main() {
       data: {
         name: faker.person.fullName(),
         email: faker.internet.email(),
-        phoneNumber: faker.phone.number(),
+        phone: faker.phone.number(),
         categories: {
           connect: { id: categories[categoryName].id },
         },

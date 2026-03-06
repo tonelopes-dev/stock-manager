@@ -60,7 +60,7 @@ export const getCustomers = async (
   if (search) {
     where.OR = [
       { name: { contains: search, mode: "insensitive" } },
-      { phoneNumber: { contains: search, mode: "insensitive" } },
+      { phone: { contains: search, mode: "insensitive" } },
       { email: { contains: search, mode: "insensitive" } },
     ];
   }
@@ -133,12 +133,12 @@ export const getCustomers = async (
       id: customer.id,
       name: customer.name,
       email: customer.email,
-      phoneNumber: customer.phoneNumber,
+      phoneNumber: customer.phone,
       categories: customer.categories,
       stageId: customer.stageId,
       stage: customer.stage,
       source: customer.source,
-      birthDate: customer.birthDate,
+      birthDate: customer.birthday,
       notes: customer.notes,
       isActive: customer.isActive,
       position: customer.position,

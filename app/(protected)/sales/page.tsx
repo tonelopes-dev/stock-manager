@@ -1,3 +1,6 @@
+import { getActiveComandas } from "@/app/_data-access/order/get-active-comandas";
+import { ComandasGrid } from "./_components/comandas-grid";
+import { Plus } from "lucide-react";
 import Header, {
   HeaderLeft,
   HeaderRight,
@@ -72,23 +75,32 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
   );
 
   const companyId = await getCurrentCompanyId();
-  const pendingOrders = companyId ? await getPendingOrders() : [];
+  const activeComandas = companyId ? await getActiveComandas() : [];
 
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
       <Header>
         <HeaderLeft className="flex flex-col items-start gap-4">
           <div className="space-y-1">
-            <HeaderSubtitle>Gestão de Vendas</HeaderSubtitle>
+            <HeaderSubtitle>
+              {view === "gestao"
+                ? "Operação de Vendas"
+                : "Análise de Resultados"}
+            </HeaderSubtitle>
             <HeaderTitle>Vendas</HeaderTitle>
           </div>
           <div className="flex items-center gap-4">
             <SalesViewTabs />
-            {view === "gestao" ? <PeriodFilter /> : <MonthComparisonFilter />}
+            {view === "inteligencia" && (
+              <div className="flex items-center gap-4">
+                <PeriodFilter />
+                <MonthComparisonFilter />
+              </div>
+            )}
           </div>
         </HeaderLeft>
         <HeaderRight className="flex items-center gap-3">
-          <ExportReportModal />
+          {view === "inteligencia" && <ExportReportModal />}
           <UpsertSaleButton
             products={products}
             productOptions={productOptions}
@@ -102,35 +114,38 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
         <div className="space-y-8">
           <SalesComparisonMetrics comparison={analytics.monthlyComparison} />
           <SalesCharts comparison={analytics.monthlyComparison} />
-        </div>
-      )}
 
-      {/* Pending Orders from Digital Menu */}
-      {pendingOrders.length > 0 && companyId && (
-        <PendingOrdersBanner orders={pendingOrders} companyId={companyId} />
+          <div className="space-y-4">
+            <div className="flex flex-col gap-2">
+              <h3 className="text-sm font-black uppercase italic tracking-tighter text-slate-500">
+                Listagem Técnica de Vendas
+              </h3>
+              <p className="text-[10px] font-medium text-slate-400">
+                Detalhamento individual de cada operação realizada no período
+              </p>
+            </div>
+            <Suspense fallback={<SaleTableSkeleton />}>
+              <SalesTableWrapper
+                customerOptions={customerOptions}
+                productOptions={productOptions}
+                products={products}
+                from={resolvedSearchParams.from}
+                to={resolvedSearchParams.to}
+                page={Number(resolvedSearchParams.page) || 1}
+                pageSize={Number(resolvedSearchParams.pageSize) || 10}
+                userRole={role as UserRole}
+              />
+            </Suspense>
+          </div>
+        </div>
       )}
 
       {view === "gestao" && (
         <div className="space-y-8">
-          <SalesSummary
-            totalRevenue={analytics.totalRevenue}
-            totalProfit={analytics.totalProfit}
-            averageTicket={analytics.averageTicket}
-            totalSales={analytics.totalSales}
+          <ComandasGrid
+            initialComandas={activeComandas}
+            companyId={companyId || ""}
           />
-
-          <Suspense fallback={<SaleTableSkeleton />}>
-            <SalesTableWrapper
-              customerOptions={customerOptions}
-              productOptions={productOptions}
-              products={products}
-              from={resolvedSearchParams.from}
-              to={resolvedSearchParams.to}
-              page={Number(resolvedSearchParams.page) || 1}
-              pageSize={Number(resolvedSearchParams.pageSize) || 10}
-              userRole={role as UserRole}
-            />
-          </Suspense>
         </div>
       )}
     </div>

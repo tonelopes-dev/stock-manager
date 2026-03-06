@@ -1,0 +1,40 @@
+
+> stocky@1.4.0 build
+> prisma generate && prisma migrate deploy && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+
+✔ Generated Prisma Client (v5.19.1) to .\node_modules\@prisma\client in 305ms
+
+Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
+
+Tip: Easily identify and fix slow SQL queries in your app. Optimize helps you enhance your visibility: https://pris.ly/--optimize
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": PostgreSQL database "stocklydb", schema "public" at "ep-orange-wind-acur347n.sa-east-1.aws.neon.tech"
+
+42 migrations found in prisma/migrations
+
+
+No pending migrations to apply.
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local, .env
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 13.5s
+  Running TypeScript ...
+Failed to compile.
+
+./scripts/normalize-customers.ts:21:19
+Type error: Property 'phoneNumber' does not exist on type '{ orders: { id: string; orderNumber: number; status: OrderStatus; companyId: string; customerId: string | null; tableNumber: string | null; notes: string | null; totalAmount: Decimal; createdAt: Date; updatedAt: Date; }[]; categories: { ...; }[]; } & { ...; }'.
+
+[0m [90m 19 |[39m   [90m// Agrupar por empresa e telefone normalizado[39m
+ [90m 20 |[39m   [36mfor[39m ([36mconst[39m customer [36mof[39m customers) {
+[31m[1m>[22m[39m[90m 21 |[39m     [36mif[39m ([33m![39mcustomer[33m.[39mphoneNumber) [36mcontinue[39m[33m;[39m
+ [90m    |[39m                   [31m[1m^[22m[39m
+ [90m 22 |[39m
+ [90m 23 |[39m     [36mconst[39m normalized [33m=[39m customer[33m.[39mphoneNumber[33m.[39mreplace([35m/\D/g[39m[33m,[39m [32m""[39m)[33m;[39m
+ [90m 24 |[39m     [0m
+Next.js build worker exited with code: 1 and signal: null
