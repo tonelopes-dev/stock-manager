@@ -15,7 +15,7 @@ export interface StockMovementDto {
   user: {
     name: string | null;
     email: string;
-  };
+  } | null;
   product?: {
     name: string;
   } | null;

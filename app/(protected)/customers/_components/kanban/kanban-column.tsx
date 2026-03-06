@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -48,7 +48,7 @@ export const KanbanColumn = memo(
       },
     });
 
-    const customerIds = customers.map((c) => c.id);
+    const customerIds = useMemo(() => customers.map((c) => c.id), [customers]);
 
     // Prepare data for the virtualized list to avoid closure issues
     const rowData = {
@@ -88,7 +88,6 @@ export const KanbanColumn = memo(
       </div>
     );
   },
-
   (prevProps, nextProps) => {
     // Only re-render if the column's customer ids/order changed
     if (prevProps.stage.id !== nextProps.stage.id) return false;

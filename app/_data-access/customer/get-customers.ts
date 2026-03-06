@@ -8,12 +8,12 @@ export interface CustomerDto {
   id: string;
   name: string;
   email: string | null;
-  phone: string | null;
+  phoneNumber: string | null;
   categories: { id: string; name: string; color: string | null }[];
   stageId: string | null;
   stage: { name: string } | null;
   source: string;
-  birthday: Date | null;
+  birthDate: Date | null;
   notes: string | null;
   isActive: boolean;
   position: number;
@@ -60,7 +60,7 @@ export const getCustomers = async (
   if (search) {
     where.OR = [
       { name: { contains: search, mode: "insensitive" } },
-      { phone: { contains: search, mode: "insensitive" } },
+      { phoneNumber: { contains: search, mode: "insensitive" } },
       { email: { contains: search, mode: "insensitive" } },
     ];
   }
@@ -133,12 +133,12 @@ export const getCustomers = async (
       id: customer.id,
       name: customer.name,
       email: customer.email,
-      phone: customer.phone,
+      phoneNumber: customer.phoneNumber,
       categories: customer.categories,
       stageId: customer.stageId,
       stage: customer.stage,
       source: customer.source,
-      birthday: customer.birthday,
+      birthDate: customer.birthDate,
       notes: customer.notes,
       isActive: customer.isActive,
       position: customer.position,

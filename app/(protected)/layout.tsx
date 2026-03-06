@@ -8,6 +8,8 @@ import { PasswordResetModal } from "./_components/password-reset-modal";
 import { getCompanyPlan } from "../_data-access/company/get-company-plan";
 import { headers } from "next/headers";
 import TrialBanner from "../_components/trial-banner";
+import { GlobalHeader } from "../_components/global-header";
+import { AppModeProvider } from "../_components/app-mode-provider";
 
 export default async function ProtectedLayout({
   children,
@@ -46,19 +48,27 @@ export default async function ProtectedLayout({
   }
 
   return (
-    <div className="fixed inset-0 flex overflow-hidden">
-      <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
+    <AppModeProvider>
+      <div className="fixed inset-0 flex flex-col overflow-hidden">
+        {/* Omni-Header */}
+        <GlobalHeader />
+
+        {/* Trial Banner */}
         {!isPaymentRoute && (
           <TrialBanner
             subscriptionStatus={subscriptionStatus}
             stripeCurrentPeriodEnd={stripeCurrentPeriodEnd}
           />
         )}
-        <main className="flex-1 overflow-y-auto bg-gray-100">{children}</main>
-      </div>
 
-      <PasswordResetModal isOpen={needsPasswordChange} />
-    </div>
+        {/* Sidebar + Content */}
+        <div className="flex flex-1 overflow-hidden">
+          <Sidebar />
+          <main className="flex-1 overflow-y-auto bg-gray-100">{children}</main>
+        </div>
+
+        <PasswordResetModal isOpen={needsPasswordChange} />
+      </div>
+    </AppModeProvider>
   );
 }

@@ -12,6 +12,7 @@ import {
   DndContext,
   DragOverlay,
   closestCorners,
+  closestCenter,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -137,50 +138,53 @@ export const KanbanBoard = ({
 
     if (activeId === overId) return;
 
-    setColumnMap((prev) => {
-      const activeCol = findColumn(activeId, prev);
-      const overCol = findColumn(overId, prev);
+    const currentMap = columnMapRef.current;
+    const activeCol = findColumn(activeId, currentMap);
+    const overCol = findColumn(overId, currentMap);
 
-      if (!activeCol || !overCol) return prev;
+    if (!activeCol || !overCol) return;
 
-      const activeItems = [...prev[activeCol]];
+    if (activeCol === overCol) {
+      const activeItems = currentMap[activeCol];
       const activeIndex = activeItems.findIndex((c) => c.id === activeId);
-      if (activeIndex === -1) return prev;
+      const overIndex = activeItems.findIndex((c) => c.id === overId);
 
-      if (activeCol === overCol) {
-        // Same column reorder
-        const overIndex = activeItems.findIndex((c) => c.id === overId);
-        if (overIndex === -1 || activeIndex === overIndex) return prev;
+      if (activeIndex === overIndex || activeIndex === -1 || overIndex === -1)
+        return;
+
+      setColumnMap((prev) => ({
+        ...prev,
+        [activeCol]: arrayMove(prev[activeCol], activeIndex, overIndex),
+      }));
+    } else {
+      // Cross-column move
+      setColumnMap((prev) => {
+        const activeItems = [...prev[activeCol]];
+        const activeIndex = activeItems.findIndex((c) => c.id === activeId);
+        if (activeIndex === -1) return prev;
+
+        const overItems = [...prev[overCol]];
+        const overIsColumn = stages.some((s) => s.id === overId);
+        let insertIndex: number;
+
+        if (overIsColumn) {
+          insertIndex = overItems.length;
+        } else {
+          const overIndex = overItems.findIndex((c) => c.id === overId);
+          insertIndex = overIndex >= 0 ? overIndex : overItems.length;
+        }
+
+        const activeCust = { ...activeItems[activeIndex], stageId: overCol };
+        activeItems.splice(activeIndex, 1);
+        overItems.splice(insertIndex, 0, activeCust);
 
         return {
           ...prev,
-          [activeCol]: arrayMove(activeItems, activeIndex, overIndex),
+          [activeCol]: activeItems,
+          [overCol]: overItems,
         };
-      }
-
-      // Cross-column move
-      const activeCust = { ...activeItems[activeIndex], stageId: overCol };
-      const newActiveItems = activeItems.filter((c) => c.id !== activeId);
-      const overItems = [...prev[overCol]];
-
-      const overIsColumn = stages.some((s) => s.id === overId);
-      let insertIndex: number;
-
-      if (overIsColumn) {
-        insertIndex = overItems.length;
-      } else {
-        const overIndex = overItems.findIndex((c) => c.id === overId);
-        insertIndex = overIndex >= 0 ? overIndex : overItems.length;
-      }
-
-      overItems.splice(insertIndex, 0, activeCust);
-
-      return {
-        ...prev,
-        [activeCol]: newActiveItems,
-        [overCol]: overItems,
-      };
-    });
+      });
+    }
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -238,7 +242,7 @@ export const KanbanBoard = ({
     <>
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}

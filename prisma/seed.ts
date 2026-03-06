@@ -139,7 +139,7 @@ async function main() {
       data: {
         name: faker.person.fullName(),
         email: faker.internet.email(),
-        phone: faker.phone.number(),
+        phoneNumber: faker.phone.number(),
         categories: {
           connect: { id: categories[categoryName].id },
         },
@@ -155,9 +155,9 @@ async function main() {
   console.log("📦 Seeding products...");
   
   const resellData = [
-    { name: "Cerveja Long Neck 330ml", price: 12.0, cost: 5.5, category: "Bebidas", stock: 120, minStock: 24 },
-    { name: "Água sem Gás 500ml", price: 5.0, cost: 1.5, category: "Bebidas", stock: 100, minStock: 20 },
-    { name: "Refrigerante Lata 350ml", price: 7.0, cost: 2.5, category: "Bebidas", stock: 80, minStock: 20 },
+    { name: "Cerveja Long Neck 330ml", price: 12.0, cost: 5.5, stock: 120, minStock: 24 },
+    { name: "Água sem Gás 500ml", price: 5.0, cost: 1.5, stock: 100, minStock: 20 },
+    { name: "Refrigerante Lata 350ml", price: 7.0, cost: 2.5, stock: 80, minStock: 20 },
   ];
 
   const products: Record<string, any> = {};
@@ -165,7 +165,7 @@ async function main() {
     const sku = p.name.toLowerCase().replace(/ /g, "-");
     const product = await prisma.product.upsert({
       where: { sku_companyId: { sku, companyId: company.id } },
-      update: { name: p.name, price: p.price, cost: p.cost, category: p.category },
+      update: { name: p.name, price: p.price, cost: p.cost },
       create: {
         ...p,
         sku,
@@ -181,7 +181,6 @@ async function main() {
       name: "Coxinha Especial",
       price: 10.0,
       cost: 3.5,
-      category: "Salgados",
       stock: 40,
       minStock: 15,
       recipe: [
@@ -195,7 +194,6 @@ async function main() {
       name: "Gin Tônica",
       price: 28.0,
       cost: 8.5,
-      category: "Drinks",
       stock: 0,
       minStock: 0,
       recipe: [
@@ -209,7 +207,6 @@ async function main() {
       name: "Espresso",
       price: 6.0,
       cost: 1.2,
-      category: "Cafeteria",
       stock: 0,
       minStock: 0,
       recipe: [
@@ -223,12 +220,11 @@ async function main() {
     const sku = p.name.toLowerCase().replace(/ /g, "-");
     const product = await prisma.product.upsert({
       where: { sku_companyId: { sku, companyId: company.id } },
-      update: { name: p.name, price: p.price, cost: p.cost, category: p.category },
+      update: { name: p.name, price: p.price, cost: p.cost },
       create: {
         name: p.name,
         price: p.price,
         cost: p.cost,
-        category: p.category,
         stock: p.stock,
         minStock: p.minStock,
         type: ProductType.PREPARED,

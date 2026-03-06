@@ -9,10 +9,11 @@ interface RecordStockMovementParams {
   productId?: string;
   ingredientId?: string;
   companyId: string;
-  userId: string;
+  userId?: string | null;
   type: StockMovementType;
   quantity: number | Decimal; // Positive increases stock, negative decreases
   saleId?: string;
+  orderId?: string;
   reason?: string;
 }
 

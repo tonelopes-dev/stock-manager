@@ -1,6 +1,4 @@
-import {
-  AlertDialog,
-} from "@/app/_components/ui/alert-dialog";
+import { AlertDialog } from "@/app/_components/ui/alert-dialog";
 import { Button } from "@/app/_components/ui/button";
 import { Dialog } from "@/app/_components/ui/dialog";
 import {
@@ -28,18 +26,19 @@ import { ProductDto } from "@/app/_data-access/product/get-products";
 import { toggleProductStatus } from "@/app/_actions/product/toggle-status";
 import Link from "next/link";
 import { UserRole } from "@prisma/client";
-
+import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
 
 interface ProductTableDropdownMenuProps {
   product: ProductDto;
   userRole: UserRole;
+  categories: ProductCategoryOption[];
 }
 
 const ProductTableDropdownMenu = ({
   product,
   userRole,
+  categories,
 }: ProductTableDropdownMenuProps) => {
-
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [toggleStatusDialogOpen, setToggleStatusDialogOpen] = useState(false);
@@ -62,7 +61,9 @@ const ProductTableDropdownMenu = ({
     });
   };
 
-  const hasHistory = (product._count?.saleItems || 0) > 0 || (product._count?.productionOrders || 0) > 0;
+  const hasHistory =
+    (product._count?.saleItems || 0) > 0 ||
+    (product._count?.productionOrders || 0) > 0;
 
   return (
     <>
@@ -81,7 +82,7 @@ const ProductTableDropdownMenu = ({
               Ver Detalhes
             </Link>
           </DropdownMenuItem>
-          
+
           {userRole !== UserRole.MEMBER && (
             <>
               <DropdownMenuItem
@@ -102,7 +103,7 @@ const ProductTableDropdownMenu = ({
                 )}
               </DropdownMenuItem>
 
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 className="gap-1.5"
                 onClick={() => setEditDialogOpen(true)}
               >
@@ -111,8 +112,8 @@ const ProductTableDropdownMenu = ({
               </DropdownMenuItem>
 
               {!hasHistory && (
-                <DropdownMenuItem 
-                  className="gap-1.5 text-red-600 focus:text-red-600 focus:bg-red-50"
+                <DropdownMenuItem
+                  className="gap-1.5 text-red-600 focus:bg-red-50 focus:text-red-600"
                   onClick={() => setDeleteDialogOpen(true)}
                 >
                   <TrashIcon size={16} />
@@ -123,7 +124,6 @@ const ProductTableDropdownMenu = ({
           )}
         </DropdownMenuContent>
       </DropdownMenu>
-
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
@@ -137,14 +137,22 @@ const ProductTableDropdownMenu = ({
             sku: product.sku || "",
             stock: product.stock,
             minStock: product.minStock,
+            categoryIds: product.categoryIds || [],
           }}
           setDialogIsOpen={setEditDialogOpen}
+          categories={categories}
         />
       </Dialog>
 
       {/* Toggle Status Confirmation (Deactivate) */}
-      <AlertDialog open={toggleStatusDialogOpen} onOpenChange={setToggleStatusDialogOpen}>
-        <ToggleStatusDialogContent productId={product.id} isActive={product.isActive} />
+      <AlertDialog
+        open={toggleStatusDialogOpen}
+        onOpenChange={setToggleStatusDialogOpen}
+      >
+        <ToggleStatusDialogContent
+          productId={product.id}
+          isActive={product.isActive}
+        />
       </AlertDialog>
 
       {/* Delete Confirmation */}

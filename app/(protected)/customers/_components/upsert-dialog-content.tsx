@@ -99,10 +99,10 @@ const UpsertCustomerDialogContent = ({
       id: "",
       name: "",
       email: "",
-      phone: "",
+      phoneNumber: "",
       categoryIds: [],
       stageId: "",
-      birthday: "",
+      birthDate: "",
       notes: "",
     },
   });
@@ -158,7 +158,7 @@ const UpsertCustomerDialogContent = ({
 
             <FormField
               control={form.control}
-              name="phone"
+              name="phoneNumber"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Telefone</FormLabel>
@@ -227,7 +227,7 @@ const UpsertCustomerDialogContent = ({
 
           <FormField
             control={form.control}
-            name="birthday"
+            name="birthDate"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Data de Aniversário</FormLabel>

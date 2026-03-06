@@ -26,6 +26,9 @@ import { SalesComparisonMetrics } from "./_components/sales-comparison-metrics";
 import { getOnboardingStats } from "@/app/_data-access/onboarding/get-onboarding-stats";
 import { getCurrentUserRole } from "@/app/_lib/rbac";
 import { UserRole } from "@prisma/client";
+import { getPendingOrders } from "@/app/_data-access/order/get-pending-orders";
+import { PendingOrdersBanner } from "./_components/pending-orders-banner";
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";
@@ -53,7 +56,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
 
   const { data: customers } = await getCustomers(undefined, undefined, 1, 1000);
   const customerOptions: ComboboxOption[] = customers.map((customer) => ({
-    label: `${customer.name} ${customer.phone ? `(${customer.phone})` : ""}`,
+    label: `${customer.name} ${customer.phoneNumber ? `(${customer.phoneNumber})` : ""}`,
     value: customer.id,
   }));
 
@@ -67,6 +70,9 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
     resolvedSearchParams.monthA,
     resolvedSearchParams.monthB,
   );
+
+  const companyId = await getCurrentCompanyId();
+  const pendingOrders = companyId ? await getPendingOrders() : [];
 
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
@@ -97,6 +103,11 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
           <SalesComparisonMetrics comparison={analytics.monthlyComparison} />
           <SalesCharts comparison={analytics.monthlyComparison} />
         </div>
+      )}
+
+      {/* Pending Orders from Digital Menu */}
+      {pendingOrders.length > 0 && companyId && (
+        <PendingOrdersBanner orders={pendingOrders} companyId={companyId} />
       )}
 
       {view === "gestao" && (

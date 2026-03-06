@@ -14,6 +14,7 @@ export interface ProductDto extends Omit<Product, "price" | "cost"> {
   cost: number;
   margin: number;
   status: ProductStatusDto;
+  categoryIds: string[];
   _count?: {
     saleItems: number;
     productionOrders: number;
@@ -57,6 +58,9 @@ export const getProducts = async (
         include: {
           ingredient: true,
         },
+      },
+      productCategories: {
+        select: { id: true },
       },
     }
   });
@@ -114,6 +118,7 @@ export const getProducts = async (
         ? "SLOW_MOVING"
         : "IN_STOCK",
       _count: product._count,
+      categoryIds: product.productCategories.map((c) => c.id),
     } as ProductDto;
   });
 };

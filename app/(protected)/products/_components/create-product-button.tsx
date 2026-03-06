@@ -6,12 +6,17 @@ import { PlusIcon } from "lucide-react";
 
 import { useState } from "react";
 import UpsertProductDialogContent from "./upsert-dialog-content";
+import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
 
 interface CreateProductButtonProps {
   hasProducts: boolean;
+  categories: ProductCategoryOption[];
 }
 
-const CreateProductButton = ({ hasProducts }: CreateProductButtonProps) => {
+const CreateProductButton = ({
+  hasProducts,
+  categories,
+}: CreateProductButtonProps) => {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
 
   return (
@@ -22,9 +27,10 @@ const CreateProductButton = ({ hasProducts }: CreateProductButtonProps) => {
           Novo produto
         </Button>
       </DialogTrigger>
-      <UpsertProductDialogContent 
-        setDialogIsOpen={setDialogIsOpen} 
+      <UpsertProductDialogContent
+        setDialogIsOpen={setDialogIsOpen}
         hasProducts={hasProducts}
+        categories={categories}
       />
     </Dialog>
   );

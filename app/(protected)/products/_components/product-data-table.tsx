@@ -6,19 +6,23 @@ import { ProductDto } from "@/app/_data-access/product/get-products";
 import { EmptyState } from "@/app/_components/empty-state";
 import { PackageSearchIcon } from "lucide-react";
 import { UserRole } from "@prisma/client";
-
+import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
 
 interface ProductDataTableProps {
   products: ProductDto[];
   userRole: UserRole;
+  categories: ProductCategoryOption[];
 }
 
-export const ProductDataTable = ({ products, userRole }: ProductDataTableProps) => {
+export const ProductDataTable = ({
+  products,
+  userRole,
+  categories,
+}: ProductDataTableProps) => {
   return (
     <DataTable
-      columns={productTableColumns(userRole)}
+      columns={productTableColumns(userRole, categories)}
       data={products}
-
       getRowClassName={(product) =>
         !product.isActive
           ? "opacity-50 pointer-events-none sm:pointer-events-auto"

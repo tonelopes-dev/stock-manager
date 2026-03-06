@@ -30,14 +30,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/_components/ui/select";
+import { Badge } from "@/app/_components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/app/_components/ui/popover";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2Icon } from "lucide-react";
+import { Loader2Icon, X, ChevronsUpDown, Check } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import { NumericFormat, NumericFormatProps } from "react-number-format";
 import { toast } from "sonner";
 import * as React from "react";
+import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
 
 const MoneyInput = React.forwardRef<HTMLInputElement, NumericFormatProps>(
   (props, ref) => {
@@ -50,11 +57,13 @@ interface UpsertProductDialogContentProps {
   defaultValues?: UpsertProductSchema;
   setDialogIsOpen: Dispatch<SetStateAction<boolean>>;
   hasProducts?: boolean;
+  categories: ProductCategoryOption[];
 }
 
 const UpsertProductDialogContent = ({
   defaultValues,
   setDialogIsOpen,
+  categories,
 }: UpsertProductDialogContentProps) => {
   const { execute: executeUpsertProduct, isPending } = useAction(
     upsertProduct,
@@ -86,6 +95,7 @@ const UpsertProductDialogContent = ({
       sku: "",
       stock: 1,
       minStock: 0,
+      categoryIds: [],
     },
   });
 
@@ -285,6 +295,112 @@ const UpsertProductDialogContent = ({
                 )}
               />
             </div>
+          )}
+
+          {/* Category MultiSelect */}
+          {categories.length > 0 && (
+            <FormField
+              control={form.control}
+              name="categoryIds"
+              render={({ field }) => {
+                const selected = field.value || [];
+                return (
+                  <FormItem>
+                    <FormLabel>Categorias</FormLabel>
+                    <div className="space-y-2">
+                      {selected.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {selected.map((catId: string) => {
+                            const cat = categories.find((c) => c.id === catId);
+                            if (!cat) return null;
+                            return (
+                              <Badge
+                                key={catId}
+                                variant="secondary"
+                                className="gap-1 rounded-lg px-2.5 py-1 text-xs font-bold"
+                              >
+                                {cat.name}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    field.onChange(
+                                      selected.filter(
+                                        (id: string) => id !== catId,
+                                      ),
+                                    )
+                                  }
+                                  className="ml-0.5 rounded-full p-0.5 hover:bg-slate-300/50"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      )}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            type="button"
+                            className="w-full justify-between text-sm font-normal text-muted-foreground"
+                          >
+                            {selected.length === 0
+                              ? "Selecionar categorias..."
+                              : `${selected.length} selecionada(s)`}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-2">
+                          <div className="space-y-1">
+                            {categories.map((cat) => {
+                              const isSelected = selected.includes(cat.id);
+                              return (
+                                <button
+                                  key={cat.id}
+                                  type="button"
+                                  onClick={() => {
+                                    if (isSelected) {
+                                      field.onChange(
+                                        selected.filter(
+                                          (id: string) => id !== cat.id,
+                                        ),
+                                      );
+                                    } else {
+                                      field.onChange([...selected, cat.id]);
+                                    }
+                                  }}
+                                  className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+                                    isSelected
+                                      ? "bg-primary/10 font-semibold text-primary"
+                                      : "hover:bg-slate-100"
+                                  }`}
+                                >
+                                  <div
+                                    className={`flex h-4 w-4 items-center justify-center rounded border ${
+                                      isSelected
+                                        ? "border-primary bg-primary"
+                                        : "border-slate-300"
+                                    }`}
+                                  >
+                                    {isSelected && (
+                                      <Check className="h-3 w-3 text-white" />
+                                    )}
+                                  </div>
+                                  {cat.name}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
+            />
           )}
 
           {isPrepared && (
