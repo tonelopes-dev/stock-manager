@@ -195,6 +195,9 @@ model Company {
   sales                  Sale[]
   stockMovements         StockMovement[]
   userCompanies          UserCompany[]
+  checklists             Checklist[]
+  checklistItems         ChecklistItem[]
+  checklistTemplates     ChecklistTemplate[]
 
   @@index([deletedAt])
 }
@@ -313,6 +316,7 @@ model Customer {
   Order       Order[]
   sales       Sale[]
   categories  CustomerCategory[]   @relation("CustomerToCustomerCategory")
+  checklists  Checklist[]
 
   @@unique([email, companyId])
   @@unique([phone, companyId])
@@ -419,6 +423,44 @@ model ProductCategory {
   Product    Product[]
 
   @@unique([name, companyId])
+}
+
+model Checklist {
+  id          String          @id @default(cuid())
+  title       String
+  customerId  String
+  companyId   String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  customer    Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  company     Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  items       ChecklistItem[]
+
+  @@index([customerId])
+  @@index([companyId])
+}
+
+model ChecklistItem {
+  id          String    @id @default(cuid())
+  checklistId String
+  title       String
+  isChecked   Boolean   @default(false)
+  order       Int       @default(0)
+  companyId   String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  checklist   Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([checklistId])
+}
+
+model ChecklistTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  companyId String
+  items     Json     // List of strings or simplified objects
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
 }
 
 enum SaleStatus {

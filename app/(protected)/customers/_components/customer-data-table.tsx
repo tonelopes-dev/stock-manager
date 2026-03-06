@@ -13,6 +13,7 @@ interface CustomerDataTableProps {
   userRole: UserRole;
   categories: { id: string; name: string }[];
   stages: { id: string; name: string }[];
+  checklistTemplates: any[];
   pagination: {
     total: number;
     page: number;
@@ -25,6 +26,7 @@ export const CustomerDataTable = ({
   userRole,
   categories,
   stages,
+  checklistTemplates,
   pagination,
 }: CustomerDataTableProps) => {
   const [optimisticCustomers, addOptimisticUpdate] = useOptimistic(
@@ -46,7 +48,7 @@ export const CustomerDataTable = ({
 
   return (
     <DataTable
-      columns={customerTableColumns(userRole, categories, stages, handleDelete)}
+      columns={customerTableColumns}
       data={optimisticCustomers}
       pagination={pagination}
       emptyMessage={

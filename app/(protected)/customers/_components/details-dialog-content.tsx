@@ -21,8 +21,10 @@ import {
   Save,
   X,
   Trash2,
+  ListChecks,
 } from "lucide-react";
 import { SalesTimeline } from "./sales-timeline";
+import { CustomerChecklist } from "./customer-checklist";
 import { format } from "date-fns/format";
 import { MultiSelect } from "@/app/_components/ui/multi-select";
 import { ptBR } from "date-fns/locale";
@@ -54,6 +56,7 @@ interface CustomerDetailsDialogContentProps {
   customer: any;
   categories: { id: string; name: string }[];
   stages: { id: string; name: string }[];
+  checklistTemplates: any[];
   onDelete?: (id: string) => void;
   onUpdate?: (customer: any) => void;
 }
@@ -62,6 +65,7 @@ export const CustomerDetailsDialogContent = ({
   customer,
   categories,
   stages,
+  checklistTemplates,
   onDelete,
   onUpdate,
 }: CustomerDetailsDialogContentProps) => {
@@ -374,6 +378,17 @@ export const CustomerDetailsDialogContent = ({
                 )}
               </div>
             </div>
+          </div>
+
+          <div className="mt-12 border-t border-slate-100 pt-8">
+            <h3 className="mb-6 flex items-center gap-2 text-xs font-black uppercase italic tracking-tighter text-slate-800">
+              <ListChecks className="h-4 w-4" /> Jornada do Cliente
+            </h3>
+            <CustomerChecklist
+              customerId={customer.id}
+              checklists={customer.checklists || []}
+              templates={checklistTemplates}
+            />
           </div>
 
           <div className="mt-12 border-t border-slate-100 pt-8">

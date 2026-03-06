@@ -4,6 +4,7 @@ import { getCurrentUserRole } from "@/app/_lib/rbac";
 import { UserRole } from "@prisma/client";
 import { CustomerPageClient } from "./_components/customer-page-client";
 import { CustomerListResults } from "./_components/customer-list-results";
+import { getChecklistTemplates } from "../../_data-access/checklist/get-checklist-templates";
 
 interface CustomersPageProps {
   searchParams: Promise<{
@@ -28,6 +29,7 @@ const CustomersPage = async ({ searchParams }: CustomersPageProps) => {
   const categories = await getCustomerCategories();
   const stages = await getCRMStages();
   const role = await getCurrentUserRole();
+  const templates = await getChecklistTemplates();
 
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
@@ -35,6 +37,7 @@ const CustomersPage = async ({ searchParams }: CustomersPageProps) => {
         categories={categories}
         stages={stages}
         userRole={role as UserRole}
+        checklistTemplates={templates}
       >
         <CustomerListResults
           categoryId={categoryId}
@@ -42,6 +45,7 @@ const CustomersPage = async ({ searchParams }: CustomersPageProps) => {
           view={view}
           page={page}
           pageSize={pageSize}
+          checklistTemplates={templates}
         />
       </CustomerPageClient>
     </div>

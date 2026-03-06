@@ -19,12 +19,15 @@ export const CUSTOMER_CATEGORY_LABELS: Record<
   INACTIVE: { label: "Inativo", variant: "destructive" },
 };
 
-export const customerTableColumns = (
-  userRole: UserRole,
-  categories: { id: string; name: string }[],
-  stages: { id: string; name: string }[],
-  onDelete?: (customerId: string) => void,
-): ColumnDef<CustomerDto>[] => [
+export interface CustomerTableMeta {
+  userRole: UserRole;
+  categories: { id: string; name: string }[];
+  stages: { id: string; name: string }[];
+  checklistTemplates: any[];
+  onDelete?: (customerId: string) => void;
+}
+
+export const customerTableColumns: ColumnDef<CustomerDto>[] = [
   {
     accessorKey: "name",
     header: "Cliente",
@@ -121,14 +124,23 @@ export const customerTableColumns = (
   {
     accessorKey: "actions",
     header: "Ações",
-    cell: (row) => (
-      <CustomerTableDropdownMenu
-        customer={row.row.original}
-        userRole={userRole}
-        categories={categories}
-        stages={stages}
-        onDelete={onDelete}
-      />
-    ),
+    cell: ({ row, table }) => {
+      const meta = table.options.meta as CustomerTableMeta;
+      if (!meta) return null;
+
+      const { userRole, categories, stages, checklistTemplates, onDelete } =
+        meta;
+
+      return (
+        <CustomerTableDropdownMenu
+          customer={row.original}
+          userRole={userRole}
+          categories={categories}
+          stages={stages}
+          checklistTemplates={checklistTemplates}
+          onDelete={onDelete}
+        />
+      );
+    },
   },
 ];

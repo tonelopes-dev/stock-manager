@@ -34,6 +34,7 @@ interface KanbanBoardProps {
   initialCustomers: any[];
   stages: { id: string; name: string; order: number }[];
   categories: { id: string; name: string }[];
+  checklistTemplates: any[];
 }
 
 // Build a map: stageId → ordered array of customers
@@ -57,6 +58,7 @@ export const KanbanBoard = ({
   initialCustomers,
   stages,
   categories,
+  checklistTemplates,
 }: KanbanBoardProps) => {
   const [isPending, startTransition] = useTransition();
   const [activeCustomer, setActiveCustomer] = useState<any | null>(null);
@@ -273,6 +275,7 @@ export const KanbanBoard = ({
             customer={viewingCustomer}
             categories={categories}
             stages={stages}
+            checklistTemplates={checklistTemplates}
             onUpdate={(updatedCustomer) => {
               setColumnMap((prev) => {
                 const newMap = { ...prev };

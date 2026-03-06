@@ -12,6 +12,7 @@ interface CustomerListResultsProps {
   view: string;
   page: number;
   pageSize: number;
+  checklistTemplates: any[];
 }
 
 export const CustomerListResults = async ({
@@ -20,6 +21,7 @@ export const CustomerListResults = async ({
   view,
   page,
   pageSize,
+  checklistTemplates,
 }: CustomerListResultsProps) => {
   // If view is kanban, we fetch a larger set (no pagination UI in Kanban usually)
   const isTable = view === "table";
@@ -41,6 +43,7 @@ export const CustomerListResults = async ({
       userRole={role as UserRole}
       categories={categories}
       stages={stages}
+      checklistTemplates={checklistTemplates}
       pagination={{
         total,
         page,
@@ -52,6 +55,7 @@ export const CustomerListResults = async ({
       initialCustomers={customers}
       stages={stages}
       categories={categories}
+      checklistTemplates={checklistTemplates}
     />
   );
 };

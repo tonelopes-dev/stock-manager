@@ -24,6 +24,7 @@ interface CustomerTableDropdownMenuProps {
   userRole: UserRole;
   categories: { id: string; name: string }[];
   stages: { id: string; name: string }[];
+  checklistTemplates: any[];
   onDelete?: (customerId: string) => void;
 }
 
@@ -32,6 +33,7 @@ const CustomerTableDropdownMenu = ({
   userRole,
   categories,
   stages,
+  checklistTemplates,
   onDelete,
 }: CustomerTableDropdownMenuProps) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -86,6 +88,7 @@ const CustomerTableDropdownMenu = ({
           customer={customer}
           categories={categories}
           stages={stages}
+          checklistTemplates={checklistTemplates}
           onDelete={onDelete}
         />
       </Dialog>

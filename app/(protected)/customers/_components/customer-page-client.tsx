@@ -20,6 +20,7 @@ interface CustomerPageClientProps {
   categories: { id: string; name: string }[];
   stages: { id: string; name: string; order: number }[];
   userRole: UserRole;
+  checklistTemplates: any[];
   children: React.ReactNode;
 }
 
@@ -27,6 +28,7 @@ export const CustomerPageClient = ({
   categories,
   stages,
   userRole,
+  checklistTemplates,
   children,
 }: CustomerPageClientProps) => {
   const [isPending, startTransition] = useTransition();

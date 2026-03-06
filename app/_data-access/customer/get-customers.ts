@@ -24,6 +24,16 @@ export interface CustomerDto {
   };
   totalSpent: number;
   lastSaleDate: Date | null;
+  checklists: {
+    id: string;
+    title: string;
+    items: {
+      id: string;
+      title: string;
+      isChecked: boolean;
+      order: number;
+    }[];
+  }[];
   sales: { 
     totalAmount: number; 
     date: Date;
@@ -89,6 +99,13 @@ export const getCustomers = async (
               },
             }
           : {}),
+        checklists: {
+          include: {
+            items: {
+              orderBy: { order: "asc" },
+            },
+          },
+        },
       },
       orderBy: [
         { stage: { order: "asc" } },
@@ -135,6 +152,7 @@ export const getCustomers = async (
           quantity: Number(item.quantity),
         })) || [],
       })) || [],
+      checklists: customer.checklists || [],
     };
   });
 
