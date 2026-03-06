@@ -30,7 +30,7 @@ export function getSubscriptionUIState(
     return {
       statusLabel: "Teste Gratuito",
       description: `${daysRemaining} ${daysRemaining === 1 ? "dia restante" : "dias restantes"}`,
-      severity: daysRemaining <= 2 ? "danger" : daysRemaining <= 7 ? "warning" : "info",
+      severity: daysRemaining <= 1 ? "danger" : daysRemaining <= 2 ? "warning" : "info",
       primaryCTA: {
         label: "Ativar plano agora",
         href: "/plans",

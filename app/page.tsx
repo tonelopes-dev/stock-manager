@@ -94,7 +94,7 @@ export default function LandingPage() {
               comprar.
               <br className="hidden md:block" />
               <span className="font-black text-slate-900">
-                Teste grátis por 30 dias. Sem cartão necessário.
+                Teste grátis por 3 dias. Sem cartão necessário.
               </span>
             </p>
 
@@ -516,7 +516,7 @@ export default function LandingPage() {
               </div>
 
               <p className="mb-10 text-[12px] font-black uppercase tracking-[0.2em] text-green-600">
-                TESTE GRÁTIS POR 30 DIAS
+                TESTE GRÁTIS POR 3 DIAS
               </p>
 
               <ul className="mb-12 space-y-5">

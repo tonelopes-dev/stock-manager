@@ -61,7 +61,7 @@ export const createCheckoutSession = actionClient.action(async () => {
       },
     ],
     subscription_data: {
-      trial_period_days: 30,
+      trial_period_days: 3,
       metadata: {
         companyId: companyId,
       },

@@ -58,9 +58,9 @@ export async function register(
       },
     });
 
-    // Create company for the user with a 30-day trial
+    // Create company for the user with a 3-day trial
     const trialEndDate = new Date();
-    trialEndDate.setDate(trialEndDate.getDate() + 30);
+    trialEndDate.setDate(trialEndDate.getDate() + 3);
 
     const company = await tx.company.create({
       data: {

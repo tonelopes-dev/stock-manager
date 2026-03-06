@@ -26,7 +26,7 @@ const CheckoutSuccessPage = () => {
 
         {/* Description */}
         <p className="mb-8 text-gray-500">
-          Você tem <strong className="text-gray-900">30 dias</strong> para
+          Você tem <strong className="text-gray-900">3 dias</strong> para
           explorar todas as funcionalidades do plano Pro sem nenhum custo.
           Aproveite ao máximo!
         </p>

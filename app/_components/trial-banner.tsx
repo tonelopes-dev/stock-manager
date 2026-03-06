@@ -1,5 +1,10 @@
 import Link from "next/link";
-import { InfoIcon, AlertTriangleIcon, AlertCircleIcon, ArrowRightIcon } from "lucide-react";
+import {
+  InfoIcon,
+  AlertTriangleIcon,
+  AlertCircleIcon,
+  ArrowRightIcon,
+} from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
 
 interface TrialBannerProps {
@@ -7,7 +12,10 @@ interface TrialBannerProps {
   stripeCurrentPeriodEnd: Date | null;
 }
 
-const TrialBanner = ({ subscriptionStatus, stripeCurrentPeriodEnd }: TrialBannerProps) => {
+const TrialBanner = ({
+  subscriptionStatus,
+  stripeCurrentPeriodEnd,
+}: TrialBannerProps) => {
   if (subscriptionStatus !== "TRIALING" || !stripeCurrentPeriodEnd) {
     return null;
   }
@@ -33,7 +41,7 @@ const TrialBanner = ({ subscriptionStatus, stripeCurrentPeriodEnd }: TrialBanner
     cta: "Ativar plano agora",
   };
 
-  if (daysRemaining >= 3 && daysRemaining <= 7) {
+  if (daysRemaining === 2) {
     config = {
       bg: "bg-amber-50",
       border: "border-amber-200",
@@ -42,7 +50,7 @@ const TrialBanner = ({ subscriptionStatus, stripeCurrentPeriodEnd }: TrialBanner
       message: `Seu teste termina em ${daysRemaining} dias.`,
       cta: "Ativar plano agora",
     };
-  } else if (daysRemaining <= 2) {
+  } else if (daysRemaining <= 1) {
     config = {
       bg: "bg-red-50",
       border: "border-red-200",
@@ -54,7 +62,9 @@ const TrialBanner = ({ subscriptionStatus, stripeCurrentPeriodEnd }: TrialBanner
   }
 
   return (
-    <div className={`${config.bg} border-b ${config.border} px-4 py-3 sm:px-6 lg:px-8`}>
+    <div
+      className={`${config.bg} border-b ${config.border} px-4 py-3 sm:px-6 lg:px-8`}
+    >
       <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
         <div className="flex items-center gap-3">
           {config.icon}
