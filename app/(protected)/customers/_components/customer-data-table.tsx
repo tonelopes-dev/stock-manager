@@ -51,6 +51,13 @@ export const CustomerDataTable = ({
       columns={customerTableColumns}
       data={optimisticCustomers}
       pagination={pagination}
+      meta={{
+        categories,
+        stages,
+        checklistTemplates,
+        userRole,
+        onDelete: handleDelete,
+      }}
       emptyMessage={
         <EmptyState
           icon={UsersIcon}

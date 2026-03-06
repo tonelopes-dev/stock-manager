@@ -31,6 +31,7 @@ interface DataTableProps<TData, TValue> {
     pageSize: number;
   };
   getRowClassName?: (data: TData) => string;
+  meta?: any;
 }
 
 export function DataTable<TData, TValue>({
@@ -40,11 +41,13 @@ export function DataTable<TData, TValue>({
   emptyMessage,
   pagination,
   getRowClassName,
+  meta,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    meta,
   });
 
   return (
@@ -89,14 +92,20 @@ export function DataTable<TData, TValue>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   {emptyMessage || "Nenhum resultado encontrado."}
                 </TableCell>
               </TableRow>
@@ -105,10 +114,10 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
       {pagination && (
-        <DataTablePagination 
-          total={pagination.total} 
-          page={pagination.page} 
-          pageSize={pagination.pageSize} 
+        <DataTablePagination
+          total={pagination.total}
+          page={pagination.page}
+          pageSize={pagination.pageSize}
         />
       )}
     </div>

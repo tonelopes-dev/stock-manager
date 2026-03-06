@@ -110,7 +110,9 @@ export const CustomerChecklist = ({
 
       {checklists.map((checklist) => {
         const total = checklist.items.length;
-        const checked = checklist.items.filter((i) => i.isChecked).length;
+        const checked = checklist.items.filter(
+          (i: ChecklistItem) => i.isChecked,
+        ).length;
         const progress = total > 0 ? Math.round((checked / total) * 100) : 0;
         const isExpanded = expandedChecklists.includes(checklist.id);
 
@@ -149,7 +151,6 @@ export const CustomerChecklist = ({
                   <Progress
                     value={progress}
                     className="h-1.5 w-16 bg-slate-200"
-                    indicatorClassName="bg-primary"
                   />
                 </div>
                 <Button
@@ -181,8 +182,11 @@ export const CustomerChecklist = ({
                       </p>
                     )}
                     {checklist.items
-                      .sort((a, b) => a.order - b.order)
-                      .map((item) => (
+                      .sort(
+                        (a: ChecklistItem, b: ChecklistItem) =>
+                          a.order - b.order,
+                      )
+                      .map((item: ChecklistItem) => (
                         <div
                           key={item.id}
                           className="group flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-50"
@@ -190,9 +194,9 @@ export const CustomerChecklist = ({
                           <Checkbox
                             id={item.id}
                             checked={item.isChecked}
-                            onCheckedChange={(checked) =>
-                              handleToggleItem(item.id, checked as boolean)
-                            }
+                            onCheckedChange={(
+                              checked: boolean | "indeterminate",
+                            ) => handleToggleItem(item.id, checked === true)}
                             className="h-4 w-4 rounded-md border-slate-300 data-[state=checked]:border-primary data-[state=checked]:bg-primary"
                           />
                           <label

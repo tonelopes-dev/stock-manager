@@ -49,8 +49,8 @@ interface UpsertCustomerDialogContentProps {
 const UpsertCustomerDialogContent = ({
   defaultValues,
   setDialogIsOpen,
-  categories,
-  stages,
+  categories = [],
+  stages = [],
 }: UpsertCustomerDialogContentProps) => {
   const { execute: executeUpsertCustomer } = useAction(upsertCustomer, {
     onSuccess: () => {

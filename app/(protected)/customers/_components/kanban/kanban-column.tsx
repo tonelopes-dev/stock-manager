@@ -19,6 +19,25 @@ interface KanbanColumnProps {
   onCardClick?: (customer: any) => void;
 }
 
+// Fixed Row renderer outside the component to prevent remounting on every render
+const KanbanRow = memo(({ index, style, data, ...props }: any) => {
+  // Try to get data from either 'data' prop (standard react-window)
+  // or direct props (custom wrappers often spread rowProps)
+  const customers = data?.customers || props.customers || [];
+  const onCardClick = data?.onCardClick || props.onCardClick;
+
+  const customer = customers[index];
+  if (!customer) return null;
+
+  return (
+    <div style={style} className="pb-3 pr-2">
+      <KanbanCard customer={customer} onClick={() => onCardClick?.(customer)} />
+    </div>
+  );
+});
+
+KanbanRow.displayName = "KanbanRow";
+
 export const KanbanColumn = memo(
   ({ stage, customers, onCardClick }: KanbanColumnProps) => {
     const { setNodeRef } = useDroppable({
@@ -31,26 +50,10 @@ export const KanbanColumn = memo(
 
     const customerIds = customers.map((c) => c.id);
 
-    // Row renderer for virtualization react-window 2.x
-    const Row = ({
-      index,
-      style,
-      ariaAttributes,
-    }: {
-      index: number;
-      style: React.CSSProperties;
-      ariaAttributes?: React.HTMLAttributes<HTMLDivElement>;
-    }) => {
-      const customer = customers[index];
-      if (!customer) return null;
-      return (
-        <div style={style} className="pb-3 pr-2" {...ariaAttributes}>
-          <KanbanCard
-            customer={customer}
-            onClick={() => onCardClick?.(customer)}
-          />
-        </div>
-      );
+    // Prepare data for the virtualized list to avoid closure issues
+    const rowData = {
+      customers,
+      onCardClick,
     };
 
     return (
@@ -75,8 +78,8 @@ export const KanbanColumn = memo(
             <List
               rowCount={customers.length}
               rowHeight={130}
-              rowComponent={Row as any}
-              rowProps={{}}
+              rowComponent={KanbanRow as any}
+              rowProps={rowData}
               className="scrollbar-hide"
               style={{ height: "100%", width: "100%" }}
             />

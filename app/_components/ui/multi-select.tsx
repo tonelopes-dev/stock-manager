@@ -26,7 +26,7 @@ interface MultiSelectProps {
 }
 
 export function MultiSelect({
-  options,
+  options = [],
   selected,
   onChange,
   placeholder = "Selecione as opções...",
@@ -37,7 +37,7 @@ export function MultiSelect({
 
   const handleUnselect = React.useCallback(
     (optionId: string) => {
-      onChange(selected.filter((id) => id !== optionId));
+      onChange((selected || []).filter((id) => id !== optionId));
     },
     [onChange, selected],
   );
@@ -48,7 +48,7 @@ export function MultiSelect({
       if (input) {
         if (e.key === "Delete" || e.key === "Backspace") {
           if (input.value === "") {
-            const newSelected = [...selected];
+            const newSelected = [...(selected || [])];
             newSelected.pop();
             onChange(newSelected);
           }
@@ -61,7 +61,12 @@ export function MultiSelect({
     [onChange, selected],
   );
 
-  const selectables = options.filter((option) => !selected.includes(option.id));
+  const safeOptions = options || [];
+  const safeSelected = selected || [];
+
+  const selectables = safeOptions.filter(
+    (option) => !safeSelected.includes(option.id),
+  );
 
   return (
     <Command
@@ -70,8 +75,8 @@ export function MultiSelect({
     >
       <div className="group rounded-md border border-input px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
         <div className="flex flex-wrap gap-1">
-          {selected.map((id) => {
-            const option = options.find((o) => o.id === id);
+          {safeSelected.map((id) => {
+            const option = safeOptions.find((o) => o.id === id);
             if (!option) return null;
             return (
               <Badge key={option.id} variant="secondary">
@@ -97,11 +102,18 @@ export function MultiSelect({
           <CommandPrimitive.Input
             ref={inputRef}
             value={inputValue}
-            onValueChange={setInputValue}
+            onValueChange={safeOptions.length === 0 ? undefined : setInputValue}
             onBlur={() => setOpen(false)}
             onFocus={() => setOpen(true)}
-            placeholder={selected.length === 0 ? placeholder : ""}
-            className="ml-2 flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
+            placeholder={
+              safeOptions.length === 0
+                ? "Nenhuma categoria cadastrada."
+                : safeSelected.length === 0
+                  ? placeholder
+                  : ""
+            }
+            disabled={safeOptions.length === 0}
+            className="ml-2 flex-1 bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
           />
         </div>
       </div>
@@ -120,7 +132,7 @@ export function MultiSelect({
                       }}
                       onSelect={(value) => {
                         setInputValue("");
-                        onChange([...selected, option.id]);
+                        onChange([...safeSelected, option.id]);
                       }}
                       className={"cursor-pointer"}
                     >
