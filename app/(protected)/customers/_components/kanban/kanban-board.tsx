@@ -83,12 +83,14 @@ export const KanbanBoard = ({
     [],
   );
 
-  // Sync with server data (only when server sends new data)
+  // Sync with server data (only when server sends new data and NOT dragging)
   useEffect(() => {
     if (!activeCustomer && !isPending) {
-      setColumnMap(buildColumnMap(initialCustomers, stages));
+      const newMap = buildColumnMap(initialCustomers, stages);
+      _setColumnMap(newMap);
+      columnMapRef.current = newMap;
     }
-  }, [initialCustomers, stages, setColumnMap, activeCustomer, isPending]);
+  }, [initialCustomers, stages, activeCustomer, isPending]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

@@ -10,6 +10,7 @@ export const upsertCustomerSchema = z.object({
   categoryIds: z.array(z.string()).nullable().optional(),
   stageId: z.string().cuid().nullable().optional(),
   birthday: z.string().nullable().optional(), // ISO date string from the form
+  createdAt: z.string().nullable().optional(), // ISO date string from the form
   notes: z.string().trim().nullable().optional().or(z.literal("")),
 });
 

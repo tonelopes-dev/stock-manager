@@ -75,6 +75,12 @@ export const CustomerDetailsDialogContent = ({
     categoryIds: customer.categories?.map((c: any) => c.id) || [],
     stageId: customer.stageId || "NONE",
     notes: customer.notes || "",
+    birthday: customer.birthday
+      ? format(new Date(customer.birthday), "yyyy-MM-dd")
+      : "",
+    createdAt: customer.createdAt
+      ? format(new Date(customer.createdAt), "yyyy-MM-dd")
+      : "",
   });
 
   const handleSave = () => {
@@ -94,6 +100,12 @@ export const CustomerDetailsDialogContent = ({
           onUpdate({
             ...customer,
             ...formData,
+            birthday: formData.birthday
+              ? new Date(formData.birthday).toISOString()
+              : null,
+            createdAt: formData.createdAt
+              ? new Date(formData.createdAt).toISOString()
+              : customer.createdAt,
             categories: categories.filter((c) =>
               formData.categoryIds.includes(c.id),
             ),
@@ -297,18 +309,72 @@ export const CustomerDetailsDialogContent = ({
                 <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
                   <Calendar className="h-3 w-3" /> Outros Detalhes
                 </span>
-                <div className="space-y-2">
-                  <p className="text-[10px] font-bold uppercase text-slate-400">
-                    Aniversário
-                  </p>
-                  <p className="text-sm font-medium text-slate-600">
-                    {customer.birthday
-                      ? format(new Date(customer.birthday), "dd 'de' MMMM", {
-                          locale: ptBR,
-                        })
-                      : "Não informado"}
-                  </p>
-                </div>
+                {isEditing ? (
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase text-slate-400">
+                        Aniversário
+                      </label>
+                      <Input
+                        type="date"
+                        value={formData.birthday}
+                        onChange={(e) =>
+                          setFormData({ ...formData, birthday: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase text-slate-400">
+                        Data de Cadastro
+                      </label>
+                      <Input
+                        type="date"
+                        value={formData.createdAt}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            createdAt: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold uppercase text-slate-400">
+                        Aniversário
+                      </p>
+                      <p className="text-sm font-medium text-slate-600">
+                        {customer.birthday
+                          ? format(
+                              new Date(customer.birthday),
+                              "dd 'de' MMMM",
+                              {
+                                locale: ptBR,
+                              },
+                            )
+                          : "Não informado"}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold uppercase text-slate-400">
+                        Data de Cadastro
+                      </p>
+                      <p className="text-sm font-medium text-slate-600">
+                        {customer.createdAt
+                          ? format(
+                              new Date(customer.createdAt),
+                              "dd/MM/yyyy HH:mm",
+                              {
+                                locale: ptBR,
+                              },
+                            )
+                          : "Não informado"}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">
