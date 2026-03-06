@@ -34,6 +34,7 @@ import {
   createChecklistItem,
   updateChecklistItemTitle,
   deleteChecklistItem,
+  updateChecklistTitle,
 } from "@/app/_actions/checklist";
 import { Input } from "@/app/_components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
@@ -65,6 +66,13 @@ export const CustomerChecklist = ({
     null,
   );
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
+  const [editingTitleChecklistId, setEditingTitleChecklistId] = useState<
+    string | null
+  >(null);
+  const [editingChecklistTitle, setEditingChecklistTitle] = useState("");
+  const [togglingItemIds, setTogglingItemIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   const toggleExpand = (id: string) => {
     setExpandedChecklists((prev) =>
@@ -73,6 +81,7 @@ export const CustomerChecklist = ({
   };
 
   const handleToggleItem = (itemId: string, isChecked: boolean) => {
+    setTogglingItemIds((prev) => new Set(prev).add(itemId));
     startTransition(async () => {
       const result = await toggleChecklistItem({ id: itemId, isChecked });
       if (result?.serverError) {
@@ -80,6 +89,11 @@ export const CustomerChecklist = ({
       } else {
         refreshData?.();
       }
+      setTogglingItemIds((prev) => {
+        const next = new Set(prev);
+        next.delete(itemId);
+        return next;
+      });
     });
   };
 
@@ -175,6 +189,31 @@ export const CustomerChecklist = ({
     });
   };
 
+  const handleUpdateChecklistTitle = (id: string) => {
+    if (!editingChecklistTitle || editingChecklistTitle.trim() === "") {
+      setEditingTitleChecklistId(null);
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await updateChecklistTitle({
+        id,
+        title: editingChecklistTitle,
+      });
+      if (result?.serverError) {
+        toast.error("Erro ao atualizar título da jornada.");
+      } else {
+        setEditingTitleChecklistId(null);
+        refreshData?.();
+      }
+    });
+  };
+
+  const handleStartEditingChecklist = (checklist: Checklist) => {
+    setEditingTitleChecklistId(checklist.id);
+    setEditingChecklistTitle(checklist.title);
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -249,9 +288,52 @@ export const CustomerChecklist = ({
                   </Button>
                   <div className="flex items-center gap-2">
                     <ClipboardList className="h-4 w-4 text-primary" />
-                    <h4 className="text-xs font-black uppercase italic tracking-tighter text-slate-900">
-                      {checklist.title}
-                    </h4>
+                    {editingTitleChecklistId === checklist.id ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          autoFocus
+                          className="h-7 py-0 text-xs font-black uppercase italic tracking-tighter focus-visible:ring-1 focus-visible:ring-primary"
+                          value={editingChecklistTitle}
+                          onChange={(e) =>
+                            setEditingChecklistTitle(e.target.value)
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter")
+                              handleUpdateChecklistTitle(checklist.id);
+                            if (e.key === "Escape")
+                              setEditingTitleChecklistId(null);
+                          }}
+                        />
+                        <Button
+                          size="sm"
+                          className="h-6 w-6 rounded-full bg-primary p-0 text-white shadow-lg shadow-primary/20 transition-all hover:scale-110 hover:bg-primary/90 active:scale-95"
+                          onClick={() =>
+                            handleUpdateChecklistTitle(checklist.id)
+                          }
+                          disabled={isPending}
+                        >
+                          {isPending ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Check className="h-3 w-3" />
+                          )}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="group/title flex items-center gap-2">
+                        <h4 className="text-xs font-black uppercase italic tracking-tighter text-slate-900">
+                          {checklist.title}
+                        </h4>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-5 w-5 p-0 opacity-0 group-hover/title:opacity-100"
+                          onClick={() => handleStartEditingChecklist(checklist)}
+                        >
+                          <Pencil className="h-2.5 w-2.5 text-slate-400" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -302,14 +384,22 @@ export const CustomerChecklist = ({
                             key={item.id}
                             className="group flex items-center gap-3 rounded-lg px-2 py-1 transition-colors hover:bg-slate-50"
                           >
-                            <Checkbox
-                              id={item.id}
-                              checked={item.isChecked}
-                              onCheckedChange={(
-                                checked: boolean | "indeterminate",
-                              ) => handleToggleItem(item.id, checked === true)}
-                              className="h-4 w-4 rounded-md border-slate-300 data-[state=checked]:border-primary data-[state=checked]:bg-primary"
-                            />
+                            <div className="flex h-4 w-4 shrink-0 items-center justify-center">
+                              {togglingItemIds.has(item.id) ? (
+                                <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                              ) : (
+                                <Checkbox
+                                  id={item.id}
+                                  checked={item.isChecked}
+                                  onCheckedChange={(
+                                    checked: boolean | "indeterminate",
+                                  ) =>
+                                    handleToggleItem(item.id, checked === true)
+                                  }
+                                  className="h-4 w-4 rounded-md border-slate-300 data-[state=checked]:border-primary data-[state=checked]:bg-primary"
+                                />
+                              )}
+                            </div>
 
                             {editingItemId === item.id ? (
                               <Input

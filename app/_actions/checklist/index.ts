@@ -27,6 +27,11 @@ const deleteChecklistSchema = z.object({
   id: z.string(),
 });
 
+const updateChecklistTitleSchema = z.object({
+  id: z.string(),
+  title: z.string().min(1, "O título é obrigatório"),
+});
+
 const createItemSchema = z.object({
   checklistId: z.string(),
   title: z.string().min(1, "O título é obrigatório"),
@@ -115,6 +120,20 @@ export const deleteChecklist = actionClient
 
     await db.checklist.delete({
       where: { id, companyId },
+    });
+
+    revalidatePath("/customers");
+  });
+
+export const updateChecklistTitle = actionClient
+  .schema(updateChecklistTitleSchema)
+  .action(async ({ parsedInput: { id, title } }) => {
+    const companyId = await getCurrentCompanyId();
+    await assertRole(ALL_ROLES);
+
+    await db.checklist.update({
+      where: { id, companyId },
+      data: { title },
     });
 
     revalidatePath("/customers");

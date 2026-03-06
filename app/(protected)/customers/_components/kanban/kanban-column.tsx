@@ -30,7 +30,7 @@ const KanbanRow = memo(({ index, style, data, ...props }: any) => {
   if (!customer) return null;
 
   return (
-    <div style={style} className="pb-3 pr-2">
+    <div style={style} className="pb-5 pr-2">
       <KanbanCard customer={customer} onClick={() => onCardClick?.(customer)} />
     </div>
   );
@@ -77,7 +77,7 @@ export const KanbanColumn = memo(
           >
             <List
               rowCount={customers.length}
-              rowHeight={130}
+              rowHeight={170}
               rowComponent={KanbanRow as any}
               rowProps={rowData}
               className="scrollbar-hide"
