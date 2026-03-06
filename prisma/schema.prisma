@@ -18,14 +18,17 @@ datasource db {
 model Product {
   id               String            @id @default(uuid())
   name             String
+  description      String?           @db.Text
+  imageUrl         String?
   type             ProductType       @default(RESELL)
   price            Decimal           @db.Decimal(10, 2)
   cost             Decimal           @default(0) @db.Decimal(10, 2)
   sku              String?
-  category         String?
   stock            Int               @default(0)
   minStock         Int               @default(0)
   isActive         Boolean           @default(true)
+  isVisibleOnMenu  Boolean           @default(false)
+  isPromotion      Boolean           @default(false)
   companyId        String
   company          Company           @relation(fields: [companyId], references: [id])
   createdAt        DateTime          @default(now())
@@ -34,7 +37,10 @@ model Product {
   stockMovements   StockMovement[]
   recipes          ProductRecipe[]
   productionOrders ProductionOrder[]
+  orderItems       OrderItem[]
   goals            Goal[]
+
+  productCategories ProductCategory[]
 
   @@unique([sku, companyId])
 }
@@ -59,6 +65,9 @@ model Sale {
   paymentMethod  PaymentMethod?
   saleItems      SaleItem[]
   stockMovements StockMovement[]
+
+  orderId String? @unique
+  order   Order?  @relation(fields: [orderId], references: [id])
 
   @@index([companyId, status, date])
   @@index([companyId, createdAt])
@@ -156,6 +165,15 @@ enum SaleStatus {
   CANCELED
 }
 
+enum OrderStatus {
+  PENDING
+  PREPARING
+  READY
+  DELIVERED
+  CANCELED
+  PAID
+}
+
 enum PaymentMethod {
   CASH
   PIX
@@ -182,6 +200,7 @@ enum StockMovementType {
   MANUAL
   CANCEL
   PRODUCTION
+  ORDER
 }
 
 enum ProductType {
@@ -209,15 +228,70 @@ model StockMovement {
   ingredient      Ingredient?       @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
   companyId       String
   company         Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  userId          String
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String?
+  user            User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
   saleId          String?
   sale            Sale?             @relation(fields: [saleId], references: [id], onDelete: SetNull)
+  orderId         String?
+  order           Order?            @relation(fields: [orderId], references: [id], onDelete: SetNull)
   reason          String?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
   @@index([ingredientId])
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  orderNumber Int         @default(autoincrement())
+  status      OrderStatus @default(PENDING)
+  companyId   String
+  company     Company     @relation(fields: [companyId], references: [id])
+  customerId  String?
+  customer    Customer?   @relation(fields: [customerId], references: [id])
+  tableNumber String?
+  notes       String?     @db.Text
+  
+  totalAmount Decimal     @default(0) @db.Decimal(10, 2)
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  orderItems  OrderItem[]
+  sale        Sale?
+  stockMovements StockMovement[]
+
+  @@index([companyId, status])
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Decimal  @db.Decimal(10, 3)
+  unitPrice Decimal  @db.Decimal(10, 2)
+  notes     String?  @db.Text
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+}
+
+model ProductCategory {
+  id        String    @id @default(cuid())
+  name      String
+  icon      String?
+  orderIndex Int      @default(0)
+  companyId String
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([name, companyId])
 }
 
 enum SubscriptionStatus {
@@ -253,6 +327,8 @@ model Company {
   invitations      CompanyInvitation[]
   productionOrders ProductionOrder[]
   auditEvents      AuditEvent[]
+  orders           Order[]
+  productCategories ProductCategory[]
 
   @@index([deletedAt])
 }
@@ -415,21 +491,22 @@ enum CustomerSource {
   IFOOD // Importado via iFood (futuro)
   WHATSAPP // Via integração WhatsApp (futuro)
   WEBSITE // Via formulário do site (futuro)
+  MENU // Via Cardápio Digital
   OTHER
 }
 
 model Customer {
-  id         String   @id @default(cuid())
-  name       String
-  email      String?
-  phone      String?
+  id          String   @id @default(cuid())
+  name        String
+  email       String?
+  phoneNumber String?  @map("phone")
   oldCategory CustomerCategoryEnum @default(LEAD)
   source      CustomerSource       @default(MANUAL)
-  externalId String?
-  birthday   DateTime?
-  notes      String?  @db.Text
-  isActive   Boolean  @default(true)
-  position   Int      @default(0)
+  externalId  String?
+  birthDate   DateTime? @map("birthday")
+  notes       String?  @db.Text
+  isActive    Boolean  @default(true)
+  position    Int      @default(0)
 
   // Multi-tenancy
   companyId String
@@ -444,16 +521,17 @@ model Customer {
 
   // Relacionamentos
   sales Sale[]
+  orders Order[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([email, companyId])
-  @@unique([phone, companyId])
+  @@unique([phoneNumber, companyId])
   @@unique([externalId, source, companyId])
   @@index([companyId, stageId])
   @@index([companyId, stageId, position])
-  @@index([companyId, birthday])
+  @@index([companyId, birthDate])
 }
 
 model CustomerCategory {

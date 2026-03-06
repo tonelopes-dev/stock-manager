@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -19,6 +19,33 @@ interface KanbanColumnProps {
   onCardClick?: (customer: any) => void;
 }
 
+const VirtualRow = memo(
+  ({
+    index,
+    style,
+    customers,
+    onCardClick,
+  }: {
+    index: number;
+    style: React.CSSProperties;
+    customers: any[];
+    onCardClick?: (customer: any) => void;
+  }) => {
+    const customer = customers[index];
+    if (!customer) return null;
+    return (
+      <div style={style} className="pb-3 pr-2">
+        <KanbanCard
+          customer={customer}
+          onClick={() => onCardClick?.(customer)}
+        />
+      </div>
+    );
+  },
+);
+
+VirtualRow.displayName = "VirtualRow";
+
 export const KanbanColumn = memo(
   ({ stage, customers, onCardClick }: KanbanColumnProps) => {
     const { setNodeRef } = useDroppable({
@@ -29,29 +56,12 @@ export const KanbanColumn = memo(
       },
     });
 
-    const customerIds = customers.map((c) => c.id);
+    const customerIds = useMemo(() => customers.map((c) => c.id), [customers]);
 
-    // Row renderer for virtualization react-window 2.x
-    const Row = ({
-      index,
-      style,
-      ariaAttributes,
-    }: {
-      index: number;
-      style: React.CSSProperties;
-      ariaAttributes?: React.HTMLAttributes<HTMLDivElement>;
-    }) => {
-      const customer = customers[index];
-      if (!customer) return null;
-      return (
-        <div style={style} className="pb-3 pr-2" {...ariaAttributes}>
-          <KanbanCard
-            customer={customer}
-            onClick={() => onCardClick?.(customer)}
-          />
-        </div>
-      );
-    };
+    const rowProps = useMemo(
+      () => ({ customers, onCardClick }),
+      [customers, onCardClick],
+    );
 
     return (
       <div className="flex h-[calc(100vh-180px)] w-[300px] min-w-[300px] flex-col gap-4 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
@@ -75,8 +85,8 @@ export const KanbanColumn = memo(
             <List
               rowCount={customers.length}
               rowHeight={130}
-              rowComponent={Row as any}
-              rowProps={{}}
+              rowComponent={VirtualRow as any}
+              rowProps={rowProps}
               className="scrollbar-hide"
               style={{ height: "100%", width: "100%" }}
             />

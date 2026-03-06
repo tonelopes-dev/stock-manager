@@ -15,7 +15,7 @@ export default auth(async (req) => {
   }
 
   const publicRoutes = ["/", "/login", "/register", "/plans", "/checkout", "/checkout/success"];
-  const isPublicRoute = publicRoutes.includes(pathname);
+  const isPublicRoute = publicRoutes.includes(pathname) || pathname.startsWith("/menu");
   const isAuthApiRoute = pathname.startsWith("/api/auth");
   const isWebhookRoute = pathname.startsWith("/api/webhooks");
   const isRestorePage = pathname === "/settings/company/restore";

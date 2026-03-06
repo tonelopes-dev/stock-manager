@@ -71,7 +71,7 @@ export const CustomerDetailsDialogContent = ({
   const [formData, setFormData] = useState({
     name: customer.name,
     email: customer.email || "",
-    phone: customer.phone || "",
+    phoneNumber: customer.phoneNumber || "",
     categoryIds: customer.categories?.map((c: any) => c.id) || [],
     stageId: customer.stageId || "NONE",
     notes: customer.notes || "",
@@ -180,9 +180,12 @@ export const CustomerDetailsDialogContent = ({
                     />
                     <Input
                       placeholder="Telefone"
-                      value={formData.phone}
+                      value={formData.phoneNumber}
                       onChange={(e) =>
-                        setFormData({ ...formData, phone: e.target.value })
+                        setFormData({
+                          ...formData,
+                          phoneNumber: e.target.value,
+                        })
                       }
                     />
                   </div>
@@ -195,7 +198,7 @@ export const CustomerDetailsDialogContent = ({
                       {customer.email || "Sem e-mail"}
                     </p>
                     <p className="text-sm font-medium text-slate-500">
-                      {customer.phone || "Sem telefone"}
+                      {customer.phoneNumber || "Sem telefone"}
                     </p>
                   </div>
                 )}
@@ -302,8 +305,8 @@ export const CustomerDetailsDialogContent = ({
                     Aniversário
                   </p>
                   <p className="text-sm font-medium text-slate-600">
-                    {customer.birthday
-                      ? format(new Date(customer.birthday), "dd 'de' MMMM", {
+                    {customer.birthDate
+                      ? format(new Date(customer.birthDate), "dd 'de' MMMM", {
                           locale: ptBR,
                         })
                       : "Não informado"}

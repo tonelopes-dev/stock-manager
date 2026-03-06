@@ -5,15 +5,22 @@ import ProductTableDropdownMenu from "./table-dropdown-menu";
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import ProductStatusBadge from "@/app/_components/product-status-badge";
 import { Badge } from "@/app/_components/ui/badge";
+import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
 
-const PRODUCT_TYPE_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
+const PRODUCT_TYPE_LABELS: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "outline" }
+> = {
   RESELL: { label: "Revenda", variant: "secondary" },
   PREPARED: { label: "Produção Própria", variant: "default" },
 };
 
 import { UserRole } from "@prisma/client";
 
-export const productTableColumns = (userRole: UserRole): ColumnDef<ProductDto>[] => [
+export const productTableColumns = (
+  userRole: UserRole,
+  categories: ProductCategoryOption[] = [],
+): ColumnDef<ProductDto>[] => [
   {
     accessorKey: "name",
     header: "Produto",
@@ -22,12 +29,16 @@ export const productTableColumns = (userRole: UserRole): ColumnDef<ProductDto>[]
     accessorKey: "type",
     header: "Tipo",
     cell: ({ row: { original: product } }) => {
-      const config = PRODUCT_TYPE_LABELS[product.type] || PRODUCT_TYPE_LABELS.RESELL;
+      const config =
+        PRODUCT_TYPE_LABELS[product.type] || PRODUCT_TYPE_LABELS.RESELL;
       return (
         <div className="flex items-center gap-2">
           <Badge variant={config.variant}>{config.label}</Badge>
           {!product.isActive && (
-            <Badge variant="destructive" className="bg-red-100 text-red-700 hover:bg-red-100 border-red-200">
+            <Badge
+              variant="destructive"
+              className="border-red-200 bg-red-100 text-red-700 hover:bg-red-100"
+            >
               Inativo
             </Badge>
           )}
@@ -72,6 +83,12 @@ export const productTableColumns = (userRole: UserRole): ColumnDef<ProductDto>[]
   {
     accessorKey: "actions",
     header: "Ações",
-    cell: (row) => <ProductTableDropdownMenu product={row.row.original} userRole={userRole} />,
+    cell: (row) => (
+      <ProductTableDropdownMenu
+        product={row.row.original}
+        userRole={userRole}
+        categories={categories}
+      />
+    ),
   },
 ];

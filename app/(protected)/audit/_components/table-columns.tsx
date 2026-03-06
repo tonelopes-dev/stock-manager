@@ -6,7 +6,13 @@ import { Badge } from "@/app/_components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 
-const typeMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const typeMap: Record<
+  string,
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+  }
+> = {
   SALE: { label: "Venda", variant: "default" },
   ADJUSTMENT: { label: "Ajuste", variant: "outline" },
   MANUAL: { label: "Manual", variant: "outline" },
@@ -19,7 +25,9 @@ export const stockMovementTableColumns: ColumnDef<StockMovementDto>[] = [
     accessorKey: "createdAt",
     header: "Data",
     cell: ({ row: { original: movement } }) =>
-      format(new Date(movement.createdAt), "dd/MM/yyyy HH:mm", { locale: ptBR }),
+      format(new Date(movement.createdAt), "dd/MM/yyyy HH:mm", {
+        locale: ptBR,
+      }),
   },
   {
     header: "Item",
@@ -27,7 +35,9 @@ export const stockMovementTableColumns: ColumnDef<StockMovementDto>[] = [
       if (movement.product) {
         return (
           <div className="flex flex-col">
-            <span className="text-xs font-semibold text-muted-foreground uppercase">Produto</span>
+            <span className="text-xs font-semibold uppercase text-muted-foreground">
+              Produto
+            </span>
             <span>{movement.product.name}</span>
           </div>
         );
@@ -35,7 +45,9 @@ export const stockMovementTableColumns: ColumnDef<StockMovementDto>[] = [
       if (movement.ingredient) {
         return (
           <div className="flex flex-col">
-            <span className="text-xs font-semibold text-muted-foreground uppercase">Insumo</span>
+            <span className="text-xs font-semibold uppercase text-muted-foreground">
+              Insumo
+            </span>
             <span>{movement.ingredient.name}</span>
           </div>
         );
@@ -47,7 +59,10 @@ export const stockMovementTableColumns: ColumnDef<StockMovementDto>[] = [
     accessorKey: "type",
     header: "Operação",
     cell: ({ row: { original: movement } }) => {
-      const config = typeMap[movement.type] || { label: movement.type, variant: "outline" };
+      const config = typeMap[movement.type] || {
+        label: movement.type,
+        variant: "outline",
+      };
       return <Badge variant={config.variant}>{config.label}</Badge>;
     },
   },
@@ -56,8 +71,11 @@ export const stockMovementTableColumns: ColumnDef<StockMovementDto>[] = [
     cell: ({ row: { original: movement } }) => {
       const isNegative = movement.quantity < 0;
       return (
-        <span className={`font-bold ${isNegative ? "text-destructive" : "text-primary"}`}>
-          {isNegative ? "" : "+"}{movement.quantity}
+        <span
+          className={`font-bold ${isNegative ? "text-destructive" : "text-primary"}`}
+        >
+          {isNegative ? "" : "+"}
+          {movement.quantity}
         </span>
       );
     },
@@ -66,7 +84,10 @@ export const stockMovementTableColumns: ColumnDef<StockMovementDto>[] = [
     header: "Saldo (Antes/Depois)",
     cell: ({ row: { original: movement } }) => (
       <span className="text-muted-foreground">
-        {movement.stockBefore} → <span className="text-foreground font-medium">{movement.stockAfter}</span>
+        {movement.stockBefore} →{" "}
+        <span className="font-medium text-foreground">
+          {movement.stockAfter}
+        </span>
       </span>
     ),
   },
@@ -74,8 +95,10 @@ export const stockMovementTableColumns: ColumnDef<StockMovementDto>[] = [
     header: "Usuário",
     cell: ({ row: { original: movement } }) => (
       <div className="flex flex-col">
-        <span className="font-medium">{movement.user.name || "N/A"}</span>
-        <span className="text-xs text-muted-foreground">{movement.user.email}</span>
+        <span className="font-medium">{movement.user?.name || "Sistema"}</span>
+        <span className="text-xs text-muted-foreground">
+          {movement.user?.email || "Pedido automático"}
+        </span>
       </div>
     ),
   },

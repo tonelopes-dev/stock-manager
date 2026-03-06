@@ -35,9 +35,9 @@ export const customerTableColumns = (
     cell: ({ row: { original: customer } }) => customer.email || "-",
   },
   {
-    accessorKey: "phone",
+    accessorKey: "phoneNumber",
     header: "Telefone",
-    cell: ({ row: { original: customer } }) => customer.phone || "-",
+    cell: ({ row: { original: customer } }) => customer.phoneNumber || "-",
   },
   {
     accessorKey: "categories",

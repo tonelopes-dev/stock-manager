@@ -6,10 +6,10 @@ export const upsertCustomerSchema = z.object({
     message: "O nome do cliente é obrigatório.",
   }),
   email: z.string().email({ message: "E-mail inválido." }).nullable().optional().or(z.literal("")),
-  phone: z.string().trim().nullable().optional().or(z.literal("")),
+  phoneNumber: z.string().trim().nullable().optional().or(z.literal("")),
   categoryIds: z.array(z.string()).nullable().optional(),
   stageId: z.string().cuid().nullable().optional(),
-  birthday: z.string().nullable().optional(), // ISO date string from the form
+  birthDate: z.string().nullable().optional(), // ISO date string from the form
   notes: z.string().trim().nullable().optional().or(z.literal("")),
 });
 
