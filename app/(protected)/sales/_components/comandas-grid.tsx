@@ -9,14 +9,21 @@ import { Button } from "@/app/_components/ui/button";
 import { useRouter } from "next/navigation";
 import { ComandaDetailsSheet } from "./comanda-details-sheet";
 
+import { ProductDto } from "@/app/_data-access/product/get-products";
+import { ComboboxOption } from "@/app/_components/ui/combobox";
+
 interface ComandasGridProps {
   initialComandas: ComandaDto[];
   companyId: string;
+  products: ProductDto[];
+  productOptions: ComboboxOption[];
 }
 
 export const ComandasGrid = ({
   initialComandas,
   companyId,
+  products,
+  productOptions,
 }: ComandasGridProps) => {
   const [comandas, setComandas] = useState<ComandaDto[]>(initialComandas);
   const [search, setSearch] = useState("");
@@ -129,6 +136,8 @@ export const ComandasGrid = ({
         isOpen={!!selectedComanda}
         onClose={() => setSelectedComanda(null)}
         companyId={companyId}
+        products={products}
+        productOptions={productOptions}
       />
     </div>
   );

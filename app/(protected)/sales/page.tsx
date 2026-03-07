@@ -148,6 +148,8 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
           <ComandasGrid
             initialComandas={activeComandas}
             companyId={companyId || ""}
+            products={products}
+            productOptions={productOptions}
           />
         </div>
       )}

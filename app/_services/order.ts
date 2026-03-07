@@ -213,4 +213,78 @@ export const OrderService = {
       throw new Error("Erro ao processar pagamento do pedido.");
     }
   },
+  async convertItemsToSale(itemIds: string[], companyId: string, userId: string, paymentMethod: any) {
+    try {
+      return await db.$transaction(async (trx) => {
+        // 1. Fetch the items and their orders
+        const items = await trx.orderItem.findMany({
+          where: { id: { in: itemIds }, order: { companyId } },
+          include: { order: true, product: { select: { cost: true } } },
+        });
+
+        if (items.length === 0) throw new BusinessError("Nenhum item encontrado.");
+
+        const totalAmount = items.reduce((sum, item) => sum + Number(item.unitPrice) * Number(item.quantity), 0);
+        const originalOrderIds = Array.from(new Set(items.map((i) => i.orderId)));
+
+        // 2. Create the Sale
+        const sale = await trx.sale.create({
+          data: {
+            companyId,
+            userId,
+            customerId: items[0].order.customerId,
+            paymentMethod,
+            totalAmount,
+            date: new Date(),
+            status: "ACTIVE",
+          },
+        });
+
+        // 3. Create SaleItems and link stock movement
+        for (const item of items) {
+          await trx.saleItem.create({
+            data: {
+              saleId: sale.id,
+              productId: item.productId,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              baseCost: item.product.cost,
+            },
+          });
+
+          // Link the "ORDER" stock movement to this sale
+          await trx.stockMovement.updateMany({
+            where: { orderId: item.orderId, productId: item.productId, type: "ORDER" },
+            data: { saleId: sale.id },
+          });
+
+          // Delete the OrderItem
+          await trx.orderItem.delete({ where: { id: item.id } });
+        }
+
+        // 4. Update order totals and cleanup empty orders
+        for (const orderId of originalOrderIds) {
+          const remainingItems = await trx.orderItem.findMany({ where: { orderId } });
+          
+          if (remainingItems.length === 0) {
+            // No items left, delete the order (it's fully paid)
+            await trx.order.delete({ where: { id: orderId } });
+          } else {
+            // Update totalAmount of the order
+            const newTotal = remainingItems.reduce((sum, item) => sum + Number(item.unitPrice) * Number(item.quantity), 0);
+            await trx.order.update({
+              where: { id: orderId },
+              data: { totalAmount: newTotal },
+            });
+          }
+        }
+
+        return sale;
+      });
+    } catch (error) {
+      if (error instanceof BusinessError) throw error;
+      console.error("Error converting items to sale:", error);
+      throw new Error("Erro ao processar pagamento parcial.");
+    }
+  },
 };

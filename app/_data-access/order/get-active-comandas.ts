@@ -11,6 +11,7 @@ export interface ComandaDto {
   firstOrderAt: Date;
   lastOrderAt: Date;
   items: {
+    id: string;
     name: string;
     quantity: number;
     price: number;
@@ -86,6 +87,7 @@ export const getActiveComandas = async (): Promise<ComandaDto[]> => {
     // Aggregate items
     for (const item of order.orderItems) {
       group.items.push({
+        id: item.id,
         name: item.product.name,
         quantity: Number(item.quantity),
         price: Number(item.unitPrice),
