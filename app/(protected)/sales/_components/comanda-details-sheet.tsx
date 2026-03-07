@@ -99,6 +99,13 @@ export const ComandaDetailsSheet = ({
     }
   }, [isOpen, comanda?.customerId]);
 
+  const partialTotal = useMemo(() => {
+    if (!comanda) return 0;
+    return comanda.items
+      .filter((item) => selectedItemIds.has(item.id))
+      .reduce((sum, item) => sum + item.price * item.quantity, 0);
+  }, [comanda, selectedItemIds]);
+
   useEffect(() => {
     if (!isOpen) return;
     const timer = setInterval(() => setNow(new Date()), 60000);
@@ -179,12 +186,6 @@ export const ComandaDetailsSheet = ({
     }
     setSelectedItemIds(newSelection);
   };
-
-  const partialTotal = useMemo(() => {
-    return comanda.items
-      .filter((item) => selectedItemIds.has(item.id))
-      .reduce((sum, item) => sum + item.price * item.quantity, 0);
-  }, [comanda.items, selectedItemIds]);
 
   const isPartial = selectedItemIds.size > 0;
 

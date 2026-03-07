@@ -41,7 +41,9 @@ export const ComandasGrid = ({
   // Real-time Updates via SSE
   useEffect(() => {
     // We use the central KDS events endpoint
-    const eventSource = new EventSource("/api/kds/events");
+    const eventSource = new EventSource(
+      `/api/kds/events?companyId=${companyId}`,
+    );
 
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
