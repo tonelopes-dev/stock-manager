@@ -287,4 +287,58 @@ export const OrderService = {
       throw new Error("Erro ao processar pagamento parcial.");
     }
   },
+
+  async deleteOrderItem(itemId: string, companyId: string, userId: string) {
+    try {
+      return await db.$transaction(async (trx) => {
+        const item = await trx.orderItem.findUnique({
+          where: { id: itemId, order: { companyId } },
+          include: { order: true },
+        });
+
+        if (!item) throw new BusinessError("Item não encontrado.");
+
+        // 1. Return stock
+        await recordStockMovement(
+          {
+            productId: item.productId,
+            companyId,
+            userId,
+            type: "CANCEL",
+            quantity: Number(item.quantity),
+            orderId: item.orderId,
+            reason: "Cancelamento manual de item",
+          },
+          trx
+        );
+
+        // 2. Delete the item
+        await trx.orderItem.delete({ where: { id: itemId } });
+
+        // 3. Update order total or cleanup
+        const remainingItems = await trx.orderItem.findMany({
+          where: { orderId: item.orderId },
+        });
+
+        if (remainingItems.length === 0) {
+          await trx.order.delete({ where: { id: item.orderId } });
+        } else {
+          const newTotal = remainingItems.reduce(
+            (sum, i) => sum + Number(i.unitPrice) * Number(i.quantity),
+            0
+          );
+          await trx.order.update({
+            where: { id: item.orderId },
+            data: { totalAmount: newTotal },
+          });
+        }
+
+        return { success: true };
+      });
+    } catch (error) {
+      if (error instanceof BusinessError) throw error;
+      console.error("Error deleting order item:", error);
+      throw new Error("Erro ao cancelar item.");
+    }
+  },
 };

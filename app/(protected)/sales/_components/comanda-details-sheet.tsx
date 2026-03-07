@@ -12,12 +12,14 @@ import {
   Wallet,
   CheckCircle2,
   ShoppingCart,
+  Trash2,
 } from "lucide-react";
 import { useState, useTransition, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { convertOrderToSaleAction } from "@/app/_actions/order/convert-to-sale";
 import { upsertOrderAction } from "@/app/_actions/order/upsert-order";
 import { convertItemsToSaleAction } from "@/app/_actions/order/convert-items-to-sale";
+import { deleteOrderItemAction } from "@/app/_actions/order/delete-order-item";
 import { Checkbox } from "@/app/_components/ui/checkbox";
 import { QuantityStepper } from "@/app/_components/ui/quantity-stepper";
 import { Combobox } from "@/app/_components/ui/combobox";
@@ -187,6 +189,24 @@ export const ComandaDetailsSheet = ({
     setSelectedItemIds(newSelection);
   };
 
+  const handleDeleteItem = (itemId: string) => {
+    startTransition(async () => {
+      try {
+        const result = await deleteOrderItemAction({
+          itemId,
+          companyId,
+        });
+
+        if (result?.serverError) throw new Error(result.serverError);
+
+        toast.success("Item cancelado com sucesso!");
+        router.refresh();
+      } catch (err: any) {
+        toast.error(`Erro ao cancelar item: ${err.message}`);
+      }
+    });
+  };
+
   const isPartial = selectedItemIds.size > 0;
 
   return (
@@ -269,9 +289,20 @@ export const ComandaDetailsSheet = ({
                         {item.name}
                       </span>
                     </div>
-                    <span className="text-sm font-bold text-slate-900">
-                      {formatCurrency(item.price * item.quantity)}
-                    </span>
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm font-bold text-slate-900">
+                        {formatCurrency(item.price * item.quantity)}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteItem(item.id)}
+                        disabled={isPending}
+                        className="h-8 w-8 rounded-lg text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500"
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
