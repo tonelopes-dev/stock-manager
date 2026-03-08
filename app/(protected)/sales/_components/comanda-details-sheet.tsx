@@ -236,85 +236,88 @@ export const ComandaDetailsSheet = ({
           </div>
         </UISheetHeader>
 
-        <div className="scrollbar-hide flex-1 overflow-y-auto px-6 py-6">
-          <div className="space-y-8">
-            {/* Summary Metrics */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-2xl border border-slate-50 bg-slate-50/50 p-4">
-                <span className="mb-1 flex items-center gap-1.5 text-[10px] font-black uppercase italic tracking-tighter text-slate-400">
-                  <Clock size={12} />
-                  Aberta há
-                </span>
-                <p className="text-sm font-bold capitalize text-slate-700">
-                  {formatDistanceToNow(comanda.firstOrderAt, { locale: ptBR })}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-primary/10 bg-primary/5 p-4 text-right">
-                <span className="mb-1 flex items-center justify-end gap-1.5 text-[10px] font-black uppercase italic tracking-tighter text-primary/60">
-                  <CheckCircle2 size={12} />
-                  Total Acumulado
-                </span>
-                <p className="text-xl font-black tracking-tighter text-primary">
-                  {formatCurrency(comanda.totalAmount)}
-                </p>
-              </div>
+        {/* Fixed Metrics Section */}
+        <div className="space-y-4 border-b border-slate-50 px-6 py-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="rounded-2xl border border-slate-50 bg-slate-50/50 p-4">
+              <span className="mb-1 flex items-center gap-1.5 text-[10px] font-black uppercase italic tracking-tighter text-slate-400">
+                <Clock size={12} />
+                Aberta há
+              </span>
+              <p className="text-sm font-bold capitalize text-slate-700">
+                {formatDistanceToNow(comanda.firstOrderAt, { locale: ptBR })}
+              </p>
             </div>
+            <div className="rounded-2xl border border-primary/10 bg-primary/5 p-4 text-right">
+              <span className="mb-1 flex items-center justify-end gap-1.5 text-[10px] font-black uppercase italic tracking-tighter text-primary/60">
+                <CheckCircle2 size={12} />
+                Total Acumulado
+              </span>
+              <p className="text-xl font-black tracking-tighter text-primary">
+                {formatCurrency(comanda.totalAmount)}
+              </p>
+            </div>
+          </div>
+          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+            Itens Consumidos
+          </h4>
+        </div>
 
-            {/* Items List */}
-            <div className="space-y-4">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                Itens Consumidos
-              </h4>
-              <div className="space-y-2">
-                {comanda.items.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className={cn(
-                      "flex items-center justify-between rounded-xl border p-3 shadow-sm transition-all",
-                      selectedItemIds.has(item.id)
-                        ? "border-primary/30 bg-primary/[0.02]"
-                        : "border-slate-50 bg-white hover:border-slate-100",
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Checkbox
-                        checked={selectedItemIds.has(item.id)}
-                        onCheckedChange={() => toggleItemSelection(item.id)}
-                        className="h-5 w-5 rounded-md border-slate-200"
-                      />
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-[10px] font-black text-slate-500">
-                        {item.quantity}x
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-700">
-                          {item.name}
-                        </span>
-                        <span className="text-[10px] font-medium text-slate-400">
-                          Pedido realizado às {format(item.createdAt, "HH:mm")}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm font-bold text-slate-900">
-                        {formatCurrency(item.price * item.quantity)}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteItem(item.id)}
-                        disabled={isPending}
-                        className="h-8 w-8 rounded-lg text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500"
-                      >
-                        <Trash2 size={14} />
-                      </Button>
-                    </div>
+        {/* Scrollable Items List */}
+        <div className="scrollbar-hide flex-1 overflow-y-auto px-6 py-4">
+          <div className="space-y-2">
+            {comanda.items.map((item, idx) => (
+              <div
+                key={idx}
+                className={cn(
+                  "flex items-center justify-between rounded-xl border p-3 shadow-sm transition-all",
+                  selectedItemIds.has(item.id)
+                    ? "border-primary/30 bg-primary/[0.02]"
+                    : "border-slate-50 bg-white hover:border-slate-100",
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    checked={selectedItemIds.has(item.id)}
+                    onCheckedChange={() => toggleItemSelection(item.id)}
+                    className="h-5 w-5 rounded-md border-slate-200"
+                  />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-[10px] font-black text-slate-500">
+                    {item.quantity}x
                   </div>
-                ))}
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-slate-700">
+                      {item.name}
+                    </span>
+                    <span className="text-[10px] font-medium text-slate-400">
+                      Pedido realizado às {format(item.createdAt, "HH:mm")}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-bold text-slate-900">
+                    {formatCurrency(item.price * item.quantity)}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDeleteItem(item.id)}
+                    disabled={isPending}
+                    className="h-8 w-8 rounded-lg text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500"
+                  >
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
               </div>
-            </div>
+            ))}
+          </div>
+        </div>
 
+        {/* Fixed Footer Actions Section */}
+        <div className="border-t border-slate-100 bg-slate-50/30 p-6">
+          <div className="space-y-6">
             {/* Add Items Section */}
-            <div className="space-y-4 rounded-2xl border border-slate-100 bg-slate-50/30 p-4">
+            <div className="space-y-4">
               <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                 + Adicionar Itens
               </h4>
@@ -356,68 +359,64 @@ export const ComandaDetailsSheet = ({
                 </p>
               </div>
             )}
+
+            <div className="w-full space-y-4">
+              <div className="flex flex-col gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  Forma de Pagamento
+                </span>
+                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white font-bold shadow-sm focus:ring-primary/20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent
+                    position="popper"
+                    sideOffset={5}
+                    className="w-[var(--radix-select-trigger-width)]"
+                  >
+                    {Object.entries(paymentMethodLabels).map(
+                      ([key, { label, icon }]) => (
+                        <SelectItem
+                          key={key}
+                          value={key}
+                          className="my-1 rounded-lg"
+                        >
+                          <div className="flex items-center gap-2">
+                            {icon}
+                            <span className="font-bold">{label}</span>
+                          </div>
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button
+                className={cn(
+                  "h-14 w-full rounded-2xl text-lg font-black uppercase italic tracking-wider ring-offset-2 transition-all active:scale-95 disabled:opacity-50",
+                  isPartial
+                    ? "bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90"
+                    : "bg-emerald-600 text-white shadow-lg shadow-emerald-100 hover:bg-emerald-700",
+                )}
+                disabled={isPending}
+                onClick={handlePay}
+              >
+                {isPending ? (
+                  <div className="h-6 w-6 animate-spin rounded-full border-4 border-white/30 border-t-white" />
+                ) : (
+                  <>
+                    {isPartial ? "Pagar Selecionados" : "Finalizar Comanda"} •{" "}
+                    {formatCurrency(
+                      isPartial ? partialTotal : comanda.totalAmount,
+                    )}
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
-
-        <UISheetFooter className="mt-auto flex-col border-t border-slate-50 bg-slate-50/30 p-6">
-          <div className="w-full space-y-4">
-            <div className="flex flex-col gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                Forma de Pagamento
-              </span>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white font-bold shadow-sm focus:ring-primary/20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent
-                  position="popper"
-                  sideOffset={5}
-                  className="w-[var(--radix-select-trigger-width)]"
-                >
-                  {Object.entries(paymentMethodLabels).map(
-                    ([key, { label, icon }]) => (
-                      <SelectItem
-                        key={key}
-                        value={key}
-                        className="my-1 rounded-lg"
-                      >
-                        <div className="flex items-center gap-2">
-                          {icon}
-                          <span className="font-bold">{label}</span>
-                        </div>
-                      </SelectItem>
-                    ),
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button
-              className={cn(
-                "h-14 w-full rounded-2xl text-lg font-black uppercase italic tracking-wider ring-offset-2 transition-all active:scale-95 disabled:opacity-50",
-                isPartial
-                  ? "bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90"
-                  : "bg-emerald-600 text-white shadow-lg shadow-emerald-100 hover:bg-emerald-700",
-              )}
-              disabled={isPending}
-              onClick={handlePay}
-            >
-              {isPending ? (
-                <div className="h-6 w-6 animate-spin rounded-full border-4 border-white/30 border-t-white" />
-              ) : (
-                <>
-                  {isPartial ? "Pagar Selecionados" : "Finalizar Comanda"} •{" "}
-                  {formatCurrency(
-                    isPartial ? partialTotal : comanda.totalAmount,
-                  )}
-                </>
-              )}
-            </Button>
-          </div>
-        </UISheetFooter>
       </UISheetContent>
     </UISheet>
   );
 };
-
-export default ComandaDetailsSheet;
