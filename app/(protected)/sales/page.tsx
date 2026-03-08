@@ -1,12 +1,7 @@
 import { getActiveComandas } from "@/app/_data-access/order/get-active-comandas";
 import { ComandasGrid } from "./_components/comandas-grid";
 import { Plus } from "lucide-react";
-import Header, {
-  HeaderLeft,
-  HeaderRight,
-  HeaderSubtitle,
-  HeaderTitle,
-} from "../../_components/header";
+import { HeaderSubtitle, HeaderTitle } from "../../_components/header";
 import { ComboboxOption } from "../../_components/ui/combobox";
 import {
   getProducts,
@@ -79,38 +74,30 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
 
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
-      <Header>
-        <HeaderLeft className="flex flex-col items-start gap-4">
-          <div className="space-y-1">
-            <HeaderSubtitle>
-              {view === "gestao"
-                ? "Operação de Vendas"
-                : "Análise de Resultados"}
-            </HeaderSubtitle>
-            <HeaderTitle>Vendas</HeaderTitle>
+      <div className="flex flex-col gap-6">
+        <div className="space-y-1">
+          <HeaderSubtitle>
+            {view === "gestao" ? "Operação de Vendas" : "Análise de Resultados"}
+          </HeaderSubtitle>
+          <HeaderTitle>Vendas</HeaderTitle>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <SalesViewTabs />
+          {view === "inteligencia" && <MonthComparisonFilter />}
+          <div className="flex items-center gap-3">
+            {view === "inteligencia" && <ExportReportModal />}
+            <UpsertSaleButton
+              products={products}
+              productOptions={productOptions}
+              customerOptions={customerOptions}
+              hasSales={onboardingStats?.hasSales ?? true}
+              view={view as "gestao" | "inteligencia"}
+              companyId={companyId || ""}
+            />
           </div>
-          <div className="flex items-center gap-4">
-            <SalesViewTabs />
-            {view === "inteligencia" && (
-              <div className="flex items-center gap-4">
-                <PeriodFilter />
-                <MonthComparisonFilter />
-              </div>
-            )}
-          </div>
-        </HeaderLeft>
-        <HeaderRight className="flex items-center gap-3">
-          {view === "inteligencia" && <ExportReportModal />}
-          <UpsertSaleButton
-            products={products}
-            productOptions={productOptions}
-            customerOptions={customerOptions}
-            hasSales={onboardingStats?.hasSales ?? true}
-            view={view as "gestao" | "inteligencia"}
-            companyId={companyId || ""}
-          />
-        </HeaderRight>
-      </Header>
+        </div>
+      </div>
 
       {view === "inteligencia" && (
         <div className="space-y-8">
@@ -118,13 +105,16 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
           <SalesCharts comparison={analytics.monthlyComparison} />
 
           <div className="space-y-4">
-            <div className="flex flex-col gap-2">
-              <h3 className="text-sm font-black uppercase italic tracking-tighter text-slate-500">
-                Listagem Técnica de Vendas
-              </h3>
-              <p className="text-[10px] font-medium text-slate-400">
-                Detalhamento individual de cada operação realizada no período
-              </p>
+            <div className="flex items-end justify-between gap-2">
+              <div className="flex flex-col gap-2">
+                <h3 className="text-sm font-black uppercase italic tracking-tighter text-slate-500">
+                  Listagem Técnica de Vendas
+                </h3>
+                <p className="text-[10px] font-medium text-slate-400">
+                  Detalhamento individual de cada operação realizada no período
+                </p>
+              </div>
+              <PeriodFilter />
             </div>
             <Suspense fallback={<SaleTableSkeleton />}>
               <SalesTableWrapper
