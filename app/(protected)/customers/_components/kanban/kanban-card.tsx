@@ -55,12 +55,20 @@ export const KanbanCard = memo(
     const progress =
       totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
+    const calculateHeight = () => {
+      let height = 85;
+      if (customer.notes) height += 32;
+      if (customer.categories && customer.categories.length > 0) height += 24;
+      if (totalItems > 0) height += 40;
+      return height;
+    };
+
     if (isDragging) {
       return (
         <div
           ref={setNodeRef}
-          style={style}
-          className="h-[100px] rounded-lg border-2 border-dashed border-slate-300 bg-slate-100 opacity-30"
+          style={{ ...style, height: calculateHeight() }}
+          className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-100 opacity-30"
         />
       );
     }

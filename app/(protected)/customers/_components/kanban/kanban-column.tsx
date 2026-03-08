@@ -1,4 +1,4 @@
-import { memo, useMemo, useRef, useEffect } from "react";
+import { memo, useMemo, useRef, useEffect, useCallback } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -54,23 +54,27 @@ export const KanbanColumn = memo(
       [customers, onCardClick],
     );
 
-    const getRowHeight = (index: number) => {
-      const customer = customers[index];
-      if (!customer) return 0;
+    const getRowHeight = useCallback(
+      (index: number) => {
+        const customer = customers[index];
+        if (!customer) return 0;
 
-      let height = 85;
+        let height = 85;
 
-      const hasNotes = !!customer.notes;
-      const hasCategories =
-        customer.categories && customer.categories.length > 0;
-      const hasJornada = customer.checklists && customer.checklists.length > 0;
+        const hasNotes = !!customer.notes;
+        const hasCategories =
+          customer.categories && customer.categories.length > 0;
+        const hasJornada =
+          customer.checklists && customer.checklists.length > 0;
 
-      if (hasNotes) height += 32;
-      if (hasCategories) height += 24;
-      if (hasJornada) height += 40;
+        if (hasNotes) height += 32;
+        if (hasCategories) height += 24;
+        if (hasJornada) height += 40;
 
-      return height + 12;
-    };
+        return height + 12;
+      },
+      [customers],
+    );
 
     return (
       <div className="flex h-[calc(100vh-180px)] w-[300px] min-w-[300px] flex-col gap-4 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
