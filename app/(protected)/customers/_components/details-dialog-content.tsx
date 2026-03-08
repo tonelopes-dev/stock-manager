@@ -94,7 +94,7 @@ export const CustomerDetailsDialogContent = ({
     categoryIds: customer.categories?.map((c: any) => c.id) || [],
     stageId: customer.stageId || "NONE",
     notes: customer.notes || "",
-    birthday: customer.birthDate
+    birthDate: customer.birthDate
       ? format(new Date(customer.birthDate), "yyyy-MM-dd")
       : "",
   });
@@ -162,8 +162,8 @@ export const CustomerDetailsDialogContent = ({
           onUpdate({
             ...customer,
             ...formData,
-            birthday: formData.birthday
-              ? new Date(formData.birthday).toISOString()
+            birthDate: formData.birthDate
+              ? new Date(formData.birthDate).toISOString()
               : null,
             categories: categories.filter((c) =>
               formData.categoryIds.includes(c.id),
@@ -378,9 +378,9 @@ export const CustomerDetailsDialogContent = ({
                     </label>
                     <Input
                       type="date"
-                      value={formData.birthday}
+                      value={formData.birthDate}
                       onChange={(e) =>
-                        setFormData({ ...formData, birthday: e.target.value })
+                        setFormData({ ...formData, birthDate: e.target.value })
                       }
                     />
                   </div>
@@ -391,14 +391,10 @@ export const CustomerDetailsDialogContent = ({
                         Aniversário
                       </p>
                       <p className="text-sm font-medium text-slate-600">
-                        {customer.birthday
-                          ? format(
-                              new Date(customer.birthday),
-                              "dd 'de' MMMM",
-                              {
-                                locale: ptBR,
-                              },
-                            )
+                        {customer.birthDate
+                          ? format(new Date(customer.birthDate), "dd/MM/yyyy", {
+                              locale: ptBR,
+                            })
                           : "Não informado"}
                       </p>
                     </div>
@@ -408,13 +404,9 @@ export const CustomerDetailsDialogContent = ({
                       </p>
                       <p className="text-sm font-medium text-slate-600">
                         {customer.createdAt
-                          ? format(
-                              new Date(customer.createdAt),
-                              "dd/MM/yyyy HH:mm",
-                              {
-                                locale: ptBR,
-                              },
-                            )
+                          ? format(new Date(customer.createdAt), "dd/MM/yyyy", {
+                              locale: ptBR,
+                            })
                           : "Não informado"}
                       </p>
                     </div>
