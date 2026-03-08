@@ -1,6 +1,4 @@
-"use client";
-
-import { memo, useMemo } from "react";
+import { memo, useMemo, useRef, useEffect } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -19,18 +17,15 @@ interface KanbanColumnProps {
   onCardClick?: (customer: any) => void;
 }
 
-// Fixed Row renderer outside the component to prevent remounting on every render
-const KanbanRow = memo(({ index, style, data, ...props }: any) => {
-  // Try to get data from either 'data' prop (standard react-window)
-  // or direct props (custom wrappers often spread rowProps)
-  const customers = data?.customers || props.customers || [];
-  const onCardClick = data?.onCardClick || props.onCardClick;
+const KanbanRow = memo(({ index, style, ...props }: any) => {
+  const customers = props.customers || [];
+  const onCardClick = props.onCardClick;
 
   const customer = customers[index];
   if (!customer) return null;
 
   return (
-    <div style={style} className="pb-5 pr-2">
+    <div style={style} className="pr-2">
       <KanbanCard customer={customer} onClick={() => onCardClick?.(customer)} />
     </div>
   );
@@ -40,6 +35,7 @@ KanbanRow.displayName = "KanbanRow";
 
 export const KanbanColumn = memo(
   ({ stage, customers, onCardClick }: KanbanColumnProps) => {
+    const listRef = useRef<any>(null);
     const { setNodeRef } = useDroppable({
       id: stage.id,
       data: {
@@ -50,10 +46,30 @@ export const KanbanColumn = memo(
 
     const customerIds = useMemo(() => customers.map((c) => c.id), [customers]);
 
-    // Prepare data for the virtualized list to avoid closure issues
-    const rowData = {
-      customers,
-      onCardClick,
+    const rowData = useMemo(
+      () => ({
+        customers,
+        onCardClick,
+      }),
+      [customers, onCardClick],
+    );
+
+    const getRowHeight = (index: number) => {
+      const customer = customers[index];
+      if (!customer) return 0;
+
+      let height = 85;
+
+      const hasNotes = !!customer.notes;
+      const hasCategories =
+        customer.categories && customer.categories.length > 0;
+      const hasJornada = customer.checklists && customer.checklists.length > 0;
+
+      if (hasNotes) height += 32;
+      if (hasCategories) height += 24;
+      if (hasJornada) height += 40;
+
+      return height + 12;
     };
 
     return (
@@ -77,7 +93,7 @@ export const KanbanColumn = memo(
           >
             <List
               rowCount={customers.length}
-              rowHeight={170}
+              rowHeight={getRowHeight}
               rowComponent={KanbanRow as any}
               rowProps={rowData}
               className="scrollbar-hide"
@@ -89,11 +105,16 @@ export const KanbanColumn = memo(
     );
   },
   (prevProps, nextProps) => {
-    // Only re-render if the column's customer ids/order changed
     if (prevProps.stage.id !== nextProps.stage.id) return false;
     if (prevProps.customers.length !== nextProps.customers.length) return false;
     for (let i = 0; i < prevProps.customers.length; i++) {
       if (prevProps.customers[i].id !== nextProps.customers[i].id) return false;
+      if (
+        prevProps.customers[i].notes !== nextProps.customers[i].notes ||
+        prevProps.customers[i].checklists?.length !==
+          nextProps.customers[i].checklists?.length
+      )
+        return false;
     }
     return true;
   },
