@@ -15,6 +15,7 @@ export interface ComandaDto {
     name: string;
     quantity: number;
     price: number;
+    createdAt: Date;
   }[];
   orders: {
     id: string;
@@ -91,6 +92,7 @@ export const getActiveComandas = async (): Promise<ComandaDto[]> => {
         name: item.product.name,
         quantity: Number(item.quantity),
         price: Number(item.unitPrice),
+        createdAt: item.createdAt,
       });
     }
   }

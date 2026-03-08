@@ -24,7 +24,7 @@ import { Checkbox } from "@/app/_components/ui/checkbox";
 import { QuantityStepper } from "@/app/_components/ui/quantity-stepper";
 import { Combobox } from "@/app/_components/ui/combobox";
 import { useRouter } from "next/navigation";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   Select,
@@ -285,9 +285,14 @@ export const ComandaDetailsSheet = ({
                       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-[10px] font-black text-slate-500">
                         {item.quantity}x
                       </div>
-                      <span className="text-sm font-bold text-slate-700">
-                        {item.name}
-                      </span>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-slate-700">
+                          {item.name}
+                        </span>
+                        <span className="text-[10px] font-medium text-slate-400">
+                          Pedido realizado às {format(item.createdAt, "HH:mm")}
+                        </span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-4">
                       <span className="text-sm font-bold text-slate-900">
