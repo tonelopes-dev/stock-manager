@@ -36,7 +36,20 @@ export const ComandasGrid = ({
   // Sync with initialComandas
   useEffect(() => {
     setComandas(initialComandas);
-  }, [initialComandas]);
+
+    // Update selectedComanda if it exists to reflect fresh data from the server
+    if (selectedComanda) {
+      const updatedSelection = initialComandas.find(
+        (c) => c.customerId === selectedComanda.customerId,
+      );
+      if (updatedSelection) {
+        setSelectedComanda(updatedSelection);
+      } else {
+        // Close the sheet if the comanda is no longer active (e.g., paid in another session)
+        setSelectedComanda(null);
+      }
+    }
+  }, [initialComandas, selectedComanda?.customerId]); // Added selectedComanda?.customerId as dependency for safety, though initialComandas is the main trigger
 
   // Real-time Updates via SSE
   useEffect(() => {
