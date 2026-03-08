@@ -23,12 +23,12 @@ interface SidebarNavProps {
 }
 
 const gestaoItems = [
-  { href: "/dashboard", icon: LayoutGridIcon, label: "Dashboard" },
-  { href: "/products", icon: PackageIcon, label: "Produtos" },
-  { href: "/ingredients", icon: BeakerIcon, label: "Insumos" },
   { href: "/sales", icon: ShoppingBasketIcon, label: "Vendas" },
   { href: "/customers", icon: UsersIcon, label: "CRM" },
+  { href: "/products", icon: PackageIcon, label: "Produtos" },
+  { href: "/ingredients", icon: BeakerIcon, label: "Insumos" },
   { href: "/goals", icon: TargetIcon, label: "Metas" },
+  { href: "/dashboard", icon: LayoutGridIcon, label: "Dashboard" },
 ];
 
 const operacaoItems = [
@@ -57,38 +57,37 @@ export const SidebarNav = ({ isOwner, isAdminOrOwner }: SidebarNavProps) => {
             {item.label}
           </SidebarButton>
         ))}
-
-        <div className="my-2 border-t border-gray-100" />
-
-        {/* Settings (always visible) */}
-        {isAdminOrOwner && (
-          <SidebarButton href="/settings/team">
-            <UsersIcon size={18} />
-            Equipe
-          </SidebarButton>
-        )}
-
-        {isOwner && (
-          <SidebarButton href="/plans">
-            <CreditCardIcon size={18} />
-            Assinatura
-          </SidebarButton>
-        )}
-
-        {isOwner && (
-          <SidebarButton href="/settings/company">
-            <SettingsIcon size={18} />
-            Empresa
-          </SidebarButton>
-        )}
-
-        {isAdminOrOwner && (
-          <SidebarButton href="/audit">
-            <HistoryIcon size={18} />
-            Auditoria
-          </SidebarButton>
-        )}
       </div>
+
+      <div className="my-2 border-t border-gray-100" />
+
+      {/* Settings (always visible) */}
+      {isAdminOrOwner && (
+        <SidebarButton href="/settings/team">
+          <UsersIcon size={18} />
+          Equipe
+        </SidebarButton>
+      )}
+
+      {isOwner && (
+        <SidebarButton href="/plans">
+          <CreditCardIcon size={18} />
+          Assinatura
+        </SidebarButton>
+      )}
+
+      {isAdminOrOwner && (
+        <SidebarButton href="/audit">
+          <HistoryIcon size={18} />
+          Auditoria
+        </SidebarButton>
+      )}
+      {isOwner && (
+        <SidebarButton href="/settings/company">
+          <SettingsIcon size={18} />
+          Empresa
+        </SidebarButton>
+      )}
 
       {/* Logout */}
       <div className="mt-auto p-4">

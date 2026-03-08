@@ -67,13 +67,13 @@ export default auth(async (req) => {
   // Handle root route
   if (pathname === "/") {
     if (isLoggedIn && !hasError) {
-      return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
+      return NextResponse.redirect(new URL("/sales", req.nextUrl.origin));
     }
     return NextResponse.next();
   }
 
   if (isLoggedIn && !hasError && (pathname === "/login" || pathname === "/register")) {
-    return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
+    return NextResponse.redirect(new URL("/sales", req.nextUrl.origin));
   }
 
   // Redirect non-logged-in users to login page
@@ -111,13 +111,13 @@ export default auth(async (req) => {
      // OWNER: Can access everything
      // ADMIN: Cannot access /plans (Billing)
      if (role === "ADMIN" && pathname.startsWith("/plans")) {
-        return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
+        return NextResponse.redirect(new URL("/sales", req.nextUrl.origin));
      }
 
      // MEMBER: Cannot access /plans OR /settings/team
      if (role === "MEMBER") {
         if (pathname.startsWith("/plans") || pathname.startsWith("/settings/team")) {
-          return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
+          return NextResponse.redirect(new URL("/sales", req.nextUrl.origin));
         }
      }
   }
