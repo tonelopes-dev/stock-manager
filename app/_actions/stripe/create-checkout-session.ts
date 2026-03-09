@@ -60,7 +60,7 @@ export const createCheckoutSession = actionClient.action(async () => {
     payment_method_types: ["card", "boleto"],
     customer_update: {
       name: "always" as any,
-      address: "always" as any,
+      address: "auto",
     },
     billing_address_collection: "required",
     tax_id_collection: { enabled: true },
