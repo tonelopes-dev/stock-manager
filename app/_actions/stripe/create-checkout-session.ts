@@ -2,6 +2,7 @@
 
 import { auth } from "@/app/_lib/auth";
 import { stripe } from "@/app/_lib/stripe";
+import Stripe from "stripe";
 import { db } from "@/app/_lib/prisma";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
@@ -49,14 +50,28 @@ export const createCheckoutSession = actionClient.action(async () => {
     });
   }
 
+  if (!customerId) {
+    throw new Error("Customer ID is missing");
+  }
+
   const stripeSession = await stripe.checkout.sessions.create({
+    mode: "subscription",
     customer: customerId,
     payment_method_types: ["card", "boleto"],
+    customer_update: {
+      name: "always" as any,
+      address: "always" as any,
+    },
+    billing_address_collection: "required",
     tax_id_collection: { enabled: true },
-    customer_update: { name: "auto", address: "auto" },
+    payment_method_options: {
+      boleto: {
+        expires_after_days: 3,
+      },
+    },
     line_items: [
       {
-        price: process.env.STRIPE_PRO_PRICE_ID,
+        price: process.env.STRIPE_PRO_PRICE_ID!,
         quantity: 1,
       },
     ],
