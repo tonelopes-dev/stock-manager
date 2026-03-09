@@ -28,7 +28,7 @@ export default async function ProtectedLayout({
   const { needsPasswordChange } = await getUserSecurityStatus();
 
   // Subscription & Trial Info
-  const { subscriptionStatus, stripeCurrentPeriodEnd } = await getCompanyPlan();
+  const { subscriptionStatus, expiresAt } = await getCompanyPlan();
   const resolvedHeaders = await headers();
   const pathname = resolvedHeaders.get("x-pathname") || "";
 
@@ -57,7 +57,7 @@ export default async function ProtectedLayout({
         {!isPaymentRoute && (
           <TrialBanner
             subscriptionStatus={subscriptionStatus}
-            stripeCurrentPeriodEnd={stripeCurrentPeriodEnd}
+            expiresAt={expiresAt}
           />
         )}
 

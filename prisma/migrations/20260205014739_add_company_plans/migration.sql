@@ -1,7 +1,0 @@
--- CreateEnum
-CREATE TYPE "Plan" AS ENUM ('FREE', 'PRO', 'ENTERPRISE');
-
--- AlterTable
-ALTER TABLE "Company" ADD COLUMN     "maxProducts" INTEGER NOT NULL DEFAULT 20,
-ADD COLUMN     "maxUsers" INTEGER NOT NULL DEFAULT 1,
-ADD COLUMN     "plan" "Plan" NOT NULL DEFAULT 'FREE';

@@ -59,7 +59,7 @@ export async function POST(req: Request) {
         where: { id: companyId },
         data: {
           subscriptionStatus: SubscriptionStatus.ACTIVE,
-          stripeCurrentPeriodEnd: thirtyDaysFromNow,
+          expiresAt: thirtyDaysFromNow,
           plan: "PRO",
           isBoletoPending: false,
         },

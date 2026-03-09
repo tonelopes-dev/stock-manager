@@ -15,6 +15,7 @@ import {
 } from "@/app/_components/ui/card";
 import { Badge } from "@/app/_components/ui/badge";
 import { Building2Icon, CreditCardIcon } from "lucide-react";
+import Link from "next/link";
 
 import { DangerZone } from "./_components/danger-zone";
 import { UserRole } from "@prisma/client";
@@ -28,7 +29,6 @@ export default async function CompanySettingsPage() {
     select: {
       name: true,
       allowNegativeStock: true,
-      stripeCustomerId: true,
       subscriptionStatus: true,
     },
   });
@@ -96,7 +96,7 @@ export default async function CompanySettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Faturamento e Stripe */}
+          {/* Faturamento */}
           <Card className="border-slate-200 shadow-sm">
             <CardHeader>
               <div className="flex items-center gap-3">
@@ -105,22 +105,22 @@ export default async function CompanySettingsPage() {
                 </div>
                 <div>
                   <CardTitle className="text-xl font-black">
-                    Faturamento & Gateway
+                    Assinatura e Faturamento
                   </CardTitle>
                   <CardDescription>
-                    Dados técnicos de integração com o Stripe.
+                    Status atual da sua conta no Stockly.
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4 pb-8">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="rounded-xl border bg-slate-50/50 p-4">
                   <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                    ID do Cliente Stripe
+                    Provedor de Pagamento
                   </p>
-                  <p className="truncate font-mono text-sm text-slate-600">
-                    {company.stripeCustomerId || "Não vinculado"}
+                  <p className="text-sm font-semibold text-slate-600">
+                    Mercado Pago
                   </p>
                 </div>
                 <div className="rounded-xl border bg-slate-50/50 p-4">
@@ -129,7 +129,7 @@ export default async function CompanySettingsPage() {
                   </p>
                   <Badge
                     variant="outline"
-                    className="bg-white font-bold uppercase"
+                    className="bg-white font-bold uppercase transition-all"
                   >
                     {company.subscriptionStatus === "TRIALING"
                       ? "Em Teste"
@@ -146,10 +146,13 @@ export default async function CompanySettingsPage() {
                 </div>
               </div>
               <p className="text-xs text-slate-500">
-                Para gerenciar métodos de pagamento e faturas, utilize a aba{" "}
-                <span className="font-bold italic text-primary">
+                Para gerenciar planos, pagamentos e faturas, utilize a aba{" "}
+                <Link
+                  href="/plans"
+                  className="font-bold italic text-primary hover:underline"
+                >
                   Assinatura
-                </span>{" "}
+                </Link>{" "}
                 no menu lateral.
               </p>
             </CardContent>

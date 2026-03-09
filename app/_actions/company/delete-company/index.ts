@@ -8,7 +8,6 @@ import { assertRole, OWNER_ONLY } from "@/app/_lib/rbac";
 import { AuditEventType, AuditSeverity } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { AuditService } from "@/app/_services/audit";
-import { stripe } from "@/app/_lib/stripe";
 import { revalidatePath } from "next/cache";
 
 const deleteCompanySchema = z.object({
@@ -18,7 +17,7 @@ const deleteCompanySchema = z.object({
 /**
  * SOFT DELETE COMPANY
  * 1. Sets deletedAt
- * 2. Marks Stripe subscription to cancel at period end
+ * 2. Subscription cancellation logic (if applicable)
  * 3. Logs Audit Event
  */
 export const softDeleteCompany = actionClient
@@ -30,7 +29,7 @@ export const softDeleteCompany = actionClient
 
     const company = await db.company.findUnique({
       where: { id: companyId },
-      select: { name: true, stripeSubscriptionId: true },
+      select: { name: true },
     });
 
     if (!company) throw new Error("Empresa não encontrada.");
@@ -46,14 +45,7 @@ export const softDeleteCompany = actionClient
           data: { deletedAt: new Date() },
         });
 
-        // 2. Stripe: Cancel at period end
-        if (company.stripeSubscriptionId) {
-          await stripe.subscriptions.update(company.stripeSubscriptionId, {
-            cancel_at_period_end: true,
-          });
-        }
-
-        // 3. Audit
+        // 2. Audit
         await AuditService.logWithTransaction(tx, {
           type: AuditEventType.COMPANY_SOFT_DELETED,
           severity: AuditSeverity.CRITICAL,
@@ -89,7 +81,7 @@ export const restoreCompany = actionClient
 
     const company = await db.company.findUnique({
       where: { id: companyId },
-      select: { name: true, stripeSubscriptionId: true },
+      select: { name: true },
     });
 
     if (!company) throw new Error("Empresa não encontrada.");
@@ -100,13 +92,6 @@ export const restoreCompany = actionClient
           where: { id: companyId },
           data: { deletedAt: null },
         });
-
-        // Stripe: Remove cancel_at_period_end
-        if (company.stripeSubscriptionId) {
-          await stripe.subscriptions.update(company.stripeSubscriptionId, {
-            cancel_at_period_end: false,
-          });
-        }
 
         await AuditService.logWithTransaction(tx, {
           type: AuditEventType.COMPANY_RESTORED,

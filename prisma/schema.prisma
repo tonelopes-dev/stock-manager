@@ -176,13 +176,9 @@ model Company {
   name                   String
   createdAt              DateTime            @default(now())
   allowNegativeStock     Boolean             @default(false)
-  stripeCurrentPeriodEnd DateTime?
-  stripeCustomerId       String?             @unique
-  stripePriceId          String?
-  stripeSubscriptionId   String?             @unique
-  subscriptionStatus     SubscriptionStatus?
-  stripeInvoiceUrl       String?
-  isBoletoPending       Boolean             @default(false)
+  expiresAt              DateTime?
+  subscriptionStatus     SubscriptionStatus? @default(TRIALING)
+  isBoletoPending        Boolean             @default(false)
   deletedAt              DateTime? // Soft delete flag
   plan                   String              @default("FREE")
   auditEvents            AuditEvent[]

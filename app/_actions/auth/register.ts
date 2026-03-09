@@ -66,7 +66,7 @@ export async function register(
       data: {
         name: `${name}'s Company`,
         subscriptionStatus: "TRIALING",
-        stripeCurrentPeriodEnd: trialEndDate,
+        expiresAt: trialEndDate,
       },
     });
 

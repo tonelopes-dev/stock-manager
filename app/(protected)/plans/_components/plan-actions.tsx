@@ -3,7 +3,6 @@
 import { useAction } from "next-safe-action/hooks";
 import { Button } from "@/app/_components/ui/button";
 import { createMercadoPagoPreference } from "@/app/_actions/mercadopago/create-preference";
-import { createPortalSession } from "@/app/_actions/stripe/create-portal-session";
 import { toast } from "sonner";
 import { Loader2Icon } from "lucide-react";
 
@@ -42,36 +41,19 @@ const PlanActions = ({
     },
   });
 
-  const portalAction = useAction(createPortalSession, {
-    onSuccess: ({ data }) => {
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-    },
-    onError: (error) => {
-      toast.error("Erro ao acessar portal. Tente novamente.");
-      console.error(error);
-    },
-  });
-
   const handleAction = () => {
     if (externalLink) {
       window.location.href = externalLink;
       return;
     }
 
-    if (planName === "Pro") {
-      if (isPro) {
-        portalAction.execute();
-      } else {
-        checkoutAction.execute();
-      }
+    if (planName === "Pro" && !isPro) {
+      checkoutAction.execute();
     }
   };
 
   const isLoading =
     checkoutAction.status === "executing" ||
-    portalAction.status === "executing" ||
     externalProcessing ||
     (isRedirectingSuccess && !isPro);
 

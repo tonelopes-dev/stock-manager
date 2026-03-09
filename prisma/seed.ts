@@ -18,12 +18,14 @@ async function main() {
       name: "Rota 360",
       plan: "PRO",
       subscriptionStatus: SubscriptionStatus.ACTIVE,
+      expiresAt: new Date(new Date().setDate(new Date().getDate() + 30)),
     },
     create: {
       id: "rota-360-id",
       name: "Rota 360",
       plan: "PRO",
       subscriptionStatus: SubscriptionStatus.ACTIVE,
+      expiresAt: new Date(new Date().setDate(new Date().getDate() + 30)),
     },
   });
 

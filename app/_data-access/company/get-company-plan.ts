@@ -7,10 +7,8 @@ export const getCompanyPlan = async () => {
   const company = await db.company.findUnique({
     where: { id: companyId },
     select: {
-      stripeSubscriptionId: true,
-      stripeCurrentPeriodEnd: true,
+      expiresAt: true,
       subscriptionStatus: true,
-      stripeInvoiceUrl: true,
       isBoletoPending: true,
     },
 

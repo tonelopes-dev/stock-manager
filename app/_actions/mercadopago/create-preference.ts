@@ -61,7 +61,7 @@ export const createMercadoPagoPreference = actionClient.action(async () => {
         },
         payment_methods: {
           excluded_payment_methods: [], // Garante que nenhum método (incluindo boleto) seja excluído
-          installments: 12,
+          installments: 1,
         },
         date_of_expiration: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
         back_urls: {

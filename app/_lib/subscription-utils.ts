@@ -47,14 +47,10 @@ export function getSubscriptionUIState(
       description: "Assinatura ativa",
       severity: "success",
       primaryCTA: {
-        label: "Gerenciar assinatura",
-        href: "/plans", // The plans page will handle the portal redirection or display status
+        label: "Plano Ativo",
+        href: "/plans",
         variant: "outline",
       },
-      secondaryCTA: {
-        label: "Ver faturamento",
-        href: "/plans",
-      }
     };
   }
 

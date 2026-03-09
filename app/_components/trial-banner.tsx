@@ -9,19 +9,16 @@ import { Button } from "@/app/_components/ui/button";
 
 interface TrialBannerProps {
   subscriptionStatus: string | null;
-  stripeCurrentPeriodEnd: Date | null;
+  expiresAt: Date | null;
 }
 
-const TrialBanner = ({
-  subscriptionStatus,
-  stripeCurrentPeriodEnd,
-}: TrialBannerProps) => {
-  if (subscriptionStatus !== "TRIALING" || !stripeCurrentPeriodEnd) {
+const TrialBanner = ({ subscriptionStatus, expiresAt }: TrialBannerProps) => {
+  if (subscriptionStatus !== "TRIALING" || !expiresAt) {
     return null;
   }
 
   const now = new Date();
-  const end = new Date(stripeCurrentPeriodEnd);
+  const end = new Date(expiresAt);
   const diffMs = end.getTime() - now.getTime();
 
   // Timezone protection & final day logic

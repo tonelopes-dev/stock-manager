@@ -19,16 +19,9 @@ import { CheckIcon, CalendarIcon, ShieldCheckIcon } from "lucide-react";
 import { Badge } from "@/app/_components/ui/badge";
 
 const PlansPage = async () => {
-  const {
-    subscriptionStatus,
-    stripeCurrentPeriodEnd,
-    isBoletoPending,
-    stripeInvoiceUrl,
-  } = await getCompanyPlan();
-  const uiState = getSubscriptionUIState(
-    subscriptionStatus,
-    stripeCurrentPeriodEnd,
-  );
+  const { subscriptionStatus, expiresAt, isBoletoPending } =
+    await getCompanyPlan();
+  const uiState = getSubscriptionUIState(subscriptionStatus, expiresAt);
 
   const features = [
     "Produtos ilimitados (Sem restrições)",
@@ -94,8 +87,8 @@ const PlansPage = async () => {
                     Período atual
                   </p>
                   <p className="text-sm font-semibold">
-                    {stripeCurrentPeriodEnd
-                      ? `Até ${new Date(stripeCurrentPeriodEnd).toLocaleDateString()}`
+                    {expiresAt
+                      ? `Até ${new Date(expiresAt).toLocaleDateString()}`
                       : "Sem período ativo"}
                   </p>
                 </div>
@@ -138,18 +131,9 @@ const PlansPage = async () => {
               isPro={subscriptionStatus === "ACTIVE"}
               isCurrent={subscriptionStatus === "ACTIVE"}
               actionLabel={uiState.primaryCTA.label}
-              externalLink={isBoletoPending ? stripeInvoiceUrl : null}
-              externalLabel="Visualizar Boleto"
+              externalLink={isBoletoPending ? null : null} // Placeholder for any MP specific pending links if needed
+              externalLabel="Visualizar Pagamento"
             />
-            {uiState.secondaryCTA && (
-              <p className="text-center text-[10px] font-medium text-gray-400">
-                Deseja cancelar? Você pode gerenciar sua assinatura no{" "}
-                <span className="cursor-pointer font-bold underline">
-                  Portal do Cliente
-                </span>
-                .
-              </p>
-            )}
           </CardFooter>
         </Card>
 
@@ -160,8 +144,8 @@ const PlansPage = async () => {
               Dúvidas sobre faturamento?
             </h3>
             <p className="mb-4 text-sm text-gray-500">
-              Nosso sistema utiliza o Stripe para pagamentos seguros. Você pode
-              atualizar seu cartão ou baixar faturas a qualquer momento.
+              Nosso sistema utiliza o Mercado Pago para pagamentos seguros. Você
+              pode pagar via Pix, Boleto ou Cartão de Crédito.
             </p>
             <button className="text-sm font-bold text-primary hover:underline">
               Falar com suporte
