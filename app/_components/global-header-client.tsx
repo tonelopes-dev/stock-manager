@@ -1,9 +1,9 @@
 "use client";
 
 import { ContextSwitcher } from "./context-switcher";
-import { GlobalSearch } from "./global-search";
 import { QuickActions } from "./quick-actions";
 import { NotificationCenter } from "./notification-center";
+import { SubscriptionStatusIcon } from "./SubscriptionStatusIcon";
 
 interface GlobalHeaderClientProps {
   companyId: string;
@@ -17,13 +17,9 @@ export const GlobalHeaderClient = ({ companyId }: GlobalHeaderClientProps) => {
         <ContextSwitcher />
       </div>
 
-      {/* Center: Search */}
-      <div className="absolute left-1/2 -translate-x-1/2">
-        <GlobalSearch />
-      </div>
-
-      {/* Right side actions (positioned before the profile via flex order) */}
+      {/* Right side actions */}
       <div className="ml-auto mr-4 flex items-center gap-2">
+        <SubscriptionStatusIcon />
         <NotificationCenter companyId={companyId} />
         <QuickActions />
       </div>

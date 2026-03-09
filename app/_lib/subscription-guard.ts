@@ -3,21 +3,17 @@ import { BusinessError } from "./errors";
 import { redirect } from "next/navigation";
 
 /**
- * Verifies that a company has an active subscription (TRIALING or ACTIVE).
- *
+ * Verifies that a company has an active subscription based on the expiration date.
+ * 
  * Strategy:
- * - If subscriptionStatus is null → legacy company, allow access.
- * - If subscriptionStatus is TRIALING or ACTIVE → allow access.
- * - Otherwise → throw SubscriptionRequiredError.
- *
- * This allows a safe transition period where existing companies continue
- * working until they are migrated to the new flow.
+ * - If expiresAt is null → block (manual subscription required).
+ * - If expiresAt < current date → block.
+ * - Otherwise → allow access.
  */
 export async function requireActiveSubscription(companyId: string): Promise<void> {
   const company = await db.company.findUnique({
     where: { id: companyId },
     select: { 
-      subscriptionStatus: true,
       expiresAt: true,
     },
   });
@@ -26,20 +22,14 @@ export async function requireActiveSubscription(companyId: string): Promise<void
     redirect("/login?reason=session_expired");
   }
 
-  const allowedStatuses = ["TRIALING", "ACTIVE"] as const;
-
-  // 1. Check status
-  if (!company.subscriptionStatus || !allowedStatuses.includes(company.subscriptionStatus as (typeof allowedStatuses)[number])) {
-    throw new BusinessError(
-      "Sua assinatura expirou ou está inativa. Acesse a página de Planos para reativar."
-    );
-  }
-
-  // 2. Check period end (Trial/Subscription expiration)
   const now = new Date();
-  if (company.expiresAt && company.expiresAt < now) {
+  // Timezone consistent comparison: set hours to 0 to compare full days if needed, 
+  // or use full precision for exact second blocking.
+  // Here we use exact time for strict blocking as requested.
+  if (!company.expiresAt || company.expiresAt < now) {
     throw new BusinessError(
       "Seu período de acesso expirou. Acesse a página de Planos para assinar e continuar usando o sistema."
     );
   }
 }
+
