@@ -52,6 +52,7 @@
     "exceljs": "^4.4.0",
     "framer-motion": "^12.35.0",
     "lucide-react": "^0.441.0",
+    "mercadopago": "^2.12.0",
     "next": "16.1.6",
     "next-auth": "^5.0.0-beta.30",
     "next-safe-action": "^8.1.4",

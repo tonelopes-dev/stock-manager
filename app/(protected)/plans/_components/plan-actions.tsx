@@ -2,7 +2,7 @@
 
 import { useAction } from "next-safe-action/hooks";
 import { Button } from "@/app/_components/ui/button";
-import { createCheckoutSession } from "@/app/_actions/stripe/create-checkout-session";
+import { createMercadoPagoPreference } from "@/app/_actions/mercadopago/create-preference";
 import { createPortalSession } from "@/app/_actions/stripe/create-portal-session";
 import { toast } from "sonner";
 import { Loader2Icon } from "lucide-react";
@@ -30,14 +30,14 @@ const PlanActions = ({
 }: PlanActionsProps) => {
   const searchParams = useSearchParams();
   const isRedirectingSuccess = searchParams.get("success") === "true";
-  const checkoutAction = useAction(createCheckoutSession, {
+  const checkoutAction = useAction(createMercadoPagoPreference, {
     onSuccess: ({ data }) => {
       if (data?.url) {
         window.location.href = data.url;
       }
     },
     onError: (error) => {
-      toast.error("Erro ao iniciar assinatura. Tente novamente.");
+      toast.error("Erro ao iniciar pagamento. Tente novamente.");
       console.error(error);
     },
   });
