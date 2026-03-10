@@ -2,8 +2,8 @@
 
 > **A modern, enterprise-ready inventory management system designed for multi-tenant scalability and precision.**
 
-[![Next.js](https://img.shields.io/badge/Next.js-14.2.10-black?style=flat-square&logo=next.js)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.1.6-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19.2.0-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-5.19.1-2D3748?style=flat-square&logo=prisma)](https://www.prisma.io/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.1-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
@@ -17,9 +17,10 @@ STOCKY is a robust multi-tenant SaaS solution. It enables business owners to man
 ### ✨ **Core SaaS Pillars**
 
 - **🏢 Advanced Multi-tenancy**: Complete data isolation across companies. A single user can be part of multiple organizations with different roles.
-- **👥 Identity & Team Management**: Professional role hierarchy (**Owner**, **Admin**, **Member**). Includes a frictionless **WhatsApp invitation flow** and mandatory password resets for new members.
-- **📈 Professional Analytics**: Growth engines that track revenue, cost, profit, and margin trends. Dynamic period filters (Today, 7D, 30D, Monthly) with interactive charts.
-- **💳 Enterprise Billing**: Full Stripe integration with Pro plans, usage-based limitations, and self-service Customer Portal access.
+- **📑 Automatic Comandas (New)**: Real-time synchronization of customer consumption. Orders from the Digital Menu update the dashboard instantly via **SSE (Server-Sent Events)**.
+- **👥 Identity & Team Management**: Professional role hierarchy (**Owner**, **Admin**, **Member**). Includes a frictionless **WhatsApp invitation flow**.
+- **📈 Professional Analytics**: Growth engines that track revenue, cost, profit, and margin trends. Dynamic period filters with interactive charts.
+- **💳 Enterprise Billing**: Full Stripe & Mercado Pago integration with Pro plans and usage-based limitations.
 - **🛡️ Audit & Security**: Transactional stock movements, sales linked to specific users (Audit Trail), and encrypted credential management.
 
 ## 🚀 **Tech Stack**
@@ -28,7 +29,8 @@ STOCKY is a robust multi-tenant SaaS solution. It enables business owners to man
 
 | Technology     | Role        | Features                                                   |
 | :------------- | :---------- | :--------------------------------------------------------- |
-| **Next.js 14** | Foundation  | App Router, Server Actions, Streaming & Parallel Routes    |
+| **Next.js 16** | Foundation  | App Router, Server Actions, PPR (Partial Prerendering)     |
+| **React 19**   | UI Library  | Actions, UseOptimistic, Enhanced Component Lifecycle       |
 | **Auth.js v5** | Security    | Type-safe authentication & session management              |
 | **Prisma ORM** | Data        | PostgreSQL integration with multi-tenant relational schema |
 | **Stripe**     | Revenue     | Automated billing, webhooks, and subscription lifecycle    |
