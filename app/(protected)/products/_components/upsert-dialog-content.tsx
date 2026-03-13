@@ -250,8 +250,7 @@ const UpsertProductDialogContent = ({
             )}
           </div>
 
-          {!isPrepared && (
-            <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="stock"
@@ -288,7 +287,6 @@ const UpsertProductDialogContent = ({
                 )}
               />
             </div>
-          )}
 
           {/* Category MultiSelect */}
           {categories.length > 0 && (

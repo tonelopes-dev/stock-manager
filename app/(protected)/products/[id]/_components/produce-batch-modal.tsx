@@ -27,6 +27,7 @@ import { useAction } from "next-safe-action/hooks";
 import { produceProduct } from "@/app/_actions/product/produce";
 import { toast } from "sonner";
 import { RecipeIngredientDto } from "@/app/_data-access/product/get-product-by-id";
+import { formatQuantity } from "@/app/_lib/format-quantity";
 
 const formatCurrency = (value: number) =>
   Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -67,7 +68,7 @@ export default function ProduceBatchModal({
         currentStock: recipe.ingredientStock,
         required: totalRequired,
         remaining,
-        unit: recipe.ingredientUnitLabel,
+        stockUnit: recipe.ingredientUnit,
         insufficient,
       };
     });
@@ -174,19 +175,19 @@ export default function ProduceBatchModal({
                       <TableRow key={ing.name}>
                         <TableCell className="font-medium text-sm">{ing.name}</TableCell>
                         <TableCell className="text-right text-sm">
-                          {ing.currentStock.toFixed(2)} {ing.unit}
+                          {formatQuantity(ing.currentStock, ing.stockUnit)}
                         </TableCell>
                         <TableCell className="text-right text-sm">
-                          -{ing.required.toFixed(2)} {ing.unit}
+                          {formatQuantity(-ing.required, ing.stockUnit)}
                         </TableCell>
                         <TableCell className="text-right text-sm">
                           {ing.insufficient ? (
                             <Badge variant="destructive">
-                              {ing.remaining.toFixed(2)} {ing.unit}
+                              {formatQuantity(ing.remaining, ing.stockUnit)}
                             </Badge>
                           ) : (
                             <span className="text-green-600">
-                              {ing.remaining.toFixed(2)} {ing.unit}
+                              {formatQuantity(ing.remaining, ing.stockUnit)}
                             </span>
                           )}
                         </TableCell>

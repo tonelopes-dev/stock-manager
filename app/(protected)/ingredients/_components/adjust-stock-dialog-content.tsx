@@ -29,6 +29,7 @@ import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { formatQuantity } from "@/app/_lib/format-quantity";
 
 interface AdjustStockDialogContentProps {
   ingredientId: string;
@@ -89,7 +90,7 @@ const AdjustStockDialogContent = ({
               Estoque atual
             </p>
             <p className="text-2xl font-bold">
-              {currentStock} <span className="text-sm font-normal text-muted-foreground">{unitLabel}</span>
+              {formatQuantity(currentStock, unitLabel)}
             </p>
           </div>
 
@@ -137,7 +138,7 @@ const AdjustStockDialogContent = ({
                 Novo estoque após ajuste
               </p>
               <p className={`text-2xl font-bold ${newStock < 0 ? "text-destructive" : "text-primary"}`}>
-                {newStock} <span className="text-sm font-normal text-muted-foreground">{unitLabel}</span>
+                {formatQuantity(newStock, unitLabel)}
               </p>
             </div>
           )}

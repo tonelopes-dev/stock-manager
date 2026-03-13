@@ -112,7 +112,7 @@ const IngredientTableDropdownMenu = ({
           ingredientId={ingredient.id}
           ingredientName={ingredient.name}
           currentStock={ingredient.stock}
-          unitLabel={ingredient.unitLabel}
+          unitLabel={ingredient.unit}
           setDialogIsOpen={setAdjustDialogIsOpen}
         />
       </Dialog>
