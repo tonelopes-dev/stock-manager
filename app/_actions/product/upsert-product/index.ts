@@ -130,7 +130,7 @@ export const upsertProduct = actionClient
         });
         productId = product.id;
 
-        if (type !== "PREPARED" && stock && stock > 0) {
+        if (stock && stock > 0) {
           await recordStockMovement(
             {
               productId: product.id,

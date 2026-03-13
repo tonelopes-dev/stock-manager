@@ -61,6 +61,89 @@ interface UpsertProductDialogContentProps {
   categories: ProductCategoryOption[];
 }
 
+const UnitSelectorField = ({
+  label,
+  field,
+  baseUnit,
+  disabled,
+}: {
+  label: string;
+  field: any;
+  baseUnit: string;
+  disabled?: boolean;
+}) => {
+  const [displayUnit, setDisplayUnit] = React.useState(baseUnit);
+
+  // Sync displayUnit if baseUnit changes
+  React.useEffect(() => {
+    setDisplayUnit(baseUnit);
+  }, [baseUnit]);
+
+  const multiplier = React.useMemo(() => {
+    if (baseUnit === "G" && displayUnit === "KG") return 1000;
+    if (baseUnit === "ML" && displayUnit === "L") return 1000;
+    if (baseUnit === "KG" && displayUnit === "G") return 0.001;
+    if (baseUnit === "L" && displayUnit === "ML") return 0.001;
+    return 1;
+  }, [baseUnit, displayUnit]);
+
+  const unitOptions = React.useMemo(() => {
+    if (baseUnit === "G" || baseUnit === "KG") {
+      return [
+        { value: "G", label: "g" },
+        { value: "KG", label: "kg" },
+      ];
+    }
+    if (baseUnit === "ML" || baseUnit === "L") {
+      return [
+        { value: "ML", label: "ml" },
+        { value: "L", label: "L" },
+      ];
+    }
+    return [{ value: "UN", label: "un" }];
+  }, [baseUnit]);
+
+  const displayValue = field.value !== undefined ? field.value / multiplier : "";
+
+  return (
+    <FormItem>
+      <FormLabel>{label}</FormLabel>
+      <div className="flex gap-2">
+        <FormControl>
+          <Input
+            type="number"
+            step="any"
+            value={displayValue}
+            disabled={disabled}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              field.onChange(isNaN(val) ? 0 : val * multiplier);
+            }}
+            className="flex-1"
+          />
+        </FormControl>
+        <Select
+          value={displayUnit}
+          onValueChange={setDisplayUnit}
+          disabled={disabled}
+        >
+          <SelectTrigger className="w-[80px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {unitOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <FormMessage />
+    </FormItem>
+  );
+};
+
 const UpsertProductDialogContent = ({
   defaultValues,
   setDialogIsOpen,
@@ -285,24 +368,20 @@ const UpsertProductDialogContent = ({
                 control={form.control}
                 name="stock"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Estoque Atual</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Quantidade atual"
-                        {...field}
-                        disabled={isEditing}
-                      />
-                    </FormControl>
+                  <div className="flex flex-col gap-1">
+                    <UnitSelectorField
+                      label="Estoque Atual"
+                      field={field}
+                      baseUnit={form.watch("unit")}
+                      disabled={isEditing}
+                    />
                     {isEditing && (
                       <p className="text-[10px] text-muted-foreground">
                         Para alterar o estoque de um produto existente, utilize
                         a opção &quot;Ajustar Estoque&quot; no menu de ações.
                       </p>
                     )}
-                    <FormMessage />
-                  </FormItem>
+                  </div>
                 )}
               />
 
@@ -310,17 +389,11 @@ const UpsertProductDialogContent = ({
                 control={form.control}
                 name="minStock"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Estoque Mínimo</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Alerta de estoque baixo"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <UnitSelectorField
+                    label="Estoque Mínimo"
+                    field={field}
+                    baseUnit={form.watch("unit")}
+                  />
                 )}
               />
             </div>

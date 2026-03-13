@@ -40,6 +40,7 @@ export interface ProductDetailDto {
   sku: string | null;
   stock: number;
   minStock: number;
+  unit: UnitType;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -118,6 +119,7 @@ export const getProductById = async (id: string): Promise<ProductDetailDto | nul
     sku: product.sku,
     stock: product.stock,
     minStock: product.minStock,
+    unit: product.unit,
     isActive: product.isActive,
     createdAt: product.createdAt,
     updatedAt: product.updatedAt,

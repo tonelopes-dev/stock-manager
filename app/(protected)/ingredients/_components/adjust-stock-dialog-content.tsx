@@ -31,11 +31,20 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { formatQuantity } from "@/app/_lib/format-quantity";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/_components/ui/select";
+import { useState, useMemo } from "react";
+
 interface AdjustStockDialogContentProps {
   ingredientId: string;
   ingredientName: string;
   currentStock: number;
-  unitLabel: string;
+  unitLabel: string; // This is the base unit (G, KG, ML, L, UN)
   setDialogIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -43,10 +52,13 @@ const AdjustStockDialogContent = ({
   ingredientId,
   ingredientName,
   currentStock,
-  unitLabel,
+  unitLabel: baseUnit,
   setDialogIsOpen,
 }: AdjustStockDialogContentProps) => {
+  const [displayUnit, setDisplayUnit] = useState(baseUnit);
+
   const { execute: executeAdjust } = useAction(adjustIngredientStock, {
+    // ... same logic
     onSuccess: () => {
       toast.success("Estoque ajustado com sucesso.");
       setDialogIsOpen(false);
@@ -66,11 +78,49 @@ const AdjustStockDialogContent = ({
     },
   });
 
-  const watchQuantity = form.watch("quantity");
-  const newStock = currentStock + (watchQuantity || 0);
+  const watchValue = form.watch("quantity");
+
+  // Multiplier logic based on baseUnit and selected displayUnit
+  const multiplier = useMemo(() => {
+    if (baseUnit === "G" && displayUnit === "KG") return 1000;
+    if (baseUnit === "ML" && displayUnit === "L") return 1000;
+    if (baseUnit === "KG" && displayUnit === "G") return 0.001;
+    if (baseUnit === "L" && displayUnit === "ML") return 0.001;
+    return 1;
+  }, [baseUnit, displayUnit]);
+
+  const calculatedQuantity = (watchValue || 0) * multiplier;
+  const newStock = currentStock + calculatedQuantity;
+
+  const unitOptions = useMemo(() => {
+    if (baseUnit === "G" || baseUnit === "KG") {
+      return [
+        { value: "G", label: "Gramas (g)" },
+        { value: "KG", label: "Quilos (kg)" },
+      ];
+    }
+    if (baseUnit === "ML" || baseUnit === "L") {
+      return [
+        { value: "ML", label: "Mililitros (ml)" },
+        { value: "L", label: "Litros (L)" },
+      ];
+    }
+    return [{ value: "UN", label: "Unidades (un)" }];
+  }, [baseUnit]);
 
   const onSubmit = (data: AdjustIngredientStockSchema) => {
-    executeAdjust(data);
+    executeAdjust({
+      ...data,
+      quantity: data.quantity * multiplier,
+    });
+  };
+
+  const UNIT_LABELS: Record<string, string> = {
+    G: "g",
+    KG: "kg",
+    ML: "ml",
+    L: "L",
+    UN: "un",
   };
 
   return (
@@ -84,61 +134,95 @@ const AdjustStockDialogContent = ({
             </DialogDescription>
           </DialogHeader>
 
-          {/* Current Stock (read-only) */}
           <div className="rounded-lg border bg-slate-50 p-4">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
               Estoque atual
             </p>
             <p className="text-2xl font-bold">
-              {formatQuantity(currentStock, unitLabel)}
+              {formatQuantity(currentStock, UNIT_LABELS[baseUnit] || baseUnit)}
             </p>
           </div>
 
-          <FormField
-            control={form.control}
-            name="quantity"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Quantidade</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="any"
-                    placeholder="Positivo = entrada, Negativo = saída"
-                    {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="quantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Quantidade</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="any"
+                        placeholder="Valor"
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(parseFloat(e.target.value) || 0)
+                        }
+                        className="flex-1"
+                      />
+                    </FormControl>
+                    <Select
+                      value={displayUnit}
+                      onValueChange={setDisplayUnit}
+                    >
+                      <SelectTrigger className="w-[120px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {unitOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {multiplier !== 1 && watchValue !== 0 && (
+                    <p className="text-xs text-primary font-medium mt-1">
+                      Equivale a{" "}
+                      {formatQuantity(
+                        calculatedQuantity,
+                        UNIT_LABELS[baseUnit] || baseUnit
+                      )}{" "}
+                      no sistema
+                    </p>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="reason"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Motivo</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Ex: Compra de fornecedor, Perda, Inventário..."
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="reason"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Motivo</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ex: Compra, Perda, Inventário..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-          {/* Preview */}
-          {watchQuantity !== 0 && (
+          {watchValue !== 0 && (
             <div className="rounded-lg border p-4 bg-primary/5">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
                 Novo estoque após ajuste
               </p>
-              <p className={`text-2xl font-bold ${newStock < 0 ? "text-destructive" : "text-primary"}`}>
-                {formatQuantity(newStock, unitLabel)}
+              <p
+                className={`text-2xl font-bold ${
+                  newStock < 0 ? "text-destructive" : "text-primary"
+                }`}
+              >
+                {formatQuantity(newStock, UNIT_LABELS[baseUnit] || baseUnit)}
               </p>
             </div>
           )}
@@ -151,7 +235,7 @@ const AdjustStockDialogContent = ({
             </DialogClose>
             <Button
               type="submit"
-              disabled={form.formState.isSubmitting || watchQuantity === 0}
+              disabled={form.formState.isSubmitting || watchValue === 0}
               className="gap-1.5"
             >
               {form.formState.isSubmitting && (
