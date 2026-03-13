@@ -45,6 +45,7 @@ import { NumericFormat, NumericFormatProps } from "react-number-format";
 import { toast } from "sonner";
 import * as React from "react";
 import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
+import { UnitType } from "@prisma/client";
 
 const MoneyInput = React.forwardRef<HTMLInputElement, NumericFormatProps>(
   (props, ref) => {
@@ -90,6 +91,7 @@ const UpsertProductDialogContent = ({
       id: "",
       name: "",
       type: "RESELL",
+      unit: UnitType.UN,
       price: 0,
       cost: 0,
       sku: "",
@@ -126,6 +128,34 @@ const UpsertProductDialogContent = ({
                 <FormControl>
                   <Input placeholder="Digite o nome do produto" {...field} />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="unit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Unidade de Medida</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a unidade" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value={UnitType.UN}>Unidade (UN)</SelectItem>
+                    <SelectItem value={UnitType.G}>Grama (g)</SelectItem>
+                    <SelectItem value={UnitType.KG}>Quilograma (kg)</SelectItem>
+                    <SelectItem value={UnitType.ML}>Mililitro (ml)</SelectItem>
+                    <SelectItem value={UnitType.L}>Litro (L)</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -250,7 +280,7 @@ const UpsertProductDialogContent = ({
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="stock"
@@ -262,8 +292,15 @@ const UpsertProductDialogContent = ({
                         type="number"
                         placeholder="Quantidade atual"
                         {...field}
+                        disabled={isEditing}
                       />
                     </FormControl>
+                    {isEditing && (
+                      <p className="text-[10px] text-muted-foreground">
+                        Para alterar o estoque de um produto existente, utilize
+                        a opção &quot;Ajustar Estoque&quot; no menu de ações.
+                      </p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}

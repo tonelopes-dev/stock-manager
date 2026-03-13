@@ -19,7 +19,7 @@ export const adjustStock = actionClient
     const { userId } = await assertRole(ADMIN_AND_OWNER);
 
     await db.$transaction(async (trx) => {
-      await recordStockMovement(
+      const movement = await recordStockMovement(
         {
           productId: id,
           companyId,
@@ -31,6 +31,11 @@ export const adjustStock = actionClient
         trx
       );
 
+      const product = await trx.product.findUniqueOrThrow({
+        where: { id, companyId },
+        select: { name: true, unit: true },
+      });
+
       // Log Audit
       await AuditService.logWithTransaction(trx, {
         type: AuditEventType.STOCK_ADJUSTED,
@@ -39,7 +44,11 @@ export const adjustStock = actionClient
         entityId: id,
         metadata: {
           productId: id,
-          quantity,
+          name: product.name,
+          qty: quantity,
+          unit: product.unit,
+          before: Number(movement.stockBefore),
+          after: Number(movement.stockAfter),
           reason,
         },
       });

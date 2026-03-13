@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { UnitType } from "@prisma/client";
 
 export const upsertProductSchema = z.object({
   id: z.string().uuid().optional(),
@@ -17,6 +18,7 @@ export const upsertProductSchema = z.object({
   stock: z.coerce.number().int().min(0, {
     message: "A quantidade em estoque é obrigatória.",
   }).default(0),
+  unit: z.nativeEnum(UnitType).default(UnitType.UN),
   minStock: z.coerce.number().int().min(0).default(0),
 }).refine((data) => {
   // PREPARED products get their cost from the recipe, skip this validation

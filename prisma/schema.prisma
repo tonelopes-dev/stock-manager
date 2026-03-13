@@ -20,6 +20,7 @@ model Product {
   sku              String?
   stock            Int               @default(0)
   minStock         Int               @default(0)
+  unit             UnitType          @default(UN)
   isActive         Boolean           @default(true)
   isVisibleOnMenu  Boolean           @default(false)
   isPromotion      Boolean           @default(false)
@@ -159,6 +160,7 @@ model StockMovement {
   ingredientId    String?
   quantityDecimal Decimal?          @db.Decimal(10, 4)
   orderId         String?
+  unit            UnitType?
   company         Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   ingredient      Ingredient?       @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
   order           Order?            @relation(fields: [orderId], references: [id], onDelete: SetNull)
@@ -553,6 +555,10 @@ enum AuditEventType {
   PRODUCT_CREATED
   PRODUCT_UPDATED
   PRODUCT_DELETED
+  INGREDIENT_CREATED
+  INGREDIENT_UPDATED
+  INGREDIENT_DELETED
+  INGREDIENT_STOCK_ADJUSTED
 }
 
 enum CustomerCategoryEnum {

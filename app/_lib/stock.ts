@@ -1,5 +1,5 @@
 import { db } from "./prisma";
-import { StockMovementType, Prisma } from "@prisma/client";
+import { StockMovementType, Prisma, UnitType } from "@prisma/client";
 import { BusinessError } from "./errors";
 
 type Decimal = Prisma.Decimal;
@@ -12,6 +12,7 @@ interface RecordStockMovementParams {
   userId?: string | null;
   type: StockMovementType;
   quantity: number | Decimal; // Positive increases stock, negative decreases
+  unit?: UnitType;
   saleId?: string;
   orderId?: string;
   reason?: string;
@@ -36,6 +37,7 @@ export const recordStockMovement = async (
           },
           select: {
             stock: true,
+            unit: true,
             company: {
               select: { allowNegativeStock: true },
             },
@@ -60,6 +62,7 @@ export const recordStockMovement = async (
             reason: params.reason,
             stockBefore,
             stockAfter,
+            unit: params.unit || updatedProduct.unit,
             quantityDecimal: qty,
           },
         });
@@ -74,6 +77,7 @@ export const recordStockMovement = async (
           },
           select: {
             stock: true,
+            unit: true,
             company: {
               select: { allowNegativeStock: true },
             },
@@ -97,6 +101,7 @@ export const recordStockMovement = async (
             reason: params.reason,
             stockBefore,
             stockAfter,
+            unit: params.unit || updatedIngredient.unit,
             quantityDecimal: qty,
           },
         });

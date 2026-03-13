@@ -21,6 +21,7 @@ export const IngredientService = {
         where: { id: params.ingredientId },
         select: {
           stock: true,
+          unit: true,
           company: { select: { allowNegativeStock: true } },
         },
       });
@@ -55,8 +56,9 @@ export const IngredientService = {
           userId: params.userId,
           type: "MANUAL",
           quantityDecimal: params.quantity,
-          stockBefore: Math.round(stockBefore),
-          stockAfter: Math.round(stockAfter),
+          stockBefore: stockBefore,
+          stockAfter: stockAfter,
+          unit: ingredient.unit,
           reason: params.reason,
         },
       });

@@ -197,26 +197,31 @@ const UpsertIngredientDialogContent = ({
             />
           </div>
 
-          {!isEditing && (
-            <FormField
-              control={form.control}
-              name="stock"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Estoque Inicial</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="any"
-                      placeholder="Quantidade inicial em estoque"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          <FormField
+            control={form.control}
+            name="stock"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Estoque Atual</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="Quantidade atual"
+                    {...field}
+                    disabled={isEditing}
+                  />
+                </FormControl>
+                {isEditing && (
+                  <p className="text-[10px] text-muted-foreground">
+                    Para alterar o estoque de um insumo existente, utilize a
+                    opção &quot;Ajustar Estoque&quot; no menu de ações.
+                  </p>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <DialogFooter>
             <DialogClose asChild>

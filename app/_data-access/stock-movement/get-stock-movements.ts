@@ -10,6 +10,7 @@ export interface StockMovementDto {
   stockBefore: number;
   stockAfter: number;
   quantity: number;
+  unit: string | null;
   reason: string | null;
   createdAt: Date;
   user: {
@@ -18,9 +19,11 @@ export interface StockMovementDto {
   } | null;
   product?: {
     name: string;
+    unit: string;
   } | null;
   ingredient?: {
     name: string;
+    unit: string;
   } | null;
 }
 
@@ -59,11 +62,13 @@ export const getStockMovements = async (
         product: {
           select: {
             name: true,
+            unit: true,
           },
         },
         ingredient: {
           select: {
             name: true,
+            unit: true,
           },
         },
       },
@@ -77,6 +82,7 @@ export const getStockMovements = async (
     stockBefore: Number(m.stockBefore),
     stockAfter: Number(m.stockAfter),
     quantity: Number(m.quantityDecimal ?? 0),
+    unit: m.unit, // Added unit from StockMovement
     reason: m.reason,
     createdAt: m.createdAt,
     user: m.user || { name: "Usuário Removido", email: "" },

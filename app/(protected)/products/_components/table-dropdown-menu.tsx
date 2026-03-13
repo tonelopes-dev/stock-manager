@@ -16,12 +16,14 @@ import {
   ExternalLinkIcon,
   PowerIcon,
   PowerOffIcon,
+  PackagePlusIcon,
 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import DeleteProductDialogContent from "./delete-dialog-content";
 import UpsertProductDialogContent from "./upsert-dialog-content";
 import ToggleStatusDialogContent from "./toggle-status-dialog-content";
+import AdjustStockDialogContent from "./adjust-stock-dialog-content";
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { toggleProductStatus } from "@/app/_actions/product/toggle-status";
 import Link from "next/link";
@@ -40,6 +42,7 @@ const ProductTableDropdownMenu = ({
   categories,
 }: ProductTableDropdownMenuProps) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [adjustStockDialogOpen, setAdjustStockDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [toggleStatusDialogOpen, setToggleStatusDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -87,6 +90,22 @@ const ProductTableDropdownMenu = ({
             <>
               <DropdownMenuItem
                 className="gap-1.5"
+                onClick={() => setEditDialogOpen(true)}
+              >
+                <EditIcon size={16} />
+                Editar
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                className="gap-1.5"
+                onClick={() => setAdjustStockDialogOpen(true)}
+              >
+                <PackagePlusIcon size={16} />
+                Ajustar Estoque
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                className="gap-1.5"
                 onClick={handleToggleStatus}
                 disabled={isPending}
               >
@@ -101,14 +120,6 @@ const ProductTableDropdownMenu = ({
                     Reativar
                   </>
                 )}
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                className="gap-1.5"
-                onClick={() => setEditDialogOpen(true)}
-              >
-                <EditIcon size={16} />
-                Editar
               </DropdownMenuItem>
 
               {!hasHistory && (
@@ -137,10 +148,25 @@ const ProductTableDropdownMenu = ({
             sku: product.sku || "",
             stock: product.stock,
             minStock: product.minStock,
+            unit: product.unit,
             categoryIds: product.categoryIds || [],
           }}
           setDialogIsOpen={setEditDialogOpen}
           categories={categories}
+        />
+      </Dialog>
+
+      {/* Adjust Stock Dialog */}
+      <Dialog
+        open={adjustStockDialogOpen}
+        onOpenChange={setAdjustStockDialogOpen}
+      >
+        <AdjustStockDialogContent
+          productId={product.id}
+          productName={product.name}
+          currentStock={product.stock}
+          unit={product.unit}
+          setDialogIsOpen={setAdjustStockDialogOpen}
         />
       </Dialog>
 

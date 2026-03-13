@@ -26,12 +26,13 @@ export const upsertProduct = actionClient
     const sku = data.sku?.trim() || null;
 
     await db.$transaction(async (trx) => {
-      const { stock, type, cost, categoryIds, ...rest } = data;
+      const { stock, unit, type, cost, categoryIds, ...rest } = data;
       
       const updateData = { 
         ...rest, 
         sku, 
         type,
+        unit,
         cost: type === "PREPARED" ? undefined : cost
       };
 
@@ -42,7 +43,7 @@ export const upsertProduct = actionClient
         // Fetch current stock before update to calculate difference
         const currentProduct = await trx.product.findUniqueOrThrow({
           where: { id, companyId },
-          select: { stock: true, type: true },
+          select: { stock: true, type: true, unit: true },
         });
 
         const updatedProduct = await trx.product.update({
@@ -66,6 +67,7 @@ export const upsertProduct = actionClient
                 userId,
                 type: "MANUAL",
                 quantity: stockDifference,
+                unit: updatedProduct.unit,
                 reason: "Ajuste manual via edição do produto",
               },
               trx
@@ -101,6 +103,7 @@ export const upsertProduct = actionClient
                     userId,
                     type: "MANUAL",
                     quantity: deductionInStockUnit,
+                    unit: recipe.ingredient.unit,
                     reason: `Devolução de insumo: ajuste de estoque de ${currentProduct.stock} → ${stock} un de ${updatedProduct.name}`,
                   },
                   trx,
@@ -135,6 +138,7 @@ export const upsertProduct = actionClient
               userId,
               type: "MANUAL",
               quantity: stock,
+              unit: product.unit,
               reason: "Estoque inicial",
             },
             trx
@@ -152,6 +156,8 @@ export const upsertProduct = actionClient
           productId,
           sku,
           name: data.name,
+          unit: data.unit,
+          type: data.type,
         },
       });
     });

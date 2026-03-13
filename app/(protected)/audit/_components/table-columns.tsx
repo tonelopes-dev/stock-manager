@@ -75,7 +75,7 @@ export const stockMovementTableColumns: ColumnDef<StockMovementDto>[] = [
           className={`font-bold ${isNegative ? "text-destructive" : "text-primary"}`}
         >
           {isNegative ? "" : "+"}
-          {movement.quantity}
+          {movement.quantity} {movement.unit || ""}
         </span>
       );
     },

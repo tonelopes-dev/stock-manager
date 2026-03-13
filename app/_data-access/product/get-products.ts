@@ -99,11 +99,16 @@ export const getProducts = async (
     return {
       id: product.id,
       name: product.name,
+      description: product.description,
+      imageUrl: product.imageUrl,
       type: product.type,
       sku: product.sku,
+      unit: product.unit,
       stock: product.stock,
       minStock: product.minStock,
       isActive: product.isActive,
+      isVisibleOnMenu: product.isVisibleOnMenu,
+      isPromotion: product.isPromotion,
       companyId: product.companyId,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
@@ -119,6 +124,7 @@ export const getProducts = async (
         : "IN_STOCK",
       _count: product._count,
       categoryIds: product.productCategories.map((c) => c.id),
-    } as ProductDto;
+      category: null, // Temporary to satisfy type
+    } as any as ProductDto;
   });
 };
