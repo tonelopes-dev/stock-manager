@@ -10,9 +10,9 @@ export const getProductCategories = async (): Promise<ProductCategoryOption[]> =
   const companyId = await getCurrentCompanyId();
   if (!companyId) return [];
 
-  return db.productCategory.findMany({
+  return db.category.findMany({
     where: { companyId },
     select: { id: true, name: true },
-    orderBy: { orderIndex: "asc" },
+    orderBy: { name: "asc" },
   });
 };

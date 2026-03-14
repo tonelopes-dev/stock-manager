@@ -1,40 +1,55 @@
 import { Skeleton } from "@/app/_components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/app/_components/ui/table";
+import { Card, CardContent } from "@/app/_components/ui/card";
 
 export const ProductTableSkeleton = () => {
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]"><Skeleton className="h-4 w-16" /></TableHead>
-            <TableHead><Skeleton className="h-4 w-24" /></TableHead>
-            <TableHead><Skeleton className="h-4 w-20" /></TableHead>
-            <TableHead><Skeleton className="h-4 w-16" /></TableHead>
-            <TableHead><Skeleton className="h-4 w-24" /></TableHead>
-            <TableHead className="w-[100px] text-right"><Skeleton className="h-4 w-12 ml-auto" /></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <TableRow key={i}>
-              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-              <TableCell><Skeleton className="h-4 w-8 ml-auto" /></TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+    <div className="space-y-8">
+      {/* Toolbar Skeleton */}
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-100">
+        <Skeleton className="h-11 w-full md:w-96 rounded-md bg-white" />
+        <Skeleton className="h-11 w-full md:w-48 rounded-md bg-white" />
+      </div>
+
+      {/* Category Section Skeleton */}
+      {Array.from({ length: 2 }).map((_, sectorIndex) => (
+        <div key={sectorIndex} className="space-y-4">
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-8 w-48 rounded-md" />
+            <div className="h-px flex-1 bg-slate-100 rounded-full" />
+            <Skeleton className="h-6 w-12 rounded-full" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="overflow-hidden border-none bg-slate-50/50">
+                <Skeleton className="aspect-square w-full" />
+                <CardContent className="p-5 space-y-4">
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-3 w-1/4" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 pb-2 border-b border-slate-100">
+                    <div className="space-y-1">
+                      <Skeleton className="h-3 w-1/2" />
+                      <Skeleton className="h-5 w-1/2" />
+                    </div>
+                    <div className="space-y-1">
+                      <Skeleton className="h-3 w-1/2" />
+                      <Skeleton className="h-5 w-1/2" />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Skeleton className="h-3 w-1/2" />
+                      <Skeleton className="h-4 w-1/3" />
+                    </div>
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
