@@ -8,7 +8,6 @@ import { Input } from "@/app/_components/ui/input";
 import { SearchIcon, ArrowDownWideNarrow } from "lucide-react";
 import { ProductCard } from "./product-card";
 import { Button } from "@/app/_components/ui/button";
-import { CategoryManagementDialog } from "./category-management-dialog";
 import { Badge } from "@/app/_components/ui/badge";
 import {
   DropdownMenu,
@@ -18,6 +17,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/app/_components/ui/dropdown-menu";
+
+import { CategoryManagementDialog } from "./category-management-dialog";
+import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 
 interface ProductVisualCatalogProps {
   products: ProductDto[];
@@ -34,12 +36,20 @@ export const ProductVisualCatalog = ({
 }: ProductVisualCatalogProps) => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("latest");
+  const [selectedCategoryId, setSelectedCategoryId] = useState("all");
 
   const filteredProducts = useMemo(() => {
-    let result = [...products].filter((p) =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      (p.sku && p.sku.toLowerCase().includes(search.toLowerCase()))
-    );
+    let result = [...products].filter((p) => {
+      const matchesSearch = 
+        p.name.toLowerCase().includes(search.toLowerCase()) ||
+        (p.sku && p.sku.toLowerCase().includes(search.toLowerCase()));
+      
+      const matchesCategory = 
+        selectedCategoryId === "all" || 
+        p.category?.id === selectedCategoryId;
+        
+      return matchesSearch && matchesCategory;
+    });
 
     if (sortBy === "latest") {
       result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -52,7 +62,7 @@ export const ProductVisualCatalog = ({
     }
 
     return result;
-  }, [products, search, sortBy]);
+  }, [products, search, sortBy, selectedCategoryId]);
 
   const groupedProducts = useMemo(() => {
     return filteredProducts.reduce((acc, product) => {
@@ -87,6 +97,7 @@ export const ProductVisualCatalog = ({
         </div>
         
         <div className="flex items-center gap-2 w-full md:w-auto">
+          {/* Sort Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="h-11 gap-2 bg-white shadow-sm border-none min-w-[180px] justify-between">
@@ -105,11 +116,36 @@ export const ProductVisualCatalog = ({
               <DropdownMenuItem onClick={() => setSortBy("price-desc")}>Maior preço</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {(userRole === "ADMIN" || userRole === "OWNER") && (
-            <CategoryManagementDialog categories={categories} />
-          )}
         </div>
+      </div>
+
+      {/* Category Filter */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        <Tabs defaultValue="all" value={selectedCategoryId} onValueChange={setSelectedCategoryId} className="w-full">
+          <div className="flex items-center justify-between gap-4">
+            <TabsList className="bg-slate-50 border border-slate-100 h-11 p-1">
+              <TabsTrigger 
+                value="all" 
+                className="px-6 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm"
+              >
+                Tudo
+              </TabsTrigger>
+              {categories.map((cat) => (
+                <TabsTrigger 
+                  key={cat.id} 
+                  value={cat.id}
+                  className="px-6 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                >
+                  {cat.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {(userRole === "ADMIN" || userRole === "OWNER") && (
+              <CategoryManagementDialog categories={categories} />
+            )}
+          </div>
+        </Tabs>
       </div>
 
       {/* Categories Sections */}

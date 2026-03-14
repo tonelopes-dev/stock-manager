@@ -30,7 +30,16 @@ export const ProductCard = ({ product, userRole, categories }: ProductCardProps)
 
   const handleClick = (e: React.MouseEvent) => {
     // Prevent redirect if clicking on the dropdown or other interactive elements
-    if ((e.target as HTMLElement).closest("button") || (e.target as HTMLElement).closest("[role='menuitem']")) return;
+    const target = e.target as HTMLElement;
+    if (
+      target.closest("button") || 
+      target.closest("[role='menuitem']") ||
+      target.closest("input") ||
+      target.closest("select") ||
+      target.closest("textarea") ||
+      target.closest("[role='dialog']")
+    ) return;
+    
     router.push(`/products/${product.id}`);
   };
 
