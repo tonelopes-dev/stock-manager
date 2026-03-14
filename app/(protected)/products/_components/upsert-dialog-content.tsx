@@ -37,7 +37,7 @@ import {
   PopoverTrigger,
 } from "@/app/_components/ui/popover";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2Icon, X, ChevronsUpDown, Check } from "lucide-react";
+import { Loader2Icon, X, ChevronsUpDown, Check, ImageIcon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
@@ -95,7 +95,7 @@ const UpsertProductDialogContent = ({
       sku: "",
       stock: 1,
       minStock: 0,
-      categoryIds: [],
+      categoryId: "",
     },
   });
 
@@ -111,25 +111,37 @@ const UpsertProductDialogContent = ({
   return (
     <DialogContent>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <DialogHeader>
             <DialogTitle>{isEditing ? "Editar" : "Criar"} produto</DialogTitle>
             <DialogDescription>Insira as informações abaixo</DialogDescription>
           </DialogHeader>
 
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nome</FormLabel>
-                <FormControl>
-                  <Input placeholder="Digite o nome do produto" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="flex-1 overflow-y-auto px-1 max-h-[60vh] space-y-5 py-2">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Digite o nome do produto" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Image Upload Placeholder - Compact */}
+            <div className="flex gap-4 p-4 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 items-center justify-center text-slate-400 group hover:border-slate-300 hover:bg-slate-100/50 transition-all cursor-not-allowed h-32">
+              <div className="p-2.5 rounded-full bg-white shadow-sm group-hover:scale-110 transition-transform">
+                <ImageIcon className="w-6 h-6" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-bold text-slate-500 line-clamp-1">Upload de Imagem</p>
+                <p className="text-[10px] font-medium uppercase tracking-widest mt-0.5">Disponível em breve</p>
+              </div>
+            </div>
 
           <div className="grid grid-cols-2 gap-4">
             <FormField
@@ -288,120 +300,46 @@ const UpsertProductDialogContent = ({
               />
             </div>
 
-          {/* Category MultiSelect */}
+          {/* Category Select */}
           {categories.length > 0 && (
             <FormField
               control={form.control}
-              name="categoryIds"
-              render={({ field }) => {
-                const selected = field.value || [];
-                return (
-                  <FormItem>
-                    <FormLabel>Categorias</FormLabel>
-                    <div className="space-y-2">
-                      {selected.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5">
-                          {selected.map((catId: string) => {
-                            const cat = categories.find((c) => c.id === catId);
-                            if (!cat) return null;
-                            return (
-                              <Badge
-                                key={catId}
-                                variant="secondary"
-                                className="gap-1 rounded-lg px-2.5 py-1 text-xs font-bold"
-                              >
-                                {cat.name}
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    field.onChange(
-                                      selected.filter(
-                                        (id: string) => id !== catId,
-                                      ),
-                                    )
-                                  }
-                                  className="ml-0.5 rounded-full p-0.5 hover:bg-slate-300/50"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              </Badge>
-                            );
-                          })}
-                        </div>
-                      )}
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            type="button"
-                            className="w-full justify-between text-sm font-normal text-muted-foreground"
-                          >
-                            {selected.length === 0
-                              ? "Selecionar categorias..."
-                              : `${selected.length} selecionada(s)`}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-full p-2">
-                          <div className="space-y-1">
-                            {categories.map((cat) => {
-                              const isSelected = selected.includes(cat.id);
-                              return (
-                                <button
-                                  key={cat.id}
-                                  type="button"
-                                  onClick={() => {
-                                    if (isSelected) {
-                                      field.onChange(
-                                        selected.filter(
-                                          (id: string) => id !== cat.id,
-                                        ),
-                                      );
-                                    } else {
-                                      field.onChange([...selected, cat.id]);
-                                    }
-                                  }}
-                                  className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
-                                    isSelected
-                                      ? "bg-primary/10 font-semibold text-primary"
-                                      : "hover:bg-slate-100"
-                                  }`}
-                                >
-                                  <div
-                                    className={`flex h-4 w-4 items-center justify-center rounded border ${
-                                      isSelected
-                                        ? "border-primary bg-primary"
-                                        : "border-slate-300"
-                                    }`}
-                                  >
-                                    {isSelected && (
-                                      <Check className="h-3 w-3 text-white" />
-                                    )}
-                                  </div>
-                                  {cat.name}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              name="categoryId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Categoria</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value || undefined}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma categoria" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
           )}
 
-          {isPrepared && (
-            <div className="rounded-lg border border-dashed border-muted-foreground/30 p-4">
-              <p className="text-center text-sm text-muted-foreground">
-                Após criar o produto, acesse a página de detalhes para cadastrar
-                a receita com os insumos.
-              </p>
-            </div>
-          )}
+            {isPrepared && (
+              <div className="rounded-lg border border-dashed border-muted-foreground/30 p-4">
+                <p className="text-center text-sm text-muted-foreground">
+                  Após criar o produto, acesse a página de detalhes para cadastrar
+                  a receita com os insumos.
+                </p>
+              </div>
+            )}
+          </div>
 
           <DialogFooter>
             <DialogClose asChild>

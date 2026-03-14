@@ -29,7 +29,7 @@ export const getMenuManagementData = async (): Promise<{
   const companyId = await getCurrentCompanyId();
   if (!companyId) return { categories: [], companyId: "" };
 
-  const categories = await db.productCategory.findMany({
+  const categories = await db.category.findMany({
     where: { companyId },
     orderBy: { orderIndex: "asc" },
     include: {
@@ -55,7 +55,7 @@ export const getMenuManagementData = async (): Promise<{
     where: {
       companyId,
       isActive: true,
-      productCategories: { none: {} },
+      categoryId: null,
     },
     orderBy: { name: "asc" },
     select: {

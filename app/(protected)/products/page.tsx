@@ -1,7 +1,7 @@
 import { getProducts } from "../../_data-access/product/get-products";
 import AddProductButton from "./_components/create-product-button";
 import { ProductStatusFilter } from "./_components/status-filter";
-import { ProductDataTable } from "./_components/product-data-table";
+import { ProductVisualCatalog } from "./_components/product-visual-catalog";
 import Header, {
   HeaderLeft,
   HeaderRight,
@@ -74,7 +74,7 @@ const ProductTableWrapper = async ({
         </HeaderRight>
       </Header>
 
-      <ProductDataTable
+      <ProductVisualCatalog
         products={products}
         userRole={role as UserRole}
         categories={categories}

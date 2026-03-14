@@ -137,7 +137,7 @@ const ProductTableDropdownMenu = ({
             sku: product.sku || "",
             stock: product.stock,
             minStock: product.minStock,
-            categoryIds: product.categoryIds || [],
+            categoryId: product.category?.id || "",
           }}
           setDialogIsOpen={setEditDialogOpen}
           categories={categories}

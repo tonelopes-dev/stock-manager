@@ -9,12 +9,12 @@ import { calculateRealCost } from "@/app/_lib/units";
 
 export type ProductStatusDto = "IN_STOCK" | "OUT_OF_STOCK" | "LOW_STOCK" | "SLOW_MOVING";
 
-export interface ProductDto extends Omit<Product, "price" | "cost"> {
+export interface ProductDto extends Omit<Product, "price" | "cost" | "category"> {
   price: number;
   cost: number;
   margin: number;
   status: ProductStatusDto;
-  categoryIds: string[];
+  category?: { id: string; name: string } | null;
   _count?: {
     saleItems: number;
     productionOrders: number;
@@ -38,6 +38,7 @@ export const getProducts = async (
 
   const products = await db.product.findMany({
     where,
+    orderBy: { createdAt: "desc" },
     include: {
       _count: {
         select: {
@@ -59,8 +60,8 @@ export const getProducts = async (
           ingredient: true,
         },
       },
-      productCategories: {
-        select: { id: true },
+      category: {
+        select: { id: true, name: true },
       },
     }
   });
@@ -118,7 +119,7 @@ export const getProducts = async (
         ? "SLOW_MOVING"
         : "IN_STOCK",
       _count: product._count,
-      categoryIds: product.productCategories.map((c) => c.id),
+      category: product.category,
     } as ProductDto;
   });
 };
