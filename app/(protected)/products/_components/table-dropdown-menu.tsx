@@ -150,6 +150,8 @@ const ProductTableDropdownMenu = ({
             minStock: product.minStock,
             unit: product.unit,
             categoryIds: product.categoryIds || [],
+            expirationDate: product.expirationDate,
+            trackExpiration: product.trackExpiration,
           }}
           setDialogIsOpen={setEditDialogOpen}
           categories={categories}

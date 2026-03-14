@@ -101,6 +101,8 @@ const IngredientTableDropdownMenu = ({
             cost: ingredient.cost,
             stock: ingredient.stock,
             minStock: ingredient.minStock,
+            expirationDate: ingredient.expirationDate,
+            trackExpiration: ingredient.trackExpiration,
           }}
           setDialogIsOpen={setEditDialogIsOpen}
         />

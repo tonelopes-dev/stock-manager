@@ -20,6 +20,8 @@ export const upsertProductSchema = z.object({
   }).default(0),
   unit: z.nativeEnum(UnitType).default(UnitType.UN),
   minStock: z.coerce.number().int().min(0).default(0),
+  expirationDate: z.coerce.date().nullable().optional(),
+  trackExpiration: z.boolean().default(false),
 }).refine((data) => {
   // PREPARED products get their cost from the recipe, skip this validation
   if (data.type === "PREPARED") return true;

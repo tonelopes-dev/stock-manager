@@ -20,15 +20,17 @@ export interface IngredientDto extends Omit<Ingredient, "cost" | "stock" | "minS
   minStock: number;
   status: IngredientStatusDto;
   unitLabel: string;
+  expirationDate: Date | null;
+  trackExpiration: boolean;
 }
 
 export const getIngredients = async (): Promise<IngredientDto[]> => {
   const companyId = await getCurrentCompanyId();
 
-  const ingredients = await db.ingredient.findMany({
+  const ingredients = (await db.ingredient.findMany({
     where: { companyId, isActive: true },
     orderBy: { name: "asc" },
-  });
+  })) as any[];
 
   return JSON.parse(
     JSON.stringify(
@@ -51,6 +53,8 @@ export const getIngredients = async (): Promise<IngredientDto[]> => {
           companyId: ingredient.companyId,
           createdAt: ingredient.createdAt,
           updatedAt: ingredient.updatedAt,
+          expirationDate: ingredient.expirationDate,
+          trackExpiration: ingredient.trackExpiration,
           status: isOutOfStock
             ? "OUT_OF_STOCK"
             : isLowStock

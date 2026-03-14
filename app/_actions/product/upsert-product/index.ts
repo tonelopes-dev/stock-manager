@@ -26,13 +26,15 @@ export const upsertProduct = actionClient
     const sku = data.sku?.trim() || null;
 
     await db.$transaction(async (trx) => {
-      const { stock, unit, type, cost, categoryIds, ...rest } = data;
+      const { stock, unit, type, cost, categoryIds, expirationDate, trackExpiration, ...rest } = data;
       
       const updateData = { 
         ...rest, 
         sku, 
         type,
         unit,
+        expirationDate,
+        trackExpiration,
         cost: type === "PREPARED" ? undefined : cost
       };
 

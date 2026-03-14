@@ -15,6 +15,8 @@ export interface ProductDto extends Omit<Product, "price" | "cost"> {
   margin: number;
   status: ProductStatusDto;
   categoryIds: string[];
+  expirationDate: Date | null;
+  trackExpiration: boolean;
   _count?: {
     saleItems: number;
     productionOrders: number;
@@ -36,7 +38,7 @@ export const getProducts = async (
     delete where.isActive;
   }
 
-  const products = await db.product.findMany({
+  const products = (await db.product.findMany({
     where,
     include: {
       _count: {
@@ -63,7 +65,7 @@ export const getProducts = async (
         select: { id: true },
       },
     }
-  });
+  })) as any[];
 
   return products.map((product) => {
     const isOutOfStock = product.stock <= 0;
@@ -124,6 +126,8 @@ export const getProducts = async (
         : "IN_STOCK",
       _count: product._count,
       categoryIds: product.productCategories.map((c) => c.id),
+      expirationDate: product.expirationDate,
+      trackExpiration: product.trackExpiration,
       category: null, // Temporary to satisfy type
     } as any as ProductDto;
   });

@@ -37,6 +37,9 @@ model Product {
   stockMovements   StockMovement[]
   recipes          ProductRecipe[]
   productionOrders ProductionOrder[]
+  
+  expirationDate   DateTime?
+  trackExpiration  Boolean           @default(false)
 
   @@unique([sku, companyId])
 }
@@ -200,6 +203,7 @@ model Company {
   checklists             Checklist[]
   checklistItems         ChecklistItem[]
   checklistTemplates     ChecklistTemplate[]
+  notifications          Notification[]
 
   @@index([deletedAt])
 }
@@ -244,6 +248,9 @@ model Ingredient {
   company        Company         @relation(fields: [companyId], references: [id])
   recipes        ProductRecipe[]
   stockMovements StockMovement[]
+
+  expirationDate  DateTime?
+  trackExpiration Boolean         @default(false)
 
   @@index([companyId])
 }
@@ -463,6 +470,19 @@ model ChecklistTemplate {
   companyId String
   items     Json     // List of strings or simplified objects
   company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  type      String   // Ex: 'EXPIRATION_ALERT', 'STOCK_ALERT', 'SYSTEM'
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
 }
 
 enum SaleStatus {

@@ -31,13 +31,24 @@ import {
   SelectValue,
 } from "@/app/_components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2Icon } from "lucide-react";
+import { Loader2Icon, CalendarIcon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import { NumericFormat, NumericFormatProps } from "react-number-format";
 import { toast } from "sonner";
 import * as React from "react";
+import { Switch } from "@/app/_components/ui/switch";
+import { Label } from "@/app/_components/ui/label";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/app/_lib/utils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/app/_components/ui/popover";
+import { Calendar } from "@/app/_components/ui/calendar";
 
 const MoneyInput = React.forwardRef<HTMLInputElement, NumericFormatProps>(
   (props, ref) => {
@@ -161,12 +172,16 @@ const UpsertIngredientDialogContent = ({
   const form = useForm<UpsertIngredientSchema>({
     shouldUnregister: true,
     resolver: zodResolver(upsertIngredientSchema),
-    defaultValues: defaultValues ?? {
+    defaultValues: defaultValues ? {
+      ...defaultValues,
+      expirationDate: defaultValues.expirationDate ? new Date(defaultValues.expirationDate) : undefined,
+    } : {
       name: "",
       unit: "KG",
       cost: 0,
       stock: 0,
       minStock: 0,
+      trackExpiration: false,
     },
   });
 
@@ -294,6 +309,78 @@ const UpsertIngredientDialogContent = ({
               </>
             )}
           />
+
+          <div className="space-y-4 rounded-lg border border-slate-100 p-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-bold">Controle de Validade</Label>
+                <p className="text-[10px] text-muted-foreground">
+                  Ative para ser alertado sobre o vencimento deste insumo.
+                </p>
+              </div>
+              <FormField
+                control={form.control}
+                name="trackExpiration"
+                render={({ field }) => (
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked);
+                        if (!checked) {
+                          form.setValue("expirationDate", undefined);
+                        }
+                      }}
+                    />
+                  </FormControl>
+                )}
+              />
+            </div>
+
+            {form.watch("trackExpiration") && (
+              <FormField
+                control={form.control}
+                name="expirationDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Data de Validade</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP", { locale: ptBR })
+                            ) : (
+                              <span>Selecione uma data</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value || undefined}
+                          onSelect={field.onChange}
+                          disabled={(date: Date) =>
+                            date < new Date(new Date().setHours(0, 0, 0, 0))
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+          </div>
 
           <DialogFooter>
             <DialogClose asChild>

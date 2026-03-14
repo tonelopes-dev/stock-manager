@@ -15,6 +15,8 @@ export const upsertIngredientSchema = z.object({
     message: "O estoque inicial deve ser maior ou igual a zero.",
   }).default(0).optional(),
   minStock: z.coerce.number().min(0).default(0),
+  expirationDate: z.coerce.date().nullable().optional(),
+  trackExpiration: z.boolean().default(false),
 });
 
 export type UpsertIngredientSchema = z.infer<typeof upsertIngredientSchema>;
