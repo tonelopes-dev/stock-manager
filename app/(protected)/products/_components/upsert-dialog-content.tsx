@@ -15,6 +15,13 @@ import {
   DialogTitle,
 } from "@/app/_components/ui/dialog";
 import {
+  Dialog,
+  DialogContent as SubDialogContent,
+  DialogHeader as SubDialogHeader,
+  DialogTitle as SubDialogTitle,
+  DialogFooter as SubDialogFooter,
+} from "@/app/_components/ui/dialog";
+import {
   FormField,
   FormItem,
   FormLabel,
@@ -45,6 +52,8 @@ import { NumericFormat, NumericFormatProps } from "react-number-format";
 import { toast } from "sonner";
 import * as React from "react";
 import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
+import { upsertCategory } from "@/app/_actions/product/upsert-category";
+import { PlusIcon } from "lucide-react";
 
 const MoneyInput = React.forwardRef<HTMLInputElement, NumericFormatProps>(
   (props, ref) => {
@@ -83,6 +92,26 @@ const UpsertProductDialogContent = ({
       },
     },
   );
+
+  const [isAddingCategory, setIsAddingCategory] = React.useState(false);
+  const [newCategoryName, setNewCategoryName] = React.useState("");
+
+  const { execute: executeUpsertCategory, isPending: isPendingCategory } =
+    useAction(upsertCategory, {
+      onSuccess: () => {
+        toast.success("Categoria criada com sucesso.");
+        setIsAddingCategory(false);
+        setNewCategoryName("");
+      },
+      onError: () => {
+        toast.error("Erro ao criar categoria.");
+      },
+    });
+
+  const handleCreateCategory = () => {
+    if (!newCategoryName.trim()) return;
+    executeUpsertCategory({ name: newCategoryName });
+  };
   const form = useForm<UpsertProductSchema>({
     shouldUnregister: true,
     resolver: zodResolver(upsertProductSchema),
@@ -300,36 +329,95 @@ const UpsertProductDialogContent = ({
               />
             </div>
 
-          {/* Category Select */}
-          {categories.length > 0 && (
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => (
-                <FormItem>
+
+          {/* Category Select - ALWAYS VISIBLE */}
+          <FormField
+            control={form.control}
+            name="categoryId"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center justify-between">
                   <FormLabel>Categoria</FormLabel>
+                </div>
+                <div className="flex gap-2">
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value || undefined}
+                    key={categories.length} // Force re-render when a new category is added
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="flex-1">
                         <SelectValue placeholder="Selecione uma categoria" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
+                      {categories.length === 0 ? (
+                        <div className="p-4 text-center text-xs text-muted-foreground">
+                          Nenhuma categoria cadastrada.
+                        </div>
+                      ) : (
+                        categories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsAddingCategory(true)}
+                    className="shrink-0"
+                    title="Adicionar nova categoria"
+                  >
+                    <PlusIcon size={18} />
+                  </Button>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Sub-modal for creating category */}
+          <Dialog open={isAddingCategory} onOpenChange={setIsAddingCategory}>
+            <SubDialogContent className="sm:max-w-[425px]">
+              <SubDialogHeader>
+                <SubDialogTitle>Nova Categoria</SubDialogTitle>
+              </SubDialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <FormLabel>Nome da Categoria</FormLabel>
+                  <Input
+                    placeholder="Ex: Bebidas, Sobremesas..."
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+              </div>
+              <SubDialogFooter>
+                <Button
+                  variant="secondary"
+                  onClick={() => setIsAddingCategory(false)}
+                  disabled={isPendingCategory}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleCreateCategory}
+                  disabled={isPendingCategory || !newCategoryName.trim()}
+                >
+                  {isPendingCategory && (
+                    <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Criar Categoria
+                </Button>
+              </SubDialogFooter>
+            </SubDialogContent>
+          </Dialog>
 
             {isPrepared && (
               <div className="rounded-lg border border-dashed border-muted-foreground/30 p-4">

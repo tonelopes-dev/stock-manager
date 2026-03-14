@@ -8,6 +8,7 @@ import { Input } from "@/app/_components/ui/input";
 import { SearchIcon, ArrowDownWideNarrow } from "lucide-react";
 import { ProductCard } from "./product-card";
 import { Button } from "@/app/_components/ui/button";
+import { CategoryManagementDialog } from "./category-management-dialog";
 import { Badge } from "@/app/_components/ui/badge";
 import {
   DropdownMenu,
@@ -104,6 +105,10 @@ export const ProductVisualCatalog = ({
               <DropdownMenuItem onClick={() => setSortBy("price-desc")}>Maior preço</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {(userRole === "ADMIN" || userRole === "OWNER") && (
+            <CategoryManagementDialog categories={categories} />
+          )}
         </div>
       </div>
 

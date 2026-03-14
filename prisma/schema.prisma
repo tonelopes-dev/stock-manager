@@ -24,7 +24,7 @@ model Product {
   isVisibleOnMenu  Boolean           @default(false)
   isPromotion      Boolean           @default(false)
   categoryId       String?
-  category         Category?         @relation(fields: [categoryId], references: [id])
+  category         Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   companyId        String
