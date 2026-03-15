@@ -307,6 +307,42 @@ const UpsertSheetContent = ({
 
         {/* Scrollable Content */}
         <div className="flex-1 space-y-8 overflow-y-auto bg-slate-50/30 p-6">
+          {/* Sale Metadata Section */}
+          <div className="grid grid-cols-2 gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="space-y-1">
+              <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400">
+                <CalendarIcon size={12} />
+                Data da Venda
+              </Label>
+              <DatePicker
+                value={date ? parseISO(date) : undefined}
+                onChange={(newDate) =>
+                  setDate(newDate ? format(newDate, "yyyy-MM-dd") : "")
+                }
+                className="h-10 w-full border-slate-200 text-xs font-bold"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400">
+                <UsersIcon size={12} className="text-secondary" />
+                Cliente
+              </Label>
+              <Combobox
+                options={customerOptions}
+                value={customerId || ""}
+                onChange={(val) => setCustomerId(val || undefined)}
+                placeholder="Selecione o Cliente..."
+              />
+              {!customerId && (
+                <p className="flex animate-pulse items-center gap-1 text-[9px] font-bold uppercase text-amber-500">
+                  <AlertTriangle size={10} /> Vincule um cliente para histórico
+                  CRM
+                </p>
+              )}
+            </div>
+          </div>
+
           {/* Product Composition Area */}
           <div className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -317,39 +353,6 @@ const UpsertSheetContent = ({
                 <p className="text-[10px] font-medium uppercase text-slate-400">
                   Adicione produtos e quantidades
                 </p>
-              </div>
-
-              <div className="space-y-1">
-                <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400">
-                  <CalendarIcon size={12} />
-                  Data
-                </Label>
-                <DatePicker
-                  value={date ? parseISO(date) : undefined}
-                  onChange={(newDate) =>
-                    setDate(newDate ? format(newDate, "yyyy-MM-dd") : "")
-                  }
-                  className="h-8 w-[150px] border-slate-200 text-[10px] font-bold"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400">
-                  <UsersIcon size={12} className="text-secondary" />
-                  Cliente
-                </Label>
-                <Combobox
-                  options={customerOptions}
-                  value={customerId || ""}
-                  onChange={(val) => setCustomerId(val || undefined)}
-                  placeholder="Selecione o Cliente..."
-                />
-                {!customerId && (
-                  <p className="flex animate-pulse items-center gap-1 text-[9px] font-bold uppercase text-amber-500">
-                    <AlertTriangle size={10} /> Vincule um cliente para
-                    histórico CRM
-                  </p>
-                )}
               </div>
             </div>
 
