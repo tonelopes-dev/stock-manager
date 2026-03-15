@@ -152,6 +152,7 @@ const ProductTableDropdownMenu = ({
             categoryId: product.categoryId || "",
             expirationDate: product.expirationDate,
             trackExpiration: product.trackExpiration,
+            imageUrl: product.imageUrl || "",
           }}
           setDialogIsOpen={setEditDialogOpen}
           categories={categories}

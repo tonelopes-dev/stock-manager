@@ -185,6 +185,7 @@ const UpsertProductDialogContent = ({
 
   const [isAddingCategory, setIsAddingCategory] = React.useState(false);
   const [newCategoryName, setNewCategoryName] = React.useState("");
+  const [isUploading, setIsUploading] = React.useState(false);
 
   const { execute: executeUpsertCategory, isPending: isPendingCategory } =
     useAction(upsertCategory, {
@@ -226,11 +227,35 @@ const UpsertProductDialogContent = ({
   const productType = form.watch("type");
   const isPrepared = productType === "PREPARED";
 
+  const isEditing = !!defaultValues;
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const response = await fetch(`/api/upload?filename=${file.name}`, {
+        method: "POST",
+        body: file,
+      });
+
+      if (!response.ok) throw new Error("Upload failed");
+
+      const blob = await response.json();
+      form.setValue("imageUrl", blob.url);
+      toast.success("Imagem enviada com sucesso!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao enviar imagem.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const onSubmit = (data: UpsertProductSchema) => {
     executeUpsertProduct({ ...data, id: defaultValues?.id });
   };
-
-  const isEditing = !!defaultValues;
 
   return (
     <DialogContent>
@@ -242,29 +267,80 @@ const UpsertProductDialogContent = ({
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto px-1 max-h-[60vh] space-y-5 py-2">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Digite o nome do produto" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="flex items-start gap-4">
+              <div className="flex-1">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Digite o nome do produto" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            {/* Image Upload Placeholder - Compact */}
-            <div className="flex gap-4 p-4 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 items-center justify-center text-slate-400 group hover:border-slate-300 hover:bg-slate-100/50 transition-all cursor-not-allowed h-32">
-              <div className="p-2.5 rounded-full bg-white shadow-sm group-hover:scale-110 transition-transform">
-                <ImageIcon className="w-6 h-6" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-bold text-slate-500 line-clamp-1">Upload de Imagem</p>
-                <p className="text-[10px] font-medium uppercase tracking-widest mt-0.5">Disponível em breve</p>
-              </div>
+              <FormField
+                control={form.control}
+                name="imageUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Imagem</FormLabel>
+                    <FormControl>
+                      <div className="relative w-24 h-24">
+                        {field.value ? (
+                          <div className="relative w-full h-full overflow-hidden rounded-xl border border-slate-200 bg-slate-50 group shadow-sm transition-all hover:border-slate-300">
+                            <img
+                              src={field.value}
+                              alt="Preview"
+                              className="h-full w-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon"
+                                className="h-8 w-8 rounded-full shadow-lg"
+                                onClick={() => field.onChange("")}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <label
+                            className={cn(
+                              "flex flex-col items-center justify-center w-full h-full border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 cursor-pointer transition-all hover:border-slate-300 hover:bg-slate-100 shadow-sm text-slate-400 group",
+                              isUploading && "cursor-not-allowed opacity-70"
+                            )}
+                          >
+                            {isUploading ? (
+                              <Loader2Icon className="h-5 w-5 animate-spin text-slate-500" />
+                            ) : (
+                              <div className="flex flex-col items-center gap-1">
+                                <ImageIcon className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                                <span className="text-[10px] font-bold uppercase tracking-tighter">Add</span>
+                              </div>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={handleImageUpload}
+                              disabled={isUploading}
+                            />
+                          </label>
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
           <FormField
@@ -615,9 +691,9 @@ const UpsertProductDialogContent = ({
                 Cancelar
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={isPending} className="gap-1.5">
-              {isPending && <Loader2Icon className="animate-spin" size={16} />}
-              {isPending ? "Salvando..." : "Salvar"}
+            <Button type="submit" disabled={isPending || isUploading} className="gap-1.5">
+              {(isPending || isUploading) && <Loader2Icon className="animate-spin" size={16} />}
+              {isPending ? "Salvando..." : isUploading ? "Aguarde o upload..." : "Salvar"}
             </Button>
           </DialogFooter>
         </form>

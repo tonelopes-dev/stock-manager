@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/app/_components/ui/card";
 import { Badge } from "@/app/_components/ui/badge";
 import { ImageIcon } from "lucide-react";
 import ProductStatusBadge from "@/app/_components/product-status-badge";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import ProductTableDropdownMenu from "./table-dropdown-menu";
 import { UserRole } from "@prisma/client";
@@ -48,12 +49,14 @@ export const ProductCard = ({ product, userRole, categories }: ProductCardProps)
       className="overflow-hidden cursor-pointer hover:shadow-lg transition-all border-none bg-slate-50/50"
       onClick={handleClick}
     >
-      <div className="relative aspect-square bg-slate-200 flex items-center justify-center">
+      <div className="relative aspect-square bg-slate-200 flex items-center justify-center overflow-hidden">
         {product.imageUrl ? (
-          <img 
+          <Image 
             src={product.imageUrl} 
             alt={product.name} 
-            className="w-full h-full object-cover"
+            fill 
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         ) : (
           <div className="flex flex-col items-center gap-2 text-slate-400">
