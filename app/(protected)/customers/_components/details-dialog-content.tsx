@@ -41,6 +41,8 @@ import { MultiSelect } from "@/app/_components/ui/multi-select";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/app/_components/ui/button";
 import { Input } from "@/app/_components/ui/input";
+import { DatePicker } from "@/app/_components/ui/date-picker";
+import { parseISO } from "date-fns";
 import {
   applyChecklistTemplate,
   createChecklist,
@@ -376,12 +378,15 @@ export const CustomerDetailsDialogContent = ({
                     <label className="text-[10px] font-bold uppercase text-slate-400">
                       Aniversário
                     </label>
-                    <Input
-                      type="date"
-                      value={formData.birthDate}
-                      onChange={(e) =>
-                        setFormData({ ...formData, birthDate: e.target.value })
+                    <DatePicker
+                      value={formData.birthDate ? parseISO(formData.birthDate) : undefined}
+                      onChange={(date) =>
+                        setFormData({
+                          ...formData,
+                          birthDate: date ? format(date, "yyyy-MM-dd") : "",
+                        })
                       }
+                      showDropdowns={true}
                     />
                   </div>
                 ) : (

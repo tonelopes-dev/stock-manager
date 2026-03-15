@@ -60,6 +60,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/_components/ui/select";
+import { DatePicker } from "@/app/_components/ui/date-picker";
+import { parseISO } from "date-fns";
 
 const formSchema = z.object({
   productId: z.string().uuid({
@@ -322,11 +324,12 @@ const UpsertSheetContent = ({
                   <CalendarIcon size={12} />
                   Data
                 </Label>
-                <Input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="h-8 w-[130px] border-slate-200 p-2 text-[10px] font-bold focus-visible:ring-primary/20"
+                <DatePicker
+                  value={date ? parseISO(date) : undefined}
+                  onChange={(newDate) =>
+                    setDate(newDate ? format(newDate, "yyyy-MM-dd") : "")
+                  }
+                  className="h-8 w-[150px] border-slate-200 text-[10px] font-bold"
                 />
               </div>
 

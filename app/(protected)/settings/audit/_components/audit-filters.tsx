@@ -8,6 +8,8 @@ import { AuditEventType } from "@prisma/client";
 import { Label } from "@/app/_components/ui/label";
 import { Button } from "@/app/_components/ui/button";
 import { X } from "lucide-react";
+import { DatePicker } from "@/app/_components/ui/date-picker";
+import { format, parseISO } from "date-fns";
 
 export function AuditFilters({ actors }: { actors: { id: string, name: string | null, email: string }[] }) {
   const router = useRouter();
@@ -89,21 +91,19 @@ export function AuditFilters({ actors }: { actors: { id: string, name: string | 
 
       <div className="space-y-1.5">
         <Label className="text-xs">Data Inicial</Label>
-        <Input 
-          type="date" 
-          value={searchParams.get("start") || ""} 
-          onChange={(e) => handleFilter("start", e.target.value)}
-          className="w-40"
+        <DatePicker
+          value={searchParams.get("start") ? parseISO(searchParams.get("start")!) : undefined}
+          onChange={(date) => handleFilter("start", date ? format(date, "yyyy-MM-dd") : null)}
+          className="w-40 h-10"
         />
       </div>
 
       <div className="space-y-1.5">
         <Label className="text-xs">Data Final</Label>
-        <Input 
-          type="date" 
-          value={searchParams.get("end") || ""} 
-          onChange={(e) => handleFilter("end", e.target.value)}
-          className="w-40"
+        <DatePicker
+          value={searchParams.get("end") ? parseISO(searchParams.get("end")!) : undefined}
+          onChange={(date) => handleFilter("end", date ? format(date, "yyyy-MM-dd") : null)}
+          className="w-40 h-10"
         />
       </div>
 

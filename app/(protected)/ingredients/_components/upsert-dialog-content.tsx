@@ -40,15 +40,7 @@ import { toast } from "sonner";
 import * as React from "react";
 import { Switch } from "@/app/_components/ui/switch";
 import { Label } from "@/app/_components/ui/label";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { cn } from "@/app/_lib/utils";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/app/_components/ui/popover";
-import { Calendar } from "@/app/_components/ui/calendar";
+import { DatePicker } from "@/app/_components/ui/date-picker";
 
 const MoneyInput = React.forwardRef<HTMLInputElement, NumericFormatProps>(
   (props, ref) => {
@@ -344,37 +336,13 @@ const UpsertIngredientDialogContent = ({
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Data de Validade</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP", { locale: ptBR })
-                            ) : (
-                              <span>Selecione uma data</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value || undefined}
-                          onSelect={field.onChange}
-                          disabled={(date: Date) =>
-                            date < new Date(new Date().setHours(0, 0, 0, 0))
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <DatePicker
+                      value={field.value || undefined}
+                      onChange={field.onChange}
+                      disabled={(date: Date) =>
+                        date < new Date(new Date().setHours(0, 0, 0, 0))
+                      }
+                    />
                     <FormMessage />
                   </FormItem>
                 )}

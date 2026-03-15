@@ -43,6 +43,8 @@ import { createOrderAction } from "@/app/_actions/order/create-order";
 import { identifyCustomerAction } from "@/app/_actions/order/identify-customer";
 import { checkCustomerPhoneAction } from "@/app/_actions/order/identify-customer/check-phone";
 import { useRouter } from "next/navigation";
+import { DatePicker } from "@/app/_components/ui/date-picker";
+import { format, parseISO } from "date-fns";
 
 interface MenuClientProps {
   menuData: MenuDataDto;
@@ -748,16 +750,16 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
                     Data de nascimento{" "}
                     <span className="text-slate-400">(opcional)</span>
                   </label>
-                  <Input
-                    value={identifyForm.birthDate}
-                    onChange={(e) =>
+                  <DatePicker
+                    value={identifyForm.birthDate ? parseISO(identifyForm.birthDate) : undefined}
+                    onChange={(date) =>
                       setIdentifyForm({
                         ...identifyForm,
-                        birthDate: e.target.value,
+                        birthDate: date ? format(date, "yyyy-MM-dd") : "",
                       })
                     }
+                    showDropdowns={true}
                     className="rounded-xl"
-                    type="date"
                   />
                 </div>
               </>

@@ -38,6 +38,7 @@ import { Textarea } from "@/app/_components/ui/textarea";
 import { Combobox } from "@/app/_components/ui/combobox";
 import { GoalDto } from "@/app/_data-access/goal/get-goals";
 import { format } from "date-fns";
+import { DatePicker } from "@/app/_components/ui/date-picker";
 
 interface UpsertGoalDialogContentProps {
   goal?: GoalDto;
@@ -228,13 +229,7 @@ export const UpsertGoalDialogContent = ({
                 <FormItem>
                   <FormLabel>Início</FormLabel>
                   <FormControl>
-                    <Input
-                      type="date"
-                      value={
-                        field.value ? format(field.value, "yyyy-MM-dd") : ""
-                      }
-                      onChange={(e) => field.onChange(new Date(e.target.value))}
-                    />
+                    <DatePicker value={field.value} onChange={field.onChange} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -248,17 +243,7 @@ export const UpsertGoalDialogContent = ({
                 <FormItem>
                   <FormLabel>Fim (Opcional)</FormLabel>
                   <FormControl>
-                    <Input
-                      type="date"
-                      value={
-                        field.value ? format(field.value, "yyyy-MM-dd") : ""
-                      }
-                      onChange={(e) =>
-                        field.onChange(
-                          e.target.value ? new Date(e.target.value) : undefined,
-                        )
-                      }
-                    />
+                    <DatePicker value={field.value} onChange={field.onChange} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

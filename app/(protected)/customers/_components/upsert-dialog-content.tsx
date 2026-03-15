@@ -38,6 +38,8 @@ import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Textarea } from "@/app/_components/ui/textarea";
+import { DatePicker } from "@/app/_components/ui/date-picker";
+import { format, parseISO } from "date-fns";
 
 interface UpsertCustomerDialogContentProps {
   defaultValues?: UpsertCustomerSchema;
@@ -232,7 +234,13 @@ const UpsertCustomerDialogContent = ({
               <FormItem>
                 <FormLabel>Data de Aniversário</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} value={field.value || ""} />
+            <DatePicker
+              value={field.value ? parseISO(field.value) : undefined}
+              onChange={(date) =>
+                field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+              }
+              showDropdowns={true}
+            />
                 </FormControl>
                 <FormMessage />
               </FormItem>

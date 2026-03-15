@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { DatePicker } from "@/app/_components/ui/date-picker";
+import { format, parseISO } from "date-fns";
 
 export const DateRangePicker = () => {
   const router = useRouter();
@@ -39,18 +41,10 @@ export const DateRangePicker = () => {
         >
           De
         </label>
-        <input
-          id="date-from"
-          type="date"
-          value={from}
-          onChange={(e) => setFrom(e.target.value)}
-          className="
-            h-9 rounded-lg border border-slate-200 bg-white px-3
-            text-sm font-medium text-slate-700
-            outline-none transition-all
-            focus:border-primary/40 focus:ring-2 focus:ring-primary/10
-            hover:border-slate-300
-          "
+        <DatePicker
+          value={from ? parseISO(from) : undefined}
+          onChange={(date) => setFrom(date ? format(date, "yyyy-MM-dd") : "")}
+          className="h-9 w-40"
         />
       </div>
 
@@ -61,18 +55,10 @@ export const DateRangePicker = () => {
         >
           Até
         </label>
-        <input
-          id="date-to"
-          type="date"
-          value={to}
-          onChange={(e) => setTo(e.target.value)}
-          className="
-            h-9 rounded-lg border border-slate-200 bg-white px-3
-            text-sm font-medium text-slate-700
-            outline-none transition-all
-            focus:border-primary/40 focus:ring-2 focus:ring-primary/10
-            hover:border-slate-300
-          "
+        <DatePicker
+          value={to ? parseISO(to) : undefined}
+          onChange={(date) => setTo(date ? format(date, "yyyy-MM-dd") : "")}
+          className="h-9 w-40"
         />
       </div>
 
