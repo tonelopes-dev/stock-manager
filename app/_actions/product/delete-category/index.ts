@@ -8,7 +8,7 @@ import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
 
 const deleteCategorySchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().cuid(),
 });
 
 export const deleteCategory = actionClient
