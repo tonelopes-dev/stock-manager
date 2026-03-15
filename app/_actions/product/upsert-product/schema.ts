@@ -14,7 +14,7 @@ export const upsertProductSchema = z.object({
     message: "O custo do produto deve ser positivo.",
   }).default(0),
   sku: z.string().trim().nullable().optional(),
-  categoryIds: z.array(z.string()).default([]),
+  categoryId: z.string().trim().nullable().optional(),
   stock: z.coerce.number().int().min(0, {
     message: "A quantidade em estoque é obrigatória.",
   }).default(0),

@@ -24,12 +24,12 @@ model Product {
   isActive         Boolean           @default(true)
   isVisibleOnMenu  Boolean           @default(false)
   isPromotion      Boolean           @default(false)
-  category         String?
+  categoryId       String?
+  category         Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   companyId        String
   company          Company           @relation(fields: [companyId], references: [id])
-  productCategories ProductCategory[]
   
   goals            Goal[]
   orderItems       OrderItem[]
@@ -195,7 +195,7 @@ model Company {
   ingredients            Ingredient[]
   orders                 Order[]
   products               Product[]
-  productCategories      ProductCategory[]
+  categories             Category[]
   productionOrders       ProductionOrder[]
   sales                  Sale[]
   stockMovements         StockMovement[]
@@ -420,11 +420,11 @@ model OrderItem {
   @@index([orderId])
 }
 
-model ProductCategory {
+model Category {
   id         String    @id @default(cuid())
   name       String
-  icon       String?
   orderIndex Int       @default(0)
+  icon       String?
   companyId  String
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt

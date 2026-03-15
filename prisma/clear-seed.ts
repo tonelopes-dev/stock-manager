@@ -48,7 +48,7 @@ async function main() {
       await prisma.customer.deleteMany({ where: { companyId: SEED_COMPANY_ID } });
       await prisma.customerCategory.deleteMany({ where: { companyId: SEED_COMPANY_ID } });
       await prisma.cRMStage.deleteMany({ where: { companyId: SEED_COMPANY_ID } });
-      await prisma.productCategory.deleteMany({ where: { companyId: SEED_COMPANY_ID } });
+      await prisma.category.deleteMany({ where: { companyId: SEED_COMPANY_ID } });
 
       await prisma.company.delete({
         where: { id: SEED_COMPANY_ID },

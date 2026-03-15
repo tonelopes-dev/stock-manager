@@ -9,12 +9,13 @@ import { calculateRealCost } from "@/app/_lib/units";
 
 export type ProductStatusDto = "IN_STOCK" | "OUT_OF_STOCK" | "LOW_STOCK" | "SLOW_MOVING";
 
-export interface ProductDto extends Omit<Product, "price" | "cost"> {
+export interface ProductDto extends Omit<Product, "price" | "cost" | "category"> {
   price: number;
   cost: number;
   margin: number;
   status: ProductStatusDto;
-  categoryIds: string[];
+  categoryId: string | null;
+  category?: { id: string; name: string } | null;
   expirationDate: Date | null;
   trackExpiration: boolean;
   _count?: {
@@ -40,6 +41,7 @@ export const getProducts = async (
 
   const products = (await db.product.findMany({
     where,
+    orderBy: { createdAt: "desc" },
     include: {
       _count: {
         select: {
@@ -61,8 +63,8 @@ export const getProducts = async (
           ingredient: true,
         },
       },
-      productCategories: {
-        select: { id: true },
+      category: {
+        select: { id: true, name: true },
       },
     }
   })) as any[];
@@ -76,7 +78,7 @@ export const getProducts = async (
     let effectiveCost = Number(product.cost);
     
     if (product.type === "PREPARED") {
-      const recipeCost = product.recipes.reduce((sum, recipe) => {
+      const recipeCost = product.recipes.reduce((sum: number, recipe: any) => {
         try {
           const partialCost = calculateRealCost(
             recipe.quantity,
@@ -125,10 +127,10 @@ export const getProducts = async (
         ? "SLOW_MOVING"
         : "IN_STOCK",
       _count: product._count,
-      categoryIds: product.productCategories.map((c) => c.id),
+      categoryId: product.categoryId,
+      category: product.category,
       expirationDate: product.expirationDate,
       trackExpiration: product.trackExpiration,
-      category: null, // Temporary to satisfy type
-    } as any as ProductDto;
+    } as ProductDto;
   });
 };

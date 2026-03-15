@@ -26,7 +26,7 @@ export const upsertProduct = actionClient
     const sku = data.sku?.trim() || null;
 
     await db.$transaction(async (trx) => {
-      const { stock, unit, type, cost, categoryIds, expirationDate, trackExpiration, ...rest } = data;
+      const { stock, unit, type, cost, categoryId, expirationDate, trackExpiration, ...rest } = data;
       
       const updateData = { 
         ...rest, 
@@ -52,9 +52,7 @@ export const upsertProduct = actionClient
           where: { id, companyId },
           data: {
             ...updateData,
-            productCategories: {
-              set: categoryIds.map((cid) => ({ id: cid })),
-            },
+            categoryId,
           },
         });
 
@@ -125,9 +123,7 @@ export const upsertProduct = actionClient
             cost: type === "PREPARED" ? 0 : (cost || 0),
             companyId, 
             stock: 0,
-            productCategories: categoryIds.length > 0 
-              ? { connect: categoryIds.map((cid) => ({ id: cid })) }
-              : undefined,
+            categoryId,
           },
         });
         productId = product.id;

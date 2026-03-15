@@ -149,7 +149,7 @@ const ProductTableDropdownMenu = ({
             stock: product.stock,
             minStock: product.minStock,
             unit: product.unit,
-            categoryIds: product.categoryIds || [],
+            categoryId: product.categoryId || "",
             expirationDate: product.expirationDate,
             trackExpiration: product.trackExpiration,
           }}
