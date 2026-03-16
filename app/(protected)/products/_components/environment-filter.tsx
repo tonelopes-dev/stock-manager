@@ -25,6 +25,11 @@ export const EnvironmentFilter = ({ environments }: EnvironmentFilterProps) => {
   const currentEnv = searchParams.get("environmentId") || "all";
 
   const handleEnvChange = (value: string) => {
+    if (value === "create") {
+      setIsDialogOpen(true);
+      return;
+    }
+
     const params = new URLSearchParams(searchParams.toString());
     
     // Reset category when environment changes as requested
@@ -56,16 +61,15 @@ export const EnvironmentFilter = ({ environments }: EnvironmentFilterProps) => {
           </SelectItem>
         ))}
         <SelectSeparator />
-        <div 
-          className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-slate-100 focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-primary font-medium"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsDialogOpen(true);
-          }}
+        <SelectItem
+          value="create"
+          className="text-primary font-medium focus:text-primary focus:bg-slate-50 cursor-pointer"
         >
-          <PlusIcon className="w-4 h-4 mr-2" />
-          Criar novo ambiente
-        </div>
+          <div className="flex items-center gap-2">
+            <PlusIcon className="w-4 h-4" />
+            Criar novo ambiente
+          </div>
+        </SelectItem>
       </SelectContent>
     </Select>
     <QuickEnvironmentDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />

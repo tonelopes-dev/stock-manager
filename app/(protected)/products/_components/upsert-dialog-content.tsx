@@ -660,8 +660,14 @@ const UpsertProductDialogContent = ({
                 <FormItem>
                     <FormLabel>Ambiente</FormLabel>
                     <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value || undefined}
+                        onValueChange={(value) => {
+                          if (value === "create") {
+                            setIsEnvironmentDialogOpen(true);
+                          } else {
+                            field.onChange(value === "none" ? null : value);
+                          }
+                        }}
+                        value={field.value || "none"}
                     >
                         <FormControl>
                         <SelectTrigger>
@@ -669,28 +675,22 @@ const UpsertProductDialogContent = ({
                         </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {environments.length === 0 ? (
-                            <div className="p-4 text-center text-xs text-muted-foreground">
-                              Nenhum ambiente cadastrado.
-                            </div>
-                          ) : (
-                            environments.map((env) => (
-                              <SelectItem key={env.id} value={env.id}>
-                                {env.name}
-                              </SelectItem>
-                            ))
-                          )}
+                          <SelectItem value="none">Selecione um ambiente</SelectItem>
+                          {environments.length > 0 && environments.map((env) => (
+                            <SelectItem key={env.id} value={env.id}>
+                              {env.name}
+                            </SelectItem>
+                          ))}
                           <SelectSeparator />
-                          <div
-                            className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-slate-100 focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-primary font-medium"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setIsEnvironmentDialogOpen(true);
-                            }}
+                          <SelectItem
+                            value="create"
+                            className="text-primary font-medium focus:text-primary focus:bg-slate-50 cursor-pointer"
                           >
-                            <PlusIcon className="w-4 h-4 mr-2" />
-                            Criar novo ambiente
-                          </div>
+                            <div className="flex items-center gap-2">
+                              <PlusIcon className="w-4 h-4" />
+                              Criar novo ambiente
+                            </div>
+                          </SelectItem>
                         </SelectContent>
                     </Select>
                 <FormMessage />
