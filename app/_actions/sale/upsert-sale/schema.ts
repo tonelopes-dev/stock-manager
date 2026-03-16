@@ -6,10 +6,11 @@ export const upsertSaleSchema = z.object({
   date: z.date().optional(),
   customerId: z.string().cuid().nullable().optional(),
   paymentMethod: z.nativeEnum(PaymentMethod).optional(),
+  tipAmount: z.number().min(0).default(0),
   products: z.array(
     z.object({
       id: z.string().uuid(),
-      quantity: z.number().int().positive(),
+      quantity: z.number().positive(),
     }),
   ),
 });

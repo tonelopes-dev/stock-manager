@@ -8,7 +8,7 @@ import { convertItemsToSaleSchema } from "./schema";
 
 export const convertItemsToSaleAction = actionClient
   .schema(convertItemsToSaleSchema)
-  .action(async ({ parsedInput: { itemIds, companyId, paymentMethod } }) => {
+  .action(async ({ parsedInput: { itemIds, companyId, paymentMethod, tipAmount } }) => {
     const session = await auth();
     if (!session?.user?.id) throw new Error("Não autorizado");
 
@@ -18,6 +18,7 @@ export const convertItemsToSaleAction = actionClient
         companyId,
         session.user.id,
         paymentMethod,
+        tipAmount,
       );
 
       revalidatePath(`/sales`);

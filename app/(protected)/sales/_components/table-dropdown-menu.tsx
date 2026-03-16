@@ -40,7 +40,7 @@ import { UserRole } from "@prisma/client";
 interface SalesTableDropdownMenuProps {
   sale: Pick<
     SaleDto,
-    "id" | "saleItems" | "date" | "customerId" | "paymentMethod"
+    "id" | "saleItems" | "date" | "customerId" | "paymentMethod" | "tipAmount"
   >;
   productOptions: ComboboxOption[];
   customerOptions: ComboboxOption[];
@@ -131,6 +131,7 @@ const SalesTableDropdownMenu = ({
         saleDate={sale.date}
         customerId={sale.customerId}
         paymentMethod={sale.paymentMethod}
+        tipAmount={Number(sale.tipAmount)}
         isOpen={upsertSheetIsOpen}
         productOptions={productOptions}
         customerOptions={customerOptions}

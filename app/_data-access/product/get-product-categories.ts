@@ -11,15 +11,6 @@ export const getProductCategories = async (environmentId?: string): Promise<Prod
   if (!companyId) return [];
 
   const where: any = { companyId };
-  
-  // If environmentId is provided and not "all", only return categories that have products in that environment
-  if (environmentId && environmentId !== "all") {
-    where.products = {
-      some: {
-        environmentId
-      }
-    };
-  }
 
   return db.category.findMany({
     where,

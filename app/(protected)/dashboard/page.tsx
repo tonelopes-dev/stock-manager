@@ -67,6 +67,7 @@ const DashboardContent = async ({
         profit={data.profit}
         cogs={data.cogs}
         margin={data.margin}
+        tips={data.tips}
       />
 
       <Suspense

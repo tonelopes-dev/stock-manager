@@ -4,6 +4,7 @@ import { ProductDto } from "@/app/_data-access/product/get-products";
 import { UserRole } from "@prisma/client";
 import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
 import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
+import * as React from "react";
 import { useState, useMemo, useEffect } from "react";
 import { Input } from "@/app/_components/ui/input";
 import { SearchIcon, ArrowDownWideNarrow, ChevronsUpDown } from "lucide-react";
@@ -106,25 +107,14 @@ export const ProductVisualCatalog = ({
 
       {/* Category Filter */}
       <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-1 rounded-xl">
-        <Tabs defaultValue="all" value={selectedCategoryId} onValueChange={setSelectedCategoryId} className="flex-1">
-          <TabsList className="bg-slate-50 border border-slate-100 h-11 p-1">
-            <TabsTrigger 
-              value="all" 
-              className="px-6 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm"
-            >
-              Tudo
-            </TabsTrigger>
-            {categories.map((cat) => (
-              <TabsTrigger 
-                key={cat.id} 
-                value={cat.id}
-                className="px-6 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm"
-              >
-                {cat.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+        <Suspense fallback={<div className="h-11 bg-slate-50 animate-pulse rounded-lg flex-1" />}>
+          <CategoryTabs 
+            categories={categories}
+            productsPromise={productsPromise}
+            selectedCategoryId={selectedCategoryId}
+            setSelectedCategoryId={setSelectedCategoryId}
+          />
+        </Suspense>
 
         {(userRole === "ADMIN" || userRole === "OWNER") && (
           <div className="flex gap-2">
@@ -146,5 +136,63 @@ export const ProductVisualCatalog = ({
         />
       </Suspense>
     </div>
+  );
+};
+
+interface CategoryTabsProps {
+  categories: ProductCategoryOption[];
+  productsPromise: Promise<ProductDto[]>;
+  selectedCategoryId: string;
+  setSelectedCategoryId: (id: string) => void;
+}
+
+const CategoryTabs = ({ 
+  categories, 
+  productsPromise, 
+  selectedCategoryId, 
+  setSelectedCategoryId 
+}: CategoryTabsProps) => {
+  const products = React.use(productsPromise);
+  
+  // Get active category IDs from current products
+  const activeCategoryIds = useMemo(() => {
+    const ids = new Set(products.map(p => p.categoryId).filter(Boolean));
+    return ids;
+  }, [products]);
+
+  // Filter categories to show
+  // If no environment filter is active (selectedCategoryId can still be "all", 
+  // but we mean if the products are not filtered by environment fundamentally...)
+  // Actually, we show all categories if we are in "All Environments" 
+  // (which is handled by the parent passing the environment id).
+  // Wait, ProductVisualCatalog doesn't know the environmentId directly, 
+  // but it's in the searchParams.
+  // Actually, the productsPromise IS the filtered list.
+  // So if we show only categories that have products in productsPromise, 
+  // it automatically reacts to environment changes!
+  const filteredCategories = useMemo(() => {
+    return categories.filter(cat => activeCategoryIds.has(cat.id));
+  }, [categories, activeCategoryIds]);
+
+  return (
+    <Tabs defaultValue="all" value={selectedCategoryId} onValueChange={setSelectedCategoryId} className="flex-1">
+      <TabsList className="bg-slate-50 border border-slate-100 h-11 p-1">
+        <TabsTrigger 
+          value="all" 
+          className="px-6 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm"
+        >
+          Tudo
+        </TabsTrigger>
+        {filteredCategories.map((cat) => (
+          <TabsTrigger 
+            key={cat.id} 
+            value={cat.id}
+            className="px-6 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm"
+          >
+            {cat.name}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
   );
 };

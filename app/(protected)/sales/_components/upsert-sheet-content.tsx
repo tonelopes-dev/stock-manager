@@ -51,6 +51,7 @@ import { createOrderAction } from "@/app/_actions/order/create-order";
 import { toast } from "sonner";
 import { useAction } from "next-safe-action/hooks";
 import { flattenValidationErrors } from "next-safe-action";
+import { cn } from "@/app/_lib/utils";
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { QuantityStepper } from "@/app/_components/ui/quantity-stepper";
 import {
@@ -91,6 +92,7 @@ interface UpsertSheetContentProps {
   defaultSelectedProducts?: SelectedProduct[];
   customerId?: string | null;
   paymentMethod?: PaymentMethod | null;
+  tipAmount?: number | null;
   hasSales?: boolean;
   companyId: string;
 }
@@ -106,6 +108,7 @@ const UpsertSheetContent = ({
   setSheetIsOpen,
   defaultSelectedProducts,
   paymentMethod: defaultPaymentMethod,
+  tipAmount: defaultTipAmount,
   companyId,
 }: UpsertSheetContentProps) => {
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>(
@@ -122,6 +125,7 @@ const UpsertSheetContent = ({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | undefined>(
     (defaultPaymentMethod as PaymentMethod) || undefined,
   );
+  const [tipAmount, setTipAmount] = useState<number>(0);
 
   const { execute: executeUpsertSale, isPending: isUpsertPending } = useAction(
     upsertSale,
@@ -177,11 +181,13 @@ const UpsertSheetContent = ({
       );
       setCustomerId(defaultCustomerId || undefined);
       setPaymentMethod((defaultPaymentMethod as PaymentMethod) || undefined);
+      setTipAmount(Number(defaultTipAmount) || 0);
     } else {
       form.reset();
       setSelectedProducts([]);
       setCustomerId(undefined);
       setPaymentMethod(undefined);
+      setTipAmount(0);
     }
   }, [
     form,
@@ -247,8 +253,9 @@ const UpsertSheetContent = ({
       0,
     );
     const itenCount = selectedProducts.reduce((acc, p) => acc + p.quantity, 0);
-    return { subtotal, itenCount };
-  }, [selectedProducts]);
+    const totalWithTip = subtotal + tipAmount;
+    return { subtotal, itenCount, totalWithTip };
+  }, [selectedProducts, tipAmount]);
 
   const onSubmitSale = () => {
     if (selectedProducts.length === 0) return;
@@ -278,6 +285,7 @@ const UpsertSheetContent = ({
         date: date ? new Date(date + "T12:00:00") : undefined,
         customerId,
         paymentMethod,
+        tipAmount,
         products: selectedProducts.map((p) => ({
           id: p.id,
           quantity: p.quantity,
@@ -323,23 +331,48 @@ const UpsertSheetContent = ({
               />
             </div>
 
-            <div className="space-y-1">
-              <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400">
-                <UsersIcon size={12} className="text-secondary" />
-                Cliente
-              </Label>
-              <Combobox
-                options={customerOptions}
-                value={customerId || ""}
-                onChange={(val) => setCustomerId(val || undefined)}
-                placeholder="Selecione o Cliente..."
-              />
-              {!customerId && (
-                <p className="flex animate-pulse items-center gap-1 text-[9px] font-bold uppercase text-amber-500">
-                  <AlertTriangle size={10} /> Vincule um cliente para histórico
-                  CRM
-                </p>
-              )}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400">
+                  <UsersIcon size={12} className="text-secondary" />
+                  Cliente
+                </Label>
+                <Combobox
+                  options={customerOptions}
+                  value={customerId || ""}
+                  onChange={(val) => setCustomerId(val || undefined)}
+                  placeholder="Selecione o Cliente..."
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  onClick={() => setCustomerId(undefined)}
+                  className={cn(
+                    "h-8 px-3 text-[10px] font-black uppercase tracking-widest transition-all",
+                    !customerId
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                      : "text-slate-500 hover:bg-slate-50",
+                  )}
+                >
+                  {!customerId ? (
+                    <span className="flex items-center gap-1.5">
+                      <CheckIcon size={12} /> Venda Avulsa Ativada
+                    </span>
+                  ) : (
+                    "Ativar Venda Avulsa"
+                  )}
+                </Button>
+
+                {customerId && (
+                   <p className="text-[9px] font-bold uppercase text-slate-400 italic">
+                      Cliente selecionado
+                   </p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -539,56 +572,75 @@ const UpsertSheetContent = ({
                 Total Geral
               </p>
               <h2 className="text-3xl font-black leading-none tracking-tighter text-primary">
-                {formatCurrency(totals.subtotal)}
+                {formatCurrency(totals.totalWithTip)}
               </h2>
             </div>
           </div>
 
-          <div className="mb-6 space-y-2">
-            <Label className="text-[10px] font-black uppercase italic tracking-tighter text-slate-400">
-              Forma de Pagamento
-            </Label>
-            <Select
-              value={paymentMethod}
-              onValueChange={(val) => setPaymentMethod(val as PaymentMethod)}
-            >
-              <SelectTrigger className="h-12 border-slate-200 font-bold focus:ring-primary/20">
-                <SelectValue placeholder="Selecione como recebeu..." />
-              </SelectTrigger>
-              <SelectContent className="border-slate-100">
-                <SelectItem value="CASH" className="font-bold text-slate-700">
-                  <div className="flex items-center gap-2">
-                    <BanknoteIcon size={16} className="text-emerald-500" />
-                    Dinheiro
-                  </div>
-                </SelectItem>
-                <SelectItem value="PIX" className="font-bold text-slate-700">
-                  <div className="flex items-center gap-2">
-                    <SmartphoneIcon size={16} className="text-cyan-500" />
-                    PIX
-                  </div>
-                </SelectItem>
-                <SelectItem
-                  value="CREDIT_CARD"
-                  className="font-bold text-slate-700"
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase italic tracking-tighter text-slate-400">
+                  Gorjeta / Taxa
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">R$</span>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0,00"
+                    value={tipAmount || ""}
+                    onChange={(e) => setTipAmount(Number(e.target.value))}
+                    className="h-12 border-slate-200 pl-8 font-bold text-slate-700 focus-visible:ring-primary/20"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase italic tracking-tighter text-slate-400">
+                  Forma de Pagamento
+                </Label>
+                <Select
+                  value={paymentMethod}
+                  onValueChange={(val) => setPaymentMethod(val as PaymentMethod)}
                 >
-                  <div className="flex items-center gap-2">
-                    <CreditCardIcon size={16} className="text-indigo-500" />
-                    Cartão de Crédito
-                  </div>
-                </SelectItem>
-                <SelectItem
-                  value="DEBIT_CARD"
-                  className="font-bold text-slate-700"
-                >
-                  <div className="flex items-center gap-2">
-                    <WalletIcon size={16} className="text-blue-500" />
-                    Cartão de Débito
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+                  <SelectTrigger className="h-12 border-slate-200 font-bold focus:ring-primary/20">
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent className="border-slate-100">
+                    <SelectItem value="CASH" className="font-bold text-slate-700">
+                      <div className="flex items-center gap-2">
+                        <BanknoteIcon size={16} className="text-emerald-500" />
+                        Dinheiro
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="PIX" className="font-bold text-slate-700">
+                      <div className="flex items-center gap-2">
+                        <SmartphoneIcon size={16} className="text-cyan-500" />
+                        PIX
+                      </div>
+                    </SelectItem>
+                    <SelectItem
+                      value="CREDIT_CARD"
+                      className="font-bold text-slate-700"
+                    >
+                      <div className="flex items-center gap-2">
+                        <CreditCardIcon size={16} className="text-indigo-500" />
+                        Cartão
+                      </div>
+                    </SelectItem>
+                    <SelectItem
+                      value="DEBIT_CARD"
+                      className="font-bold text-slate-700"
+                    >
+                      <div className="flex items-center gap-2">
+                        <WalletIcon size={16} className="text-blue-500" />
+                        Cartão
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
           <Button
             className="h-12 w-full gap-2 text-sm font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
