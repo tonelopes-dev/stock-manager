@@ -503,7 +503,7 @@ export default function LandingPage() {
                   </p>
                   <div className="flex items-baseline">
                     <span className="text-3xl font-[900] italic tracking-tighter text-slate-900 sm:text-4xl">
-                      R$ 290
+                      R$ 249
                     </span>
                     <span className="ml-1 text-lg font-bold text-slate-400">
                       /mês
