@@ -2,14 +2,9 @@ import { mpClient } from "@/app/_lib/mercadopago";
 import { Payment } from "mercadopago";
 import { db } from "@/app/_lib/prisma";
 import { NextResponse } from "next/server";
+import { SubscriptionStatus } from "@prisma/client";
 
 export const runtime = "nodejs";
-
-const SubscriptionStatus = {
-  ACTIVE: "ACTIVE",
-  PAST_DUE: "PAST_DUE",
-  CANCELED: "CANCELED",
-} as const;
 
 export async function POST(req: Request) {
   try {
@@ -40,6 +35,19 @@ export async function POST(req: Request) {
     }
 
     if (status === "approved") {
+      // 1. Get current state BEFORE update
+      const companyBefore = await db.company.findUnique({
+        where: { id: companyId },
+        select: { id: true, name: true, subscriptionStatus: true, expiresAt: true }
+      });
+
+      console.log("\n============================================================");
+      console.log("[WEBHOOK] Estado ANTES da atualização:");
+      console.log(`Empresa: ${companyBefore?.name || companyId}`);
+      console.log(`Status Atual: ${companyBefore?.subscriptionStatus}`);
+      console.log(`Expira em: ${companyBefore?.expiresAt?.toLocaleString() || "N/A"}`);
+      console.log("============================================================\n");
+
       // Set expiration to 30 days from now
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
@@ -53,9 +61,8 @@ export async function POST(req: Request) {
         select: { userId: true, user: { select: { email: true, name: true } } }
       });
 
-      const actorId = owner?.userId || "SYSTEM"; // Fallback if no owner (shouldn't happen)
-
-      await db.company.update({
+      // Update company status FIRST
+      const companyAfter = await db.company.update({
         where: { id: companyId },
         data: {
           subscriptionStatus: SubscriptionStatus.ACTIVE,
@@ -65,29 +72,43 @@ export async function POST(req: Request) {
         },
       });
 
-      // Log audit event
-      await db.auditEvent.create({
-        data: {
-          id: `mp-sub-${paymentId}`,
-          type: "SUBSCRIPTION_ACTIVATED",
-          companyId: companyId,
-          actorId: actorId, 
-          actorEmail: owner?.user?.email || paymentData.payer?.email || "system@mercadopago.com",
-          actorName: owner?.user?.name || "Mercado Pago System",
-          severity: "INFO",
-          metadata: {
-            paymentId: paymentId,
-            status: status,
-            paymentMethod: paymentData.payment_method_id,
-            totalAmount: paymentData.transaction_amount,
-            processedBy: "MercadoPago-Webhook"
-          },
-        },
-      });
+      console.log("\n============================================================");
+      console.log("[WEBHOOK] Estado DEPOIS da atualização:");
+      console.log(`Novo Status: ${companyAfter.subscriptionStatus}`);
+      console.log(`Nova Data de Expiração: ${companyAfter.expiresAt?.toLocaleString()}`);
+      console.log("✅ Assinatura ativada com sucesso!");
+      console.log("============================================================\n");
 
-      console.log(`[MercadoPago Webhook] ✅ Subscription activated for company ${companyId}`);
+      // Log audit event in a separate try-catch to avoid blocking the activation if logging fails
+      try {
+          if (owner?.userId) {
+              await db.auditEvent.create({
+                data: {
+                  id: `mp-sub-${paymentId}-${Date.now()}`,
+                  type: "SUBSCRIPTION_ACTIVATED",
+                  companyId: companyId,
+                  actorId: owner.userId, 
+                  actorEmail: owner.user?.email || paymentData.payer?.email || "system@mercadopago.com",
+                  actorName: owner.user?.name || "Mercado Pago System",
+                  severity: "INFO",
+                  metadata: {
+                    paymentId: paymentId,
+                    status: status,
+                    paymentMethod: paymentData.payment_method_id,
+                    totalAmount: paymentData.transaction_amount,
+                    processedBy: "MercadoPago-Webhook"
+                  },
+                },
+              });
+          } else {
+              console.warn(`[MercadoPago Webhook] Skipping AuditEvent: No owner found for company ${companyId}`);
+          }
+      } catch (auditError: any) {
+          console.error("[MercadoPago Webhook] Failed to create AuditEvent:", auditError.message);
+          // Don't throw here, activation succeeded
+      }
+
     } else if (status === "rejected" || status === "cancelled") {
-        // Optional: handle rejection/cancellation if needed
         console.warn(`[MercadoPago Webhook] ⚠️ Payment ${paymentId} was ${status}`);
     }
 
