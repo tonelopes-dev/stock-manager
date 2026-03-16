@@ -26,6 +26,8 @@ model Product {
   isPromotion      Boolean           @default(false)
   categoryId       String?
   category         Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  environmentId    String?
+  environment      Environment?      @relation(fields: [environmentId], references: [id], onDelete: SetNull)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   companyId        String
@@ -197,6 +199,7 @@ model Company {
   products               Product[]
   categories             Category[]
   productionOrders       ProductionOrder[]
+  environments           Environment[]
   sales                  Sale[]
   stockMovements         StockMovement[]
   userCompanies          UserCompany[]
@@ -425,6 +428,19 @@ model Category {
   name       String
   orderIndex Int       @default(0)
   icon       String?
+  companyId  String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  company    Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  products   Product[]
+
+  @@unique([name, companyId])
+}
+
+model Environment {
+  id         String    @id @default(cuid())
+  name       String
+  orderIndex Int       @default(0)
   companyId  String
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt

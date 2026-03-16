@@ -1,12 +1,12 @@
-import { PrismaClient, UserRole, SaleStatus, StockMovementType, ProductType, UnitType, AuditSeverity, AuditEventType, SubscriptionStatus, PaymentMethod } from "@prisma/client";
+import { PrismaClient, UserRole, SaleStatus, StockMovementType, ProductType, UnitType, AuditSeverity, AuditEventType, SubscriptionStatus, PaymentMethod, GoalType, GoalPeriod } from "@prisma/client";
 import { hash } from "bcryptjs";
-import { subDays, startOfDay, addHours, isWeekend } from "date-fns";
+import { subDays, startOfDay, addHours, isWeekend, addDays } from "date-fns";
 import { fakerPT_BR as faker } from "@faker-js/faker";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Starting safe and dynamic seeding for Stocky...");
+  console.log("🌱 Starting robust and comprehensive seeding for Stocky...");
 
   const hashedPassword = await hash("senha123", 10);
 
@@ -18,14 +18,14 @@ async function main() {
       name: "Rota 360",
       plan: "PRO",
       subscriptionStatus: SubscriptionStatus.ACTIVE,
-      expiresAt: new Date(new Date().setDate(new Date().getDate() + 30)),
+      expiresAt: new Date(new Date().setDate(new Date().getDate() + 90)),
     },
     create: {
       id: "rota-360-id",
       name: "Rota 360",
       plan: "PRO",
       subscriptionStatus: SubscriptionStatus.ACTIVE,
-      expiresAt: new Date(new Date().setDate(new Date().getDate() + 30)),
+      expiresAt: new Date(new Date().setDate(new Date().getDate() + 90)),
     },
   });
 
@@ -61,7 +61,26 @@ async function main() {
     users[u.name] = user;
   }
 
-  // 3. Create Ingredients
+  // 3. Create Product Categories
+  console.log("📂 Seeding product categories...");
+  const prodCategoriesData = [
+    { name: "Bebidas", icon: "GlassWater" },
+    { name: "Salgados", icon: "Utensils" },
+    { name: "Cafeteria", icon: "Coffee" },
+    { name: "Sobremesas", icon: "IceCream" },
+  ];
+  
+  const productCategories: Record<string, any> = {};
+  for (const cat of prodCategoriesData) {
+    const category = await prisma.category.upsert({
+      where: { name_companyId: { name: cat.name, companyId: company.id } },
+      update: { icon: cat.icon },
+      create: { name: cat.name, icon: cat.icon, companyId: company.id },
+    });
+    productCategories[cat.name] = category;
+  }
+
+  // 4. Create Ingredients
   console.log("🥬 Seeding ingredients...");
   const ingredientsData = [
     { name: "Farinha de Trigo", unit: UnitType.KG, cost: 4.5, stock: 50, minStock: 10 },
@@ -100,20 +119,20 @@ async function main() {
     ingredients[iData.name] = ingredient;
   }
 
-  // 3.1 Create Customer Categories
+  // 5. Create Customer Categories
   console.log("🏷️ Seeding customer categories...");
-  const categoriesData = ["Coworking", "Restaurante", "Bistrô", "Evento", "Outros"];
-  const categories: Record<string, any> = {};
-  for (const name of categoriesData) {
+  const custCategoriesNames = ["Coworking", "Restaurante", "Bistrô", "Evento", "Outros"];
+  const custCategories: Record<string, any> = {};
+  for (const name of custCategoriesNames) {
     const category = await prisma.customerCategory.upsert({
       where: { name_companyId: { name, companyId: company.id } },
       update: {},
       create: { name, companyId: company.id },
     });
-    categories[name] = category;
+    custCategories[name] = category;
   }
 
-  // 3.2 Create CRM Stages
+  // 6. Create CRM Stages
   console.log("📊 Seeding CRM stages...");
   const stagesData = [
     { name: "Prospecção", order: 0 },
@@ -131,11 +150,11 @@ async function main() {
     stages[s.name] = stage;
   }
 
-  // 3.3 Create Customers
+  // 7. Create Customers
   console.log("👤 Seeding customers...");
   const customers: any[] = [];
   for (let i = 0; i < 20; i++) {
-    const categoryName = faker.helpers.arrayElement(categoriesData);
+    const categoryName = faker.helpers.arrayElement(custCategoriesNames);
     const stageName = faker.helpers.arrayElement(stagesData).name;
     const customer = await prisma.customer.create({
       data: {
@@ -143,7 +162,7 @@ async function main() {
         email: faker.internet.email(),
         phone: faker.phone.number(),
         categories: {
-          connect: { id: categories[categoryName].id },
+          connect: { id: custCategories[categoryName].id },
         },
         stageId: stages[stageName].id,
         companyId: company.id,
@@ -153,13 +172,12 @@ async function main() {
     customers.push(customer);
   }
 
-  // 4. Create Products
+  // 8. Create Products (Resell and Prepared)
   console.log("📦 Seeding products...");
-  
   const resellData = [
-    { name: "Cerveja Long Neck 330ml", price: 12.0, cost: 5.5, stock: 120, minStock: 24 },
-    { name: "Água sem Gás 500ml", price: 5.0, cost: 1.5, stock: 100, minStock: 20 },
-    { name: "Refrigerante Lata 350ml", price: 7.0, cost: 2.5, stock: 80, minStock: 20 },
+    { name: "Cerveja Long Neck 330ml", price: 12.0, cost: 5.5, stock: 120, minStock: 24, category: "Bebidas", expiration: 30 },
+    { name: "Água sem Gás 500ml", price: 5.0, cost: 1.5, stock: 100, minStock: 20, category: "Bebidas", expiration: 180 },
+    { name: "Refrigerante Lata 350ml", price: 7.0, cost: 2.5, stock: 80, minStock: 20, category: "Bebidas", expiration: 90 },
   ];
 
   const products: Record<string, any> = {};
@@ -167,12 +185,19 @@ async function main() {
     const sku = p.name.toLowerCase().replace(/ /g, "-");
     const product = await prisma.product.upsert({
       where: { sku_companyId: { sku, companyId: company.id } },
-      update: { name: p.name, price: p.price, cost: p.cost },
+      update: { name: p.name, price: p.price, cost: p.cost, categoryId: productCategories[p.category].id },
       create: {
-        ...p,
+        name: p.name,
+        price: p.price,
+        cost: p.cost,
+        stock: p.stock,
+        minStock: p.minStock,
         sku,
         type: ProductType.RESELL,
         companyId: company.id,
+        categoryId: productCategories[p.category].id,
+        trackExpiration: true,
+        expirationDate: addDays(new Date(), p.expiration),
       },
     });
     products[p.name] = product;
@@ -185,6 +210,7 @@ async function main() {
       cost: 3.5,
       stock: 40,
       minStock: 15,
+      category: "Salgados",
       recipe: [
         { name: "Farinha de Trigo", qty: 0.05 },
         { name: "Peito de Frango", qty: 0.03 },
@@ -198,6 +224,7 @@ async function main() {
       cost: 8.5,
       stock: 0,
       minStock: 0,
+      category: "Bebidas",
       recipe: [
         { name: "Gin", qty: 0.05 },
         { name: "Tônica", qty: 0.2 },
@@ -211,6 +238,7 @@ async function main() {
       cost: 1.2,
       stock: 0,
       minStock: 0,
+      category: "Cafeteria",
       recipe: [
         { name: "Café em Grãos", qty: 0.01 },
         { name: "Açúcar/Adoçante", qty: 1 },
@@ -222,7 +250,7 @@ async function main() {
     const sku = p.name.toLowerCase().replace(/ /g, "-");
     const product = await prisma.product.upsert({
       where: { sku_companyId: { sku, companyId: company.id } },
-      update: { name: p.name, price: p.price, cost: p.cost },
+      update: { name: p.name, price: p.price, cost: p.cost, categoryId: productCategories[p.category].id },
       create: {
         name: p.name,
         price: p.price,
@@ -232,17 +260,13 @@ async function main() {
         type: ProductType.PREPARED,
         sku,
         companyId: company.id,
+        categoryId: productCategories[p.category].id,
       },
     });
     
     for (const r of p.recipe) {
       await prisma.productRecipe.upsert({
-        where: {
-          productId_ingredientId: {
-            productId: product.id,
-            ingredientId: ingredients[r.name].id
-          }
-        },
+        where: { productId_ingredientId: { productId: product.id, ingredientId: ingredients[r.name].id } },
         update: { quantity: r.qty },
         create: {
           productId: product.id,
@@ -255,158 +279,198 @@ async function main() {
     products[p.name] = product;
   }
 
-  // 5. Generate History (Last 90 days)
-  // Check if we already have history to avoid massive duplication in production
-  const saleCount = await prisma.sale.count({ where: { companyId: company.id } });
-  
-  if (saleCount === 0) {
-    console.log("📊 Generating 60-day demo history...");
-    const today = new Date("2026-03-02T12:00:00Z"); // Fixed base date as requested
+  // 9. Generate History (Last 60 days)
+  console.log("📊 Generating 60-day demo history...");
+  const today = new Date("2026-03-16T12:00:00Z");
 
-    for (let i = 60; i >= 0; i--) {
-      const currentDate = subDays(today, i);
-      const isWknd = isWeekend(currentDate);
+  for (let i = 60; i >= 0; i--) {
+    const currentDate = subDays(today, i);
+    const isWknd = isWeekend(currentDate);
+    
+    // 9.1 Production Orders
+    const coxinhaProduction = isWknd ? faker.number.int({ min: 80, max: 120 }) : faker.number.int({ min: 40, max: 60 });
+    await prisma.productionOrder.create({
+      data: {
+        productId: products["Coxinha Especial"].id,
+        companyId: company.id,
+        quantity: coxinhaProduction,
+        totalCost: Number(products["Coxinha Especial"].cost) * coxinhaProduction,
+        createdById: users["Everton"].id,
+        createdAt: addHours(currentDate, 8),
+      }
+    });
+
+    // 9.2 Sales
+    const dailySalesCount = isWknd ? faker.number.int({ min: 15, max: 25 }) : faker.number.int({ min: 5, max: 12 });
+    
+    for (let s = 0; s < dailySalesCount; s++) {
+      const saleDate = addHours(currentDate, faker.number.int({ min: 10, max: 22 }));
+      const seller = s % 3 === 0 ? users["Atendente"] : users["Everton"];
       
-      // 5.1 Production Orders
-      const coxinhaProduction = isWknd ? faker.number.int({ min: 80, max: 120 }) : faker.number.int({ min: 40, max: 60 });
-      await prisma.productionOrder.create({
+      const sale = await prisma.sale.create({
         data: {
-          productId: products["Coxinha Especial"].id,
+          date: saleDate,
           companyId: company.id,
-          quantity: coxinhaProduction,
-          totalCost: Number(products["Coxinha Especial"].cost) * coxinhaProduction,
-          createdById: users["Everton"].id,
-          createdAt: addHours(currentDate, 8),
-        }
+          userId: seller.id,
+          customerId: s % 2 === 0 ? faker.helpers.arrayElement(customers).id : null,
+          status: SaleStatus.ACTIVE,
+          paymentMethod: faker.helpers.arrayElement([PaymentMethod.CASH, PaymentMethod.PIX, PaymentMethod.CREDIT_CARD, PaymentMethod.DEBIT_CARD]),
+          totalAmount: 0,
+          totalCost: 0,
+        },
       });
 
-      // 5.2 Sales
-      const dailySalesCount = isWknd ? faker.number.int({ min: 15, max: 25 }) : faker.number.int({ min: 5, max: 12 });
-      
-      for (let s = 0; s < dailySalesCount; s++) {
-        // For today (i=0), limit sales until 12h as requested previously
-        const maxHour = i === 0 ? 11 : 22; 
-        const saleDate = addHours(currentDate, faker.number.int({ min: 10, max: maxHour }));
-        const seller = s % 3 === 0 ? users["Atendente"] : users["Everton"];
+      const itemCount = faker.number.int({ min: 1, max: 3 });
+      let totalAmount = 0;
+      let totalCost = 0;
+
+      const pList = Object.values(products);
+      for (let it = 0; it < itemCount; it++) {
+        const product = pList[faker.number.int({ min: 0, max: pList.length - 1 })];
+        const qty = faker.number.int({ min: 1, max: 2 });
         
-        const sale = await prisma.sale.create({
+        await prisma.saleItem.create({
           data: {
-            date: saleDate,
+            saleId: sale.id,
+            productId: product.id,
+            quantity: qty,
+            unitPrice: product.price,
+            baseCost: product.cost,
+            totalAmount: Number(product.price) * qty,
+            totalCost: Number(product.cost) * qty,
+          }
+        });
+        totalAmount += Number(product.price) * qty;
+        totalCost += Number(product.cost) * qty;
+
+        await prisma.stockMovement.create({
+          data: {
+            type: StockMovementType.SALE,
+            productId: product.id,
             companyId: company.id,
             userId: seller.id,
-            customerId: s % 2 === 0 ? faker.helpers.arrayElement(customers).id : null,
-            status: SaleStatus.ACTIVE,
-            paymentMethod: faker.helpers.arrayElement([
-              PaymentMethod.CASH,
-              PaymentMethod.PIX,
-              PaymentMethod.CREDIT_CARD,
-              PaymentMethod.DEBIT_CARD,
-            ]),
-            totalAmount: 0,
-            totalCost: 0,
-            discountAmount: 0,
-          },
-        });
-
-        const itemCount = faker.number.int({ min: 1, max: 3 });
-        let totalAmount = 0;
-        let totalCost = 0;
-
-        const pList = Object.values(products);
-        for (let it = 0; it < itemCount; it++) {
-          const product = pList[faker.number.int({ min: 0, max: pList.length - 1 })];
-          const qty = faker.number.int({ min: 1, max: 2 });
-          
-          await prisma.saleItem.create({
-            data: {
-              saleId: sale.id,
-              productId: product.id,
-              quantity: qty,
-              unitPrice: product.price,
-              baseCost: product.cost,
-              totalAmount: Number(product.price) * qty,
-              totalCost: Number(product.cost) * qty,
-            }
-          });
-          totalAmount += Number(product.price) * qty;
-          totalCost += Number(product.cost) * qty;
-
-          await prisma.stockMovement.create({
-            data: {
-              type: StockMovementType.SALE,
-              productId: product.id,
-              companyId: company.id,
-              userId: seller.id,
-              saleId: sale.id,
-              stockBefore: 100, 
-              stockAfter: 100 - qty,
-              quantityDecimal: qty,
-              createdAt: saleDate,
-            }
-          });
-        }
-
-        await prisma.sale.update({
-          where: { id: sale.id },
-          data: { totalAmount, totalCost }
+            saleId: sale.id,
+            stockBefore: 100, 
+            stockAfter: 100 - qty,
+            quantityDecimal: qty,
+            createdAt: saleDate,
+          }
         });
       }
-    }
 
-    // 6. Manual Adjustments
-    console.log("🔧 Adding demo adjustments...");
-    const adjustmentReasons = [
-      { reason: "Consumo Interno - Staff", item: null },
-      { reason: "Consumo Interno - Gestão", item: null },
-      { reason: "Perda/Quebra - Long Neck", item: "Cerveja Long Neck 330ml" },
-      { reason: "Produto Vencido - Frango", item: "Peito de Frango", type: "INGREDIENT" },
-    ];
-
-    for (let a = 0; a < 15; a++) {
-      const adj = faker.helpers.arrayElement(adjustmentReasons);
-      const userId = users[faker.helpers.arrayElement(["Everton", "Atendente"])].id;
-      
-      await prisma.stockMovement.create({
-        data: {
-          type: StockMovementType.ADJUSTMENT,
-          companyId: company.id,
-          userId: userId,
-          reason: adj.reason,
-          productId: adj.item && products[adj.item] ? products[adj.item].id : null,
-          ingredientId: adj.type === "INGREDIENT" && adj.item && ingredients[adj.item] ? ingredients[adj.item].id : null,
-          stockBefore: 50,
-          stockAfter: 48,
-          quantityDecimal: 2,
-          createdAt: subDays(today, faker.number.int({ min: 1, max: 60 })),
-        }
+      await prisma.sale.update({
+        where: { id: sale.id },
+        data: { totalAmount, totalCost }
       });
     }
-
-    // 7. Audit Events
-    console.log("🕵️ Generating demo audit trail...");
-    const auditEvents = [
-      { type: AuditEventType.PRODUCT_CREATED, actor: "Matheus", metadata: { name: "Combo Happy Hour" } },
-      { type: AuditEventType.STOCK_ADJUSTED, actor: "Everton", metadata: { reason: "Quebra de Vidro", qty: 5 } },
-    ];
-
-    for (const event of auditEvents) {
-      await prisma.auditEvent.create({
-        data: {
-          type: event.type,
-          actorId: users[event.actor].id,
-          companyId: company.id,
-          metadata: event.metadata,
-          severity: AuditSeverity.INFO,
-          actorName: event.actor,
-          actorEmail: users[event.actor].email,
-        }
-      });
-    }
-  } else {
-    console.log("ℹ️ History already exists, skipping demo data generation.");
   }
 
-  console.log("✅ Update complete! Robust seed with demo data ready.");
+  // 10. Manual Adjustments & Audit Events
+  console.log("🔧 Adding adjustments and audit trails...");
+  const adjustmentReasons = [
+    { reason: "Consumo Interno - Staff", item: null },
+    { reason: "Perda/Quebra - Long Neck", item: "Cerveja Long Neck 330ml" },
+  ];
+
+  for (let a = 0; a < 10; a++) {
+    const adj = faker.helpers.arrayElement(adjustmentReasons);
+    await prisma.stockMovement.create({
+      data: {
+        type: StockMovementType.ADJUSTMENT,
+        companyId: company.id,
+        userId: users["Everton"].id,
+        reason: adj.reason,
+        productId: adj.item ? products[adj.item].id : null,
+        stockBefore: 50,
+        stockAfter: 48,
+        quantityDecimal: 2,
+        createdAt: subDays(today, faker.number.int({ min: 1, max: 30 })),
+      }
+    });
+  }
+
+  // 11. Seeding Goals & Checklists & Notifications
+  console.log("🎯 Seeding goals, checklists, and notifications...");
+  await prisma.goal.createMany({
+    data: [
+      { name: "Meta de Vendas Mensal", type: GoalType.GLOBAL, targetValue: 15000, startDate: startOfDay(today), companyId: company.id, createdById: users["Matheus"].id },
+      { name: "Meta Coxinhas", type: GoalType.PRODUCT, productId: products["Coxinha Especial"].id, targetValue: 500, startDate: startOfDay(today), companyId: company.id, createdById: users["Matheus"].id }
+    ]
+  });
+
+  await prisma.checklist.create({
+    data: {
+      title: "Checklist de Abertura",
+      customerId: customers[0].id,
+      companyId: company.id,
+      items: {
+        create: [
+          { title: "Limpar mesas", order: 0, companyId: company.id },
+          { title: "Ligar máquinas de café", order: 1, companyId: company.id },
+        ]
+      }
+    }
+  });
+
+  await prisma.notification.createMany({
+    data: [
+      { title: "Estoque Baixo", message: "O produto 'Cerveja Long Neck' está abaixo do mínimo.", type: "STOCK_ALERT", companyId: company.id },
+      { title: "Produtos Vencendo", message: "Itens vencendo nos próximos 7 dias.", type: "EXPIRATION_ALERT", companyId: company.id }
+    ]
+  });
+
+  // 12. Create Open Orders (Comandas)
+  console.log("📝 Seeding dynamic open orders (comandas)...");
+  const actualNow = new Date(); // Using the runtime context's "now"
+  
+  const openOrderScenarios = [
+    { customer: customers[1], hoursAgo: 1, items: ["Cerveja Long Neck 330ml", "Coxinha Especial"] },
+    { customer: customers[2], hoursAgo: 2, items: ["Gin Tônica", "Coxinha Especial", "Coxinha Especial"] },
+    { customer: customers[3], hoursAgo: 3, items: ["Espresso", "Espresso"] },
+    { customer: customers[4], hoursAgo: 5, items: ["Refrigerante Lata 350ml", "Coxinha Especial"] },
+    { customer: customers[5], hoursAgo: 4, items: ["Gin Tônica"] },
+  ];
+
+  for (const scenario of openOrderScenarios) {
+    const orderDate = new Date(actualNow.getTime() - scenario.hoursAgo * 60 * 60 * 1000);
+    
+    const order = await prisma.order.create({
+      data: {
+        status: "PENDING",
+        companyId: company.id,
+        customerId: scenario.customer.id,
+        tableNumber: faker.number.int({ min: 1, max: 20 }).toString(),
+        createdAt: orderDate,
+        updatedAt: orderDate,
+        totalAmount: 0,
+      }
+    });
+
+    let totalAmount = 0;
+    for (const itemName of scenario.items) {
+      const product = products[itemName];
+      const qty = 1;
+      const unitPrice = Number(product.price);
+      
+      await prisma.orderItem.create({
+        data: {
+          orderId: order.id,
+          productId: product.id,
+          quantity: qty,
+          unitPrice: unitPrice,
+          createdAt: orderDate,
+        }
+      });
+      totalAmount += unitPrice * qty;
+    }
+
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { totalAmount }
+    });
+  }
+
+  console.log("✅ Robust and dynamic seed finished successfully!");
 }
 
 main()

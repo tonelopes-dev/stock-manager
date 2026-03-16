@@ -61,6 +61,9 @@ import { cn } from "@/app/_lib/utils";
 import { Calendar } from "@/app/_components/ui/calendar";
 import { upsertCategory } from "@/app/_actions/product/upsert-category";
 import { PlusIcon } from "lucide-react";
+import { QuickEnvironmentDialog } from "./quick-environment-dialog";
+import { SelectSeparator } from "@/app/_components/ui/select";
+import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
 
 const MoneyInput = React.forwardRef<HTMLInputElement, NumericFormatProps>(
   (props, ref) => {
@@ -74,6 +77,7 @@ interface UpsertProductDialogContentProps {
   setDialogIsOpen: Dispatch<SetStateAction<boolean>>;
   hasProducts?: boolean;
   categories: ProductCategoryOption[];
+  environments: EnvironmentOption[];
 }
 
 const UnitSelectorField = ({
@@ -163,6 +167,7 @@ const UpsertProductDialogContent = ({
   defaultValues,
   setDialogIsOpen,
   categories,
+  environments,
 }: UpsertProductDialogContentProps) => {
   const { execute: executeUpsertProduct, isPending } = useAction(
     upsertProduct,
@@ -184,6 +189,7 @@ const UpsertProductDialogContent = ({
   );
 
   const [isAddingCategory, setIsAddingCategory] = React.useState(false);
+  const [isEnvironmentDialogOpen, setIsEnvironmentDialogOpen] = React.useState(false);
   const [newCategoryName, setNewCategoryName] = React.useState("");
   const [isUploading, setIsUploading] = React.useState(false);
 
@@ -220,6 +226,7 @@ const UpsertProductDialogContent = ({
       stock: 1,
       minStock: 0,
       categoryId: "",
+      environmentId: "",
       trackExpiration: false,
     },
   });
@@ -597,56 +604,104 @@ const UpsertProductDialogContent = ({
             </div>
 
 
-          {/* Category Select - ALWAYS VISIBLE */}
-          <FormField
-            control={form.control}
-            name="categoryId"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel>Categoria</FormLabel>
-                </div>
-                <div className="flex gap-2">
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value || undefined}
-                    key={categories.length} // Force re-render when a new category is added
-                  >
-                    <FormControl>
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Selecione uma categoria" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {categories.length === 0 ? (
-                        <div className="p-4 text-center text-xs text-muted-foreground">
-                          Nenhuma categoria cadastrada.
-                        </div>
-                      ) : (
-                        categories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+                control={form.control}
+                name="categoryId"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Categoria</FormLabel>
+                    <div className="flex gap-2">
+                    <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value || undefined}
+                        key={categories.length}
+                    >
+                        <FormControl>
+                        <SelectTrigger className="flex-1">
+                            <SelectValue placeholder="Categoria" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                        {categories.length === 0 ? (
+                            <div className="p-4 text-center text-xs text-muted-foreground">
+                            Nenhuma categoria cadastrada.
+                            </div>
+                        ) : (
+                            categories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id}>
+                                {cat.name}
+                            </SelectItem>
+                            ))
+                        )}
+                        </SelectContent>
+                    </Select>
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsAddingCategory(true)}
-                    className="shrink-0"
-                    title="Adicionar nova categoria"
-                  >
-                    <PlusIcon size={18} />
-                  </Button>
-                </div>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setIsAddingCategory(true)}
+                        className="shrink-0"
+                        title="Adicionar nova categoria"
+                    >
+                        <PlusIcon size={18} />
+                    </Button>
+                    </div>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+
+            <FormField
+                control={form.control}
+                name="environmentId"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Ambiente</FormLabel>
+                    <Select
+                        onValueChange={(value) => {
+                          if (value === "create") {
+                            setIsEnvironmentDialogOpen(true);
+                          } else {
+                            field.onChange(value === "none" ? null : value);
+                          }
+                        }}
+                        value={field.value || "none"}
+                    >
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Ambiente" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">Selecione um ambiente</SelectItem>
+                          {environments.length > 0 && environments.map((env) => (
+                            <SelectItem key={env.id} value={env.id}>
+                              {env.name}
+                            </SelectItem>
+                          ))}
+                          <SelectSeparator />
+                          <SelectItem
+                            value="create"
+                            className="text-primary font-medium focus:text-primary focus:bg-slate-50 cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2">
+                              <PlusIcon className="w-4 h-4" />
+                              Criar novo ambiente
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                    </Select>
                 <FormMessage />
+                <QuickEnvironmentDialog
+                  open={isEnvironmentDialogOpen}
+                  onOpenChange={setIsEnvironmentDialogOpen}
+                />
               </FormItem>
-            )}
-          />
+                )}
+            />
+          </div>
 
           {/* Sub-modal for creating category */}
           <Dialog open={isAddingCategory} onOpenChange={setIsAddingCategory}>
