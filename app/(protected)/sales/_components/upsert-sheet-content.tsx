@@ -643,7 +643,7 @@ const UpsertSheetContent = ({
             </div>
 
           <Button
-            className="h-12 w-full gap-2 text-sm font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+            className="mt-6 h-12 w-full gap-2 text-sm font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
             disabled={selectedProducts.length === 0 || isPending}
             onClick={onSubmitSale}
           >
