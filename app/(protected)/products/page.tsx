@@ -36,9 +36,11 @@ const ProductsPage = async ({ searchParams }: ProductsPageProps) => {
 
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
-      <Suspense key={status} fallback={<ProductTableSkeleton />}>
-        <ProductTableWrapper status={status} />
-      </Suspense>
+      {/* 
+        The Suspense boundary was moved deeper into ProductVisualCatalog 
+        to allow the Header and Toolbar to render immediately.
+      */}
+      <ProductTableWrapper status={status} />
     </div>
   );
 };
@@ -48,10 +50,16 @@ const ProductTableWrapper = async ({
 }: {
   status: "ACTIVE" | "INACTIVE" | "ALL";
 }) => {
-  const products = await getProducts(30, status);
-  const role = await getCurrentUserRole();
-  const onboardingStats = await getOnboardingStats();
-  const categories = await getProductCategories();
+  // Start fetching products immediately (non-blocking)
+  const productsPromise = getProducts(30, status);
+  
+  // Fetch metadata in parallel
+  const [role, onboardingStats, categories] = await Promise.all([
+    getCurrentUserRole(),
+    getOnboardingStats(),
+    getProductCategories(),
+  ]);
+
   const isManagement = role === UserRole.OWNER || role === UserRole.ADMIN;
 
   return (
@@ -75,7 +83,7 @@ const ProductTableWrapper = async ({
       </Header>
 
       <ProductVisualCatalog
-        products={products}
+        productsPromise={productsPromise}
         userRole={role as UserRole}
         categories={categories}
       />

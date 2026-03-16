@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import ProductTableDropdownMenu from "./table-dropdown-menu";
 import { UserRole } from "@prisma/client";
 import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
+import * as React from "react";
 
 interface ProductCardProps {
   product: ProductDto;
@@ -27,6 +28,7 @@ const PRODUCT_TYPE_LABELS: Record<
 
 export const ProductCard = ({ product, userRole, categories }: ProductCardProps) => {
   const router = useRouter();
+  const [hasError, setHasError] = React.useState(false);
   const typeConfig = PRODUCT_TYPE_LABELS[product.type] || PRODUCT_TYPE_LABELS.RESELL;
 
   const handleClick = (e: React.MouseEvent) => {
@@ -50,18 +52,22 @@ export const ProductCard = ({ product, userRole, categories }: ProductCardProps)
       onClick={handleClick}
     >
       <div className="relative aspect-square bg-slate-200 flex items-center justify-center overflow-hidden">
-        {product.imageUrl ? (
+        {product.imageUrl && !hasError ? (
           <Image 
             src={product.imageUrl} 
             alt={product.name} 
             fill 
             className="object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            quality={80}
+            onError={() => setHasError(true)}
           />
         ) : (
           <div className="flex flex-col items-center gap-2 text-slate-400">
             <ImageIcon className="w-10 h-10" />
-            <span className="text-xs font-medium">Sem imagem</span>
+            <span className="text-[10px] font-bold uppercase tracking-tight">
+              {hasError ? "Imagem indisponível" : "Sem imagem"}
+            </span>
           </div>
         )}
         
