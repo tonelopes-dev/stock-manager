@@ -62,7 +62,7 @@ const ProductTableWrapper = async ({
   const [role, onboardingStats, categories, environments] = await Promise.all([
     getCurrentUserRole(),
     getOnboardingStats(),
-    getProductCategories(environmentId),
+    getProductCategories(),
     getEnvironments(),
   ]);
 

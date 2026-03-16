@@ -14,7 +14,7 @@ import {
   ShoppingCart,
   Trash2,
 } from "lucide-react";
-import { useState, useTransition, useEffect, useMemo } from "react";
+import { useState, useTransition, useEffect, useMemo, type ReactNode } from "react";
 import { toast } from "sonner";
 import { convertOrderToSaleAction } from "@/app/_actions/order/convert-to-sale";
 import { upsertOrderAction } from "@/app/_actions/order/upsert-order";
@@ -42,6 +42,8 @@ import {
   SheetFooter as UISheetFooter,
 } from "@/app/_components/ui/sheet";
 import { cn } from "@/app/_lib/utils";
+import { Label } from "@/app/_components/ui/label";
+import { Input } from "@/app/_components/ui/input";
 
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
@@ -79,6 +81,7 @@ export const ComandaDetailsSheet = ({
 }: ComandaDetailsSheetProps) => {
   const [isPending, startTransition] = useTransition();
   const [paymentMethod, setPaymentMethod] = useState<string>("PIX");
+  const [tipAmount, setTipAmount] = useState<number>(0);
   const [now, setNow] = useState(new Date());
 
   // Add Item State
@@ -98,6 +101,7 @@ export const ComandaDetailsSheet = ({
       setSelectedItemIds(new Set());
       setSelectedProductId("");
       setSelectedQuantity(1);
+      setTipAmount(0);
     }
   }, [isOpen, comanda?.customerId]);
 
@@ -126,11 +130,13 @@ export const ComandaDetailsSheet = ({
       try {
         if (selectedItemIds.size === 0) {
           // PAY EVERYTHING (Standard logic)
-          for (const order of comanda.orders) {
+          for (let i = 0; i < comanda.orders.length; i++) {
+            const order = comanda.orders[i];
             const result = await convertOrderToSaleAction({
               orderId: order.id,
               companyId,
               paymentMethod: paymentMethod as any,
+              tipAmount: i === 0 ? tipAmount : 0, // Apply the full tip to the first order only
             });
             if (result?.serverError) throw new Error(result.serverError);
           }
@@ -140,6 +146,7 @@ export const ComandaDetailsSheet = ({
             itemIds: Array.from(selectedItemIds),
             companyId,
             paymentMethod: paymentMethod as any,
+            tipAmount: tipAmount,
           });
 
           if (result?.serverError) throw new Error(result.serverError);
@@ -148,6 +155,7 @@ export const ComandaDetailsSheet = ({
         toast.success(
           `Comanda de ${comanda.customerName} finalizada com sucesso!`,
         );
+        setTipAmount(0);
         router.refresh();
         onClose();
       } catch (err: any) {
@@ -361,35 +369,61 @@ export const ComandaDetailsSheet = ({
             )}
 
             <div className="w-full space-y-4">
-              <div className="flex flex-col gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                  Forma de Pagamento
-                </span>
-                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white font-bold shadow-sm focus:ring-primary/20">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent
-                    position="popper"
-                    sideOffset={5}
-                    className="w-[var(--radix-select-trigger-width)]"
-                  >
-                    {Object.entries(paymentMethodLabels).map(
-                      ([key, { label, icon }]) => (
-                        <SelectItem
-                          key={key}
-                          value={key}
-                          className="my-1 rounded-lg"
-                        >
-                          <div className="flex items-center gap-2">
-                            {icon}
-                            <span className="font-bold">{label}</span>
-                          </div>
-                        </SelectItem>
-                      ),
-                    )}
-                  </SelectContent>
-                </Select>
+              <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase italic tracking-tighter text-slate-400">
+                      Gorjeta / Taxa
+                    </Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                        R$
+                      </span>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0,00"
+                        value={tipAmount || ""}
+                        onChange={(e) => setTipAmount(Number(e.target.value))}
+                        className="h-12 border-slate-200 pl-8 font-bold text-slate-700 focus-visible:ring-primary/20"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      Pagamento
+                    </span>
+                    <Select
+                      value={paymentMethod}
+                      onValueChange={setPaymentMethod}
+                    >
+                      <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white font-bold shadow-sm focus:ring-primary/20">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent
+                        position="popper"
+                        sideOffset={5}
+                        className="w-[var(--radix-select-trigger-width)]"
+                      >
+                        {Object.entries(paymentMethodLabels).map(
+                          ([key, { label, icon }]) => (
+                            <SelectItem
+                              key={key}
+                              value={key}
+                              className="my-1 rounded-lg"
+                            >
+                              <div className="flex items-center gap-2">
+                                {icon}
+                                <span className="font-bold">{label}</span>
+                              </div>
+                            </SelectItem>
+                          ),
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
 
               <Button
@@ -408,7 +442,8 @@ export const ComandaDetailsSheet = ({
                   <>
                     {isPartial ? "Pagar Selecionados" : "Finalizar Comanda"} •{" "}
                     {formatCurrency(
-                      isPartial ? partialTotal : comanda.totalAmount,
+                      (isPartial ? partialTotal : comanda.totalAmount) +
+                        (tipAmount || 0),
                     )}
                   </>
                 )}

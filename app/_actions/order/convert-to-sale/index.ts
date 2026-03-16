@@ -10,11 +10,12 @@ const convertOrderToSaleSchema = z.object({
   orderId: z.string(),
   companyId: z.string(),
   paymentMethod: z.enum(["CASH", "CREDIT_CARD", "DEBIT_CARD", "PIX", "OTHER"]),
+  tipAmount: z.number().min(0).default(0),
 });
 
 export const convertOrderToSaleAction = actionClient
   .schema(convertOrderToSaleSchema)
-  .action(async ({ parsedInput: { orderId, companyId, paymentMethod } }) => {
+  .action(async ({ parsedInput: { orderId, companyId, paymentMethod, tipAmount } }) => {
     const session = await auth();
     if (!session?.user?.id) throw new Error("Não autorizado");
 
@@ -24,6 +25,7 @@ export const convertOrderToSaleAction = actionClient
         companyId,
         session.user.id,
         paymentMethod,
+        tipAmount,
       );
 
       revalidatePath(`/sales`);

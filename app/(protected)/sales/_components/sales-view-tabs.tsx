@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
-import { LayoutDashboardIcon, TableIcon } from "lucide-react";
+import { LayoutDashboardIcon, TableIcon, CoinsIcon } from "lucide-react";
 
 export function SalesViewTabs() {
   const router = useRouter();
@@ -16,8 +16,8 @@ export function SalesViewTabs() {
   };
 
   return (
-    <Tabs value={currentView} onValueChange={handleTabChange} className="w-[300px]">
-      <TabsList className="grid w-full grid-cols-2 bg-slate-100 p-1">
+    <Tabs value={currentView} onValueChange={handleTabChange} className="w-[450px]">
+      <TabsList className="grid w-full grid-cols-3 bg-slate-100 p-1">
         <TabsTrigger 
             value="gestao" 
             className="flex items-center gap-2 text-xs font-bold data-[state=active]:bg-white data-[state=active]:text-primary"
@@ -31,6 +31,13 @@ export function SalesViewTabs() {
         >
           <LayoutDashboardIcon className="h-3.5 w-3.5" />
           Inteligência
+        </TabsTrigger>
+        <TabsTrigger 
+            value="gorjetas" 
+            className="flex items-center gap-2 text-xs font-bold data-[state=active]:bg-white data-[state=active]:text-primary"
+        >
+          <CoinsIcon className="h-3.5 w-3.5" />
+          Gorjetas
         </TabsTrigger>
       </TabsList>
     </Tabs>

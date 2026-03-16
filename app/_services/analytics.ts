@@ -13,6 +13,7 @@ export interface FinancialOverview {
   cogs: number;
   profit: number;
   margin: number;
+  totalTips: number;
 }
 
 export interface DailySalesData {
@@ -62,10 +63,11 @@ export async function getFinancialOverview(
 
   // 2. Perform raw aggregation across Sale items to ensure accuracy
   // We join Sale with SaleItem to sum the actual item values
-  const results = await db.$queryRaw<{ revenue: number; cost: number }[]>`
+  const results = await db.$queryRaw<{ revenue: number; cost: number; tips: number }[]>`
     SELECT 
       COALESCE(SUM(si."unitPrice" * si."quantity"), 0)::float as revenue,
-      COALESCE(SUM(si."baseCost" * si."quantity"), 0)::float as cost
+      COALESCE(SUM(si."baseCost" * si."quantity"), 0)::float as cost,
+      (SELECT COALESCE(SUM("tipAmount"), 0)::float FROM "Sale" WHERE "companyId" = ${companyId} AND "status" = 'ACTIVE' AND "date" >= ${startDate} AND "date" < ${endDate}) as tips
     FROM "SaleProduct" si
     JOIN "Sale" s ON s.id = si."saleId"
     WHERE s."companyId" = ${companyId}
@@ -89,6 +91,7 @@ export async function getFinancialOverview(
     cogs,
     profit,
     margin,
+    totalTips: results[0].tips,
   };
 }
 

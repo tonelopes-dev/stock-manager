@@ -11,11 +11,12 @@ interface KpiGridProps {
   profit: AnalyticsMetric;
   cogs: AnalyticsMetric;
   margin: AnalyticsMetric;
+  tips: AnalyticsMetric;
 }
 
-export const KpiGrid = ({ revenue, profit, cogs, margin }: KpiGridProps) => {
+export const KpiGrid = ({ revenue, profit, cogs, margin, tips }: KpiGridProps) => {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
       <KpiCard
         title="Receita"
         value={formatCurrencyBR(revenue.value)}
@@ -41,13 +42,19 @@ export const KpiGrid = ({ revenue, profit, cogs, margin }: KpiGridProps) => {
         trend={margin.trend}
         description="Rentabilidade relativa (Lucro / Receita). Indica quantos centavos de lucro são gerados para cada R$ 1,00 vendido."
       />
+      <KpiCard
+        title="Gorjetas"
+        value={formatCurrencyBR(tips.value)}
+        trend={tips.trend}
+        description="Total acumulado de gorjetas e taxas de serviço para repasse à equipe."
+      />
     </div>
   );
 };
 
 export const KpiGridSkeleton = () => (
-  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-    {[1, 2, 3, 4].map((i) => (
+  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    {[1, 2, 3, 4, 5].map((i) => (
       <KpiCardSkeleton key={i} />
     ))}
   </div>

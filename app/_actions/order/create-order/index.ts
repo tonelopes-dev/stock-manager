@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 
 const createOrderSchema = z.object({
   companyId: z.string(),
-  customerId: z.string().min(1, "Identificação do cliente é obrigatória"),
+  customerId: z.string().optional().nullable(),
   items: z.array(z.object({
     productId: z.string(),
     quantity: z.number().positive(),
@@ -22,7 +22,7 @@ export const createOrderAction = actionClient
     try {
       const order = await OrderService.createOrder({
         companyId,
-        customerId,
+        customerId: customerId || undefined,
         items,
         tableNumber,
         notes,

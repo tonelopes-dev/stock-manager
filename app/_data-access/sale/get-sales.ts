@@ -17,6 +17,7 @@ export interface SaleDto {
   customerName: string | null;
   customerId: string | null;
   paymentMethod: PaymentMethod | null;
+  tipAmount: number;
   saleItems: SaleItemDto[];
 }
 
@@ -37,12 +38,13 @@ export const getSales = async ({
 
   const where: Prisma.SaleWhereInput = {
     companyId,
+    status: SaleStatus.ACTIVE,
   };
-
+    
   if (from && to) {
     where.date = {
       gte: new Date(from),
-      lte: new Date(to),
+      lte: new Date(to + "T23:59:59.999Z"),
     };
   }
 
@@ -94,6 +96,7 @@ export const getSales = async ({
       customerName: sale.customer?.name || null,
       customerId: sale.customerId,
       paymentMethod: sale.paymentMethod,
+      tipAmount: Number(sale.tipAmount),
       saleItems: sale.saleItems.map((item: any) => ({
         ...item,
         unitPrice: Number(item.unitPrice),

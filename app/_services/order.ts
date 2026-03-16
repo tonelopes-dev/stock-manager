@@ -153,7 +153,7 @@ export const OrderService = {
     }
   },
 
-  async convertToSale(orderId: string, companyId: string, userId: string, paymentMethod: any) {
+  async convertToSale(orderId: string, companyId: string, userId: string, paymentMethod: any, tipAmount: number = 0) {
     try {
       return await db.$transaction(async (trx) => {
         const order = await trx.order.findUnique({
@@ -175,6 +175,7 @@ export const OrderService = {
             orderId: order.id,
             paymentMethod,
             totalAmount: order.totalAmount,
+            tipAmount,
             date: new Date(),
             status: "ACTIVE",
           },
@@ -213,7 +214,7 @@ export const OrderService = {
       throw new Error("Erro ao processar pagamento do pedido.");
     }
   },
-  async convertItemsToSale(itemIds: string[], companyId: string, userId: string, paymentMethod: any) {
+  async convertItemsToSale(itemIds: string[], companyId: string, userId: string, paymentMethod: any, tipAmount: number = 0) {
     try {
       return await db.$transaction(async (trx) => {
         // 1. Fetch the items and their orders
@@ -235,6 +236,7 @@ export const OrderService = {
             customerId: items[0].order.customerId,
             paymentMethod,
             totalAmount,
+            tipAmount,
             date: new Date(),
             status: "ACTIVE",
           },
