@@ -5,6 +5,7 @@ import { UserRole } from "@prisma/client";
 import { CustomerPageClient } from "./_components/customer-page-client";
 import { CustomerListResults } from "./_components/customer-list-results";
 import { getChecklistTemplates } from "../../_data-access/checklist/get-checklist-templates";
+import { getCustomers } from "../../_data-access/customer/get-customers";
 
 interface CustomersPageProps {
   searchParams: Promise<{
@@ -26,10 +27,23 @@ const CustomersPage = async ({ searchParams }: CustomersPageProps) => {
   const page = Number(resolvedSearchParams?.page) || 1;
   const pageSize = Number(resolvedSearchParams?.pageSize) || 10;
 
-  const categories = await getCustomerCategories();
-  const stages = await getCRMStages();
-  const role = await getCurrentUserRole();
-  const templates = await getChecklistTemplates();
+  // 1. Parallelize metadata fetching (Instant Shell)
+  const [categories, stages, role, templates] = await Promise.all([
+    getCustomerCategories(),
+    getCRMStages(),
+    getCurrentUserRole(),
+    getChecklistTemplates(),
+  ]);
+
+  // 2. Start fetching customers list as a Promise (Non-blocking)
+  const isTable = view === "table";
+  const customersPromise = getCustomers(
+    categoryId,
+    search,
+    isTable ? page : 1,
+    isTable ? pageSize : 1000,
+    !isTable,
+  );
 
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
@@ -46,6 +60,10 @@ const CustomersPage = async ({ searchParams }: CustomersPageProps) => {
           page={page}
           pageSize={pageSize}
           checklistTemplates={templates}
+          customersPromise={customersPromise}
+          role={role as UserRole}
+          categoriesData={categories}
+          stagesData={stages}
         />
       </CustomerPageClient>
     </div>

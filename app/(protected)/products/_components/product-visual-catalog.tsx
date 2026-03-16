@@ -21,8 +21,12 @@ import {
 import { CategoryManagementDialog } from "./category-management-dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 
+import { Suspense } from "react";
+import { ProductGrid } from "./product-grid";
+import { ProductGridSkeleton } from "./product-grid-skeleton";
+
 interface ProductVisualCatalogProps {
-  products: ProductDto[];
+  productsPromise: Promise<ProductDto[]>;
   userRole: UserRole;
   categories: ProductCategoryOption[];
 }
@@ -30,50 +34,13 @@ interface ProductVisualCatalogProps {
 type SortOption = "latest" | "low-stock" | "price-asc" | "price-desc";
 
 export const ProductVisualCatalog = ({
-  products,
+  productsPromise,
   userRole,
   categories,
 }: ProductVisualCatalogProps) => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("latest");
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
-
-  const filteredProducts = useMemo(() => {
-    let result = [...products].filter((p) => {
-      const matchesSearch = 
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        (p.sku && p.sku.toLowerCase().includes(search.toLowerCase()));
-      
-      const matchesCategory = 
-        selectedCategoryId === "all" || 
-        p.category?.id === selectedCategoryId;
-        
-      return matchesSearch && matchesCategory;
-    });
-
-    if (sortBy === "latest") {
-      result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    } else if (sortBy === "low-stock") {
-      result.sort((a, b) => a.stock - b.stock);
-    } else if (sortBy === "price-asc") {
-      result.sort((a, b) => a.price - b.price);
-    } else if (sortBy === "price-desc") {
-      result.sort((a, b) => b.price - a.price);
-    }
-
-    return result;
-  }, [products, search, sortBy, selectedCategoryId]);
-
-  const groupedProducts = useMemo(() => {
-    return filteredProducts.reduce((acc, product) => {
-      const categoryName = product.category?.name || "Sem Categoria";
-      if (!acc[categoryName]) {
-        acc[categoryName] = [];
-      }
-      acc[categoryName].push(product);
-      return acc;
-    }, {} as Record<string, ProductDto[]>);
-  }, [filteredProducts]);
 
   const sortLabels: Record<SortOption, string> = {
     latest: "Mais recentes",
@@ -148,37 +115,17 @@ export const ProductVisualCatalog = ({
         </Tabs>
       </div>
 
-      {/* Categories Sections */}
-      {Object.keys(groupedProducts).length > 0 ? (
-        Object.entries(groupedProducts).map(([category, items]) => (
-          <div key={category} className="space-y-4">
-            <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{category}</h2>
-                <div className="h-px flex-1 bg-slate-100 rounded-full" />
-                <Badge variant="secondary" className="bg-slate-100 text-slate-500 border-none font-bold px-3">
-                    {items.length} {items.length === 1 ? 'un' : 'un'}
-                </Badge>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {items.map((product) => (
-                <ProductCard 
-                  key={product.id} 
-                  product={product} 
-                  userRole={userRole} 
-                  categories={categories} 
-                />
-              ))}
-            </div>
-          </div>
-        ))
-      ) : (
-        <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-4">
-            <div className="p-4 rounded-full bg-slate-50">
-                <SearchIcon className="w-10 h-10 opacity-20" />
-            </div>
-            <p className="text-lg font-medium">Nenhum produto encontrado</p>
-        </div>
-      )}
+      {/* Product List with Suspense */}
+      <Suspense key={`${search}-${sortBy}-${selectedCategoryId}`} fallback={<ProductGridSkeleton />}>
+        <ProductGrid 
+          productsPromise={productsPromise}
+          search={search}
+          sortBy={sortBy}
+          selectedCategoryId={selectedCategoryId}
+          userRole={userRole}
+          categories={categories}
+        />
+      </Suspense>
     </div>
   );
 };

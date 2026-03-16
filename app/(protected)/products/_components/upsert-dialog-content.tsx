@@ -235,9 +235,20 @@ const UpsertProductDialogContent = ({
 
     try {
       setIsUploading(true);
-      const response = await fetch(`/api/upload?filename=${file.name}`, {
+      
+      // Client-side compression
+      const imageCompression = (await import("browser-image-compression")).default;
+      const options = {
+        maxSizeMB: 0.8,
+        maxWidthOrHeight: 1200,
+        useWebWorker: true,
+      };
+      
+      const compressedFile = await imageCompression(file, options);
+
+      const response = await fetch(`/api/upload?filename=${compressedFile.name}`, {
         method: "POST",
-        body: file,
+        body: compressedFile,
       });
 
       if (!response.ok) throw new Error("Upload failed");
