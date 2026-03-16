@@ -26,7 +26,10 @@ export const upsertProduct = actionClient
     const sku = data.sku?.trim() || null;
 
     await db.$transaction(async (trx) => {
-      const { stock, unit, type, cost, categoryId, expirationDate, trackExpiration, imageUrl, ...rest } = data;
+      const { stock, unit, type, cost, expirationDate, trackExpiration, imageUrl, ...rest } = data;
+      
+      const categoryId = data.categoryId?.trim() || null;
+      const environmentId = data.environmentId?.trim() || null;
       
       const updateData = { 
         ...rest, 
@@ -54,6 +57,7 @@ export const upsertProduct = actionClient
           data: {
             ...updateData,
             categoryId,
+            environmentId,
           },
         });
 
@@ -125,6 +129,7 @@ export const upsertProduct = actionClient
             companyId, 
             stock: 0,
             categoryId,
+            environmentId,
           },
         });
         productId = product.id;

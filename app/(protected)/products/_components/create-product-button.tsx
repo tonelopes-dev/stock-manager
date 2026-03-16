@@ -7,15 +7,18 @@ import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import UpsertProductDialogContent from "./upsert-dialog-content";
 import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
+import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
 
 interface CreateProductButtonProps {
   hasProducts: boolean;
   categories: ProductCategoryOption[];
+  environments: EnvironmentOption[];
 }
 
 const CreateProductButton = ({
   hasProducts,
   categories,
+  environments,
 }: CreateProductButtonProps) => {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
 
@@ -31,6 +34,7 @@ const CreateProductButton = ({
         setDialogIsOpen={setDialogIsOpen}
         hasProducts={hasProducts}
         categories={categories}
+        environments={environments}
       />
     </Dialog>
   );

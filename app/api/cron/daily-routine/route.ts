@@ -31,11 +31,10 @@ export async function GET(req: NextRequest) {
           not: null,
         },
       },
-      select: {
-        id: true,
-        name: true,
-        expirationDate: true,
-        companyId: true,
+      include: {
+        environment: {
+          select: { name: true },
+        },
       },
     });
 
@@ -83,10 +82,14 @@ export async function GET(req: NextRequest) {
       });
 
       if (!existingNotification) {
+        const envSuffix = (item as any).environment?.name 
+          ? ` (Ambiente: ${(item as any).environment.name})` 
+          : "";
+
         await db.notification.create({
           data: {
             title: `Atenção: ${item.itemType} Vencendo`,
-            message: `O item ${item.name} vence no dia ${format(
+            message: `O item ${item.name}${envSuffix} vence no dia ${format(
               item.expirationDate,
               "dd/MM/yyyy",
               { locale: ptBR }

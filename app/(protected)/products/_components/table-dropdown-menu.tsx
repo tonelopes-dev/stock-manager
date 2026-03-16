@@ -29,17 +29,20 @@ import { toggleProductStatus } from "@/app/_actions/product/toggle-status";
 import Link from "next/link";
 import { UserRole } from "@prisma/client";
 import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
+import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
 
 interface ProductTableDropdownMenuProps {
   product: ProductDto;
   userRole: UserRole;
   categories: ProductCategoryOption[];
+  environments: EnvironmentOption[];
 }
 
 const ProductTableDropdownMenu = ({
   product,
   userRole,
   categories,
+  environments,
 }: ProductTableDropdownMenuProps) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [adjustStockDialogOpen, setAdjustStockDialogOpen] = useState(false);
@@ -150,12 +153,14 @@ const ProductTableDropdownMenu = ({
             minStock: product.minStock,
             unit: product.unit,
             categoryId: product.categoryId || "",
+            environmentId: product.environmentId || "",
             expirationDate: product.expirationDate,
             trackExpiration: product.trackExpiration,
             imageUrl: product.imageUrl || "",
           }}
           setDialogIsOpen={setEditDialogOpen}
           categories={categories}
+          environments={environments}
         />
       </Dialog>
 

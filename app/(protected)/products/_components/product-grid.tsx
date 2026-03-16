@@ -5,6 +5,7 @@ import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ProductCard } from "./product-card";
 import { UserRole } from "@prisma/client";
 import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
+import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
 import { Badge } from "@/app/_components/ui/badge";
 import { SearchIcon } from "lucide-react";
 
@@ -15,6 +16,7 @@ interface ProductGridProps {
   selectedCategoryId: string;
   userRole: UserRole;
   categories: ProductCategoryOption[];
+  environments: EnvironmentOption[];
 }
 
 export const ProductGrid = ({
@@ -24,6 +26,7 @@ export const ProductGrid = ({
   selectedCategoryId,
   userRole,
   categories,
+  environments,
 }: ProductGridProps) => {
   const products = use(productsPromise);
 
@@ -86,6 +89,7 @@ export const ProductGrid = ({
                 product={product}
                 userRole={userRole}
                 categories={categories}
+                environments={environments}
               />
             ))}
           </div>

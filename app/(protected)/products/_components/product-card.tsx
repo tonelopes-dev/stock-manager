@@ -10,12 +10,14 @@ import { useRouter } from "next/navigation";
 import ProductTableDropdownMenu from "./table-dropdown-menu";
 import { UserRole } from "@prisma/client";
 import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
+import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
 import * as React from "react";
 
 interface ProductCardProps {
   product: ProductDto;
   userRole: UserRole;
   categories: ProductCategoryOption[];
+  environments: EnvironmentOption[];
 }
 
 const PRODUCT_TYPE_LABELS: Record<
@@ -26,7 +28,7 @@ const PRODUCT_TYPE_LABELS: Record<
   PREPARED: { label: "Produção Própria", variant: "default" },
 };
 
-export const ProductCard = ({ product, userRole, categories }: ProductCardProps) => {
+export const ProductCard = ({ product, userRole, categories, environments }: ProductCardProps) => {
   const router = useRouter();
   const [hasError, setHasError] = React.useState(false);
   const typeConfig = PRODUCT_TYPE_LABELS[product.type] || PRODUCT_TYPE_LABELS.RESELL;
@@ -87,6 +89,7 @@ export const ProductCard = ({ product, userRole, categories }: ProductCardProps)
                 product={product} 
                 userRole={userRole} 
                 categories={categories}
+                environments={environments}
             />
         </div>
       </div>
@@ -98,6 +101,12 @@ export const ProductCard = ({ product, userRole, categories }: ProductCardProps)
             </h3>
             <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">
                 {product.category?.name || "Sem categoria"}
+                {product.environment && (
+                  <>
+                    <span className="mx-2 text-slate-300">|</span>
+                    <span className="text-primary/70">{product.environment.name}</span>
+                  </>
+                )}
             </p>
         </div>
         

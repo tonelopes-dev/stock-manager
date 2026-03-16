@@ -15,19 +15,16 @@ services:
       timeout: 5s
       retries: 5
 
-  stocky-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      DATABASE_URL: "postgresql://user:password@stocky-db:5432/stocky"
-    depends_on:
-      stocky-db:
-        condition: service_healthy
-    command: >
-      sh -c "npx prisma migrate deploy && npm run start"
+#  stocky-app:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    ports:
+#      - "3000:3000"
+#    env_file:
+#      - .env
+#    command: >
+#      sh -c "npx prisma migrate deploy && npm run start"
 
 volumes:
   postgres_data:

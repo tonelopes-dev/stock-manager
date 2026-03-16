@@ -18,6 +18,8 @@ export interface ProductDto extends Omit<Product, "price" | "cost" | "category">
   category?: { id: string; name: string } | null;
   expirationDate: Date | null;
   trackExpiration: boolean;
+  environmentId: string | null;
+  environment?: { id: string; name: string } | null;
   _count?: {
     saleItems: number;
     productionOrders: number;
@@ -26,7 +28,8 @@ export interface ProductDto extends Omit<Product, "price" | "cost" | "category">
 
 export const getProducts = async (
   slowMovingDays = 30, 
-  status: "ACTIVE" | "INACTIVE" | "ALL" = "ACTIVE"
+  status: "ACTIVE" | "INACTIVE" | "ALL" = "ACTIVE",
+  environmentId?: string
 ): Promise<ProductDto[]> => {
   const companyId = await getCurrentCompanyId();
   const slowMovingThreshold = subDays(new Date(), slowMovingDays);
@@ -37,6 +40,10 @@ export const getProducts = async (
     where.isActive = false;
   } else if (status === "ALL") {
     delete where.isActive;
+  }
+
+  if (environmentId && environmentId !== "all") {
+    where.environmentId = environmentId;
   }
 
   const products = (await db.product.findMany({
@@ -64,6 +71,9 @@ export const getProducts = async (
         },
       },
       category: {
+        select: { id: true, name: true },
+      },
+      environment: {
         select: { id: true, name: true },
       },
     }
@@ -129,6 +139,8 @@ export const getProducts = async (
       _count: product._count,
       categoryId: product.categoryId,
       category: product.category,
+      environmentId: product.environmentId,
+      environment: product.environment,
       expirationDate: product.expirationDate,
       trackExpiration: product.trackExpiration,
     } as ProductDto;
