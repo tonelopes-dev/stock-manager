@@ -32,7 +32,7 @@ export async function forgotPassword(email: string) {
 
     await sendEmail({
       to: email,
-      subject: "Redefinição de Senha - Stockly",
+      subject: "Redefinição de Senha - Kipo",
       html: passwordResetTemplate({
         name: user.name || "usuário",
         resetLink,

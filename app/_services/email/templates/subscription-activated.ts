@@ -10,7 +10,7 @@ export function subscriptionActivatedTemplate({ name, companyName, expiryDateFor
   const content = `
     <h1 style="color: #059669; margin-bottom: 8px;">Pagamento Confirmado! ✅</h1>
     <p>Olá, ${name || "parceiro"}!</p>
-    <p>Ótimas notícias! Sua assinatura <strong>Stockly PRO</strong> para a empresa <strong>${companyName}</strong> foi ativada com sucesso.</p>
+    <p>Ótimas notícias! Sua assinatura <strong>Kipo PRO</strong> para a empresa <strong>${companyName}</strong> foi ativada com sucesso.</p>
     
     <div class="highlight-box" style="background-color: #ecfdf5; border: 1px solid #d1fae5;">
         <p style="margin-top: 0; color: #064e3b;"><strong>PRO Plan Ativo ✨</strong></p>
@@ -29,8 +29,8 @@ export function subscriptionActivatedTemplate({ name, companyName, expiryDateFor
       <a href="${process.env.NEXT_PUBLIC_APP_URL}/" class="button" style="background-color: #059669;">Ir para o Dashboard</a>
     </div>
 
-    <p style="margin-top: 32px;">Obrigado por confiar no Stockly para gerir o seu negócio!</p>
-    <p>Equipe Stockly</p>
+    <p style="margin-top: 32px;">Obrigado por confiar no Kipo para gerir o seu negócio!</p>
+    <p>Equipe Kipo</p>
   `;
 
   return baseLayout({ 

@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useFormState, useFormStatus } from "react-dom";
 import { register, RegisterState } from "@/app/_actions/auth/register";
+import { KipoLogo } from "@/app/_components/logo";
 
 const initialState: RegisterState = {
   success: false,
@@ -39,12 +40,12 @@ export default function RegisterPage() {
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-center text-2xl font-bold">
-          📦 Stocky
-        </CardTitle>
-        <CardDescription className="text-center">
+    <Card className="w-full max-w-md border-none shadow-2xl">
+      <CardHeader className="space-y-4 pt-10">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <KipoLogo />
+        </div>
+        <CardDescription className="text-center text-slate-500">
           Crie sua conta para começar
         </CardDescription>
       </CardHeader>

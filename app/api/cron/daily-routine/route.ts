@@ -141,8 +141,8 @@ export async function GET(req: NextRequest) {
       // Only send exactly at 3 days left or 0 days left
       if (daysLeft === 3 || daysLeft === 0) {
         const subject = daysLeft === 0 
-          ? "Sua assinatura Stockly vence hoje!" 
-          : `Sua assinatura Stockly vence em ${daysLeft} dias`;
+          ? "Sua assinatura Kipo vence hoje!" 
+          : `Sua assinatura Kipo vence em ${daysLeft} dias`;
 
         const title = daysLeft === 0
           ? "⚠️ Sua assinatura vence hoje!"

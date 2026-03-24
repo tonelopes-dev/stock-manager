@@ -1,21 +1,21 @@
 services:
-  stocky-db:
+  kipo-db:
     image: postgres:17
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: stocky
+      POSTGRES_DB: kipo
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d stocky"]
+      test: ["CMD-SHELL", "pg_isready -U user -d kipo"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-#  stocky-app:
+#  kipo-app:
 #    build:
 #      context: .
 #      dockerfile: Dockerfile

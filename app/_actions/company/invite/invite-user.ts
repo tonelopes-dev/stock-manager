@@ -60,9 +60,9 @@ export const inviteUser = actionClient
     try {
       await sendEmail({
         to: email,
-        subject: `Você foi convidado para a empresa ${company?.name || "Stockly"}`,
+        subject: `Você foi convidado para a empresa ${company?.name || "Kipo"}`,
         html: invitationTemplate({
-          companyName: company?.name || "Stockly",
+          companyName: company?.name || "Kipo",
           inviteLink,
         }),
       });

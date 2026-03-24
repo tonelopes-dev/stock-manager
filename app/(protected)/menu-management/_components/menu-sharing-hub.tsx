@@ -31,7 +31,7 @@ export const MenuSharingHub = ({ companyId }: MenuSharingHubProps) => {
   const [tableNumber, setTableNumber] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const baseUrl = `https://stocky-360.vercel.app/menu/${companyId}`;
+  const baseUrl = `https://usekipo.com.br/menu/${companyId}`;
   const menuUrl = tableNumber ? `${baseUrl}?table=${tableNumber}` : baseUrl;
 
   useEffect(() => {

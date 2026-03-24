@@ -170,7 +170,8 @@ export const MyOrdersClient = ({ companyId }: MyOrdersClientProps) => {
   };
 
   useEffect(() => {
-    const savedCustomer = localStorage.getItem(`stocky-customer-${companyId}`);
+    const savedCustomer = localStorage.getItem(`kipo-customer-${companyId}`);
+    
     if (!savedCustomer) {
       setLoading(false);
       return;

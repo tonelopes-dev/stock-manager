@@ -7,8 +7,8 @@ interface WelcomeTemplateOptions {
 export function welcomeTemplate({ name }: WelcomeTemplateOptions) {
   const content = `
     <h1 style="color: #111827; margin-bottom: 8px;">Olá, ${name}! 🚀</h1>
-    <p>Seja muito bem-vindo ao <strong>Stockly</strong>, o seu sistema de gestão de estoque e vendas inteligente.</p>
-    <p>Estamos entusiasmados por você ter escolhido o Stockly para ajudar a impulsionar o seu negócio.</p>
+    <p>Seja muito bem-vindo ao <strong>Kipo</strong>, o seu sistema de gestão de estoque e vendas inteligente.</p>
+    <p>Estamos entusiasmados por você ter escolhido o Kipo para ajudar a impulsionar o seu negócio.</p>
     
     <div class="highlight-box">
         <p style="margin-top: 0;"><strong>Seu período de teste PRO (3 dias) já começou!</strong></p>
@@ -32,6 +32,6 @@ export function welcomeTemplate({ name }: WelcomeTemplateOptions) {
 
   return baseLayout({ 
     content, 
-    previewText: "Bem-vindo ao Stockly! Seu acesso PRO já está liberado." 
+    previewText: "Bem-vindo ao Kipo! Seu acesso PRO já está liberado." 
   });
 }

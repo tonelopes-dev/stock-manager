@@ -86,7 +86,7 @@ export async function register(
   try {
     await sendEmail({
       to: email,
-      subject: `Bem-vindo ao Stockly, ${name}!`,
+      subject: `Bem-vindo ao Kipo, ${name}!`,
       html: welcomeTemplate({ name }),
     });
   } catch (err) {

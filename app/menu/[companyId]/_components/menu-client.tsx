@@ -61,7 +61,7 @@ interface CustomerInfo {
   phoneNumber: string;
 }
 
-const STORAGE_KEY = (companyId: string) => `stocky-customer-${companyId}`;
+const STORAGE_KEY = (companyId: string) => `kipo-customer-${companyId}`;
 
 export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
   const router = useRouter();
@@ -102,7 +102,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
 
   // Load cart from LocalStorage
   useEffect(() => {
-    const savedCart = localStorage.getItem(`stocky-cart-${companyId}`);
+    const savedCart = localStorage.getItem(`kipo-cart-${companyId}`);
     if (savedCart) {
       try {
         setCart(JSON.parse(savedCart));
@@ -114,7 +114,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
 
   // Save cart to LocalStorage
   useEffect(() => {
-    localStorage.setItem(`stocky-cart-${companyId}`, JSON.stringify(cart));
+    localStorage.setItem(`kipo-cart-${companyId}`, JSON.stringify(cart));
   }, [cart, companyId]);
 
   const handleLogout = () => {
@@ -287,7 +287,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
       if (result?.data?.success && result.data.orderId) {
         toast.success("Pedido enviado com sucesso! 🎉");
         setCart([]);
-        localStorage.removeItem(`stocky-cart-${companyId}`);
+        localStorage.removeItem(`kipo-cart-${companyId}`);
 
         setIsCartOpen(false);
         router.push(`/menu/${companyId}/my-orders`);

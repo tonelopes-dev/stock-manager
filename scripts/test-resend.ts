@@ -11,11 +11,11 @@ async function testEmail() {
   try {
     const result = await sendEmail({
       to: 'contato@usekipo.com.br',
-      subject: 'Teste de Integração Resend - Stockly',
+      subject: 'Teste de Integração Resend - Kipo',
       html: `
         <div style="font-family: sans-serif; padding: 20px; color: #333;">
           <h1 style="color: #2563eb;">Conexão Bem-Sucedida!</h1>
-          <p>Este é um e-mail de teste enviado para validar a configuração do Resend no projeto <strong>Stockly</strong>.</p>
+          <p>Este é um e-mail de teste enviado para validar a configuração do Resend no projeto <strong>Kipo</strong>.</p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
           <p style="font-size: 12px; color: #666;">Enviado via Resend API.</p>
         </div>

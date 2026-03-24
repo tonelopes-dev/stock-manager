@@ -9,7 +9,7 @@ export function passwordResetTemplate({ name, resetLink }: PasswordResetTemplate
   const content = `
     <h1 style="color: #111827; margin-bottom: 8px;">Recuperação de Senha</h1>
     <p>Olá, ${name}!</p>
-    <p>Recebemos uma solicitação para redefinir a senha da sua conta no <strong>Stockly</strong>.</p>
+    <p>Recebemos uma solicitação para redefinir a senha da sua conta no <strong>Kipo</strong>.</p>
     <p>Não se preocupe, é algo comum! Clique no botão abaixo para escolher uma nova senha segura. Este link é válido por <strong>1 hora</strong>.</p>
     
     <div style="text-align: center;">
@@ -28,6 +28,6 @@ export function passwordResetTemplate({ name, resetLink }: PasswordResetTemplate
 
   return baseLayout({ 
     content, 
-    previewText: "Recupere o acesso à sua conta no Stockly." 
+    previewText: "Recupere o acesso à sua conta no Kipo." 
   });
 }

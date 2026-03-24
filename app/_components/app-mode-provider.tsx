@@ -18,7 +18,7 @@ interface AppModeContextType {
 
 const AppModeContext = createContext<AppModeContextType | undefined>(undefined);
 
-const STORAGE_KEY = "stocky-app-mode";
+const STORAGE_KEY = "kipo-app-mode";
 
 export const AppModeProvider = ({ children }: { children: ReactNode }) => {
   const [mode, setModeState] = useState<AppMode>("gestao");

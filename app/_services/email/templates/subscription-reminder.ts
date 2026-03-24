@@ -36,10 +36,11 @@ export function subscriptionReminderTemplate({ name, companyName, daysLeft, expi
     <p style="font-size: 12px; color: #9ca3af; text-align: center;">
       Se você já realizou o pagamento via boleto, por favor ignore este e-mail. O processamento pode levar até 2 dias úteis.
     </p>
+    <p style="font-size: 12px; color: #9ca3af; text-align: center;">Equipe Kipo</p>
   `;
 
   return baseLayout({ 
     content, 
-    previewText: isToday ? "Urgente: Renove sua assinatura Stockly hoje!" : `Sua assinatura Stockly vence em ${daysLeft} dias.`
+    previewText: isToday ? "Urgente: Renove sua assinatura Kipo hoje!" : `Sua assinatura Kipo vence em ${daysLeft} dias.`
   });
 }

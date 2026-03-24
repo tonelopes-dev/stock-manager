@@ -58,7 +58,7 @@ export default async function InvitationPage({ params }: InvitationPageProps) {
             <UserPlusIcon size={32} />
           </div>
           <CardTitle className="text-2xl font-black italic tracking-tighter">
-            STOCKY
+            KIPO
           </CardTitle>
           <CardDescription className="mt-2 text-lg font-medium text-slate-900">
             Você foi convidado!

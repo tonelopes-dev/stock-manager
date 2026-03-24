@@ -43,8 +43,8 @@ export async function sendEmail(options: EmailOptions) {
     const resend = new Resend(apiKey);
 
     // Configurações de remetente
-    let fromEmail = process.env.RESEND_FROM_EMAIL || 'contato@usekipo.com.br';
-    const defaultFromName = process.env.RESEND_FROM_NAME || 'Stockly';
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'contato@usekipo.com.br';
+    const finalFromName = fromName || process.env.RESEND_FROM_NAME || "Kipo";
 
     /**
      * 🛡️ Lógica de Segurança contra Bloqueio de Domínio Público
@@ -54,17 +54,17 @@ export async function sendEmail(options: EmailOptions) {
     const publicDomains = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'icloud.com'];
     const emailDomain = fromEmail.split('@')[1]?.toLowerCase();
     
+    let forcedFromEmail = fromEmail;
     let finalReplyTo = replyTo;
 
     if (publicDomains.includes(emailDomain)) {
       // Se detectarmos um domínio público, forçamos o envio pelo domínio oficial
       // e colocamos o e-mail original no 'replyTo'.
       if (!finalReplyTo) finalReplyTo = fromEmail;
-      fromEmail = 'contato@usekipo.com.br'; // O seu domínio verificado
+      forcedFromEmail = 'contato@usekipo.com.br'; // O seu domínio verificado
     }
 
-    const displayName = fromName || defaultFromName;
-    const from = `${displayName} <${fromEmail}>`;
+    const from = `${finalFromName} <${forcedFromEmail}>`;
 
     // 2. Construção do Payload
     const resendPayload: any = {

@@ -30,7 +30,7 @@ export const PasswordResetModal = ({ isOpen }: PasswordResetModalProps) => {
           </DialogTitle>
           <DialogDescription>
             Sua senha atual é temporária ou expirou. Por motivos de segurança,
-            você deve criar uma nova senha para continuar usando o Stocky.
+            você deve criar uma nova senha para continuar usando o Kipo.
           </DialogDescription>
         </DialogHeader>
 

@@ -260,7 +260,7 @@ export const OrderStatusClient = ({
 
       <footer className="p-8 text-center">
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-300">
-          Powered by Stocky
+          Powered by Kipo
         </p>
       </footer>
     </div>

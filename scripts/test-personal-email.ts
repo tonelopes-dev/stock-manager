@@ -13,10 +13,10 @@ async function testPersonalEmail() {
   try {
     const result = await sendEmail({
       to: personalEmail,
-      subject: 'Teste de Arquitetura de E-mail - Stockly',
+      subject: 'Teste de Arquitetura de E-mail - Kipo',
       html: passwordResetTemplate({
         name: 'Tone',
-        resetLink: 'https://stockly.usekipo.com.br/auth/reset-password?token=test-token',
+        resetLink: 'https://usekipo.com.br/auth/reset-password?token=test-token',
       }),
     });
 

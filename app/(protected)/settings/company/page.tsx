@@ -108,7 +108,7 @@ export default async function CompanySettingsPage() {
                     Assinatura e Faturamento
                   </CardTitle>
                   <CardDescription>
-                    Status atual da sua conta no Stockly.
+                    Status atual da sua conta no Kipo.
                   </CardDescription>
                 </div>
               </div>

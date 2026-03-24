@@ -10,7 +10,7 @@ export function baseLayout({ content, previewText }: BaseLayoutOptions) {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Stockly</title>
+      <title>Kipo</title>
       <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f9fafb; color: #111827; }
         .container { max-width: 600px; margin: 20px auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
@@ -28,13 +28,13 @@ export function baseLayout({ content, previewText }: BaseLayoutOptions) {
       ${previewText ? `<div style="display: none; max-height: 0px; overflow: hidden;">${previewText}</div>` : ''}
       <div class="container">
         <div class="header">
-          <a href="${process.env.NEXT_PUBLIC_APP_URL || '#'}" class="logo">📦 Stocky</a>
+          <a href="${process.env.NEXT_PUBLIC_APP_URL || '#'}" class="logo">📦 Kipo</a>
         </div>
         <div class="content">
           ${content}
         </div>
         <div class="footer">
-          <p>© ${new Date().getFullYear()} Stockly. Todos os direitos reservados.</p>
+          <p>© ${new Date().getFullYear()} Kipo. Todos os direitos reservados.</p>
           <p>Este é um e-mail automático, por favor não responda.</p>
         </div>
       </div>

@@ -15,6 +15,7 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { KipoLogo } from "@/app/_components/logo";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -49,13 +50,13 @@ export default function LoginPage() {
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-center text-2xl font-bold">
-          📦 Stocky
-        </CardTitle>
-        <CardDescription className="text-center">
-          Entre com seu email e senha para acessar
+    <Card className="w-full max-w-md border-none shadow-2xl">
+      <CardHeader className="space-y-4 pt-10">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <KipoLogo />
+        </div>
+        <CardDescription className="text-center text-slate-500">
+          Entre com seu e-mail para gerenciar seu negócio
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
