@@ -21,17 +21,17 @@ interface SummaryCardProps {
 const SummaryCard = ({ title, value, trend, icon: Icon, description, info }: SummaryCardProps) => {
   const iconContent = (
     <div className={cn(
-        "p-2 bg-slate-50 rounded-xl transition-all text-slate-400",
-        info ? "hover:bg-slate-100 hover:text-primary cursor-pointer shadow-sm" : ""
+        "p-2 bg-muted rounded-xl transition-all text-muted-foreground",
+        info ? "hover:bg-muted hover:text-primary cursor-pointer shadow-sm" : ""
     )}>
         <Icon size={16} />
     </div>
   );
 
   return (
-    <Card className="border-slate-200 shadow-sm overflow-hidden group transition-all hover:border-primary/20">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-slate-50/30">
-        <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-500">{title}</CardTitle>
+    <Card className="border-border shadow-sm overflow-hidden group transition-all hover:border-primary/20">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-muted/30">
+        <CardTitle className="text-xs font-black uppercase tracking-widest text-muted-foreground">{title}</CardTitle>
         
         {info ? (
             <Popover>
@@ -40,7 +40,7 @@ const SummaryCard = ({ title, value, trend, icon: Icon, description, info }: Sum
                         {iconContent}
                     </button>
                 </PopoverTrigger>
-                <PopoverContent side="top" align="end" className="max-w-[240px] text-xs font-medium leading-relaxed bg-slate-900 text-white border-slate-800 shadow-xl">
+                <PopoverContent side="top" align="end" className="max-w-[240px] text-xs font-medium leading-relaxed bg-foreground text-background border-foreground shadow-xl">
                     {info}
                 </PopoverContent>
             </Popover>
@@ -48,13 +48,13 @@ const SummaryCard = ({ title, value, trend, icon: Icon, description, info }: Sum
       </CardHeader>
       <CardContent className="pt-4">
         <div className="flex items-baseline gap-2">
-          <div className="text-2xl font-black text-slate-900">{value}</div>
+          <div className="text-2xl font-black text-foreground">{value}</div>
           <div className={`flex items-center text-[10px] font-black px-1.5 py-0.5 rounded-full ${trend >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}>
               {trend >= 0 ? <ArrowUpRightIcon size={10} className="mr-0.5" /> : <ArrowDownRightIcon size={10} className="mr-0.5" />}
               {Math.abs(trend)}%
           </div>
         </div>
-        <p className="text-[10px] text-slate-400 mt-1 font-medium">{description}</p>
+        <p className="text-[10px] text-muted-foreground mt-1 font-medium">{description}</p>
       </CardContent>
     </Card>
   );

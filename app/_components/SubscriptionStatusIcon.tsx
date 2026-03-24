@@ -17,7 +17,7 @@ export const SubscriptionStatusIcon = () => {
 
   const isUrgent =
     subscriptionLevel === "urgent" || subscriptionLevel === "expired";
-  const iconColor = isUrgent ? "text-red-500" : "text-yellow-500";
+  const iconColor = isUrgent ? "text-destructive" : "text-orange-500";
   const animationClass = isUrgent ? "animate-pulse" : "";
 
   return (
@@ -36,7 +36,7 @@ export const SubscriptionStatusIcon = () => {
               <AlertCircle className={`h-5 w-5 ${iconColor}`} />
             )}
             <span
-              className={`absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white`}
+              className={`absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-background`}
             >
               !
             </span>

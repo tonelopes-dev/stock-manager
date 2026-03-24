@@ -219,18 +219,18 @@ export const ComandaDetailsSheet = ({
 
   return (
     <UISheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <UISheetContent className="flex h-full w-full flex-col border-l border-slate-100 bg-white p-0 shadow-2xl sm:max-w-md">
-        <UISheetHeader className="border-b border-slate-50 p-6">
+      <UISheetContent className="flex h-full w-full flex-col border-l border-border bg-background p-0 shadow-2xl sm:max-w-md">
+        <UISheetHeader className="border-b border-border p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-sm">
                 <ShoppingCart size={24} />
               </div>
               <div className="flex flex-col text-left">
-                <UISheetTitle className="text-xl font-black uppercase italic leading-tight tracking-tighter text-slate-900">
+                <UISheetTitle className="text-xl font-black uppercase italic leading-tight tracking-tighter text-foreground">
                   {comanda.customerName}
                 </UISheetTitle>
-                <UISheetDescription className="text-xs font-bold text-slate-400">
+                <UISheetDescription className="text-xs font-bold text-muted-foreground">
                   {comanda.customerPhone || "Sem telefone"}
                 </UISheetDescription>
               </div>
@@ -245,14 +245,14 @@ export const ComandaDetailsSheet = ({
         </UISheetHeader>
 
         {/* Fixed Metrics Section */}
-        <div className="space-y-4 border-b border-slate-50 px-6 py-4">
+        <div className="space-y-4 border-b border-border px-6 py-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-2xl border border-slate-50 bg-slate-50/50 p-4">
-              <span className="mb-1 flex items-center gap-1.5 text-[10px] font-black uppercase italic tracking-tighter text-slate-400">
+            <div className="rounded-2xl border border-border bg-muted/50 p-4">
+              <span className="mb-1 flex items-center gap-1.5 text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
                 <Clock size={12} />
                 Aberta há
               </span>
-              <p className="text-sm font-bold capitalize text-slate-700">
+              <p className="text-sm font-bold capitalize text-foreground">
                 {formatDistanceToNow(comanda.firstOrderAt, { locale: ptBR })}
               </p>
             </div>
@@ -266,7 +266,7 @@ export const ComandaDetailsSheet = ({
               </p>
             </div>
           </div>
-          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+          <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Itens Consumidos
           </h4>
         </div>
@@ -281,29 +281,29 @@ export const ComandaDetailsSheet = ({
                   "flex items-center justify-between rounded-xl border p-3 shadow-sm transition-all",
                   selectedItemIds.has(item.id)
                     ? "border-primary/30 bg-primary/[0.02]"
-                    : "border-slate-50 bg-white hover:border-slate-100",
+                    : "border-border bg-background hover:border-border",
                 )}
               >
                 <div className="flex items-center gap-3">
                   <Checkbox
                     checked={selectedItemIds.has(item.id)}
                     onCheckedChange={() => toggleItemSelection(item.id)}
-                    className="h-5 w-5 rounded-md border-slate-200"
+                    className="h-5 w-5 rounded-md border-border"
                   />
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-[10px] font-black text-slate-500">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-[10px] font-black text-muted-foreground">
                     {item.quantity}x
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-slate-700">
+                    <span className="text-sm font-bold text-foreground">
                       {item.name}
                     </span>
-                    <span className="text-[10px] font-medium text-slate-400">
+                    <span className="text-[10px] font-medium text-muted-foreground">
                       Pedido realizado às {format(item.createdAt, "HH:mm")}
                     </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-sm font-bold text-slate-900">
+                  <span className="text-sm font-bold text-foreground">
                     {formatCurrency(item.price * item.quantity)}
                   </span>
                   <Button
@@ -311,7 +311,7 @@ export const ComandaDetailsSheet = ({
                     size="icon"
                     onClick={() => handleDeleteItem(item.id)}
                     disabled={isPending}
-                    className="h-8 w-8 rounded-lg text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500"
+                    className="h-8 w-8 rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                   >
                     <Trash2 size={14} />
                   </Button>
@@ -322,11 +322,11 @@ export const ComandaDetailsSheet = ({
         </div>
 
         {/* Fixed Footer Actions Section */}
-        <div className="border-t border-slate-100 bg-slate-50/30 p-6">
+        <div className="border-t border-border bg-muted/30 p-6">
           <div className="space-y-6">
             {/* Add Items Section */}
             <div className="space-y-4">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 + Adicionar Itens
               </h4>
               <div className="flex flex-col gap-3">
@@ -346,7 +346,7 @@ export const ComandaDetailsSheet = ({
                   <Button
                     onClick={handleAddItem}
                     disabled={!selectedProductId || isPending}
-                    className="h-10 flex-1 rounded-xl bg-slate-900 text-xs font-bold uppercase italic transition-all active:scale-95"
+                    className="h-10 flex-1 rounded-xl bg-foreground text-xs font-bold uppercase italic transition-all active:scale-95"
                   >
                     {isPending ? (
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -372,11 +372,11 @@ export const ComandaDetailsSheet = ({
               <div className="flex flex-col gap-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase italic tracking-tighter text-slate-400">
+                    <Label className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
                       Gorjeta / Taxa
                     </Label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">
                         R$
                       </span>
                       <Input
@@ -386,19 +386,19 @@ export const ComandaDetailsSheet = ({
                         placeholder="0,00"
                         value={tipAmount || ""}
                         onChange={(e) => setTipAmount(Number(e.target.value))}
-                        className="h-12 border-slate-200 pl-8 font-bold text-slate-700 focus-visible:ring-primary/20"
+                        className="h-12 border-border pl-8 font-bold text-foreground focus-visible:ring-primary/20"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                       Pagamento
                     </span>
                     <Select
                       value={paymentMethod}
                       onValueChange={setPaymentMethod}
                     >
-                      <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-white font-bold shadow-sm focus:ring-primary/20">
+                      <SelectTrigger className="h-12 rounded-2xl border-border bg-background font-bold shadow-sm focus:ring-primary/20">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent
@@ -430,8 +430,8 @@ export const ComandaDetailsSheet = ({
                 className={cn(
                   "h-14 w-full rounded-2xl text-lg font-black uppercase italic tracking-wider ring-offset-2 transition-all active:scale-95 disabled:opacity-50",
                   isPartial
-                    ? "bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90"
-                    : "bg-emerald-600 text-white shadow-lg shadow-emerald-100 hover:bg-emerald-700",
+                    ? "bg-primary text-background shadow-lg shadow-primary/20 hover:bg-primary/90"
+                    : "bg-emerald-600 text-background shadow-lg shadow-emerald-100 hover:bg-emerald-700",
                 )}
                 disabled={isPending}
                 onClick={handlePay}

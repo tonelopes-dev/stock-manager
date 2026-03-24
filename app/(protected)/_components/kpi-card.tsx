@@ -30,24 +30,24 @@ export const KpiCard = ({
   description,
 }: KpiCardProps) => {
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-slate-200/80 bg-white p-5 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5">
+    <div className="group relative overflow-hidden rounded-xl border border-border/80 bg-background p-5 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5">
       {/* Title & Info Popover */}
       <div className="mb-3 flex items-center justify-between">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
           {title}
         </p>
 
         {description && (
           <Popover>
             <PopoverTrigger asChild>
-              <button className="cursor-pointer border-none text-slate-300 outline-none transition-colors hover:text-primary">
+              <button className="cursor-pointer border-none text-muted-foreground outline-none transition-colors hover:text-primary">
                 <InfoIcon size={14} strokeWidth={2.5} />
               </button>
             </PopoverTrigger>
             <PopoverContent
               side="top"
               align="end"
-              className="max-w-[240px] border-slate-800 bg-slate-900 text-[11px] font-medium leading-relaxed text-white shadow-xl"
+              className="max-w-[240px] border-foreground bg-foreground text-[11px] font-medium leading-relaxed text-background shadow-xl"
             >
               {description}
             </PopoverContent>
@@ -56,13 +56,13 @@ export const KpiCard = ({
       </div>
 
       {/* Value */}
-      <p className="mb-1 text-2xl font-black leading-none tracking-tight text-slate-900">
+      <p className="mb-1 text-2xl font-black leading-none tracking-tight text-foreground">
         {value}
       </p>
 
       {/* Subtitle (optional) */}
       {subtitle && (
-        <p className="mt-1 text-xs font-medium text-slate-500">{subtitle}</p>
+        <p className="mt-1 text-xs font-medium text-muted-foreground">{subtitle}</p>
       )}
 
       {/* Trend (optional) */}
@@ -76,7 +76,7 @@ export const KpiCard = ({
             <ArrowDownIcon size={12} strokeWidth={3} />
           )}
           <span>{Math.abs(trend).toFixed(1)}%</span>
-          <span className="ml-0.5 font-medium text-slate-400">
+          <span className="ml-0.5 font-medium text-muted-foreground">
             vs. período ant.
           </span>
         </div>
@@ -89,9 +89,9 @@ export const KpiCard = ({
 };
 
 export const KpiCardSkeleton = () => (
-  <div className="animate-pulse rounded-xl border border-slate-200/80 bg-white p-5">
-    <div className="mb-4 h-3 w-20 rounded bg-slate-100" />
-    <div className="mb-2 h-7 w-32 rounded bg-slate-100" />
-    <div className="h-3 w-24 rounded bg-slate-100" />
+  <div className="animate-pulse rounded-xl border border-border/80 bg-background p-5">
+    <div className="mb-4 h-3 w-20 rounded bg-muted" />
+    <div className="mb-2 h-7 w-32 rounded bg-muted" />
+    <div className="h-3 w-24 rounded bg-muted" />
   </div>
 );

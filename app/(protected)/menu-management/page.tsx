@@ -27,7 +27,7 @@ const MenuManagementPage = async () => {
   );
 
   return (
-    <div className="m-8 space-y-6 overflow-auto rounded-lg bg-white p-8">
+    <div className="m-8 space-y-6 overflow-auto rounded-lg bg-background p-8">
       <Header>
         <HeaderLeft>
           <HeaderSubtitle>Modo Operação</HeaderSubtitle>
@@ -39,27 +39,27 @@ const MenuManagementPage = async () => {
       <MenuSharingHub companyId={companyId} />
 
       {/* Stats Bar */}
-      <div className="flex flex-wrap gap-4 rounded-xl bg-slate-50 px-5 py-3">
+      <div className="flex flex-wrap gap-4 rounded-xl bg-muted px-5 py-3">
         <div className="flex items-center gap-2 text-xs">
-          <span className="font-black text-slate-800">{totalProducts}</span>
-          <span className="text-slate-500">produtos cadastrados</span>
+          <span className="font-black text-foreground">{totalProducts}</span>
+          <span className="text-muted-foreground">produtos cadastrados</span>
         </div>
-        <div className="h-4 w-px bg-slate-200" />
+        <div className="h-4 w-px bg-muted" />
         <div className="flex items-center gap-2 text-xs">
           <Eye className="h-3.5 w-3.5 text-green-600" />
           <span className="font-black text-green-700">{visibleProducts}</span>
-          <span className="text-slate-500">visíveis no cardápio</span>
+          <span className="text-muted-foreground">visíveis no cardápio</span>
         </div>
-        <div className="h-4 w-px bg-slate-200" />
+        <div className="h-4 w-px bg-muted" />
         <div className="flex items-center gap-2 text-xs">
           <Flame className="h-3.5 w-3.5 text-orange-500" />
-          <span className="font-black text-orange-600">{promoProducts}</span>
-          <span className="text-slate-500">em promoção</span>
+          <span className="font-black text-orange-500">{promoProducts}</span>
+          <span className="text-muted-foreground">em promoção</span>
         </div>
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-6 text-[11px] text-slate-500">
+      <div className="flex items-center gap-6 text-[11px] text-muted-foreground">
         <div className="flex items-center gap-1.5">
           <Eye className="h-3.5 w-3.5 text-green-600" />
           <span>Visível no Menu</span>
@@ -72,8 +72,8 @@ const MenuManagementPage = async () => {
 
       {/* Categories */}
       {categories.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 py-16 text-center">
-          <p className="text-sm text-slate-500">
+        <div className="rounded-xl border border-dashed border-border py-16 text-center">
+          <p className="text-sm text-muted-foreground">
             Nenhum produto cadastrado. Crie produtos e categorias na página de{" "}
             <a href="/products" className="font-bold text-primary underline">
               Produtos

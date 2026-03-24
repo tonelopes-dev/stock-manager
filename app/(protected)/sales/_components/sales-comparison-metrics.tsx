@@ -23,13 +23,13 @@ function MetricCard({ title, value, trend, icon: Icon, description, info }: Metr
   const isNegative = trend && trend < 0;
 
   const iconContent = (
-    <div className="p-2 bg-slate-50 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-primary transition-all cursor-pointer">
+    <div className="p-2 bg-muted rounded-xl text-muted-foreground hover:bg-muted hover:text-primary transition-all cursor-pointer">
       <Icon size={20} />
     </div>
   );
 
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md group">
+    <div className="bg-background p-6 rounded-2xl border border-border shadow-sm transition-all hover:shadow-md group">
       <div className="flex items-start justify-between mb-4">
         <Popover>
           <PopoverTrigger asChild>
@@ -37,7 +37,7 @@ function MetricCard({ title, value, trend, icon: Icon, description, info }: Metr
               {iconContent}
             </button>
           </PopoverTrigger>
-          <PopoverContent side="top" align="start" className="max-w-[240px] text-xs font-medium leading-relaxed bg-slate-900 text-white border-slate-800 shadow-xl">
+          <PopoverContent side="top" align="start" className="max-w-[240px] text-xs font-medium leading-relaxed bg-foreground text-background border-foreground shadow-xl">
             {info}
           </PopoverContent>
         </Popover>
@@ -47,7 +47,7 @@ function MetricCard({ title, value, trend, icon: Icon, description, info }: Metr
             "flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold",
             isPositive ? "bg-emerald-50 text-emerald-600" : 
             isNegative ? "bg-rose-50 text-rose-600" : 
-            "bg-slate-50 text-slate-500"
+            "bg-muted text-muted-foreground"
           )}>
             {isPositive ? <TrendingUpIcon size={12} /> : isNegative ? <TrendingDownIcon size={12} /> : null}
             {Math.abs(trend)}%
@@ -55,9 +55,9 @@ function MetricCard({ title, value, trend, icon: Icon, description, info }: Metr
         )}
       </div>
       <div>
-        <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter mb-1">{title}</p>
-        <h3 className="text-2xl font-black text-slate-900 tracking-tight">{value}</h3>
-        <p className="text-[10px] font-medium text-slate-400 mt-2">{description}</p>
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-tighter mb-1">{title}</p>
+        <h3 className="text-2xl font-black text-foreground tracking-tight">{value}</h3>
+        <p className="text-[10px] font-medium text-muted-foreground mt-2">{description}</p>
       </div>
     </div>
   );
@@ -138,10 +138,10 @@ export function SalesComparisonMetrics({ comparison }: SalesComparisonMetricsPro
         />
       </div>
 
-      <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl flex items-center gap-3">
+      <div className="bg-muted border border-border p-4 rounded-2xl flex items-center gap-3">
         <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-        <p className="text-xs font-medium text-slate-600 italic">
-          <span className="font-black text-slate-900 not-italic mr-1">INSIGHT:</span>
+        <p className="text-xs font-medium text-muted-foreground italic">
+          <span className="font-black text-foreground not-italic mr-1">INSIGHT:</span>
           {insight}
         </p>
       </div>

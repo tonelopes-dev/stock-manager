@@ -22,7 +22,7 @@ export const PasswordResetModal = ({ isOpen }: PasswordResetModalProps) => {
         onPointerDownOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-500 text-orange-500">
             <ShieldAlertIcon size={24} />
           </div>
           <DialogTitle className="text-2xl font-black">
@@ -38,7 +38,7 @@ export const PasswordResetModal = ({ isOpen }: PasswordResetModalProps) => {
           <SecurityForm />
         </div>
 
-        <p className="text-center text-[10px] text-slate-400">
+        <p className="text-center text-[10px] text-muted-foreground">
           Esta é uma medida de proteção obrigatória para sua conta.
         </p>
       </DialogContent>

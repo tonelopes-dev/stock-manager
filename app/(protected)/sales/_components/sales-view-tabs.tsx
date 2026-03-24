@@ -17,24 +17,24 @@ export function SalesViewTabs() {
 
   return (
     <Tabs value={currentView} onValueChange={handleTabChange} className="w-[450px]">
-      <TabsList className="grid w-full grid-cols-3 bg-slate-100 p-1">
+      <TabsList className="grid w-full grid-cols-3 bg-muted p-1">
         <TabsTrigger 
             value="gestao" 
-            className="flex items-center gap-2 text-xs font-bold data-[state=active]:bg-white data-[state=active]:text-primary"
+            className="flex items-center gap-2 text-xs font-bold data-[state=active]:bg-background data-[state=active]:text-primary"
         >
           <TableIcon className="h-3.5 w-3.5" />
           Gestão
         </TabsTrigger>
         <TabsTrigger 
             value="inteligencia" 
-            className="flex items-center gap-2 text-xs font-bold data-[state=active]:bg-white data-[state=active]:text-primary"
+            className="flex items-center gap-2 text-xs font-bold data-[state=active]:bg-background data-[state=active]:text-primary"
         >
           <LayoutDashboardIcon className="h-3.5 w-3.5" />
           Inteligência
         </TabsTrigger>
         <TabsTrigger 
             value="gorjetas" 
-            className="flex items-center gap-2 text-xs font-bold data-[state=active]:bg-white data-[state=active]:text-primary"
+            className="flex items-center gap-2 text-xs font-bold data-[state=active]:bg-background data-[state=active]:text-primary"
         >
           <CoinsIcon className="h-3.5 w-3.5" />
           Gorjetas

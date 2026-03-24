@@ -70,7 +70,7 @@ export default async function CompanySettingsPage() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="space-y-8 lg:col-span-2">
           {/* Dados Gerais */}
-          <Card className="border-slate-200 shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-primary/10 p-2 text-primary">
@@ -97,10 +97,10 @@ export default async function CompanySettingsPage() {
           </Card>
 
           {/* Faturamento */}
-          <Card className="border-slate-200 shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-slate-100 p-2 text-slate-600">
+                <div className="rounded-lg bg-muted p-2 text-muted-foreground">
                   <CreditCardIcon size={20} />
                 </div>
                 <div>
@@ -115,21 +115,21 @@ export default async function CompanySettingsPage() {
             </CardHeader>
             <CardContent className="space-y-4 pb-8">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="rounded-xl border bg-slate-50/50 p-4">
-                  <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <div className="rounded-xl border bg-muted/50 p-4">
+                  <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                     Provedor de Pagamento
                   </p>
-                  <p className="text-sm font-semibold text-slate-600">
+                  <p className="text-sm font-semibold text-muted-foreground">
                     Mercado Pago
                   </p>
                 </div>
-                <div className="rounded-xl border bg-slate-50/50 p-4">
-                  <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <div className="rounded-xl border bg-muted/50 p-4">
+                  <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                     Status da Assinatura
                   </p>
                   <Badge
                     variant="outline"
-                    className="bg-white font-bold uppercase transition-all"
+                    className="bg-background font-bold uppercase transition-all"
                   >
                     {company.subscriptionStatus === "TRIALING"
                       ? "Em Teste"
@@ -145,7 +145,7 @@ export default async function CompanySettingsPage() {
                   </Badge>
                 </div>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Para gerenciar planos, pagamentos e faturas, utilize a aba{" "}
                 <Link
                   href="/plans"

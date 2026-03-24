@@ -64,7 +64,7 @@ export const MemberCardActions = ({ memberId, memberRole, requesterRole, isSelf 
       {canChangeRole && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-primary">
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">
               <ShieldIcon size={16} />
             </Button>
           </DropdownMenuTrigger>
@@ -92,7 +92,7 @@ export const MemberCardActions = ({ memberId, memberRole, requesterRole, isSelf 
       {canRemove && (
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <AlertDialogTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-600">
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
               <Trash2Icon size={16} />
             </Button>
           </AlertDialogTrigger>
@@ -108,7 +108,7 @@ export const MemberCardActions = ({ memberId, memberRole, requesterRole, isSelf 
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
               <AlertDialogAction 
                 onClick={() => removeAction.execute({ userCompanyId: memberId })}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-destructive hover:bg-destructive"
               >
                 {removeAction.isPending ? <Loader2Icon className="animate-spin" /> : "Confirmar Remoção"}
               </AlertDialogAction>

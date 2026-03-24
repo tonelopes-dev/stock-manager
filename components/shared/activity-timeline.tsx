@@ -42,7 +42,7 @@ export function ActivityTimeline({ logs, className }: ActivityTimelineProps) {
             <div className={cn(
               "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-background shadow-sm z-10",
               mapped.variant === "critical" ? "text-destructive border-destructive/20" : 
-              mapped.variant === "warning" ? "text-yellow-600 border-yellow-200" : 
+              mapped.variant === "warning" ? "text-orange-500 border-orange-500" : 
               "text-primary border-border"
             )}>
               {mapped.icon}

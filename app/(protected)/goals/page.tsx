@@ -23,8 +23,8 @@ const GoalsPage = async () => {
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 p-8">
       <Header>
-        <HeaderLeft>
-          <div className="rounded-xl bg-primary/10 p-2 text-primary">
+        <HeaderLeft className="flex flex-row items-center gap-4 space-y-0">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <TargetIcon size={24} />
           </div>
           <div>
@@ -59,13 +59,13 @@ const GoalsList = async ({
 
   if (goals.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 px-4 py-20">
-        <div className="rounded-full bg-slate-100 p-4 text-slate-400">
+      <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed border-border bg-muted/50 px-4 py-20">
+        <div className="rounded-full bg-muted p-4 text-muted-foreground">
           <TargetIcon size={48} strokeWidth={1.5} />
         </div>
         <div className="space-y-1 text-center">
-          <h3 className="font-bold text-slate-900">Nenhuma meta definida</h3>
-          <p className="max-w-[300px] text-sm text-slate-500">
+          <h3 className="font-bold text-foreground">Nenhuma meta definida</h3>
+          <p className="max-w-[300px] text-sm text-muted-foreground">
             Crie sua primeira meta para começar a monitorar o desempenho da sua
             empresa.
           </p>

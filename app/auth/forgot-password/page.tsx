@@ -55,8 +55,8 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
-      <Card className="w-full max-w-md border-slate-200 shadow-xl">
+    <div className="min-h-screen flex items-center justify-center bg-muted p-6">
+      <Card className="w-full max-w-md border-border shadow-xl">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-4">
                <div className="p-3 bg-primary/10 text-primary rounded-2xl">
@@ -100,7 +100,7 @@ export default function ForgotPasswordPage() {
           )}
         </CardContent>
         <CardFooter className="flex justify-center pt-2">
-            <Link href="/login" className="text-sm font-bold text-slate-500 hover:text-primary transition-colors flex items-center gap-2">
+            <Link href="/login" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
                 <ArrowLeftIcon size={14} />
                 Voltar para o login
             </Link>

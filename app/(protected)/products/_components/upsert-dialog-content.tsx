@@ -311,13 +311,13 @@ const UpsertProductDialogContent = ({
                     <FormControl>
                       <div className="relative w-24 h-24">
                         {field.value ? (
-                          <div className="relative w-full h-full overflow-hidden rounded-xl border border-slate-200 bg-slate-50 group shadow-sm transition-all hover:border-slate-300">
+                          <div className="relative w-full h-full overflow-hidden rounded-xl border border-border bg-muted group shadow-sm transition-all hover:border-border">
                             <img
                               src={field.value}
                               alt="Preview"
                               className="h-full w-full object-cover"
                             />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <div className="absolute inset-0 bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                               <Button
                                 type="button"
                                 variant="destructive"
@@ -332,12 +332,12 @@ const UpsertProductDialogContent = ({
                         ) : (
                           <label
                             className={cn(
-                              "flex flex-col items-center justify-center w-full h-full border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 cursor-pointer transition-all hover:border-slate-300 hover:bg-slate-100 shadow-sm text-slate-400 group",
+                              "flex flex-col items-center justify-center w-full h-full border-2 border-dashed border-border rounded-xl bg-muted cursor-pointer transition-all hover:border-border hover:bg-muted shadow-sm text-muted-foreground group",
                               isUploading && "cursor-not-allowed opacity-70"
                             )}
                           >
                             {isUploading ? (
-                              <Loader2Icon className="h-5 w-5 animate-spin text-slate-500" />
+                              <Loader2Icon className="h-5 w-5 animate-spin text-muted-foreground" />
                             ) : (
                               <div className="flex flex-col items-center gap-1">
                                 <ImageIcon className="h-5 w-5 group-hover:scale-110 transition-transform" />
@@ -531,7 +531,7 @@ const UpsertProductDialogContent = ({
               />
             </div>
 
-            <div className="space-y-4 rounded-lg border border-slate-100 p-4">
+            <div className="space-y-4 rounded-lg border border-border p-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label className="text-sm font-bold">Controle de Validade</Label>
@@ -684,7 +684,7 @@ const UpsertProductDialogContent = ({
                           <SelectSeparator />
                           <SelectItem
                             value="create"
-                            className="text-primary font-medium focus:text-primary focus:bg-slate-50 cursor-pointer"
+                            className="text-primary font-medium focus:text-primary focus:bg-muted cursor-pointer"
                           >
                             <div className="flex items-center gap-2">
                               <PlusIcon className="w-4 h-4" />

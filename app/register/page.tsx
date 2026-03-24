@@ -45,14 +45,14 @@ export default function RegisterPage() {
         <div className="flex flex-col items-center justify-center gap-4">
           <KipoLogo />
         </div>
-        <CardDescription className="text-center text-slate-500">
+        <CardDescription className="text-center text-muted-foreground">
           Crie sua conta para começar
         </CardDescription>
       </CardHeader>
       <form action={formAction}>
         <CardContent className="space-y-4">
           {state.error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-500">
+            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
               {state.error}
             </div>
           )}

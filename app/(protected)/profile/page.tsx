@@ -45,7 +45,7 @@ export default async function ProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           {/* Informações Pessoais */}
-          <Card className="border-slate-200 shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 text-primary rounded-lg">
@@ -63,7 +63,7 @@ export default async function ProfilePage() {
           </Card>
 
           {/* Segurança */}
-          <Card className="border-slate-200 shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 text-primary rounded-lg">
@@ -83,7 +83,7 @@ export default async function ProfilePage() {
 
         <div className="space-y-8">
           {/* Status da Conta */}
-          <Card className="border-slate-200 shadow-sm bg-slate-50/50">
+          <Card className="border-border shadow-sm bg-muted/50">
             <CardHeader>
                <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 text-primary rounded-lg">
@@ -94,22 +94,22 @@ export default async function ProfilePage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-1">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Empresa Ativa</p>
-                <p className="font-black text-slate-900">{company?.name}</p>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Empresa Ativa</p>
+                <p className="font-black text-foreground">{company?.name}</p>
               </div>
 
               <div className="space-y-2">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Seu Papel</p>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Seu Papel</p>
                 <div className="flex">
-                   <Badge variant="secondary" className="font-black px-3 py-1 bg-white border-slate-200 text-primary">
+                   <Badge variant="secondary" className="font-black px-3 py-1 bg-background border-border text-primary">
                     {role === "OWNER" ? "Proprietário" : role === "ADMIN" ? "Administrador" : "Membro"}
                   </Badge>
                 </div>
               </div>
 
-              <div className="space-y-2 pt-4 border-t border-slate-200">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status da Assinatura</p>
-                <Badge className="font-black px-3 py-1 bg-primary text-white uppercase">
+              <div className="space-y-2 pt-4 border-t border-border">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Status da Assinatura</p>
+                <Badge className="font-black px-3 py-1 bg-primary text-background uppercase">
                   {company?.subscriptionStatus || "FREE"}
                 </Badge>
               </div>
@@ -117,9 +117,9 @@ export default async function ProfilePage() {
             </CardContent>
           </Card>
 
-          <div className="p-6 rounded-xl border border-blue-100 bg-blue-50/50">
-             <h4 className="text-sm font-black text-blue-900 mb-2">Dica de Segurança</h4>
-             <p className="text-xs text-blue-700 leading-relaxed">
+          <div className="p-6 rounded-xl border border-primary bg-primary/50">
+             <h4 className="text-sm font-black text-primary mb-2">Dica de Segurança</h4>
+             <p className="text-xs text-primary leading-relaxed">
                 Nunca compartilhe sua senha temporária. Ao convidar membros, peça que eles alterem a senha no primeiro acesso.
              </p>
           </div>

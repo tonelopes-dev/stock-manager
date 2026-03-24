@@ -7,7 +7,7 @@ export const HeaderTitle = ({ children }: { children: ReactNode }) => {
 
 export const HeaderSubtitle = ({ children }: { children: ReactNode }) => {
   return (
-    <span className="text-xs font-semibold text-slate-500">{children}</span>
+    <span className="text-xs font-semibold text-muted-foreground">{children}</span>
   );
 };
 

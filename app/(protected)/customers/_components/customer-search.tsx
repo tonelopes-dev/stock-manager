@@ -54,7 +54,7 @@ export const CustomerSearch = ({
           text && (
             <button
               onClick={() => setText("")}
-              className="rounded-full p-0.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900"
+              className="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               type="button"
             >
               <XIcon className="h-3.5 w-3.5" />

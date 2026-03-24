@@ -82,11 +82,11 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
         <Button
           variant="ghost"
           size="icon"
-          className="relative h-9 w-9 rounded-xl text-slate-400 transition-all hover:bg-slate-100 hover:text-slate-600"
+          className="relative h-9 w-9 rounded-xl text-muted-foreground transition-all hover:bg-muted hover:text-muted-foreground"
         >
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-black text-white shadow-sm">
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-0.5 text-[9px] font-black text-background shadow-sm">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
@@ -96,12 +96,12 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
         align="end"
         className="w-80 rounded-2xl border-none p-0 shadow-2xl"
       >
-        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-          <h4 className="text-sm font-bold text-slate-900">Notificações</h4>
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <h4 className="text-sm font-bold text-foreground">Notificações</h4>
           {unreadCount > 0 && (
             <button
               onClick={markAllRead}
-              className="text-[10px] font-bold text-blue-600 hover:underline"
+              className="text-[10px] font-bold text-primary hover:underline"
             >
               Marcar todas como lidas
             </button>
@@ -111,11 +111,11 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
         <div className="max-h-72 overflow-y-auto">
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <Bell className="mb-2 h-8 w-8 text-slate-200" />
-              <p className="text-xs font-medium text-slate-400">
+              <Bell className="mb-2 h-8 w-8 text-muted-foreground" />
+              <p className="text-xs font-medium text-muted-foreground">
                 Nenhuma notificação
               </p>
-              <p className="mt-1 text-[10px] text-slate-300">
+              <p className="mt-1 text-[10px] text-muted-foreground">
                 Eventos da cozinha aparecerão aqui
               </p>
             </div>
@@ -123,20 +123,20 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
             notifications.map((notif) => (
               <div
                 key={notif.id}
-                className={`flex items-start gap-3 border-b border-slate-50 px-4 py-3 transition-colors ${
-                  !notif.read ? "bg-blue-50/40" : ""
+                className={`flex items-start gap-3 border-b border-border px-4 py-3 transition-colors ${
+                  !notif.read ? "bg-primary/40" : ""
                 }`}
               >
                 <div
                   className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${
-                    !notif.read ? "bg-blue-500" : "bg-transparent"
+                    !notif.read ? "bg-primary" : "bg-transparent"
                   }`}
                 />
                 <div className="flex-1">
-                  <p className="text-xs font-medium text-slate-700">
+                  <p className="text-xs font-medium text-foreground">
                     {notif.message}
                   </p>
-                  <p className="mt-0.5 text-[10px] text-slate-400">
+                  <p className="mt-0.5 text-[10px] text-muted-foreground">
                     {formatDistanceToNow(notif.timestamp, {
                       locale: ptBR,
                       addSuffix: true,

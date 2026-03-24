@@ -51,13 +51,13 @@ export function MonthComparisonFilter() {
   };
 
   return (
-    <div className="flex items-center gap-6 bg-white p-1.5 px-4 rounded-xl border border-slate-200 shadow-sm">
+    <div className="flex items-center gap-6 bg-background p-1.5 px-4 rounded-xl border border-border shadow-sm">
       {/* PERIOD A */}
       <div className="flex items-center gap-3">
-        <Label className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Período A</Label>
+        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-tighter">Período A</Label>
         <div className="flex gap-1.5">
           <Select value={yearA} onValueChange={(v) => handleUpdate("A", "year", v)}>
-            <SelectTrigger className="h-8 w-[80px] text-xs font-bold bg-slate-50 border-slate-200">
+            <SelectTrigger className="h-8 w-[80px] text-xs font-bold bg-muted border-border">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -65,7 +65,7 @@ export function MonthComparisonFilter() {
             </SelectContent>
           </Select>
           <Select value={monthA} onValueChange={(v) => handleUpdate("A", "month", v)}>
-            <SelectTrigger className="h-8 w-[110px] text-xs font-bold bg-slate-50 border-slate-200 capitalize">
+            <SelectTrigger className="h-8 w-[110px] text-xs font-bold bg-muted border-border capitalize">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -75,14 +75,14 @@ export function MonthComparisonFilter() {
         </div>
       </div>
 
-      <div className="text-[10px] font-black text-slate-300 italic">VS</div>
+      <div className="text-[10px] font-black text-muted-foreground italic">VS</div>
 
       {/* PERIOD B */}
       <div className="flex items-center gap-3">
-        <Label className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Período B</Label>
+        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-tighter">Período B</Label>
         <div className="flex gap-1.5">
           <Select value={yearB} onValueChange={(v) => handleUpdate("B", "year", v)}>
-            <SelectTrigger className="h-8 w-[80px] text-xs font-bold bg-slate-50 border-slate-200">
+            <SelectTrigger className="h-8 w-[80px] text-xs font-bold bg-muted border-border">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -90,7 +90,7 @@ export function MonthComparisonFilter() {
             </SelectContent>
           </Select>
           <Select value={monthB} onValueChange={(v) => handleUpdate("B", "month", v)}>
-            <SelectTrigger className="h-8 w-[110px] text-xs font-bold bg-slate-50 border-slate-200 capitalize">
+            <SelectTrigger className="h-8 w-[110px] text-xs font-bold bg-muted border-border capitalize">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

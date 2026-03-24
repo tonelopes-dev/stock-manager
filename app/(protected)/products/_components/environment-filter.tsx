@@ -47,9 +47,9 @@ export const EnvironmentFilter = ({ environments }: EnvironmentFilterProps) => {
   return (
     <>
     <Select value={currentEnv} onValueChange={handleEnvChange}>
-      <SelectTrigger className="h-11 gap-2 bg-white shadow-sm border-none min-w-[180px] justify-between">
+      <SelectTrigger className="h-11 gap-2 bg-background shadow-sm border-none min-w-[180px] justify-between">
         <div className="flex items-center gap-2">
-            <LayoutGridIcon className="w-4 h-4 text-slate-500" />
+            <LayoutGridIcon className="w-4 h-4 text-muted-foreground" />
             <SelectValue placeholder="Todos Ambientes" />
         </div>
       </SelectTrigger>
@@ -63,7 +63,7 @@ export const EnvironmentFilter = ({ environments }: EnvironmentFilterProps) => {
         <SelectSeparator />
         <SelectItem
           value="create"
-          className="text-primary font-medium focus:text-primary focus:bg-slate-50 cursor-pointer"
+          className="text-primary font-medium focus:text-primary focus:bg-muted cursor-pointer"
         >
           <div className="flex items-center gap-2">
             <PlusIcon className="w-4 h-4" />

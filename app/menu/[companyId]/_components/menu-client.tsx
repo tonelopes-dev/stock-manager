@@ -315,17 +315,17 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
   };
 
   return (
-    <div className="relative mx-auto flex min-h-screen max-w-md flex-col bg-white font-sans shadow-2xl">
+    <div className="relative mx-auto flex min-h-screen max-w-md flex-col bg-background font-sans shadow-2xl">
       {/* Header */}
-      <header className="sticky top-0 z-20 flex flex-col gap-4 border-b border-slate-100 bg-white/90 px-6 pb-4 pt-8 backdrop-blur-md">
+      <header className="sticky top-0 z-20 flex flex-col gap-4 border-b border-border bg-background/90 px-6 pb-4 pt-8 backdrop-blur-md">
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
-            <h1 className="text-2xl font-black italic leading-none tracking-tighter text-slate-900">
+            <h1 className="text-2xl font-black italic leading-none tracking-tighter text-foreground">
               {menuData.companyName.toUpperCase()}
             </h1>
             <Badge
               variant="outline"
-              className="mt-1 w-fit border-blue-100 bg-blue-50/30 text-[10px] font-bold uppercase text-blue-600"
+              className="mt-1 w-fit border-primary bg-primary/30 text-[10px] font-bold uppercase text-primary"
             >
               Cardápio Digital
             </Badge>
@@ -341,7 +341,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                   title="Trocar de conta"
                 >
                   <LogOut className="h-3.5 w-3.5" />
@@ -353,7 +353,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
                 variant="outline"
                 size="sm"
                 onClick={() => router.push(`/menu/${companyId}/my-orders`)}
-                className="flex h-10 items-center gap-2 rounded-2xl border-blue-100 bg-blue-50/30 px-4 text-[10px] font-black uppercase text-blue-600 shadow-sm transition-all hover:bg-blue-50"
+                className="flex h-10 items-center gap-2 rounded-2xl border-primary bg-primary/30 px-4 text-[10px] font-black uppercase text-primary shadow-sm transition-all hover:bg-primary"
               >
                 <ShoppingBag className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Meus Pedidos</span>
@@ -362,12 +362,12 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
             <Button
               variant="ghost"
               size="icon"
-              className="relative h-12 w-12 rounded-full border border-slate-100 bg-slate-50 text-slate-900"
+              className="relative h-12 w-12 rounded-full border border-border bg-muted text-foreground"
               onClick={() => setIsCartOpen(true)}
             >
               <ShoppingBag className="h-5 w-5" />
               {totalItems > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full border-2 border-white bg-blue-600 px-1 text-[10px] font-black text-white">
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full border-2 border-white bg-primary px-1 text-[10px] font-black text-background">
                   {totalItems}
                 </span>
               )}
@@ -377,10 +377,10 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="O que você quer comer hoje?"
-            className="h-12 rounded-2xl border-none bg-slate-100/50 pl-11 shadow-inner focus-visible:ring-blue-500"
+            className="h-12 rounded-2xl border-none bg-muted/50 pl-11 shadow-inner focus-visible:ring-primary"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -394,8 +394,8 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
               onClick={() => setSelectedCategoryId(category.id)}
               className={`flex items-center gap-2 whitespace-nowrap rounded-2xl px-5 py-2.5 transition-all duration-300 ${
                 selectedCategoryId === category.id
-                  ? "bg-slate-900 text-white shadow-xl shadow-slate-200"
-                  : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                  ? "bg-foreground text-background shadow-xl shadow-slate-200"
+                  : "bg-muted text-muted-foreground hover:bg-muted"
               }`}
             >
               <span className="text-sm font-bold tracking-tight">
@@ -407,16 +407,16 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
       </header>
 
       {/* Product List */}
-      <main className="flex-1 space-y-10 overflow-y-auto bg-white px-6 py-6 pb-28">
+      <main className="flex-1 space-y-10 overflow-y-auto bg-background px-6 py-6 pb-28">
         {filteredCategories.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-slate-50">
-              <Utensils className="h-10 w-10 text-slate-200" />
+            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+              <Utensils className="h-10 w-10 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900">
+            <h3 className="text-lg font-bold text-foreground">
               Nenhum prato encontrado
             </h3>
-            <p className="mt-2 max-w-[200px] text-sm text-slate-400">
+            <p className="mt-2 max-w-[200px] text-sm text-muted-foreground">
               Dica: Tente buscar por nomes genéricos ou verifique as categorias.
             </p>
           </div>
@@ -427,13 +427,13 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
               className="space-y-5 duration-500 animate-in fade-in"
             >
               <div className="flex items-center justify-between">
-                <h2 className="flex items-center gap-3 text-xl font-black tracking-tighter text-slate-900">
-                  <span className="h-6 w-1.5 rounded-full bg-blue-600" />
+                <h2 className="flex items-center gap-3 text-xl font-black tracking-tighter text-foreground">
+                  <span className="h-6 w-1.5 rounded-full bg-primary" />
                   {category.name}
                 </h2>
                 <Badge
                   variant="outline"
-                  className="border-none font-bold text-slate-300"
+                  className="border-none font-bold text-muted-foreground"
                 >
                   {category.products.length}
                 </Badge>
@@ -445,7 +445,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
                     className="group relative cursor-pointer"
                     onClick={() => addToCart(product)}
                   >
-                    <Card className="overflow-hidden rounded-[2.5rem] border-none bg-slate-50/40 transition-all duration-500 hover:bg-white hover:shadow-2xl hover:shadow-slate-100 active:scale-95">
+                    <Card className="overflow-hidden rounded-[2.5rem] border-none bg-muted/40 transition-all duration-500 hover:bg-background hover:shadow-2xl hover:shadow-slate-100 active:scale-95">
                       <div className="flex gap-5 p-4">
                         {product.imageUrl ? (
                           <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-3xl shadow-lg">
@@ -456,16 +456,16 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
                               className="object-cover transition-transform duration-700 group-hover:scale-110"
                             />
                             {product.isPromotion && (
-                              <div className="absolute left-2 top-2 rounded-full bg-red-500 px-2 py-1 text-[8px] font-black uppercase tracking-widest text-white shadow-lg">
+                              <div className="absolute left-2 top-2 rounded-full bg-destructive px-2 py-1 text-[8px] font-black uppercase tracking-widest text-background shadow-lg">
                                 Promo
                               </div>
                             )}
                           </div>
                         ) : (
-                          <div className="relative flex h-28 w-28 shrink-0 items-center justify-center rounded-3xl bg-white shadow-lg">
-                            <Utensils className="h-10 w-10 text-slate-100" />
+                          <div className="relative flex h-28 w-28 shrink-0 items-center justify-center rounded-3xl bg-background shadow-lg">
+                            <Utensils className="h-10 w-10 text-muted-foreground" />
                             {product.isPromotion && (
-                              <div className="absolute left-2 top-2 rounded-full bg-red-500 px-2 py-1 text-[8px] font-black uppercase tracking-widest text-white shadow-lg">
+                              <div className="absolute left-2 top-2 rounded-full bg-destructive px-2 py-1 text-[8px] font-black uppercase tracking-widest text-background shadow-lg">
                                 Promo
                               </div>
                             )}
@@ -473,21 +473,21 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
                         )}
                         <div className="flex flex-1 flex-col justify-between py-1">
                           <div className="space-y-1">
-                            <h3 className="text-lg font-bold leading-tight text-slate-900 transition-colors group-hover:text-blue-600">
+                            <h3 className="text-lg font-bold leading-tight text-foreground transition-colors group-hover:text-primary">
                               {product.name}
                             </h3>
-                            <p className="line-clamp-2 text-xs leading-relaxed text-slate-500">
+                            <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
                               {product.description ||
                                 "Ingredientes selecionados para uma experiência gastronômica única."}
                             </p>
                           </div>
                           <div className="mt-3 flex items-center justify-between">
-                            <div className="rounded-full bg-blue-50 px-3 py-1">
-                              <span className="text-sm font-black text-blue-600">
+                            <div className="rounded-full bg-primary px-3 py-1">
+                              <span className="text-sm font-black text-primary">
                                 {formatPrice(product.price)}
                               </span>
                             </div>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg shadow-slate-200 transition-all group-hover:bg-blue-600">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-foreground text-background shadow-lg shadow-slate-200 transition-all group-hover:bg-primary">
                               <Plus className="h-5 w-5" />
                             </div>
                           </div>
@@ -507,14 +507,14 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
         <footer className="fixed bottom-8 left-1/2 z-30 w-[calc(100%-48px)] max-w-[calc(448px-48px)] -translate-x-1/2 duration-500 animate-in slide-in-from-bottom-6">
           <Button
             onClick={() => setIsCartOpen(true)}
-            className="flex h-16 w-full items-center justify-between rounded-[2rem] border-t border-white/10 bg-slate-900 px-8 text-white shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-all hover:bg-slate-800 active:scale-95"
+            className="flex h-16 w-full items-center justify-between rounded-[2rem] border-t border-white/10 bg-foreground px-8 text-background shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-all hover:bg-foreground active:scale-95"
           >
             <div className="flex items-center gap-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-background/10 backdrop-blur-sm">
                 <ShoppingBag className="h-5 w-5" />
               </div>
               <div className="flex flex-col items-start leading-tight">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   Ver Sacola
                 </span>
                 <span className="text-sm font-bold">
@@ -536,13 +536,13 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
           className="mx-auto h-[90vh] max-w-md rounded-t-[3rem] border-none shadow-2xl"
         >
           <SheetHeader className="px-8 pt-8">
-            <SheetTitle className="flex items-center justify-between text-2xl font-black italic tracking-tighter text-slate-900">
+            <SheetTitle className="flex items-center justify-between text-2xl font-black italic tracking-tighter text-foreground">
               SUA SACOLA
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsCartOpen(false)}
-                className="rounded-full bg-slate-50"
+                className="rounded-full bg-muted"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -552,7 +552,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
           <main className="max-h-[60vh] space-y-6 overflow-y-auto px-8 pt-2">
             {cart.length === 0 ? (
               <div className="py-10 text-center">
-                <p className="font-medium text-slate-400">
+                <p className="font-medium text-muted-foreground">
                   Sua sacola está vazia.
                 </p>
               </div>
@@ -562,7 +562,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
                   key={item.id}
                   className="flex items-center gap-4 duration-300 animate-in fade-in slide-in-from-right-4"
                 >
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-slate-50 shadow-sm">
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-muted shadow-sm">
                     {item.imageUrl && (
                       <Image
                         src={item.imageUrl}
@@ -573,29 +573,29 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
                     )}
                   </div>
                   <div className="flex-1 space-y-1">
-                    <h4 className="text-sm font-bold text-slate-900">
+                    <h4 className="text-sm font-bold text-foreground">
                       {item.name}
                     </h4>
-                    <p className="text-xs font-black text-blue-600">
+                    <p className="text-xs font-black text-primary">
                       {formatPrice(item.price)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1 rounded-2xl border border-slate-100 bg-slate-50 p-1">
+                  <div className="flex items-center gap-1 rounded-2xl border border-border bg-muted p-1">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 rounded-xl text-slate-400 transition-colors hover:text-red-500"
+                      className="h-8 w-8 rounded-xl text-muted-foreground transition-colors hover:text-destructive"
                       onClick={() => updateQuantity(item.id, -1)}
                     >
                       <Minus className="h-3 w-3" />
                     </Button>
-                    <span className="w-6 text-center text-xs font-black text-slate-900">
+                    <span className="w-6 text-center text-xs font-black text-foreground">
                       {item.quantity}
                     </span>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 rounded-xl text-slate-400 transition-colors hover:text-blue-600"
+                      className="h-8 w-8 rounded-xl text-muted-foreground transition-colors hover:text-primary"
                       onClick={() => updateQuantity(item.id, 1)}
                     >
                       <Plus className="h-3 w-3" />
@@ -607,14 +607,14 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
           </main>
 
           <SheetFooter className="space-y-4 px-8 pb-10 pt-6">
-            <div className="flex flex-col gap-2 rounded-[2rem] border border-slate-100 bg-slate-50 p-6">
-              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-slate-400">
+            <div className="flex flex-col gap-2 rounded-[2rem] border border-border bg-muted p-6">
+              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 <span>Subtotal</span>
                 <span>{formatPrice(totalPrice)}</span>
               </div>
-              <div className="mt-1 flex items-center justify-between text-lg font-black text-slate-900">
+              <div className="mt-1 flex items-center justify-between text-lg font-black text-foreground">
                 <span>Total</span>
-                <span className="text-blue-600">{formatPrice(totalPrice)}</span>
+                <span className="text-primary">{formatPrice(totalPrice)}</span>
               </div>
             </div>
 
@@ -634,7 +634,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
             )}
 
             <Button
-              className="h-16 w-full rounded-[2rem] bg-slate-900 text-lg font-black text-white shadow-xl shadow-slate-200 transition-all hover:bg-slate-800 disabled:opacity-50"
+              className="h-16 w-full rounded-[2rem] bg-foreground text-lg font-black text-background shadow-xl shadow-slate-200 transition-all hover:bg-foreground disabled:opacity-50"
               disabled={cart.length === 0 || isSubmitting}
               onClick={handleCheckout}
             >
@@ -662,7 +662,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
         <DialogContent className="max-w-sm rounded-3xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl font-black tracking-tight">
-              <User className="h-5 w-5 text-blue-600" />
+              <User className="h-5 w-5 text-primary" />
               {identifyStep === "PHONE"
                 ? "Identificação"
                 : "Complete seu cadastro"}
@@ -677,7 +677,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
           <div className="space-y-4 py-2">
             {identifyStep === "PHONE" ? (
               <div className="space-y-1.5">
-                <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
+                <label className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
                   <Phone className="h-3 w-3" />
                   Telefone *
                 </label>
@@ -698,7 +698,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
             ) : (
               <>
                 <div className="space-y-1.5">
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
                     <User className="h-3 w-3" />
                     Nome *
                   </label>
@@ -714,21 +714,21 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
                 </div>
 
                 <div className="space-y-1.5 opacity-60">
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
                     <Phone className="h-3 w-3" />
                     Telefone
                   </label>
                   <Input
                     value={identifyForm.phoneNumber}
                     disabled
-                    className="rounded-xl bg-slate-50"
+                    className="rounded-xl bg-muted"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
                     <Mail className="h-3 w-3" />
-                    Email <span className="text-slate-400">(opcional)</span>
+                    Email <span className="text-muted-foreground">(opcional)</span>
                   </label>
                   <Input
                     placeholder="seu@email.com"
@@ -745,10 +745,10 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
                     <Calendar className="h-3 w-3" />
                     Data de nascimento{" "}
-                    <span className="text-slate-400">(opcional)</span>
+                    <span className="text-muted-foreground">(opcional)</span>
                   </label>
                   <DatePicker
                     value={identifyForm.birthDate ? parseISO(identifyForm.birthDate) : undefined}
@@ -768,7 +768,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
 
           <div className="flex flex-col gap-3">
             <Button
-              className="h-14 w-full rounded-2xl bg-slate-900 text-base font-black text-white shadow-xl transition-all hover:bg-slate-800 disabled:opacity-50"
+              className="h-14 w-full rounded-2xl bg-foreground text-base font-black text-background shadow-xl transition-all hover:bg-foreground disabled:opacity-50"
               disabled={
                 isIdentifying ||
                 (identifyStep === "PHONE" && !identifyForm.phoneNumber) ||
@@ -794,7 +794,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
             {identifyStep === "DETAILS" && (
               <button
                 onClick={() => setIdentifyStep("PHONE")}
-                className="mt-2 text-center text-xs font-bold text-slate-400 hover:text-slate-600"
+                className="mt-2 text-center text-xs font-bold text-muted-foreground hover:text-muted-foreground"
               >
                 Voltar e alterar telefone
               </button>

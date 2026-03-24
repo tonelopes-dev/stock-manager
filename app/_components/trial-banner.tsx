@@ -30,29 +30,29 @@ const TrialBanner = ({ subscriptionStatus, expiresAt }: TrialBannerProps) => {
 
   // Determine severity and messaging
   let config = {
-    bg: "bg-blue-50",
-    border: "border-blue-200",
-    text: "text-blue-800",
-    icon: <InfoIcon className="h-5 w-5 text-blue-500" />,
+    bg: "bg-primary",
+    border: "border-primary",
+    text: "text-primary",
+    icon: <InfoIcon className="h-5 w-5 text-primary" />,
     message: `Você está no período de teste gratuito. Restam ${daysRemaining} ${daysRemaining === 1 ? "dia" : "dias"}.`,
     cta: "Ativar plano agora",
   };
 
   if (daysRemaining === 2) {
     config = {
-      bg: "bg-amber-50",
-      border: "border-amber-200",
-      text: "text-amber-800",
-      icon: <AlertTriangleIcon className="h-5 w-5 text-amber-500" />,
+      bg: "bg-orange-500",
+      border: "border-orange-500",
+      text: "text-orange-500",
+      icon: <AlertTriangleIcon className="h-5 w-5 text-orange-500" />,
       message: `Seu teste termina em ${daysRemaining} dias.`,
       cta: "Ativar plano agora",
     };
   } else if (daysRemaining <= 1) {
     config = {
-      bg: "bg-red-50",
-      border: "border-red-200",
-      text: "text-red-800",
-      icon: <AlertCircleIcon className="h-5 w-5 text-red-500" />,
+      bg: "bg-destructive/10",
+      border: "border-destructive/10",
+      text: "text-destructive",
+      icon: <AlertCircleIcon className="h-5 w-5 text-destructive" />,
       message: `Seu teste termina em ${daysRemaining} ${daysRemaining === 1 ? "dia" : "dias"}. Evite a interrupção do acesso.`,
       cta: "Evitar interrupção",
     };

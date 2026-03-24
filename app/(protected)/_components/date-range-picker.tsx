@@ -37,7 +37,7 @@ export const DateRangePicker = () => {
       <div className="flex items-center gap-2">
         <label
           htmlFor="date-from"
-          className="text-[11px] font-bold uppercase tracking-widest text-slate-400"
+          className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
         >
           De
         </label>
@@ -51,7 +51,7 @@ export const DateRangePicker = () => {
       <div className="flex items-center gap-2">
         <label
           htmlFor="date-to"
-          className="text-[11px] font-bold uppercase tracking-widest text-slate-400"
+          className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
         >
           Até
         </label>
@@ -68,7 +68,7 @@ export const DateRangePicker = () => {
         className="
           h-9 px-4 rounded-lg
           text-xs font-bold uppercase tracking-widest
-          bg-primary text-white
+          bg-primary text-background
           transition-all duration-200
           hover:bg-primary/90 hover:shadow-md hover:shadow-primary/20
           disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none
@@ -84,9 +84,9 @@ export const DateRangePicker = () => {
           className="
             h-9 px-3 rounded-lg
             text-xs font-bold uppercase tracking-widest
-            text-slate-500 border border-slate-200
+            text-muted-foreground border border-border
             transition-all duration-200
-            hover:bg-slate-50 hover:border-slate-300
+            hover:bg-muted hover:border-border
             active:scale-[0.97]
           "
         >

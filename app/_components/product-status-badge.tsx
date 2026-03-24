@@ -31,9 +31,9 @@ const ProductStatusBadge = ({ status }: ProductStatusBadgeProps) => {
       }
       className={`gap-1.5 ${
         status === "LOW_STOCK"
-          ? "bg-orange-500 hover:bg-orange-600 border-none text-white"
+          ? "bg-orange-500 hover:bg-orange-500 border-none text-background"
           : status === "SLOW_MOVING"
-          ? "bg-blue-500 hover:bg-blue-600 border-none text-white"
+          ? "bg-primary hover:bg-primary border-none text-background"
           : ""
       }`}
     >

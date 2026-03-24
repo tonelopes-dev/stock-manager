@@ -69,7 +69,7 @@ export async function ActivityTimeline({
                         {mapped.description}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
-                        <div className="h-4 w-4 rounded-full bg-slate-100 flex items-center justify-center text-[8px] font-bold text-slate-500 overflow-hidden border border-slate-200 relative">
+                        <div className="h-4 w-4 rounded-full bg-muted flex items-center justify-center text-[8px] font-bold text-muted-foreground overflow-hidden border border-border relative">
                           {log.actor?.image ? (
                             <Image 
                               src={log.actor.image} 

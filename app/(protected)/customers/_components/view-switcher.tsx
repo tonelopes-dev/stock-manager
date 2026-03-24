@@ -31,17 +31,17 @@ export const CustomerViewSwitcher = ({
       onValueChange={handleViewChange}
       className="w-auto"
     >
-      <TabsList className="bg-slate-100/50">
+      <TabsList className="bg-muted/50">
         <TabsTrigger
           value="table"
-          className="gap-2 text-[10px] font-black uppercase italic tracking-tighter data-[state=active]:bg-white data-[state=active]:text-primary"
+          className="gap-2 text-[10px] font-black uppercase italic tracking-tighter data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
         >
           <LayoutList className="h-3 w-3" />
           Tabela
         </TabsTrigger>
         <TabsTrigger
           value="kanban"
-          className="gap-2 text-[10px] font-black uppercase italic tracking-tighter data-[state=active]:bg-white data-[state=active]:text-primary"
+          className="gap-2 text-[10px] font-black uppercase italic tracking-tighter data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
         >
           <LayoutDashboard className="h-3 w-3" />
           Funil (CRM)

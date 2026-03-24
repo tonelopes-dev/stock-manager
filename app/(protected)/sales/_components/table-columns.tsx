@@ -62,20 +62,20 @@ export const saleTableColumns = (
           );
         case "CREDIT_CARD":
           return (
-            <div className="flex items-center gap-1.5 font-bold text-indigo-600">
+            <div className="flex items-center gap-1.5 font-bold text-primary">
               <CreditCardIcon size={14} />
               Crédito
             </div>
           );
         case "DEBIT_CARD":
           return (
-            <div className="flex items-center gap-1.5 font-bold text-blue-600">
+            <div className="flex items-center gap-1.5 font-bold text-primary">
               <WalletIcon size={14} />
               Débito
             </div>
           );
         default:
-          return <span className="font-medium text-slate-400">-</span>;
+          return <span className="font-medium text-muted-foreground">-</span>;
       }
     },
   },

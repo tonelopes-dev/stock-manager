@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
 
 const IngredientsPage = async () => {
   return (
-    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
+    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-background p-8">
       <Suspense fallback={<IngredientTableSkeleton />}>
         <IngredientTableWrapper />
       </Suspense>

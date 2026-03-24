@@ -92,12 +92,12 @@ export const ComandasGrid = ({
       {/* Header Operational Actions */}
       <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
         <div className="relative w-full md:max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Buscar por cliente ou celular..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 pl-10 font-bold transition-all placeholder:font-medium placeholder:text-slate-400 focus:bg-white"
+            className="h-12 rounded-2xl border-border bg-muted/50 pl-10 font-bold transition-all placeholder:font-medium placeholder:text-muted-foreground focus:bg-background"
           />
         </div>
 
@@ -105,7 +105,7 @@ export const ComandasGrid = ({
           variant="outline"
           size="sm"
           onClick={handleRefresh}
-          className="h-12 gap-2 rounded-2xl border-slate-200 px-6 font-black uppercase italic tracking-tighter transition-colors hover:bg-slate-50"
+          className="h-12 gap-2 rounded-2xl border-border px-6 font-black uppercase italic tracking-tighter transition-colors hover:bg-muted"
           disabled={isRefreshing}
         >
           <RefreshCcw
@@ -130,14 +130,14 @@ export const ComandasGrid = ({
           ))}
         </div>
       ) : (
-        <div className="flex h-[400px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-100 bg-slate-50/30 text-center">
-          <div className="mb-4 rounded-full bg-slate-100 p-6 text-slate-300">
+        <div className="flex h-[400px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-border bg-muted/30 text-center">
+          <div className="mb-4 rounded-full bg-muted p-6 text-muted-foreground">
             <ShoppingBag size={48} />
           </div>
-          <h3 className="text-xl font-black uppercase italic tracking-tighter text-slate-400">
+          <h3 className="text-xl font-black uppercase italic tracking-tighter text-muted-foreground">
             {search ? "Nenhum resultado" : "Aguardando Pedidos"}
           </h3>
-          <p className="mt-1 max-w-[300px] text-xs font-bold leading-relaxed text-slate-400/80">
+          <p className="mt-1 max-w-[300px] text-xs font-bold leading-relaxed text-muted-foreground/80">
             {search
               ? `Não encontramos comandas para "${search}". Verifique se o nome está correto.`
               : "As comandas aparecerão aqui automaticamente assim que um cliente fizer um pedido pelo Menu Digital."}

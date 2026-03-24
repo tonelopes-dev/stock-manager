@@ -18,11 +18,11 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-white p-4 text-center text-slate-900">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center text-foreground">
       <div className="max-w-md space-y-8 duration-500 animate-in fade-in slide-in-from-bottom-4">
         <div className="flex justify-center">
-          <div className="rounded-full bg-amber-50 p-6">
-            <AlertTriangleIcon className="h-16 w-16 text-amber-500" />
+          <div className="rounded-full bg-orange-500/10 p-6">
+            <AlertTriangleIcon className="h-16 w-16 text-orange-500" />
           </div>
         </div>
 
@@ -30,12 +30,12 @@ export default function GlobalError({
           <h1 className="text-3xl font-black tracking-tight text-primary">
             Ocorreu um erro inesperado
           </h1>
-          <p className="text-slate-600">
+          <p className="text-muted-foreground">
             Pedimos desculpas pelo transtorno. Nossa equipe técnica já foi
             notificada e estamos trabalhando nisso para você.
           </p>
           {error.digest && (
-            <p className="font-mono text-[10px] text-slate-400">
+            <p className="font-mono text-[10px] text-muted-foreground">
               ID: {error.digest}
             </p>
           )}
@@ -53,7 +53,7 @@ export default function GlobalError({
           <Button
             size="lg"
             variant="ghost"
-            className="h-12 w-full font-bold text-slate-500 hover:text-slate-900"
+            className="h-12 w-full font-bold text-muted-foreground hover:text-foreground"
             asChild
           >
             <Link href="/dashboard">

@@ -13,11 +13,11 @@ const SubscriptionPanel = ({ status, periodEnd }: SubscriptionPanelProps) => {
   const uiState = getSubscriptionUIState(status, periodEnd);
 
   const severityStyles = {
-    info: "bg-blue-50 border-blue-100 text-blue-700",
-    warning: "bg-amber-50 border-amber-100 text-amber-700",
-    danger: "bg-red-50 border-red-100 text-red-700",
+    info: "bg-primary border-primary text-primary",
+    warning: "bg-orange-500 border-orange-500 text-orange-500",
+    danger: "bg-destructive/10 border-destructive/10 text-destructive",
     success: "bg-green-50 border-green-100 text-green-700",
-    neutral: "bg-gray-50 border-gray-100 text-gray-700",
+    neutral: "bg-muted border-border text-foreground",
   };
 
   return (
@@ -25,7 +25,7 @@ const SubscriptionPanel = ({ status, periodEnd }: SubscriptionPanelProps) => {
 
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <CrownIcon size={14} className={uiState.severity === "success" ? "text-green-600" : "text-gray-400"} />
+          <CrownIcon size={14} className={uiState.severity === "success" ? "text-green-600" : "text-muted-foreground"} />
           <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">
             {uiState.statusLabel}
           </span>

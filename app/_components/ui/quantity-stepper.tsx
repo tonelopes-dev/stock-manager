@@ -37,24 +37,24 @@ export function QuantityStepper({
         variant="outline"
         size="icon"
         type="button"
-        className="h-8 w-8 rounded-lg border-slate-200"
+        className="h-8 w-8 rounded-lg border-border"
         onClick={handleDecrement}
         disabled={value <= min}
       >
-        <MinusIcon size={14} className="text-slate-600" />
+        <MinusIcon size={14} className="text-muted-foreground" />
       </Button>
-      <span className="w-8 text-center text-sm font-bold text-slate-900">
+      <span className="w-8 text-center text-sm font-bold text-foreground">
         {value}
       </span>
       <Button
         variant="outline"
         size="icon"
         type="button"
-        className="h-8 w-8 rounded-lg border-slate-200"
+        className="h-8 w-8 rounded-lg border-border"
         onClick={handleIncrement}
         disabled={max !== undefined && value >= max}
       >
-        <PlusIcon size={14} className="text-slate-600" />
+        <PlusIcon size={14} className="text-muted-foreground" />
       </Button>
     </div>
   );

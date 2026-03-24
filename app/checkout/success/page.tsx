@@ -6,8 +6,8 @@ export const dynamic = "force-dynamic";
 
 const CheckoutSuccessPage = () => {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-8">
-      <div className="w-full max-w-md rounded-2xl bg-white p-10 text-center shadow-lg">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-muted p-8">
+      <div className="w-full max-w-md rounded-2xl bg-background p-10 text-center shadow-lg">
         {/* Icon */}
         <div className="mb-6 flex justify-center">
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
@@ -17,22 +17,22 @@ const CheckoutSuccessPage = () => {
 
         {/* Heading */}
         <div className="mb-2 flex items-center justify-center gap-2">
-          <SparklesIcon className="h-5 w-5 text-yellow-500" />
-          <h1 className="text-2xl font-bold text-gray-900">
+          <SparklesIcon className="h-5 w-5 text-orange-500" />
+          <h1 className="text-2xl font-bold text-foreground">
             Seu teste grátis começou!
           </h1>
-          <SparklesIcon className="h-5 w-5 text-yellow-500" />
+          <SparklesIcon className="h-5 w-5 text-orange-500" />
         </div>
 
         {/* Description */}
-        <p className="mb-8 text-gray-500">
-          Você tem <strong className="text-gray-900">3 dias</strong> para
+        <p className="mb-8 text-muted-foreground">
+          Você tem <strong className="text-foreground">3 dias</strong> para
           explorar todas as funcionalidades do plano Pro sem nenhum custo.
           Aproveite ao máximo!
         </p>
 
         {/* Features list */}
-        <ul className="mb-8 space-y-2 text-left text-sm text-gray-600">
+        <ul className="mb-8 space-y-2 text-left text-sm text-muted-foreground">
           {[
             "Produtos e insumos ilimitados",
             "Usuários ilimitados",
@@ -55,9 +55,9 @@ const CheckoutSuccessPage = () => {
           </Link>
         </Button>
 
-        <p className="mt-4 text-xs text-gray-400">
+        <p className="mt-4 text-xs text-muted-foreground">
           Você pode gerenciar sua assinatura a qualquer momento em{" "}
-          <Link href="/plans" className="underline hover:text-gray-600">
+          <Link href="/plans" className="underline hover:text-muted-foreground">
             Planos
           </Link>
           .

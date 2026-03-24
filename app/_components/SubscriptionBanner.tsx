@@ -18,8 +18,8 @@ export const SubscriptionBanner = () => {
   const isUrgent = subscriptionLevel === "urgent";
   const isExpired = subscriptionLevel === "expired";
 
-  const bgColor = isUrgent || isExpired ? "bg-red-600" : "bg-yellow-500";
-  const textColor = "text-white";
+  const bgColor = isUrgent || isExpired ? "bg-destructive" : "bg-orange-500";
+  const textColor = "text-background";
 
   return (
     <div
@@ -50,7 +50,7 @@ export const SubscriptionBanner = () => {
         <div className="flex items-center gap-3">
           <Link
             href="/plans"
-            className="whitespace-nowrap rounded-full bg-white px-4 py-1.5 text-sm font-bold text-black transition-colors hover:bg-gray-100"
+            className="whitespace-nowrap rounded-full bg-background px-4 py-1.5 text-sm font-bold text-foreground transition-colors hover:bg-muted"
           >
             {isExpired ? "Regularizar Agora" : "Renovar Assinatura"}
           </Link>
@@ -59,7 +59,7 @@ export const SubscriptionBanner = () => {
             variant="ghost"
             size="icon"
             onClick={() => setIsBannerVisible(false)}
-            className="h-8 w-8 rounded-full text-white hover:bg-white/20"
+            className="h-8 w-8 rounded-full text-background hover:bg-background/20"
           >
             <X className="h-5 w-5" />
           </Button>

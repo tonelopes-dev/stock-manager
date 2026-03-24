@@ -55,14 +55,14 @@ export default function LoginPage() {
         <div className="flex flex-col items-center justify-center gap-4">
           <KipoLogo />
         </div>
-        <CardDescription className="text-center text-slate-500">
+        <CardDescription className="text-center text-muted-foreground">
           Entre com seu e-mail para gerenciar seu negócio
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-500">
+            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
               {error}
             </div>
           )}

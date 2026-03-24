@@ -62,13 +62,13 @@ export const customerTableColumns: ColumnDef<CustomerDto>[] = [
                     }
                   : undefined
               }
-              className="border-slate-200 text-slate-600"
+              className="border-border text-muted-foreground"
             >
               {category.name}
             </Badge>
           ))}
           {customer.categories.length > 1 && (
-            <Badge variant="secondary" className="bg-slate-100 text-slate-400">
+            <Badge variant="secondary" className="bg-muted text-muted-foreground">
               +{customer.categories.length - 1}
             </Badge>
           )}
@@ -98,7 +98,7 @@ export const customerTableColumns: ColumnDef<CustomerDto>[] = [
     cell: ({ row: { original: customer } }) => {
       const { formatCurrency } = require("@/app/_helpers/currency");
       return (
-        <span className="font-bold text-slate-700">
+        <span className="font-bold text-foreground">
           {formatCurrency(customer.totalSpent)}
         </span>
       );

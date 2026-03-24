@@ -16,7 +16,7 @@ interface SalesTimelineProps {
 export const SalesTimeline = ({ sales }: SalesTimelineProps) => {
   if (sales.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-10 text-slate-400">
+      <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
         <ShoppingBag className="mb-2 h-10 w-10 opacity-20" />
         <p className="text-sm font-medium">Nenhuma venda registrada.</p>
       </div>
@@ -24,16 +24,16 @@ export const SalesTimeline = ({ sales }: SalesTimelineProps) => {
   }
 
   return (
-    <div className="relative space-y-6 before:absolute before:bottom-2 before:left-2.5 before:top-2 before:w-px before:bg-slate-100">
+    <div className="relative space-y-6 before:absolute before:bottom-2 before:left-2.5 before:top-2 before:w-px before:bg-muted">
       {sales.map((sale, index) => (
         <div key={index} className="group relative pl-8">
-          <div className="absolute left-0 top-1.5 z-10 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-slate-100 transition-all group-hover:scale-110 group-hover:bg-primary">
-            <div className="h-1.5 w-1.5 rounded-full bg-slate-400 group-hover:bg-white" />
+          <div className="absolute left-0 top-1.5 z-10 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-muted transition-all group-hover:scale-110 group-hover:bg-primary">
+            <div className="h-1.5 w-1.5 rounded-full bg-muted group-hover:bg-background" />
           </div>
 
-          <div className="flex flex-col gap-1 rounded-lg border border-slate-100 bg-white p-3 shadow-sm transition-colors group-hover:border-primary/20">
+          <div className="flex flex-col gap-1 rounded-lg border border-border bg-background p-3 shadow-sm transition-colors group-hover:border-primary/20">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-black uppercase italic tracking-tighter text-slate-800">
+              <span className="text-sm font-black uppercase italic tracking-tighter text-foreground">
                 Venda Realizada
               </span>
               <span className="text-xs font-black text-primary">
@@ -45,7 +45,7 @@ export const SalesTimeline = ({ sales }: SalesTimelineProps) => {
               {sale.products.map((product, pIndex) => (
                 <span
                   key={pIndex}
-                  className="text-[10px] font-bold text-slate-500"
+                  className="text-[10px] font-bold text-muted-foreground"
                 >
                   {product.quantity}x {product.name}
                   {pIndex < sale.products.length - 1 && ","}
@@ -53,7 +53,7 @@ export const SalesTimeline = ({ sales }: SalesTimelineProps) => {
               ))}
             </div>
 
-            <div className="mt-1 flex items-center gap-2 text-[10px] font-bold uppercase text-slate-400">
+            <div className="mt-1 flex items-center gap-2 text-[10px] font-bold uppercase text-muted-foreground">
               <Calendar className="h-3 w-3" />
               {format(new Date(sale.date), "dd 'de' MMMM 'de' yyyy", {
                 locale: ptBR,

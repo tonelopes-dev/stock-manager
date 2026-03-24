@@ -13,13 +13,13 @@ const LowStockAlerts = async () => {
   }
 
   return (
-    <Card className="border-red-100 bg-red-50/30">
+    <Card className="border-destructive/10 bg-destructive/10/30">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <div className="flex items-center gap-2">
-            <AlertCircleIcon className="h-5 w-5 text-red-500" />
-            <CardTitle className="text-red-900">Alertas de Estoque</CardTitle>
+            <AlertCircleIcon className="h-5 w-5 text-destructive" />
+            <CardTitle className="text-destructive">Alertas de Estoque</CardTitle>
         </div>
-        <Button variant="ghost" size="sm" className="text-red-700 hover:bg-red-100 hover:text-red-800" asChild>
+        <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive" asChild>
             <Link href="/products">
                 Ver todos
                 <ArrowRightIcon className="ml-2 h-4 w-4" />
@@ -28,18 +28,18 @@ const LowStockAlerts = async () => {
       </CardHeader>
       <CardContent className="space-y-4">
         {lowStockProducts.map((product) => (
-          <div key={product.id} className="flex items-center justify-between rounded-lg border border-red-100 bg-white p-3 shadow-sm">
+          <div key={product.id} className="flex items-center justify-between rounded-lg border border-destructive/10 bg-background p-3 shadow-sm">
             <div className="space-y-0.5">
-              <p className="text-sm font-bold text-slate-900">{product.name}</p>
-              <p className="text-xs text-red-600 font-medium">
+              <p className="text-sm font-bold text-foreground">{product.name}</p>
+              <p className="text-xs text-destructive font-medium">
                 Mínimo esperado: {product.minStock} unidades
               </p>
             </div>
             <div className="text-right">
-              <p className={`text-lg font-black ${product.stock === 0 ? "text-red-600" : "text-amber-600"}`}>
+              <p className={`text-lg font-black ${product.stock === 0 ? "text-destructive" : "text-orange-500"}`}>
                 {product.stock}
               </p>
-              <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Em estoque</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Em estoque</p>
             </div>
           </div>
         ))}
@@ -50,14 +50,14 @@ const LowStockAlerts = async () => {
 
 export const LowStockAlertsSkeleton = () => {
   return (
-    <Card className="border-slate-100">
+    <Card className="border-border">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <Skeleton className="h-6 w-32" />
         <Skeleton className="h-8 w-20" />
       </CardHeader>
       <CardContent className="space-y-4">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="flex items-center justify-between rounded-lg border border-slate-100 bg-white p-3 shadow-sm">
+          <div key={i} className="flex items-center justify-between rounded-lg border border-border bg-background p-3 shadow-sm">
             <div className="space-y-2">
               <Skeleton className="h-4 w-24" />
               <Skeleton className="h-3 w-32" />

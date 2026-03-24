@@ -15,6 +15,7 @@ import {
   UserCog,
   Shield,
 } from "lucide-react";
+import { KipoLogo } from "@/app/_components/logo";
 
 import type { Metadata } from "next";
 
@@ -26,39 +27,34 @@ export const metadata: Metadata = {
 
 export default function LandingPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-white selection:bg-primary/10 selection:text-primary">
+    <div className="flex min-h-screen flex-col bg-background selection:bg-primary/10 selection:text-primary">
       {/* HEADER */}
-      <nav className="fixed top-0 z-50 w-full border-b border-slate-100 bg-white/70 backdrop-blur-xl">
+      <nav className="fixed top-0 z-50 w-full border-b border-border bg-background/70 backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
-          <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-slate-900 p-1.5 shadow-lg">
-              <Package2 className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-xl font-black uppercase tracking-tighter text-slate-900">
-              Kipo
-            </span>
-          </div>
-          <div className="hidden items-center gap-10 text-sm font-bold text-slate-500 md:flex">
+          <Link href="/" className="transition-all hover:scale-[1.02]">
+            <KipoLogo className="scale-75 origin-left" />
+          </Link>
+          <div className="hidden items-center gap-10 text-sm font-bold text-muted-foreground md:flex">
             <a
-              className="transition-colors hover:text-slate-900"
+              className="transition-colors hover:text-foreground"
               href="#problem"
             >
               O Problema
             </a>
             <a
-              className="transition-colors hover:text-slate-900"
+              className="transition-colors hover:text-foreground"
               href="#solutions"
             >
               Diferenciais
             </a>
             <a
-              className="transition-colors hover:text-slate-900"
+              className="transition-colors hover:text-foreground"
               href="#how-it-works"
             >
               Como Funciona
             </a>
             <a
-              className="transition-colors hover:text-slate-900"
+              className="transition-colors hover:text-foreground"
               href="#pricing"
             >
               Preços
@@ -66,7 +62,7 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-4">
             <Button
-              className="rounded-full bg-slate-900 px-6 py-2.5 text-sm font-bold transition-all hover:-translate-y-[1px] hover:shadow-xl active:translate-y-[0]"
+              className="rounded-full bg-primary px-6 py-2.5 text-sm font-bold transition-all hover:-translate-y-[1px] hover:shadow-xl active:translate-y-[0]"
               asChild
             >
               <Link href="/register">Começar Grátis</Link>
@@ -80,27 +76,27 @@ export default function LandingPage() {
         <section className="relative overflow-hidden px-6 pb-32 pt-44">
           <div className="hero-glow absolute left-1/2 top-1/2 -z-10 h-[120%] w-[120%] -translate-x-1/2 -translate-y-1/2" />
           <div className="relative mx-auto max-w-5xl text-center">
-            <span className="mb-8 inline-block rounded-full border border-slate-200 bg-slate-100/80 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 backdrop-blur-sm">
+            <span className="mb-8 inline-block rounded-full border border-border bg-muted/80 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground backdrop-blur-sm">
               FEITO PARA QUEM VENDE TODO DIA
             </span>
 
-            <h1 className="mb-8 text-5xl font-[900] leading-[0.95] tracking-tight text-slate-900 sm:text-6xl md:text-[88px]">
+            <h1 className="mb-8 text-5xl font-[900] leading-[0.95] tracking-tight text-foreground sm:text-6xl md:text-[88px]">
               Controle seu estoque sem planilhas e venda{" "}
               <span className="text-gradient">muito mais.</span>
             </h1>
 
-            <p className="mx-auto mb-12 max-w-2xl text-lg font-medium leading-relaxed text-slate-600 sm:text-xl">
+            <p className="mx-auto mb-12 max-w-2xl text-lg font-medium leading-relaxed text-muted-foreground sm:text-xl">
               Registre produtos, acompanhe vendas e saiba exatamente o que
               comprar.
               <br className="hidden md:block" />
-              <span className="font-black text-slate-900">
+              <span className="font-black text-foreground">
                 Teste grátis por 3 dias. Sem cartão necessário.
               </span>
             </p>
 
             <div className="mb-24 flex flex-col items-center justify-center gap-5 sm:flex-row">
               <Button
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-10 py-5 text-base font-black transition-all hover:scale-[1.03] hover:shadow-2xl sm:h-auto sm:w-auto"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-10 py-5 text-base font-black transition-all hover:scale-[1.03] hover:shadow-2xl sm:h-auto sm:w-auto"
                 size="lg"
                 asChild
               >
@@ -108,79 +104,79 @@ export default function LandingPage() {
                   Começar teste grátis <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
-              <button className="w-full rounded-full border border-slate-200 bg-white/50 px-10 py-5 text-base font-bold backdrop-blur-sm transition-colors hover:bg-white sm:w-auto">
+              <button className="w-full rounded-full border border-border bg-background/50 px-10 py-5 text-base font-bold backdrop-blur-sm transition-colors hover:bg-background sm:w-auto">
                 <a href="#how-it-works">Ver como funciona</a>
               </button>
             </div>
 
             {/* Dashboard Preview */}
             <div className="relative mx-auto max-w-4xl">
-              <div className="absolute -right-12 -top-12 -z-10 h-32 w-32 rounded-full bg-blue-500/10 blur-3xl" />
-              <div className="absolute -bottom-12 -left-12 -z-10 h-32 w-32 rounded-full bg-slate-500/10 blur-3xl" />
-              <div className="absolute -top-6 left-1/2 z-20 -translate-x-1/2 rounded-full bg-slate-900 px-5 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-xl">
+              <div className="absolute -right-12 -top-12 -z-10 h-32 w-32 rounded-full bg-primary/10 blur-3xl" />
+              <div className="absolute -bottom-12 -left-12 -z-10 h-32 w-32 rounded-full bg-muted/10 blur-3xl" />
+              <div className="absolute -top-6 left-1/2 z-20 -translate-x-1/2 rounded-full bg-foreground px-5 py-2 text-[10px] font-black uppercase tracking-widest text-background shadow-xl">
                 SIMULAÇÃO REAL DO SISTEMA
               </div>
-              <div className="overflow-hidden rounded-[2.5rem] border border-slate-100 bg-white p-8 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.12)] sm:p-12">
+              <div className="overflow-hidden rounded-[2.5rem] border border-border bg-background p-8 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.12)] sm:p-12">
                 <div className="mb-12 grid grid-cols-1 gap-8 sm:grid-cols-3">
                   <div className="text-left">
-                    <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                       VENDAS HOJE
                     </p>
-                    <p className="text-3xl font-black tracking-tighter text-slate-900 sm:text-4xl">
+                    <p className="text-3xl font-black tracking-tighter text-foreground sm:text-4xl">
                       R$ 1.250
                     </p>
                   </div>
                   <div className="text-left">
-                    <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                       ITENS BAIXOS
                     </p>
-                    <p className="text-3xl font-black tracking-tighter text-red-500 sm:text-4xl">
+                    <p className="text-3xl font-black tracking-tighter text-destructive sm:text-4xl">
                       08 itens
                     </p>
                   </div>
                   <div className="text-left">
-                    <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                       LUCRO LÍQUIDO
                     </p>
-                    <p className="text-3xl font-black tracking-tighter text-slate-900 sm:text-4xl">
+                    <p className="text-3xl font-black tracking-tighter text-foreground sm:text-4xl">
                       R$ 482
                     </p>
                   </div>
                 </div>
                 <div className="space-y-5 text-left">
-                  <div className="flex items-center justify-between border-b border-slate-50 py-5">
+                  <div className="flex items-center justify-between border-b border-border py-5">
                     <div className="flex items-center gap-5">
-                      <span className="text-sm font-black text-slate-200">
+                      <span className="text-sm font-black text-muted-foreground">
                         #1
                       </span>
                       <div>
-                        <p className="text-base font-bold text-slate-800">
+                        <p className="text-base font-bold text-foreground">
                           Brownie de Nutella
                         </p>
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                           Estoque: 12 unid
                         </p>
                       </div>
                     </div>
-                    <span className="rounded-md bg-red-100 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-red-600">
+                    <span className="rounded-md bg-destructive/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-destructive">
                       CRÍTICO
                     </span>
                   </div>
                   <div className="flex items-center justify-between py-5">
                     <div className="flex items-center gap-5">
-                      <span className="text-sm font-black text-slate-200">
+                      <span className="text-sm font-black text-muted-foreground">
                         #2
                       </span>
                       <div>
-                        <p className="text-base font-bold text-slate-800">
+                        <p className="text-base font-bold text-foreground">
                           Suco de Amora 500ml
                         </p>
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                           Estoque: 05 unid
                         </p>
                       </div>
                     </div>
-                    <span className="rounded-md bg-red-100 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-red-600">
+                    <span className="rounded-md bg-destructive/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-destructive">
                       CRÍTICO
                     </span>
                   </div>
@@ -188,7 +184,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <p className="mt-12 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+            <p className="mt-12 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
               SEM RENOVAÇÃO AUTOMÁTICA • ATIVE EM 2 MINUTOS
             </p>
           </div>
@@ -197,11 +193,11 @@ export default function LandingPage() {
         {/* PROBLEM SECTION — Timeline Layout */}
         <section
           id="problem"
-          className="relative overflow-hidden bg-slate-50 px-6 py-32"
+          className="relative overflow-hidden bg-muted px-6 py-32"
         >
           <div className="dot-grid absolute inset-0 opacity-30" />
           <div className="relative mx-auto max-w-6xl">
-            <h2 className="mb-32 text-center text-4xl font-black text-slate-900 md:text-6xl">
+            <h2 className="mb-32 text-center text-4xl font-black text-foreground md:text-6xl">
               Se isso acontece com você, o Kipo resolve.
             </h2>
             <div className="relative">
@@ -212,22 +208,22 @@ export default function LandingPage() {
                 {/* Problem 1 — Right */}
                 <div className="relative grid items-center gap-8 md:grid-cols-2">
                   <div className="relative pr-0 md:pr-16 md:text-right">
-                    <h4 className="text-2xl font-black italic text-red-500">
+                    <h4 className="text-2xl font-black italic text-destructive">
                       Cenário Antigo
                     </h4>
-                    <p className="font-bold text-slate-500">
+                    <p className="font-bold text-muted-foreground">
                       Vendas perdidas no escuro.
                     </p>
-                    <div className="absolute right-0 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 translate-x-[calc(50%+4rem)] items-center justify-center rounded-full border border-slate-100 bg-white shadow-2xl md:flex">
-                      <AlertCircle className="h-6 w-6 text-red-500" />
+                    <div className="absolute right-0 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 translate-x-[calc(50%+4rem)] items-center justify-center rounded-full border border-border bg-background shadow-2xl md:flex">
+                      <AlertCircle className="h-6 w-6 text-destructive" />
                     </div>
                   </div>
                   <div className="md:pl-16">
                     <div className="glass-card rounded-[2.5rem] p-10 shadow-xl transition-all hover:-translate-y-1 hover:shadow-2xl">
-                      <h4 className="mb-4 text-2xl font-black text-slate-900">
+                      <h4 className="mb-4 text-2xl font-black text-foreground">
                         Produto acaba sem aviso
                       </h4>
-                      <p className="text-base font-medium leading-relaxed text-slate-500">
+                      <p className="text-base font-medium leading-relaxed text-muted-foreground">
                         Você perde vendas valiosas porque não sabia que o
                         estoque tinha acabado. Frustração para o cliente e
                         prejuízo para você.
@@ -240,10 +236,10 @@ export default function LandingPage() {
                 <div className="relative grid items-center gap-8 md:mt-32 md:grid-cols-2">
                   <div className="order-2 md:order-1 md:pr-16">
                     <div className="glass-card rounded-[2.5rem] p-10 shadow-xl transition-all hover:-translate-y-1 hover:shadow-2xl">
-                      <h4 className="mb-4 text-2xl font-black text-slate-900">
+                      <h4 className="mb-4 text-2xl font-black text-foreground">
                         Planilhas desatualizadas
                       </h4>
-                      <p className="text-base font-medium leading-relaxed text-slate-500">
+                      <p className="text-base font-medium leading-relaxed text-muted-foreground">
                         O controle manual toma horas do seu dia, cansa sua
                         equipe e gera erros constantes que sabotam seu
                         crescimento.
@@ -251,14 +247,14 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div className="relative order-1 md:order-2 md:pl-16">
-                    <h4 className="text-2xl font-black italic text-amber-500">
+                    <h4 className="text-2xl font-black italic text-orange-500">
                       Gargalo Operacional
                     </h4>
-                    <p className="font-bold text-slate-500">
+                    <p className="font-bold text-muted-foreground">
                       Caos em planilhas.
                     </p>
-                    <div className="absolute left-0 top-1/2 z-10 hidden h-12 w-12 -translate-x-[calc(50%+4rem)] -translate-y-1/2 items-center justify-center rounded-full border border-slate-100 bg-white shadow-2xl md:flex">
-                      <Table2 className="h-6 w-6 text-amber-500" />
+                    <div className="absolute left-0 top-1/2 z-10 hidden h-12 w-12 -translate-x-[calc(50%+4rem)] -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background shadow-2xl md:flex">
+                      <Table2 className="h-6 w-6 text-orange-500" />
                     </div>
                   </div>
                 </div>
@@ -266,22 +262,22 @@ export default function LandingPage() {
                 {/* Problem 3 — Right */}
                 <div className="relative grid items-center gap-8 md:mt-32 md:grid-cols-2">
                   <div className="relative pr-0 md:pr-16 md:text-right">
-                    <h4 className="text-2xl font-black italic text-blue-600">
+                    <h4 className="text-2xl font-black italic text-primary">
                       Capital Preso
                     </h4>
-                    <p className="font-bold text-slate-500">
+                    <p className="font-bold text-muted-foreground">
                       Dinheiro parado na prateleira.
                     </p>
-                    <div className="absolute right-0 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 translate-x-[calc(50%+4rem)] items-center justify-center rounded-full border border-slate-100 bg-white shadow-2xl md:flex">
-                      <DollarSign className="h-6 w-6 text-blue-600" />
+                    <div className="absolute right-0 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 translate-x-[calc(50%+4rem)] items-center justify-center rounded-full border border-border bg-background shadow-2xl md:flex">
+                      <DollarSign className="h-6 w-6 text-primary" />
                     </div>
                   </div>
                   <div className="md:pl-16">
                     <div className="glass-card rounded-[2.5rem] p-10 shadow-xl transition-all hover:-translate-y-1 hover:shadow-2xl">
-                      <h4 className="mb-4 text-2xl font-black text-slate-900">
+                      <h4 className="mb-4 text-2xl font-black text-foreground">
                         Dinheiro parado
                       </h4>
-                      <p className="text-base font-medium leading-relaxed text-slate-500">
+                      <p className="text-base font-medium leading-relaxed text-muted-foreground">
                         Você compra mercadoria no escuro, sem saber o que
                         realmente sai e o que fica ocupando espaço e capital de
                         giro.
@@ -299,8 +295,8 @@ export default function LandingPage() {
           <div className="mx-auto flex max-w-7xl flex-col items-center gap-24 lg:flex-row">
             {/* Visual */}
             <div className="flex-1">
-              <div className="relative flex aspect-square flex-col justify-center gap-8 rounded-[60px] bg-slate-100/50 p-8 sm:p-16">
-                <div className="tilt-3d flex items-center justify-between rounded-3xl border border-slate-100 bg-white p-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] sm:p-8">
+              <div className="relative flex aspect-square flex-col justify-center gap-8 rounded-[60px] bg-muted/50 p-8 sm:p-16">
+                <div className="tilt-3d flex items-center justify-between rounded-3xl border border-border bg-background p-6 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] sm:p-8">
                   <div className="flex items-center gap-4 sm:gap-5">
                     <div className="rounded-xl bg-green-50 p-2.5 text-green-500 sm:p-3">
                       <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -313,16 +309,16 @@ export default function LandingPage() {
                     + R$ 18
                   </span>
                 </div>
-                <div className="tilt-3d-reverse flex translate-x-4 items-center justify-between rounded-3xl border border-white/40 bg-white/80 p-6 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] backdrop-blur-md sm:translate-x-12 sm:p-8">
+                <div className="tilt-3d-reverse flex translate-x-4 items-center justify-between rounded-3xl border border-white/40 bg-background/80 p-6 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] backdrop-blur-md sm:translate-x-12 sm:p-8">
                   <div className="flex items-center gap-4 sm:gap-5">
-                    <div className="rounded-xl bg-blue-50 p-2.5 text-blue-500 sm:p-3">
+                    <div className="rounded-xl bg-primary/10 p-2.5 text-primary sm:p-3">
                       <Package2 className="h-5 w-5 sm:h-6 sm:w-6" />
                     </div>
-                    <span className="font-bold text-slate-400">
+                    <span className="font-bold text-muted-foreground">
                       Estoque atualizado
                     </span>
                   </div>
-                  <span className="text-lg font-black text-red-500 sm:text-xl">
+                  <span className="text-lg font-black text-destructive sm:text-xl">
                     - 1 unid
                   </span>
                 </div>
@@ -331,10 +327,10 @@ export default function LandingPage() {
 
             {/* Text */}
             <div className="flex-1 space-y-12">
-              <span className="rounded-full bg-blue-50 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.3em] text-blue-600">
+              <span className="rounded-full bg-primary/10 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.3em] text-primary">
                 SUA EMPRESA ORGANIZADA
               </span>
-              <h2 className="text-4xl font-black leading-[0.95] text-slate-900 sm:text-5xl md:text-6xl">
+              <h2 className="text-4xl font-black leading-[0.95] text-foreground sm:text-5xl md:text-6xl">
                 Matenha o controle total sem esforço.
               </h2>
               <div className="space-y-10">
@@ -355,10 +351,10 @@ export default function LandingPage() {
                   <div key={i} className="group flex gap-6">
                     <CheckCircle2 className="h-7 w-7 shrink-0 text-green-500 sm:h-8 sm:w-8" />
                     <div>
-                      <h4 className="mb-2 text-xl font-black text-slate-900">
+                      <h4 className="mb-2 text-xl font-black text-foreground">
                         {item.title}
                       </h4>
-                      <p className="text-base font-medium leading-relaxed text-slate-500">
+                      <p className="text-base font-medium leading-relaxed text-muted-foreground">
                         {item.text}
                       </p>
                     </div>
@@ -372,14 +368,14 @@ export default function LandingPage() {
         {/* HOW IT WORKS */}
         <section
           id="how-it-works"
-          className="relative overflow-hidden bg-slate-950 px-6 py-40 text-white"
+          className="relative overflow-hidden bg-foreground px-6 py-40 text-background"
         >
           <div className="relative z-10 mx-auto max-w-7xl">
             <div className="mb-32 text-center">
               <h2 className="mb-8 text-5xl font-[900] tracking-tighter md:text-7xl">
                 Simples de usar.
               </h2>
-              <p className="mx-auto max-w-2xl text-xl font-medium text-slate-400">
+              <p className="mx-auto max-w-2xl text-xl font-medium text-muted-foreground">
                 Três passos para nunca mais perder o controle e escalar sua
                 operação.
               </p>
@@ -403,11 +399,11 @@ export default function LandingPage() {
                 },
               ].map((item, i) => (
                 <div key={i} className="group text-center">
-                  <div className="mb-8 text-8xl font-black text-white/5 transition-colors group-hover:text-blue-500/10">
+                  <div className="mb-8 text-8xl font-black text-background/5 transition-colors group-hover:text-primary/10">
                     {item.step}
                   </div>
                   <h4 className="mb-4 text-3xl font-black">{item.title}</h4>
-                  <p className="text-base font-medium leading-relaxed text-slate-400">
+                  <p className="text-base font-medium leading-relaxed text-muted-foreground">
                     {item.text}
                   </p>
                 </div>
@@ -420,7 +416,7 @@ export default function LandingPage() {
         <section className="relative overflow-hidden px-6 py-40">
           <div className="dot-grid absolute inset-0 opacity-20" />
           <div className="relative mx-auto max-w-7xl">
-            <h2 className="mb-24 text-center text-4xl font-black tracking-tight text-slate-900 md:text-5xl">
+            <h2 className="mb-24 text-center text-4xl font-black tracking-tight text-foreground md:text-5xl">
               Segurança para quem depende do negócio.
             </h2>
             <div className="grid gap-10 md:grid-cols-3">
@@ -443,11 +439,11 @@ export default function LandingPage() {
               ].map((item, i) => (
                 <div
                   key={i}
-                  className="rounded-[2.5rem] border border-slate-100 bg-white p-12 shadow-sm transition-all hover:shadow-xl"
+                  className="rounded-[2.5rem] border border-border bg-background p-12 shadow-sm transition-all hover:shadow-xl"
                 >
-                  <item.icon className="mb-8 h-10 w-10 text-slate-900" />
+                  <item.icon className="mb-8 h-10 w-10 text-foreground" />
                   <h4 className="mb-4 text-xl font-black">{item.title}</h4>
-                  <p className="text-base font-medium leading-relaxed text-slate-500">
+                  <p className="text-base font-medium leading-relaxed text-muted-foreground">
                     {item.text}
                   </p>
                 </div>
@@ -457,12 +453,12 @@ export default function LandingPage() {
         </section>
 
         {/* PRICING SECTION */}
-        <section id="pricing" className="bg-slate-50/50 px-6 py-40">
+        <section id="pricing" className="bg-muted/50 px-6 py-40">
           <div className="mx-auto max-w-4xl text-center">
-            <h2 className="mb-8 text-5xl font-black tracking-tighter text-slate-900 md:text-7xl">
+            <h2 className="mb-8 text-5xl font-black tracking-tighter text-foreground md:text-7xl">
               Invista no controle do seu negócio.
             </h2>
-            <p className="mb-20 text-xl font-medium text-slate-500">
+            <p className="mb-20 text-xl font-medium text-muted-foreground">
               Setup único + assinatura mensal. Sem surpresas, sem taxa
               escondida.
             </p>
@@ -470,46 +466,46 @@ export default function LandingPage() {
             <div className="glass-card relative mx-auto max-w-[600px] overflow-hidden rounded-[3rem] p-10 text-left shadow-[0_50px_100px_-15px_rgba(0,0,0,0.1)] sm:p-16">
               <div className="mb-10 flex items-start justify-between">
                 <div>
-                  <span className="mb-2 block text-[11px] font-black uppercase tracking-[0.25em] text-blue-600">
+                  <span className="mb-2 block text-[11px] font-black uppercase tracking-[0.25em] text-primary">
                     PLANO PROFISSIONAL
                   </span>
-                  <h3 className="text-xl font-black uppercase leading-tight tracking-tight text-slate-900">
+                  <h3 className="text-xl font-black uppercase leading-tight tracking-tight text-foreground">
                     TUDO INCLUSO PARA SUA OPERAÇÃO
                   </h3>
                 </div>
-                <span className="rounded-full bg-slate-900 px-4 py-2 text-[10px] font-black tracking-widest text-white">
+                <span className="rounded-full bg-foreground px-4 py-2 text-[10px] font-black tracking-widest text-background">
                   MELHOR VALOR
                 </span>
               </div>
 
               {/* Pricing Grid */}
-              <div className="mb-8 grid grid-cols-2 gap-6 rounded-2xl bg-slate-50 p-6">
+              <div className="mb-8 grid grid-cols-2 gap-6 rounded-2xl bg-muted p-6">
                 <div>
-                  <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                     IMPLEMENTAÇÃO
                   </p>
                   <div className="flex items-baseline">
-                    <span className="text-3xl font-[900] italic tracking-tighter text-slate-900 sm:text-4xl">
+                    <span className="text-3xl font-[900] italic tracking-tighter text-foreground sm:text-4xl">
                       R$ 4.500
                     </span>
                   </div>
-                  <p className="mt-1 text-[10px] font-bold text-slate-400">
+                  <p className="mt-1 text-[10px] font-bold text-muted-foreground">
                     Pagamento único
                   </p>
                 </div>
-                <div className="border-l border-slate-200 pl-6">
-                  <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <div className="border-l border-border pl-6">
+                  <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                     ASSINATURA
                   </p>
                   <div className="flex items-baseline">
-                    <span className="text-3xl font-[900] italic tracking-tighter text-slate-900 sm:text-4xl">
+                    <span className="text-3xl font-[900] italic tracking-tighter text-foreground sm:text-4xl">
                       R$ 249
                     </span>
-                    <span className="ml-1 text-lg font-bold text-slate-400">
+                    <span className="ml-1 text-lg font-bold text-muted-foreground">
                       /mês
                     </span>
                   </div>
-                  <p className="mt-1 text-[10px] font-bold text-slate-400">
+                  <p className="mt-1 text-[10px] font-bold text-muted-foreground">
                     Recorrente
                   </p>
                 </div>
@@ -532,20 +528,20 @@ export default function LandingPage() {
                 ].map((item, i) => (
                   <li
                     key={i}
-                    className="flex items-center gap-4 text-base font-bold text-slate-800"
+                    className="flex items-center gap-4 text-base font-bold text-foreground"
                   >
-                    <Zap className="h-5 w-5 shrink-0 fill-slate-900 text-slate-900" />
+                    <Zap className="h-5 w-5 shrink-0 fill-foreground text-foreground" />
                     {item}
                   </li>
                 ))}
               </ul>
               <Button
-                className="h-16 w-full rounded-full text-xl font-black transition-all hover:scale-[1.02] hover:shadow-2xl"
+                className="h-16 w-full rounded-full bg-primary text-xl font-black transition-all hover:scale-[1.02] hover:shadow-2xl"
                 asChild
               >
                 <Link href="/register">Começar teste grátis</Link>
               </Button>
-              <p className="mt-8 text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+              <p className="mt-8 text-center text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
                 SEM CARTÃO • CANCELE QUANDO QUISER
               </p>
             </div>
@@ -556,15 +552,15 @@ export default function LandingPage() {
         <section className="relative overflow-hidden px-6 py-48 text-center">
           <div className="hero-glow absolute left-1/2 top-1/2 -z-10 h-[120%] w-[120%] -translate-x-1/2 -translate-y-1/2 opacity-60" />
           <div className="relative mx-auto max-w-4xl">
-            <h2 className="mb-12 text-5xl font-black leading-[0.9] tracking-tighter text-slate-900 sm:text-6xl md:text-[88px]">
+            <h2 className="mb-12 text-5xl font-black leading-[0.9] tracking-tighter text-foreground sm:text-6xl md:text-[88px]">
               Você nunca mais vai perder venda por falta de estoque.
             </h2>
-            <p className="mx-auto mb-16 max-w-2xl text-2xl font-medium text-slate-500">
+            <p className="mx-auto mb-16 max-w-2xl text-2xl font-medium text-muted-foreground">
               Ative o sistema hoje, automatize sua rotina e tenha a liberdade
               que seu negócio merece.
             </p>
             <Button
-              className="mx-auto flex h-auto items-center justify-center gap-4 rounded-full bg-slate-900 px-16 py-6 text-2xl font-black transition-all hover:scale-[1.05] hover:shadow-2xl"
+              className="mx-auto flex h-auto items-center justify-center gap-4 rounded-full bg-primary px-16 py-6 text-2xl font-black transition-all hover:scale-[1.05] hover:shadow-2xl"
               size="lg"
               asChild
             >
@@ -572,7 +568,7 @@ export default function LandingPage() {
                 Começar teste grátis <ArrowRight className="h-5 w-5" />
               </Link>
             </Button>
-            <div className="mt-16 flex flex-wrap items-center justify-center gap-12 text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">
+            <div className="mt-16 flex flex-wrap items-center justify-center gap-12 text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground">
               <span className="flex items-center gap-3">
                 <Zap className="h-5 w-5" /> SETUP RÁPIDO
               </span>
@@ -588,32 +584,27 @@ export default function LandingPage() {
       </main>
 
       {/* FOOTER */}
-      <footer className="relative border-t border-slate-100 bg-white px-6 py-24">
+      <footer className="relative border-t border-border bg-background px-6 py-24">
         <div className="mx-auto max-w-7xl">
           <div className="mb-24 grid grid-cols-1 gap-16 md:grid-cols-4">
             <div className="col-span-1 md:col-span-2">
-              <div className="mb-8 flex items-center gap-2">
-                <div className="rounded-lg bg-slate-900 p-1.5 shadow-lg">
-                  <Package2 className="h-[18px] w-[18px] text-white" />
-                </div>
-                <span className="text-2xl font-black uppercase tracking-tighter text-slate-900">
-                  Kipo
-                </span>
+              <div className="mb-8">
+                <KipoLogo className="scale-75 origin-left" />
               </div>
-              <p className="max-w-sm text-base font-medium leading-relaxed text-slate-500">
+              <p className="max-w-sm text-base font-medium leading-relaxed text-muted-foreground">
                 O sistema de gestão executivo que coloca você no comando total
                 do seu lucro. Inteligência, simplicidade e precisão para quem
                 vende todo dia.
               </p>
             </div>
             <div>
-              <h5 className="mb-8 text-[11px] font-black uppercase tracking-[0.3em] text-slate-900">
+              <h5 className="mb-8 text-[11px] font-black uppercase tracking-[0.3em] text-foreground">
                 PLATAFORMA
               </h5>
-              <ul className="space-y-5 text-sm font-bold text-slate-500">
+              <ul className="space-y-5 text-sm font-bold text-muted-foreground">
                 <li>
                   <a
-                    className="transition-colors hover:text-slate-900"
+                    className="transition-colors hover:text-foreground"
                     href="#how-it-works"
                   >
                     Como funciona
@@ -621,7 +612,7 @@ export default function LandingPage() {
                 </li>
                 <li>
                   <a
-                    className="transition-colors hover:text-slate-900"
+                    className="transition-colors hover:text-foreground"
                     href="#pricing"
                   >
                     Preços
@@ -629,7 +620,7 @@ export default function LandingPage() {
                 </li>
                 <li>
                   <a
-                    className="transition-colors hover:text-slate-900"
+                    className="transition-colors hover:text-foreground"
                     href="#"
                   >
                     Status do Sistema
@@ -638,13 +629,13 @@ export default function LandingPage() {
               </ul>
             </div>
             <div>
-              <h5 className="mb-8 text-[11px] font-black uppercase tracking-[0.3em] text-slate-900">
+              <h5 className="mb-8 text-[11px] font-black uppercase tracking-[0.3em] text-foreground">
                 SEGURANÇA
               </h5>
-              <ul className="space-y-5 text-sm font-bold text-slate-500">
+              <ul className="space-y-5 text-sm font-bold text-muted-foreground">
                 <li>
                   <a
-                    className="transition-colors hover:text-slate-900"
+                    className="transition-colors hover:text-foreground"
                     href="#"
                   >
                     Termos de Uso
@@ -652,7 +643,7 @@ export default function LandingPage() {
                 </li>
                 <li>
                   <a
-                    className="transition-colors hover:text-slate-900"
+                    className="transition-colors hover:text-foreground"
                     href="#"
                   >
                     Privacidade
@@ -660,7 +651,7 @@ export default function LandingPage() {
                 </li>
                 <li>
                   <a
-                    className="transition-colors hover:text-slate-900"
+                    className="transition-colors hover:text-foreground"
                     href="#"
                   >
                     Backups Diários
@@ -669,19 +660,19 @@ export default function LandingPage() {
               </ul>
             </div>
           </div>
-          <div className="flex flex-col items-center justify-between gap-8 border-t border-slate-50 pt-12 md:flex-row">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+          <div className="flex flex-col items-center justify-between gap-8 border-t border-border pt-12 md:flex-row">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
               © 2026 KIPO TECHNOLOGY. TODOS OS DIREITOS RESERVADOS.
             </p>
-            <div className="flex items-center gap-10 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-              <a className="transition-colors hover:text-slate-900" href="#">
+            <div className="flex items-center gap-10 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
+              <a className="transition-colors hover:text-foreground" href="#">
                 SUPORTE
               </a>
-              <a className="transition-colors hover:text-slate-900" href="#">
+              <a className="transition-colors hover:text-foreground" href="#">
                 SEGURANÇA
               </a>
               <Link
-                className="transition-colors hover:text-slate-900"
+                className="transition-colors hover:text-foreground"
                 href="/login"
               >
                 LOGIN

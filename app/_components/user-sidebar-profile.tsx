@@ -17,24 +17,24 @@ export const UserSidebarProfile = async () => {
   return (
     <Link 
       href="/profile" 
-      className="flex items-center gap-3 px-4 py-4 border-b border-gray-100 mb-2 transition-colors hover:bg-slate-50 group"
+      className="flex items-center gap-3 px-4 py-4 border-b border-border mb-2 transition-colors hover:bg-muted group"
     >
-      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs ring-2 ring-white shadow-sm group-hover:bg-primary group-hover:text-white transition-colors">
+      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs ring-2 ring-white shadow-sm group-hover:bg-primary group-hover:text-background transition-colors">
         {initials}
       </div>
       <div className="flex flex-col min-w-0 pr-2">
         <div className="flex items-center gap-1.5 overflow-hidden">
-          <span className="truncate text-sm font-bold text-slate-900 leading-tight group-hover:text-primary transition-colors">
+          <span className="truncate text-sm font-bold text-foreground leading-tight group-hover:text-primary transition-colors">
             {profile.name}
           </span>
           <Badge 
             variant="outline" 
-            className="h-4 px-1 text-[9px] font-black uppercase tracking-tighter bg-slate-50 border-slate-200 text-slate-500 whitespace-nowrap"
+            className="h-4 px-1 text-[9px] font-black uppercase tracking-tighter bg-muted border-border text-muted-foreground whitespace-nowrap"
           >
             {profile.role === "OWNER" ? "Prorietário" : profile.role === "ADMIN" ? "Admin" : "Membro"}
           </Badge>
         </div>
-        <span className="truncate text-xs text-slate-500 leading-tight">
+        <span className="truncate text-xs text-muted-foreground leading-tight">
           {profile.email}
         </span>
       </div>

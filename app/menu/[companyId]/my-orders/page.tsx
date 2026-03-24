@@ -10,7 +10,7 @@ export default async function MyOrdersPage({ params }: MyOrdersPageProps) {
   const { companyId } = await params;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-muted">
       <MyOrdersClient companyId={companyId} />
     </div>
   );

@@ -17,18 +17,18 @@ export const HeaderUserProfile = async () => {
   return (
     <Link
       href="/profile"
-      className="group flex items-center gap-2.5 rounded-xl px-2 py-1.5 transition-colors hover:bg-slate-50"
+      className="group flex items-center gap-2.5 rounded-xl px-2 py-1.5 transition-colors hover:bg-muted"
     >
-      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary shadow-sm ring-2 ring-white transition-colors group-hover:bg-primary group-hover:text-white">
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary shadow-sm ring-2 ring-white transition-colors group-hover:bg-primary group-hover:text-background">
         {initials}
       </div>
       <div className="hidden flex-col sm:flex">
-        <span className="text-xs font-bold leading-tight text-slate-700 transition-colors group-hover:text-primary">
+        <span className="text-xs font-bold leading-tight text-foreground transition-colors group-hover:text-primary">
           {profile.name.split(" ")[0]}
         </span>
         <Badge
           variant="outline"
-          className="h-3.5 w-fit border-slate-200 px-1 text-[8px] font-black uppercase tracking-tighter text-slate-400"
+          className="h-3.5 w-fit border-border px-1 text-[8px] font-black uppercase tracking-tighter text-muted-foreground"
         >
           {profile.role === "OWNER"
             ? "Owner"

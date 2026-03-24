@@ -14,11 +14,11 @@ export const ProductRankingCard = ({
 }: ProductRankingCardProps) => {
   if (products.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-200/80 bg-white p-6">
-        <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-4">
+      <div className="rounded-xl border border-border/80 bg-background p-6">
+        <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground mb-4">
           {title}
         </h3>
-        <p className="text-sm text-slate-400 text-center py-8">
+        <p className="text-sm text-muted-foreground text-center py-8">
           Sem dados no período selecionado.
         </p>
       </div>
@@ -26,9 +26,9 @@ export const ProductRankingCard = ({
   }
 
   return (
-    <div className="rounded-xl border border-slate-200/80 bg-white overflow-hidden">
+    <div className="rounded-xl border border-border/80 bg-background overflow-hidden">
       <div className="px-6 pt-5 pb-3">
-        <h3 className="text-sm font-black uppercase tracking-widest text-slate-400">
+        <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground">
           {title}
         </h3>
       </div>
@@ -36,17 +36,17 @@ export const ProductRankingCard = ({
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-100">
-              <th className="text-left px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            <tr className="border-b border-border">
+              <th className="text-left px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 Produto
               </th>
-              <th className="text-right px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              <th className="text-right px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 Receita
               </th>
-              <th className="text-right px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              <th className="text-right px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 Lucro
               </th>
-              <th className="text-right px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              <th className="text-right px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 Margem %
               </th>
             </tr>
@@ -59,22 +59,22 @@ export const ProductRankingCard = ({
               return (
                 <tr
                   key={product.productId}
-                  className="border-b border-slate-50 last:border-0 transition-colors hover:bg-slate-50/50"
+                  className="border-b border-border last:border-0 transition-colors hover:bg-muted/50"
                 >
                   {/* Produto */}
                   <td className="px-6 py-3">
                     <div className="flex items-center gap-2.5">
-                      <span className="flex-none w-5 h-5 rounded-md bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400">
+                      <span className="flex-none w-5 h-5 rounded-md bg-muted flex items-center justify-center text-[10px] font-black text-muted-foreground">
                         {index + 1}
                       </span>
-                      <span className="font-bold text-slate-900 truncate max-w-[180px]">
+                      <span className="font-bold text-foreground truncate max-w-[180px]">
                         {product.productName}
                       </span>
                     </div>
                   </td>
 
                   {/* Receita */}
-                  <td className="text-right px-4 py-3 font-medium text-slate-600 tabular-nums whitespace-nowrap">
+                  <td className="text-right px-4 py-3 font-medium text-muted-foreground tabular-nums whitespace-nowrap">
                     {formatCurrencyBR(product.revenue)}
                   </td>
 
@@ -84,7 +84,7 @@ export const ProductRankingCard = ({
                       isHighlightProfit
                         ? "text-emerald-600"
                         : product.profit >= 0
-                          ? "text-slate-700"
+                          ? "text-foreground"
                           : "text-rose-600"
                     }`}
                   >
@@ -98,7 +98,7 @@ export const ProductRankingCard = ({
                         {product.margin.toFixed(2)}%
                       </span>
                     ) : (
-                      <span className="text-sm font-medium text-slate-600 tabular-nums">
+                      <span className="text-sm font-medium text-muted-foreground tabular-nums">
                         {product.margin.toFixed(2)}%
                       </span>
                     )}
@@ -114,19 +114,19 @@ export const ProductRankingCard = ({
 };
 
 export const ProductRankingCardSkeleton = () => (
-  <div className="rounded-xl border border-slate-200/80 bg-white p-6 animate-pulse">
-    <div className="h-4 w-40 bg-slate-100 rounded mb-5" />
+  <div className="rounded-xl border border-border/80 bg-background p-6 animate-pulse">
+    <div className="h-4 w-40 bg-muted rounded mb-5" />
     <div className="space-y-3">
       {[1, 2, 3, 4, 5].map((i) => (
         <div key={i} className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 bg-slate-100 rounded" />
-            <div className="h-4 w-28 bg-slate-100 rounded" />
+            <div className="w-5 h-5 bg-muted rounded" />
+            <div className="h-4 w-28 bg-muted rounded" />
           </div>
           <div className="flex gap-4">
-            <div className="h-4 w-16 bg-slate-100 rounded" />
-            <div className="h-4 w-16 bg-slate-100 rounded" />
-            <div className="h-4 w-12 bg-slate-100 rounded" />
+            <div className="h-4 w-16 bg-muted rounded" />
+            <div className="h-4 w-16 bg-muted rounded" />
+            <div className="h-4 w-12 bg-muted rounded" />
           </div>
         </div>
       ))}

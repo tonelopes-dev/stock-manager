@@ -68,12 +68,12 @@ export const ProductVisualCatalog = ({
   return (
     <div className="space-y-8">
       {/* Toolbar */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-100">
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-muted p-4 rounded-xl border border-border">
         <div className="relative w-full md:w-96">
-          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Buscar produto por nome ou SKU..."
-            className="pl-10 bg-white border-none shadow-sm h-11"
+            className="pl-10 bg-background border-none shadow-sm h-11"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -85,12 +85,12 @@ export const ProductVisualCatalog = ({
           {/* Sort Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="h-11 gap-2 bg-white shadow-sm border-none min-w-[200px] justify-between px-4">
+              <Button variant="outline" className="h-11 gap-2 bg-background shadow-sm border-none min-w-[200px] justify-between px-4">
                 <div className="flex items-center gap-2">
-                    <ArrowDownWideNarrow className="w-4 h-4 text-slate-500" />
-                    <span className="text-slate-700 whitespace-nowrap">Ordenar: {sortLabels[sortBy]}</span>
+                    <ArrowDownWideNarrow className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-foreground whitespace-nowrap">Ordenar: {sortLabels[sortBy]}</span>
                 </div>
-                <ChevronsUpDown className="w-4 h-4 text-slate-400 opacity-50" />
+                <ChevronsUpDown className="w-4 h-4 text-muted-foreground opacity-50" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -106,8 +106,8 @@ export const ProductVisualCatalog = ({
       </div>
 
       {/* Category Filter */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-1 rounded-xl">
-        <Suspense fallback={<div className="h-11 bg-slate-50 animate-pulse rounded-lg flex-1" />}>
+      <div className="flex flex-col sm:flex-row items-center gap-4 bg-background p-1 rounded-xl">
+        <Suspense fallback={<div className="h-11 bg-muted animate-pulse rounded-lg flex-1" />}>
           <CategoryTabs 
             categories={categories}
             productsPromise={productsPromise}
@@ -176,10 +176,10 @@ const CategoryTabs = ({
 
   return (
     <Tabs defaultValue="all" value={selectedCategoryId} onValueChange={setSelectedCategoryId} className="flex-1">
-      <TabsList className="bg-slate-50 border border-slate-100 h-11 p-1">
+      <TabsList className="bg-muted border border-border h-11 p-1">
         <TabsTrigger 
           value="all" 
-          className="px-6 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm"
+          className="px-6 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
         >
           Tudo
         </TabsTrigger>
@@ -187,7 +187,7 @@ const CategoryTabs = ({
           <TabsTrigger 
             key={cat.id} 
             value={cat.id}
-            className="px-6 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm"
+            className="px-6 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
           >
             {cat.name}
           </TabsTrigger>

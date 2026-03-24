@@ -72,7 +72,7 @@ const CustomerTableDropdownMenu = ({
 
           {userRole !== UserRole.MEMBER && !hasHistory && (
             <DropdownMenuItem
-              className="gap-1.5 text-red-600 focus:bg-red-50 focus:text-red-600"
+              className="gap-1.5 text-destructive focus:bg-destructive/10 focus:text-destructive"
               onClick={() => setDeleteDialogOpen(true)}
             >
               <TrashIcon size={16} />

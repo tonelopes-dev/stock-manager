@@ -37,7 +37,7 @@ const AuditPage = async ({ searchParams }: AuditPageProps) => {
   const pageSize = Number(resolvedSearchParams.pageSize) || 10;
 
   return (
-    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
+    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-background p-8">
       <div className="space-y-6">
         <Header>
           <HeaderLeft>

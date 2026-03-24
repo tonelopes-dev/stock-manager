@@ -47,7 +47,7 @@ export const SidebarNav = ({ isOwner, isAdminOrOwner }: SidebarNavProps) => {
     <div className="flex h-full flex-col">
       {/* Navigation */}
       <div className="flex flex-1 flex-col gap-1 p-4 pt-4">
-        <p className="mb-2 px-3 text-[10px] font-black uppercase tracking-widest text-slate-300">
+        <p className="mb-2 px-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
           {mode === "gestao" ? "Gestão" : "Operação"}
         </p>
 
@@ -59,7 +59,7 @@ export const SidebarNav = ({ isOwner, isAdminOrOwner }: SidebarNavProps) => {
         ))}
       </div>
 
-      <div className="my-2 border-t border-gray-100" />
+      <div className="my-2 border-t border-border" />
 
       {/* Settings (always visible) */}
       {isAdminOrOwner && (

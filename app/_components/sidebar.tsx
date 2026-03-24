@@ -8,7 +8,7 @@ const Sidebar = async () => {
   const isAdminOrOwner = role === UserRole.OWNER || role === UserRole.ADMIN;
 
   return (
-    <div className="flex h-full w-56 flex-col border-r border-gray-200 bg-white">
+    <div className="flex h-full w-56 flex-col border-r border-border bg-background">
       <SidebarNav isOwner={isOwner} isAdminOrOwner={isAdminOrOwner} />
     </div>
   );

@@ -133,7 +133,7 @@ const AdjustStockDialogContent = ({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="rounded-lg border bg-slate-50 p-4">
+          <div className="rounded-lg border bg-muted p-4">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
               Estoque atual
             </p>

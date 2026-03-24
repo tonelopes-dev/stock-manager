@@ -62,8 +62,8 @@ export const ProductGrid = ({
 
   if (filteredProducts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-4">
-        <div className="p-4 rounded-full bg-slate-50">
+      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-4">
+        <div className="p-4 rounded-full bg-muted">
           <SearchIcon className="w-10 h-10 opacity-20" />
         </div>
         <p className="text-lg font-medium">Nenhum produto encontrado</p>
@@ -76,9 +76,9 @@ export const ProductGrid = ({
       {Object.entries(groupedProducts).map(([category, items]) => (
         <div key={category} className="space-y-4">
           <div className="flex items-center gap-4">
-            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{category}</h2>
-            <div className="h-px flex-1 bg-slate-100 rounded-full" />
-            <Badge variant="secondary" className="bg-slate-100 text-slate-500 border-none font-bold px-3">
+            <h2 className="text-2xl font-bold text-foreground tracking-tight">{category}</h2>
+            <div className="h-px flex-1 bg-muted rounded-full" />
+            <Badge variant="secondary" className="bg-muted text-muted-foreground border-none font-bold px-3">
               {items.length} {items.length === 1 ? "un" : "un"}
             </Badge>
           </div>
