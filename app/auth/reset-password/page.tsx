@@ -19,6 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app
 import { toast } from "sonner";
 import { Loader2Icon, ShieldCheckIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { resetPassword } from "@/app/_actions/auth/reset-password";
 
 const resetPasswordSchema = z.object({
   password: z.string()
@@ -50,7 +51,7 @@ function ResetPasswordForm() {
     },
   });
 
-  const onSubmit = async () => {
+  const onSubmit = async (values: ResetPasswordValues) => {
     if (!token) {
         toast.error("Token de redefinição ausente ou inválido.");
         return;
@@ -58,10 +59,13 @@ function ResetPasswordForm() {
 
     setIsPending(true);
     try {
-      // Simulate server action for reset
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      toast.success("Senha redefinida com sucesso! Você já pode fazer login.");
-      router.push("/login");
+      const result = await resetPassword(token, values.password);
+      if (result.success) {
+        toast.success("Senha redefinida com sucesso! Você já pode fazer login.");
+        router.push("/login");
+      } else {
+        toast.error(result.error || "Erro ao redefinir senha.");
+      }
     } catch (error) {
       toast.error("Erro ao redefinir senha. O token pode ter expirado.");
     } finally {

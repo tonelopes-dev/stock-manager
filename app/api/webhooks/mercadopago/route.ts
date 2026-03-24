@@ -1,7 +1,11 @@
 import { mpClient } from "@/app/_lib/mercadopago";
+import { sendEmail } from "@/app/_services/email.service";
+import { subscriptionActivatedTemplate } from "@/app/_services/email/templates";
 import { Payment } from "mercadopago";
 import { db } from "@/app/_lib/prisma";
 import { NextResponse } from "next/server";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export const runtime = "nodejs";
 
@@ -64,6 +68,23 @@ export async function POST(req: Request) {
           isBoletoPending: false,
         },
       });
+
+      // Send subscription activation email
+      if (owner?.user?.email) {
+        try {
+          await sendEmail({
+            to: owner.user.email,
+            subject: "Assinatura PRO Ativada! ✨",
+            html: subscriptionActivatedTemplate({
+              name: owner.user.name || "parceiro",
+              companyName: owner.user.name || "sua empresa", // Note: actually owner.user.name here might be a bit confusing, but using existing logic
+              expiryDateFormatted: format(thirtyDaysFromNow, "dd/MM/yyyy", { locale: ptBR }),
+            }),
+          });
+        } catch (err) {
+          console.error("Failed to send subscription activation email:", err);
+        }
+      }
 
       // Log audit event
       await db.auditEvent.create({

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/_lib/prisma";
-import { format } from "date-fns";
+import { format, addDays, startOfDay, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { sendEmail } from "@/app/_services/email.service";
+import { subscriptionReminderTemplate } from "@/app/_services/email/templates";
 
 export const dynamic = "force-dynamic";
 
@@ -102,10 +104,87 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // --- 6. Subscription Reminders ---
+    const today = startOfDay(new Date());
+    const in3Days = startOfDay(addDays(today, 3));
+
+    const expiringCompanies = await db.company.findMany({
+      where: {
+        expiresAt: {
+          not: null,
+          gte: today,
+          lte: endOfDay(in3Days),
+        },
+        subscriptionStatus: {
+          in: ["ACTIVE", "TRIALING"],
+        },
+      },
+      include: {
+        userCompanies: {
+          where: { role: "OWNER" },
+          include: { user: { select: { email: true, name: true } } },
+        },
+      },
+    });
+
+    let emailsSent = 0;
+
+    for (const company of expiringCompanies) {
+      if (!company.expiresAt) continue;
+
+      const owner = company.userCompanies[0]?.user;
+      if (!owner?.email) continue;
+
+      const companyExpiresAt = startOfDay(company.expiresAt);
+      const daysLeft = Math.ceil((companyExpiresAt.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+      // Only send exactly at 3 days left or 0 days left
+      if (daysLeft === 3 || daysLeft === 0) {
+        const subject = daysLeft === 0 
+          ? "Sua assinatura Stockly vence hoje!" 
+          : `Sua assinatura Stockly vence em ${daysLeft} dias`;
+
+        const title = daysLeft === 0
+          ? "⚠️ Sua assinatura vence hoje!"
+          : `🔔 Lembrete: ${daysLeft} dias para o vencimento`;
+
+        const message = daysLeft === 0
+          ? `Sua assinatura para a empresa <strong>${company.name}</strong> vence hoje. Para evitar interrupção no serviço, realize a renovação agora.`
+          : `Gostaríamos de lembrar que sua assinatura para a empresa <strong>${company.name}</strong> vence em ${daysLeft} dias (${format(company.expiresAt, "dd/MM/yyyy", { locale: ptBR })}).`;
+
+        try {
+          await sendEmail({
+            to: owner.email,
+            subject,
+            html: subscriptionReminderTemplate({
+                name: owner.name || "parceiro",
+                companyName: company.name,
+                daysLeft,
+                expiryDateFormatted: format(company.expiresAt, "dd/MM/yyyy", { locale: ptBR }),
+            }),
+          });
+          emailsSent++;
+
+          // Also create a system notification
+          await db.notification.create({
+            data: {
+              title: subject,
+              message: message.replace(/<[^>]*>/g, ""),
+              type: "EXPIRATION_ALERT",
+              companyId: company.id,
+            },
+          });
+        } catch (err) {
+          console.error(`Failed to send reminder to ${owner.email}:`, err);
+        }
+      }
+    }
+
     return NextResponse.json({
       success: true,
       scanned: items.length,
       created: createdCount,
+      emailsSent: emailsSent,
     });
   } catch (error) {
     console.error("[CRON ERROR]:", error);

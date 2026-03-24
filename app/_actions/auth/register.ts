@@ -3,6 +3,8 @@
 import { db } from "@/app/_lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { sendEmail } from "@/app/_services/email.service";
+import { welcomeTemplate } from "@/app/_services/email/templates";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -79,6 +81,17 @@ export async function register(
       },
     });
   });
+
+  // Send welcome email
+  try {
+    await sendEmail({
+      to: email,
+      subject: `Bem-vindo ao Stockly, ${name}!`,
+      html: welcomeTemplate({ name }),
+    });
+  } catch (err) {
+    console.error("Failed to send welcome email:", err);
+  }
 
   return { success: true };
 }

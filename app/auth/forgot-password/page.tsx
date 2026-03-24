@@ -18,6 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { toast } from "sonner";
 import { Loader2Icon, MailIcon, ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
+import { forgotPassword } from "@/app/_actions/auth/forgot-password";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("E-mail inválido"),
@@ -36,13 +37,16 @@ export default function ForgotPasswordPage() {
     },
   });
 
-  const onSubmit = async () => {
+  const onSubmit = async (values: ForgotPasswordValues) => {
     setIsPending(true);
     try {
-      // Simulate server action for recovery
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setIsSent(true);
-      toast.success("Se o e-mail existir, um link de recuperação foi enviado.");
+      const result = await forgotPassword(values.email);
+      if (result.success) {
+        setIsSent(true);
+        toast.success("Se o e-mail existir, um link de recuperação foi enviado.");
+      } else {
+        toast.error(result.error || "Erro ao solicitar recuperação.");
+      }
     } catch (error) {
       toast.error("Erro ao solicitar recuperação.");
     } finally {
