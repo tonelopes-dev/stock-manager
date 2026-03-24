@@ -14,7 +14,7 @@ export default auth(async (req) => {
     return NextResponse.next();
   }
 
-  const publicRoutes = ["/", "/login", "/register", "/plans", "/checkout", "/checkout/success"];
+  const publicRoutes = ["/", "/login", "/register", "/plans", "/checkout", "/checkout/success", "/termos", "/privacidade"];
   const isPublicRoute = 
     publicRoutes.includes(pathname) || 
     pathname.startsWith("/menu") ||

@@ -304,8 +304,8 @@ const LandingPage = () => {
             © {new Date().getFullYear()} Kipo. Todos os direitos reservados.
           </p>
           <div className="flex gap-8 text-sm font-bold text-foreground">
-            <a href="#" className="hover:text-primary transition-colors">Privacidade</a>
-            <a href="#" className="hover:text-primary transition-colors">Termos</a>
+            <Link href="/privacidade" className="hover:text-primary transition-colors">Privacidade</Link>
+            <Link href="/termos" className="hover:text-primary transition-colors">Termos</Link>
           </div>
         </div>
       </footer>
