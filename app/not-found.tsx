@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/app/_components/ui/button";
-import { PackageIcon, GhostIcon, ArrowLeftIcon } from "lucide-react";
+import { GhostIcon, ArrowLeftIcon } from "lucide-react";
+import { KipoLogo } from "@/app/_components/logo";
 
 export default function NotFound() {
   return (
@@ -35,9 +36,8 @@ export default function NotFound() {
           </Button>
         </div>
 
-        <div className="pt-12 flex items-center justify-center gap-2 grayscale opacity-30">
-            <PackageIcon className="h-5 w-5 text-primary" />
-            <span className="text-lg font-bold tracking-tight text-primary">KIPO</span>
+        <div className="pt-12 flex items-center justify-center grayscale opacity-30">
+            <KipoLogo className="scale-[0.4]" />
         </div>
       </div>
     </div>

@@ -36,7 +36,7 @@ export const SidebarUserProfile = async () => {
               {profile.role === "OWNER"
                 ? "Proprietário"
                 : profile.role === "ADMIN"
-                  ? "Admin"
+                  ? "Administrador"
                   : "Equipe"}
             </Badge>
           </div>

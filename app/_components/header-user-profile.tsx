@@ -31,10 +31,10 @@ export const HeaderUserProfile = async () => {
           className="h-3.5 w-fit border-border px-1 text-[8px] font-black uppercase tracking-tighter text-muted-foreground"
         >
           {profile.role === "OWNER"
-            ? "Owner"
+            ? "Proprietário"
             : profile.role === "ADMIN"
-              ? "Admin"
-              : "Team"}
+              ? "Administrador"
+              : "Equipe"}
         </Badge>
       </div>
     </Link>

@@ -31,7 +31,7 @@ export const UserSidebarProfile = async () => {
             variant="outline" 
             className="h-4 px-1 text-[9px] font-black uppercase tracking-tighter bg-muted border-border text-muted-foreground whitespace-nowrap"
           >
-            {profile.role === "OWNER" ? "Prorietário" : profile.role === "ADMIN" ? "Admin" : "Membro"}
+            {profile.role === "OWNER" ? "Proprietário" : profile.role === "ADMIN" ? "Administrador" : "Equipe"}
           </Badge>
         </div>
         <span className="truncate text-xs text-muted-foreground leading-tight">
