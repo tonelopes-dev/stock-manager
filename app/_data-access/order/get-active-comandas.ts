@@ -1,6 +1,6 @@
 import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { OrderStatus } from "@prisma/client";
+import { OrderStatus, OrderSource } from "@prisma/client";
 
 export interface ComandaDto {
   customerId: string;
@@ -10,6 +10,9 @@ export interface ComandaDto {
   orderCount: number;
   firstOrderAt: Date;
   lastOrderAt: Date;
+  source: OrderSource;
+  deliveryAddress?: string | null;
+  deliveryFee?: number | null;
   items: {
     id: string;
     name: string;
@@ -22,6 +25,7 @@ export interface ComandaDto {
     orderNumber: number;
     status: OrderStatus;
     createdAt: Date;
+    source: OrderSource;
   }[];
 }
 
@@ -68,6 +72,9 @@ export const getActiveComandas = async (): Promise<ComandaDto[]> => {
         orderCount: 0,
         firstOrderAt: order.createdAt,
         lastOrderAt: order.createdAt,
+        source: order.source,
+        deliveryAddress: order.deliveryAddress,
+        deliveryFee: Number(order.deliveryFee),
         items: [],
         orders: [],
       };
@@ -83,6 +90,7 @@ export const getActiveComandas = async (): Promise<ComandaDto[]> => {
       orderNumber: order.orderNumber,
       status: order.status,
       createdAt: order.createdAt,
+      source: order.source,
     });
 
     // Aggregate items

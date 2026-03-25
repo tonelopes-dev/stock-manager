@@ -1,10 +1,11 @@
 import { db } from "@/app/_lib/prisma";
-import { OrderStatus } from "@prisma/client";
+import { OrderStatus, OrderSource } from "@prisma/client";
 
 export interface KDSOrderDto {
   id: string;
   orderNumber: number;
   status: OrderStatus;
+  source: OrderSource;
   tableNumber: string | null;
   notes: string | null;
   createdAt: Date;
@@ -13,6 +14,8 @@ export interface KDSOrderDto {
     productName: string;
     quantity: number;
     notes: string | null;
+    isModifier: boolean;
+    parentItemId: string | null;
   }[];
 }
 
@@ -38,6 +41,7 @@ export const getKDSOrders = async (companyId: string): Promise<KDSOrderDto[]> =>
     id: order.id,
     orderNumber: order.orderNumber,
     status: order.status,
+    source: order.source,
     tableNumber: order.tableNumber,
     notes: order.notes,
     createdAt: order.createdAt,
@@ -46,6 +50,8 @@ export const getKDSOrders = async (companyId: string): Promise<KDSOrderDto[]> =>
       productName: item.product.name,
       quantity: Number(item.quantity),
       notes: item.notes,
+      isModifier: item.isModifier || false,
+      parentItemId: item.parentItemId || null,
     })),
   }));
 };

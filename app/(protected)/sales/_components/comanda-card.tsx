@@ -36,6 +36,12 @@ export const ComandaCard = ({ comanda, onClick }: ComandaCardProps) => {
           "border-orange-500 shadow-amber-50 ring-1 ring-orange-500/20",
       )}
     >
+      {comanda.source === "IFOOD" && (
+        <div className="absolute left-0 top-0 rounded-br-xl bg-red-600 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white shadow-lg animate-in fade-in slide-in-from-left-2">
+          iFood
+        </div>
+      )}
+
       {isForgotten && (
         <div className="absolute right-0 top-0 rounded-bl-xl bg-orange-500 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-background shadow-sm">
           Atenção: &gt;4h
@@ -98,6 +104,28 @@ export const ComandaCard = ({ comanda, onClick }: ComandaCardProps) => {
             </p>
           </div>
         </div>
+
+        {/* iFood Delivery Info */}
+        {comanda.source === "IFOOD" && (
+          <div className="mt-4 rounded-xl border border-red-100 bg-red-50/50 p-3 animate-in zoom-in-95">
+            <div className="flex items-start gap-2">
+              <div className="mt-0.5 rounded-full bg-red-100 p-1 text-red-600">
+                <Clock size={10} />
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black uppercase text-red-700">Entrega iFood</p>
+                <p className="line-clamp-2 text-[10px] font-bold leading-tight text-red-900/70">
+                  {comanda.deliveryAddress ? JSON.parse(comanda.deliveryAddress).formattedAddress : "Endereço não informado"}
+                </p>
+                {comanda.deliveryFee && (
+                  <p className="text-[9px] font-black text-red-600">
+                    Taxa: {formatCurrency(comanda.deliveryFee)}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Peek at items */}
         <div className="mt-4 border-t border-border pt-4">

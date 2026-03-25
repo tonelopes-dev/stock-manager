@@ -126,6 +126,7 @@ const UpsertSheetContent = ({
     (defaultPaymentMethod as PaymentMethod) || undefined,
   );
   const [tipAmount, setTipAmount] = useState<number>(0);
+  const [tableNumber, setTableNumber] = useState<string>("");
 
   const { execute: executeUpsertSale, isPending: isUpsertPending } = useAction(
     upsertSale,
@@ -262,9 +263,9 @@ const UpsertSheetContent = ({
 
     if (!paymentMethod) {
       // Automatic Comanda Flow
-      if (!customerId) {
+      if (!customerId && !tableNumber) {
         toast.error(
-          "Para abrir uma comanda (sem pagamento imediato), você deve selecionar um cliente.",
+          "Para abrir uma comanda (sem pagamento imediato), informe o cliente OU a mesa.",
         );
         return;
       }
@@ -272,6 +273,7 @@ const UpsertSheetContent = ({
       executeCreateOrder({
         companyId,
         customerId,
+        tableNumber,
         items: selectedProducts.map((p) => ({
           productId: p.id,
           quantity: p.quantity,
@@ -317,6 +319,7 @@ const UpsertSheetContent = ({
         <div className="flex-1 space-y-8 overflow-y-auto bg-muted/30 p-6">
           {/* Sale Metadata Section */}
           <div className="grid grid-cols-2 gap-4 rounded-2xl border border-border bg-background p-6 shadow-sm">
+            {/* Coluna 1: Data */}
             <div className="space-y-1">
               <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-muted-foreground">
                 <CalendarIcon size={12} />
@@ -331,6 +334,7 @@ const UpsertSheetContent = ({
               />
             </div>
 
+            {/* Coluna 2: Cliente e Mesa */}
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-muted-foreground">
@@ -343,35 +347,60 @@ const UpsertSheetContent = ({
                   onChange={(val) => setCustomerId(val || undefined)}
                   placeholder="Selecione o Cliente..."
                 />
+                
+                <div className="flex items-center justify-between">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    onClick={() => setCustomerId(undefined)}
+                    className={cn(
+                      "h-8 px-3 text-[10px] font-black uppercase tracking-widest transition-all",
+                      !customerId
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                        : "text-muted-foreground hover:bg-muted",
+                    )}
+                  >
+                    {!customerId ? (
+                      <span className="flex items-center gap-1.5">
+                        <CheckIcon size={12} /> Venda Avulsa Ativada
+                      </span>
+                    ) : (
+                      "Ativar Venda Avulsa"
+                    )}
+                  </Button>
+
+                  {customerId && (
+                    <p className="text-[9px] italic font-bold uppercase text-muted-foreground">
+                      Cliente selecionado
+                    </p>
+                  )}
+                </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  type="button"
-                  onClick={() => setCustomerId(undefined)}
-                  className={cn(
-                    "h-8 px-3 text-[10px] font-black uppercase tracking-widest transition-all",
-                    !customerId
-                      ? "border-emerald-500 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-                      : "text-muted-foreground hover:bg-muted",
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-muted-foreground">
+                  <SmartphoneIcon size={12} className="text-primary" />
+                  Mesa / Identificador
+                </Label>
+                <div className="relative">
+                  <Input
+                    placeholder="Ex: Mesa 05, Balcão..."
+                    value={tableNumber}
+                    onChange={(e) => setTableNumber(e.target.value)}
+                    className="h-10 border-border font-bold text-xs"
+                  />
+                  {tableNumber && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-10 w-10 text-muted-foreground hover:bg-transparent"
+                      onClick={() => setTableNumber("")}
+                    >
+                      <TrashIcon size={14} />
+                    </Button>
                   )}
-                >
-                  {!customerId ? (
-                    <span className="flex items-center gap-1.5">
-                      <CheckIcon size={12} /> Venda Avulsa Ativada
-                    </span>
-                  ) : (
-                    "Ativar Venda Avulsa"
-                  )}
-                </Button>
-
-                {customerId && (
-                   <p className="text-[9px] font-bold uppercase text-muted-foreground italic">
-                      Cliente selecionado
-                   </p>
-                )}
+                </div>
               </div>
             </div>
           </div>

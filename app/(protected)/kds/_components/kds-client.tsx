@@ -167,31 +167,49 @@ const KDSColumn = ({
               </div>
 
               <div className="space-y-3 rounded-[2rem] border border-border bg-muted/80 p-5">
-                {order.items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-start justify-between gap-4"
-                  >
-                    <div className="flex gap-3">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-xl border border-primary bg-background text-xs font-black leading-none text-primary shadow-sm">
-                        {item.quantity}
-                      </span>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-black leading-tight text-foreground">
-                          {item.productName}
-                        </span>
-                        {item.notes && (
-                          <Badge
-                            variant="outline"
-                            className="mt-1 border-destructive/10 bg-destructive/10/50 px-2 text-[9px] font-bold uppercase italic text-destructive"
-                          >
-                            OBS: {item.notes}
-                          </Badge>
-                        )}
+                {order.items
+                  .filter((item) => !item.isModifier)
+                  .map((item) => (
+                    <div key={item.id} className="space-y-2">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex gap-3">
+                          <span className="flex h-7 w-7 items-center justify-center rounded-xl border border-primary bg-background text-xs font-black leading-none text-primary shadow-sm">
+                            {item.quantity}
+                          </span>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-black leading-tight text-foreground uppercase">
+                              {item.productName}
+                            </span>
+                            {item.notes && (
+                              <Badge
+                                variant="outline"
+                                className="mt-1 border-destructive/10 bg-destructive/10/50 px-2 text-[9px] font-bold uppercase italic text-destructive"
+                              >
+                                OBS: {item.notes}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
                       </div>
+
+                      {/* Render Modifiers (Adicionais) */}
+                      {order.items
+                        .filter((child) => child.parentItemId === item.id)
+                        .map((modifier) => (
+                          <div
+                            key={modifier.id}
+                            className="ml-10 flex items-center gap-2 border-l-2 border-primary/20 pl-3 transition-all hover:border-primary"
+                          >
+                            <span className="text-[10px] font-black text-primary">
+                              +{modifier.quantity}
+                            </span>
+                            <span className="text-[11px] font-bold leading-none text-muted-foreground uppercase italic">
+                              {modifier.productName}
+                            </span>
+                          </div>
+                        ))}
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
 
               {order.notes && (

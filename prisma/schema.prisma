@@ -43,7 +43,12 @@ model Product {
   expirationDate   DateTime?
   trackExpiration  Boolean           @default(false)
 
+  // iFood Integration
+  ifoodId          String?           @unique
+  ifoodExternalId  String?           // SKU or internal reference for iFood
+
   @@unique([sku, companyId])
+  @@index([ifoodId])
 }
 
 model Sale {
@@ -208,6 +213,16 @@ model Company {
   checklistItems         ChecklistItem[]
   checklistTemplates     ChecklistTemplate[]
   notifications          Notification[]
+
+  // iFood Integration
+  ifoodMerchantId    String?              @unique
+  ifoodClientId      String?
+  ifoodClientSecret  String?
+  ifoodAccessToken   String?              @db.Text
+  ifoodRefreshToken  String?              @db.Text
+  ifoodTokenExpiry   DateTime?
+  ifoodOrdersEnabled Boolean              @default(false)
+  ifoodAutoConfirm   Boolean              @default(true)
 
   @@index([deletedAt])
 }
@@ -406,7 +421,15 @@ model Order {
   sale          Sale?
   stockMovements StockMovement[]
 
+  // iFood Integration
+  source         OrderSource @default(KIPO)
+  ifoodOrderId   String?     @unique
+  ifoodDisplayId String?     // Short ID (ex: 1234)
+  deliveryAddress Json?      // Full address metadata
+  deliveryFee    Decimal?    @db.Decimal(10, 2)
+
   @@index([companyId, status])
+  @@index([ifoodOrderId])
 }
 
 model OrderItem {
@@ -421,7 +444,14 @@ model OrderItem {
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product  @relation(fields: [productId], references: [id])
 
+  // Sub-items / Modifiers (iFood support)
+  parentItemId String?
+  parentItem   OrderItem?  @relation("SubItems", fields: [parentItemId], references: [id], onDelete: Cascade)
+  subItems     OrderItem[] @relation("SubItems")
+  isModifier   Boolean     @default(false)
+
   @@index([orderId])
+  @@index([parentItemId])
 }
 
 model Category {
@@ -624,4 +654,9 @@ enum GoalPeriod {
   WEEKLY
   MONTHLY
   CUSTOM
+}
+
+enum OrderSource {
+  KIPO
+  IFOOD
 }
