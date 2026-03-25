@@ -19,9 +19,9 @@ export const GoalsSummary = async () => {
   const displayGoals = goals.slice(0, 3);
 
   return (
-    <Card className="overflow-hidden border-slate-200 bg-white shadow-sm">
+    <Card className="overflow-hidden border-border bg-background shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="flex items-center gap-2 text-sm font-black uppercase italic tracking-tighter text-slate-900">
+        <CardTitle className="flex items-center gap-2 text-sm font-black uppercase italic tracking-tighter text-foreground">
           <TargetIcon className="h-4 w-4 text-primary" />
           Metas em Destaque
         </CardTitle>
@@ -36,17 +36,17 @@ export const GoalsSummary = async () => {
         {displayGoals.map((goal) => (
           <div
             key={goal.id}
-            className="group space-y-3 rounded-2xl border border-slate-100/50 bg-slate-50 p-4 transition-colors hover:bg-slate-100/50"
+            className="group space-y-3 rounded-2xl border border-border/50 bg-muted p-4 transition-colors hover:bg-muted/50"
           >
             <div className="flex flex-col gap-1">
-              <span className="truncate text-[10px] font-bold uppercase tracking-tight text-slate-400 transition-colors group-hover:text-primary">
+              <span className="truncate text-[10px] font-bold uppercase tracking-tight text-muted-foreground transition-colors group-hover:text-primary">
                 {goal.name}
               </span>
               <div className="flex items-baseline justify-between">
-                <span className="text-lg font-black tabular-nums text-slate-900">
+                <span className="text-lg font-black tabular-nums text-foreground">
                   {goal.progressPercentage.toFixed(0)}%
                 </span>
-                <span className="text-[10px] font-semibold tabular-nums text-slate-500">
+                <span className="text-[10px] font-semibold tabular-nums text-muted-foreground">
                   {formatCurrency(goal.currentValue)} /{" "}
                   {formatCurrency(Number(goal.targetValue))}
                 </span>
@@ -54,7 +54,7 @@ export const GoalsSummary = async () => {
             </div>
             <Progress
               value={goal.progressPercentage}
-              className="h-1.5 bg-slate-200"
+              className="h-1.5 bg-muted"
             />
           </div>
         ))}

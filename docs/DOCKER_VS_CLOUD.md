@@ -10,13 +10,13 @@ Use este cenário para desenvolvimento offline ou testes locais rápidos.
 
 1.  **Subir o Banco no Docker:**
     ```bash
-    docker compose up stocky-db -d
+    docker compose up kipo-db -d
     ```
 2.  **Configurar `.env`:**
     No arquivo `.env`, comente as URLs da Nuvem e descomente as do Local:
     ```env
     # DATABASE_URL="...neon.tech..." (COMENTAR)
-    DATABASE_URL="postgresql://user:password@localhost:5432/stocky" (DESCOMENTAR)
+    DATABASE_URL="postgresql://user:password@localhost:5432/kipo" (DESCOMENTAR)
     ```
 3.  **Rodar a aplicação:**
     ```bash
@@ -55,5 +55,5 @@ Use este cenário para trabalhar com os dados reais/sincronizados da nuvem.
   > Se você usar `npx prisma db push` para testar, as mudanças não se tornarão migrações e o `migrate deploy` na nuvem não funcionará.
 - **Parar o Docker:** Se não estiver usando o banco local, você pode pará-lo para economizar recursos:
   ```bash
-  docker compose stop stocky-db
+  docker compose stop kipo-db
   ```

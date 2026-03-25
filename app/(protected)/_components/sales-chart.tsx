@@ -46,8 +46,8 @@ const CustomTooltip = ({
   if (!row) return null;
 
   return (
-    <div className="rounded-lg border border-slate-200/80 bg-white px-4 py-3 shadow-xl shadow-slate-200/40 min-w-[200px]">
-      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+    <div className="rounded-lg border border-border/80 bg-background px-4 py-3 shadow-xl shadow-slate-200/40 min-w-[200px]">
+      <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
         {label}
       </p>
       <div className="space-y-1.5">
@@ -63,9 +63,9 @@ const Row = ({ color, label, value }: { color: string; label: string; value: str
   <div className="flex items-center justify-between gap-4">
     <div className="flex items-center gap-2">
       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
-      <span className="text-xs font-medium text-slate-500">{label}</span>
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
     </div>
-    <span className="text-xs font-black text-slate-900 tabular-nums">{value}</span>
+    <span className="text-xs font-black text-foreground tabular-nums">{value}</span>
   </div>
 );
 

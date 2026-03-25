@@ -48,18 +48,18 @@ export const MenuProductCard = ({ product }: MenuProductCardProps) => {
     <div
       className={`group relative flex items-center gap-4 rounded-xl border px-4 py-3 transition-all ${
         product.isVisibleOnMenu
-          ? "border-slate-200 bg-white shadow-sm hover:shadow-md"
-          : "border-dashed border-slate-200 bg-slate-50/50 opacity-70"
+          ? "border-border bg-background shadow-sm hover:shadow-md"
+          : "border-dashed border-border bg-muted/50 opacity-70"
       }`}
     >
       {/* Product Info */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <h4 className="truncate text-sm font-bold text-slate-800">
+          <h4 className="truncate text-sm font-bold text-foreground">
             {product.name}
           </h4>
           {product.isPromotion && (
-            <Badge className="gap-1 bg-orange-100 px-1.5 py-0 text-[10px] text-orange-700 hover:bg-orange-100">
+            <Badge className="gap-1 bg-orange-500 px-1.5 py-0 text-[10px] text-orange-500 hover:bg-orange-500">
               <Flame className="h-3 w-3" />
               Promo
             </Badge>
@@ -84,7 +84,7 @@ export const MenuProductCard = ({ product }: MenuProductCardProps) => {
         {product.isVisibleOnMenu ? (
           <Eye className="h-3.5 w-3.5 text-green-600" />
         ) : (
-          <EyeOff className="h-3.5 w-3.5 text-slate-400" />
+          <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
         )}
         <Switch
           checked={product.isVisibleOnMenu}
@@ -100,7 +100,7 @@ export const MenuProductCard = ({ product }: MenuProductCardProps) => {
       <div className="flex items-center gap-1.5">
         <Flame
           className={`h-3.5 w-3.5 ${
-            product.isPromotion ? "text-orange-500" : "text-slate-400"
+            product.isPromotion ? "text-orange-500" : "text-muted-foreground"
           }`}
         />
         <Switch

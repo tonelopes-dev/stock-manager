@@ -50,11 +50,11 @@ const paymentMethodLabels: Record<
 const statusLabels: Record<string, { label: string; color: string }> = {
   PENDING: {
     label: "Pendente",
-    color: "bg-amber-100 text-amber-700 border-amber-200",
+    color: "bg-orange-500 text-orange-500 border-orange-500",
   },
   PREPARING: {
     label: "Preparando",
-    color: "bg-blue-100 text-blue-700 border-blue-200",
+    color: "bg-primary text-primary border-primary",
   },
   READY: {
     label: "Pronto",
@@ -100,49 +100,49 @@ export const PendingOrdersBanner = ({
   };
 
   return (
-    <Card className="overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50/80 via-indigo-50/60 to-violet-50/40 shadow-sm">
+    <Card className="overflow-hidden rounded-2xl border border-primary bg-gradient-to-r from-blue-50/80 via-indigo-50/60 to-violet-50/40 shadow-sm">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center justify-between px-6 py-4 transition-colors hover:bg-white/50"
+        className="flex w-full items-center justify-between px-6 py-4 transition-colors hover:bg-background/50"
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-200">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-background shadow-lg shadow-blue-200">
             <Clock className="h-5 w-5" />
           </div>
           <div className="text-left">
-            <h3 className="text-sm font-bold text-slate-900">
+            <h3 className="text-sm font-bold text-foreground">
               Pedidos Aguardando Pagamento
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               {orders.length} {orders.length === 1 ? "pedido" : "pedidos"} do
               cardápio digital
             </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Badge className="rounded-full bg-blue-600 px-3 py-1 text-xs font-black text-white shadow-sm">
+          <Badge className="rounded-full bg-primary px-3 py-1 text-xs font-black text-background shadow-sm">
             {orders.length}
           </Badge>
           {isExpanded ? (
-            <ChevronUp className="h-4 w-4 text-slate-400" />
+            <ChevronUp className="h-4 w-4 text-muted-foreground" />
           ) : (
-            <ChevronDown className="h-4 w-4 text-slate-400" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
           )}
         </div>
       </button>
 
       {isExpanded && (
-        <div className="space-y-3 border-t border-blue-100/60 px-6 pb-5 pt-4">
+        <div className="space-y-3 border-t border-primary/60 px-6 pb-5 pt-4">
           {orders.map((order) => {
             const status = statusLabels[order.status] || statusLabels.PENDING;
             return (
               <div
                 key={order.id}
-                className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-all hover:shadow-md"
+                className="flex items-center gap-4 rounded-2xl border border-border bg-background p-4 shadow-sm transition-all hover:shadow-md"
               >
                 <div className="flex flex-1 flex-col gap-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-lg font-black italic text-slate-900">
+                    <span className="text-lg font-black italic text-foreground">
                       #{order.orderNumber}
                     </span>
                     <Badge
@@ -152,12 +152,12 @@ export const PendingOrdersBanner = ({
                       {status.label}
                     </Badge>
                     {order.tableNumber && (
-                      <Badge className="rounded-lg bg-slate-900 text-[10px] font-bold text-white">
+                      <Badge className="rounded-lg bg-foreground text-[10px] font-bold text-background">
                         Mesa {order.tableNumber}
                       </Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-slate-500">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span>
                       {order.orderItems
                         .map(
@@ -166,7 +166,7 @@ export const PendingOrdersBanner = ({
                         )
                         .join(", ")}
                     </span>
-                    <span className="text-slate-300">•</span>
+                    <span className="text-muted-foreground">•</span>
                     <span>
                       {formatDistanceToNow(new Date(order.createdAt), {
                         locale: ptBR,
@@ -176,7 +176,7 @@ export const PendingOrdersBanner = ({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 text-lg font-black text-blue-600">
+                <div className="flex items-center gap-3 text-lg font-black text-primary">
                   {Intl.NumberFormat("pt-BR", {
                     style: "currency",
                     currency: "BRL",
@@ -189,7 +189,7 @@ export const PendingOrdersBanner = ({
                     setPaymentMethods((prev) => ({ ...prev, [order.id]: val }))
                   }
                 >
-                  <SelectTrigger className="h-10 w-[130px] rounded-xl border-slate-200 text-xs font-bold">
+                  <SelectTrigger className="h-10 w-[130px] rounded-xl border-border text-xs font-bold">
                     <SelectValue placeholder="Pagamento" />
                   </SelectTrigger>
                   <SelectContent>
@@ -212,7 +212,7 @@ export const PendingOrdersBanner = ({
                     !paymentMethods[order.id] || loadingOrderId === order.id
                   }
                   onClick={() => handleConvert(order.id)}
-                  className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-emerald-100 transition-all hover:bg-emerald-700 disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-background shadow-lg shadow-emerald-100 transition-all hover:bg-emerald-700 disabled:opacity-50"
                 >
                   {loadingOrderId === order.id ? (
                     <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />

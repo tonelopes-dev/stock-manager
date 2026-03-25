@@ -44,26 +44,26 @@ export function ConfirmDoubleAction({
       </AlertDialogTrigger>
       <AlertDialogContent className="sm:max-w-[425px]">
         <AlertDialogHeader>
-          <div className="flex items-center gap-2 text-amber-600 mb-2">
+          <div className="flex items-center gap-2 text-orange-500 mb-2">
             <AlertTriangleIcon size={20} />
             <AlertDialogTitle>{title}</AlertDialogTitle>
           </div>
-          <AlertDialogDescription className="text-sm leading-relaxed text-slate-500">
+          <AlertDialogDescription className="text-sm leading-relaxed text-muted-foreground">
             {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="flex items-start space-x-3 py-4 bg-slate-50/50 p-4 rounded-lg border border-slate-100">
+        <div className="flex items-start space-x-3 py-4 bg-muted/50 p-4 rounded-lg border border-border">
           <input 
             type="checkbox"
             id="double-confirmation-checkbox"
             checked={confirmed}
             onChange={(e) => setConfirmed(e.target.checked)}
-            className="mt-1 h-4 w-4 border-slate-300 rounded text-amber-600 focus:ring-amber-500 cursor-pointer"
+            className="mt-1 h-4 w-4 border-border rounded text-orange-500 focus:ring-orange-500 cursor-pointer"
           />
           <Label 
             htmlFor="double-confirmation-checkbox" 
-            className="text-xs font-medium leading-normal text-slate-600 cursor-pointer"
+            className="text-xs font-medium leading-normal text-muted-foreground cursor-pointer"
           >
             {confirmationLabel}
           </Label>

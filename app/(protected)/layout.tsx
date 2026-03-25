@@ -68,7 +68,7 @@ export default async function ProtectedLayout({
           {/* Sidebar + Content */}
           <div className="flex flex-1 overflow-hidden">
             <Sidebar />
-            <main className="flex-1 overflow-y-auto bg-gray-100">
+            <main className="flex-1 overflow-y-auto bg-muted">
               {children}
             </main>
           </div>

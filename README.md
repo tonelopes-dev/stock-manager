@@ -1,4 +1,4 @@
-# 📦 STOCKY
+# 📦 KIPO
 
 > **A modern, enterprise-ready inventory management system designed for multi-tenant scalability and precision.**
 
@@ -12,7 +12,7 @@
 
 ## 🎯 **Project Overview**
 
-STOCKY is a robust multi-tenant SaaS solution. It enables business owners to manage inventory across multiple companies, coordinate teams with granular permissions, and gain deep financial insights through advanced analytics—all while scaling effortlessly with Stripe-powered subscriptions.
+KIPO is a robust multi-tenant SaaS solution. It enables business owners to manage inventory across multiple companies, coordinate teams with granular permissions, and gain deep financial insights through advanced analytics—all while scaling effortlessly with Stripe-powered subscriptions.
 
 ### ✨ **Core SaaS Pillars**
 
@@ -114,7 +114,7 @@ npx prisma generate
 ## 📁 **Project Structure**
 
 ```bash
-stocky/
+kipo/
 ├── app/
 │   ├── (protected)/        # Dashboard, Team, Profile, Products, Sales
 │   ├── auth/               # Login, Forgot Password, Reset Password
@@ -129,8 +129,8 @@ stocky/
 
 <div align="center">
 
-**STOCKY - Empowering Modern Inventory Management**
+**KIPO - Empowering Modern Inventory Management**
 
-[🌐 Production Access](https://stocky-360.vercel.app/) • [🛠️ Issues](https://github.com/tonelopes-dev/stock-manager/issues)
+[🌐 Access Kipo](https://usekipo.com.br/) • [🛠️ Issues](https://github.com/tonelopes-dev/stock-manager/issues)
 
 </div>

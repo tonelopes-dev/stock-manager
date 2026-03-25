@@ -50,10 +50,10 @@ export const ProductCard = ({ product, userRole, categories, environments }: Pro
 
   return (
     <Card 
-      className="overflow-hidden cursor-pointer hover:shadow-lg transition-all border-none bg-slate-50/50"
+      className="overflow-hidden cursor-pointer hover:shadow-lg transition-all border-none bg-muted/50"
       onClick={handleClick}
     >
-      <div className="relative aspect-square bg-slate-200 flex items-center justify-center overflow-hidden">
+      <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
         {product.imageUrl && !hasError ? (
           <Image 
             src={product.imageUrl} 
@@ -65,7 +65,7 @@ export const ProductCard = ({ product, userRole, categories, environments }: Pro
             onError={() => setHasError(true)}
           />
         ) : (
-          <div className="flex flex-col items-center gap-2 text-slate-400">
+          <div className="flex flex-col items-center gap-2 text-muted-foreground">
             <ImageIcon className="w-10 h-10" />
             <span className="text-[10px] font-bold uppercase tracking-tight">
               {hasError ? "Imagem indisponível" : "Sem imagem"}
@@ -74,7 +74,7 @@ export const ProductCard = ({ product, userRole, categories, environments }: Pro
         )}
         
         <div className="absolute top-3 left-3 flex flex-col gap-2">
-          <Badge variant={typeConfig.variant} className="shadow-sm border-none backdrop-blur-md bg-white/80 text-foreground">
+          <Badge variant={typeConfig.variant} className="shadow-sm border-none backdrop-blur-md bg-background/80 text-foreground">
             {typeConfig.label}
           </Badge>
           {!product.isActive && (
@@ -96,24 +96,24 @@ export const ProductCard = ({ product, userRole, categories, environments }: Pro
 
       <CardContent className="p-5 space-y-4">
         <div>
-            <h3 className="font-bold text-base text-slate-900 line-clamp-1" title={product.name}>
+            <h3 className="font-bold text-base text-foreground line-clamp-1" title={product.name}>
             {product.name}
             </h3>
-            <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1">
                 {product.category?.name || "Sem categoria"}
                 {product.environment && (
                   <>
-                    <span className="mx-2 text-slate-300">|</span>
+                    <span className="mx-2 text-muted-foreground">|</span>
                     <span className="text-primary/70">{product.environment.name}</span>
                   </>
                 )}
             </p>
         </div>
         
-        <div className="grid grid-cols-2 gap-4 pb-2 border-b border-slate-100">
+        <div className="grid grid-cols-2 gap-4 pb-2 border-b border-border">
           <div className="space-y-1">
-            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-tight">Valor Unitário</span>
-            <p className="font-bold text-slate-900">
+            <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-tight">Valor Unitário</span>
+            <p className="font-bold text-foreground">
               {Intl.NumberFormat("pt-BR", {
                 style: "currency",
                 currency: "BRL",
@@ -121,7 +121,7 @@ export const ProductCard = ({ product, userRole, categories, environments }: Pro
             </p>
           </div>
           <div className="space-y-1">
-            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-tight">Margem</span>
+            <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-tight">Margem</span>
             <p className="font-bold text-emerald-600">
                 {product.margin}%
             </p>
@@ -130,8 +130,8 @@ export const ProductCard = ({ product, userRole, categories, environments }: Pro
 
         <div className="flex items-center justify-between">
             <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-tight">Estoque</span>
-                <p className="text-sm font-semibold text-slate-700">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-tight">Estoque</span>
+                <p className="text-sm font-semibold text-foreground">
                     {product.stock} un
                 </p>
             </div>

@@ -14,8 +14,12 @@ export default auth(async (req) => {
     return NextResponse.next();
   }
 
-  const publicRoutes = ["/", "/login", "/register", "/plans", "/checkout", "/checkout/success"];
-  const isPublicRoute = publicRoutes.includes(pathname) || pathname.startsWith("/menu");
+  const publicRoutes = ["/", "/login", "/register", "/plans", "/checkout", "/checkout/success", "/termos", "/privacidade"];
+  const isPublicRoute = 
+    publicRoutes.includes(pathname) || 
+    pathname.startsWith("/menu") ||
+    pathname.startsWith("/prints") ||
+    pathname.startsWith("/logo");
   const isAuthApiRoute = pathname.startsWith("/api/auth");
   const isWebhookRoute = pathname.startsWith("/api/webhooks");
   const isRestorePage = pathname === "/settings/company/restore";

@@ -74,7 +74,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
   const activeComandas = companyId ? await getActiveComandas() : [];
 
   return (
-    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
+    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-background p-8">
       <div className="flex flex-col gap-6">
         <div className="space-y-1">
           <HeaderSubtitle>
@@ -108,10 +108,10 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
           <div className="space-y-4">
             <div className="flex items-end justify-between gap-2">
               <div className="flex flex-col gap-2">
-                <h3 className="text-sm font-black uppercase italic tracking-tighter text-slate-500">
+                <h3 className="text-sm font-black uppercase italic tracking-tighter text-muted-foreground">
                   Listagem Técnica de Vendas
                 </h3>
-                <p className="text-[10px] font-medium text-slate-400">
+                <p className="text-[10px] font-medium text-muted-foreground">
                   Detalhamento individual de cada operação realizada no período
                 </p>
               </div>
@@ -149,10 +149,10 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
         <div className="space-y-4">
           <div className="flex items-end justify-between gap-2">
             <div className="flex flex-col gap-2">
-              <h3 className="text-sm font-black uppercase italic tracking-tighter text-slate-500">
+              <h3 className="text-sm font-black uppercase italic tracking-tighter text-muted-foreground">
                 Detalhamento de Gorjetas
               </h3>
-              <p className="text-[10px] font-medium text-slate-400">
+              <p className="text-[10px] font-medium text-muted-foreground">
                 Acompanhamento individual para repasse à equipe
               </p>
             </div>

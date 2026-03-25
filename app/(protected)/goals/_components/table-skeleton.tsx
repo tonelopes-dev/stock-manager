@@ -5,7 +5,7 @@ export const GoalTableSkeleton = () => {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {[1, 2, 3].map((i) => (
-        <Card key={i} className="border-slate-200 bg-slate-50/50 shadow-none">
+        <Card key={i} className="border-border bg-muted/50 shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex items-center gap-2">
               <Skeleton className="h-8 w-8 rounded-lg" />

@@ -15,6 +15,7 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { KipoLogo } from "@/app/_components/logo";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -49,19 +50,19 @@ export default function LoginPage() {
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-center text-2xl font-bold">
-          📦 Stocky
-        </CardTitle>
-        <CardDescription className="text-center">
-          Entre com seu email e senha para acessar
+    <Card className="w-full max-w-md border-none shadow-2xl">
+      <CardHeader className="space-y-4 pt-10">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <KipoLogo />
+        </div>
+        <CardDescription className="text-center text-muted-foreground">
+          Entre com seu e-mail para gerenciar seu negócio
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-500">
+            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
               {error}
             </div>
           )}
@@ -86,6 +87,14 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            <div className="flex justify-end">
+              <Link
+                href="/auth/forgot-password"
+                className="text-xs text-primary hover:underline"
+              >
+                Esqueci minha senha
+              </Link>
+            </div>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">

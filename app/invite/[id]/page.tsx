@@ -24,16 +24,16 @@ export default async function InvitationPage({ params }: InvitationPageProps) {
 
   if (!invitation) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
+      <div className="flex min-h-screen items-center justify-center bg-muted p-4">
         <Card className="w-full max-w-md">
           <CardContent className="pt-8 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
               <Building2Icon size={24} />
             </div>
-            <h1 className="text-xl font-bold text-slate-900">
+            <h1 className="text-xl font-bold text-foreground">
               Convite não encontrado
             </h1>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-muted-foreground">
               Este convite pode ter expirado ou já foi utilizado.
             </p>
             <Button asChild className="mt-6 w-full" variant="outline">
@@ -50,7 +50,7 @@ export default async function InvitationPage({ params }: InvitationPageProps) {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-muted p-4">
       <Card className="w-full max-w-md overflow-hidden border-none shadow-xl">
         <div className="h-2 bg-primary" />
         <CardHeader className="pt-8 text-center">
@@ -58,18 +58,18 @@ export default async function InvitationPage({ params }: InvitationPageProps) {
             <UserPlusIcon size={32} />
           </div>
           <CardTitle className="text-2xl font-black italic tracking-tighter">
-            STOCKY
+            KIPO
           </CardTitle>
-          <CardDescription className="mt-2 text-lg font-medium text-slate-900">
+          <CardDescription className="mt-2 text-lg font-medium text-foreground">
             Você foi convidado!
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 text-center">
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
-            <p className="mb-1 text-sm font-black uppercase tracking-widest text-slate-500">
+          <div className="rounded-2xl border border-border bg-muted p-6">
+            <p className="mb-1 text-sm font-black uppercase tracking-widest text-muted-foreground">
               Empresa
             </p>
-            <h2 className="text-xl font-bold text-slate-900">
+            <h2 className="text-xl font-bold text-foreground">
               {invitation.company.name}
             </h2>
           </div>

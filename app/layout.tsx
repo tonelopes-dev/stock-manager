@@ -3,7 +3,7 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 
 export const metadata: Metadata = {
-  title: "Stocky",
+  title: "Kipo",
   description: "Sistema de gerenciamento de estoque",
 };
 
@@ -13,6 +13,7 @@ const inter = Inter({
 });
 
 import { Toaster } from "sonner";
+import { CookieBanner } from "@/components/cookie-banner";
 import { SessionClearHandler } from "./_components/auth/session-clear-handler";
 import { Suspense } from "react";
 
@@ -28,6 +29,7 @@ export default function RootLayout({
           <SessionClearHandler />
         </Suspense>
         {children}
+        <CookieBanner />
         <Toaster richColors closeButton position="top-center" />
       </body>
     </html>

@@ -33,11 +33,11 @@ const PlansPage = async () => {
   ];
 
   const severityColors = {
-    info: "text-blue-600",
-    warning: "text-amber-600",
-    danger: "text-red-600",
+    info: "text-primary",
+    warning: "text-orange-500",
+    danger: "text-destructive",
     success: "text-green-600",
-    neutral: "text-gray-600",
+    neutral: "text-muted-foreground",
   };
 
   return (
@@ -75,15 +75,15 @@ const PlansPage = async () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex flex-col gap-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
+            <div className="flex flex-col gap-4 rounded-lg border border-border bg-muted p-4">
               <div className="flex items-center gap-3">
                 <div
-                  className={`rounded-full bg-white p-2 shadow-sm ${severityColors[uiState.severity]}`}
+                  className={`rounded-full bg-background p-2 shadow-sm ${severityColors[uiState.severity]}`}
                 >
                   <CalendarIcon size={18} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold uppercase text-gray-500">
+                  <p className="text-xs font-bold uppercase text-muted-foreground">
                     Período atual
                   </p>
                   <p className="text-sm font-semibold">
@@ -96,11 +96,11 @@ const PlansPage = async () => {
 
               {subscriptionStatus === "ACTIVE" && (
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-white p-2 text-green-600 shadow-sm">
+                  <div className="rounded-full bg-background p-2 text-green-600 shadow-sm">
                     <ShieldCheckIcon size={18} />
                   </div>
                   <div>
-                    <p className="text-xs font-bold uppercase text-gray-500">
+                    <p className="text-xs font-bold uppercase text-muted-foreground">
                       Benefícios
                     </p>
                     <p className="text-sm font-semibold text-green-700">
@@ -112,20 +112,20 @@ const PlansPage = async () => {
             </div>
 
             <div className="space-y-3">
-              <p className="text-sm font-bold uppercase tracking-tight text-gray-700">
+              <p className="text-sm font-bold uppercase tracking-tight text-foreground">
                 O que está incluído:
               </p>
               <ul className="grid grid-cols-1 gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
                 {features.map((feature) => (
                   <li key={feature} className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-primary" />
-                    <span className="text-gray-600">{feature}</span>
+                    <span className="text-muted-foreground">{feature}</span>
                   </li>
                 ))}
               </ul>
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col gap-3 bg-gray-50/50 py-6">
+          <CardFooter className="flex flex-col gap-3 bg-muted/50 py-6">
             <PlanActions
               planName="Pro"
               isPro={subscriptionStatus === "ACTIVE"}
@@ -139,11 +139,11 @@ const PlansPage = async () => {
 
         {/* INFO ADICIONAL (Opcional) */}
         <div className="w-full space-y-4 lg:w-80">
-          <div className="rounded-xl border bg-white p-6 shadow-sm">
-            <h3 className="mb-2 font-bold text-gray-900">
+          <div className="rounded-xl border bg-background p-6 shadow-sm">
+            <h3 className="mb-2 font-bold text-foreground">
               Dúvidas sobre faturamento?
             </h3>
-            <p className="mb-4 text-sm text-gray-500">
+            <p className="mb-4 text-sm text-muted-foreground">
               Nosso sistema utiliza o Mercado Pago para pagamentos seguros. Você
               pode pagar via Pix, Boleto ou Cartão de Crédito.
             </p>

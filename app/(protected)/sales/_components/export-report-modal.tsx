@@ -122,7 +122,7 @@ export const ExportReportModal = () => {
 
         <div className="space-y-6 py-4">
           <div className="flex flex-col gap-3">
-            <h4 className="text-sm font-medium text-slate-700">Adicionar Período</h4>
+            <h4 className="text-sm font-medium text-foreground">Adicionar Período</h4>
             <div className="flex gap-2">
               <div className="flex-1">
                 <Select value={currentMonth} onValueChange={setCurrentMonth}>
@@ -153,7 +153,7 @@ export const ExportReportModal = () => {
                 variant="secondary" 
                 size="icon" 
                 onClick={handleAddPeriod}
-                className="shrink-0 bg-slate-100 hover:bg-slate-200 border border-slate-200"
+                className="shrink-0 bg-muted hover:bg-muted border border-border"
               >
                 <PlusIcon size={18} />
               </Button>
@@ -162,11 +162,11 @@ export const ExportReportModal = () => {
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium text-slate-700">Períodos Selecionados ({selectedPeriods.length})</h4>
+              <h4 className="text-sm font-medium text-foreground">Períodos Selecionados ({selectedPeriods.length})</h4>
               {selectedPeriods.length > 0 && (
                 <button 
                   onClick={() => setSelectedPeriods([])}
-                  className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+                  className="text-xs text-muted-foreground hover:text-muted-foreground transition-colors"
                 >
                   Limpar tudo
                 </button>
@@ -175,21 +175,21 @@ export const ExportReportModal = () => {
             
             <div className={cn(
                "min-h-[100px] border-2 border-dashed rounded-lg p-3 flex flex-wrap gap-2 items-start transition-colors",
-               selectedPeriods.length === 0 ? "bg-slate-50/50 border-slate-200 items-center justify-center font-medium" : "bg-white border-slate-200"
+               selectedPeriods.length === 0 ? "bg-muted/50 border-border items-center justify-center font-medium" : "bg-background border-border"
             )}>
               {selectedPeriods.length === 0 ? (
-                <span className="text-[11px] text-slate-400">Nenhum mês adicionado para exportação</span>
+                <span className="text-[11px] text-muted-foreground">Nenhum mês adicionado para exportação</span>
               ) : (
                 selectedPeriods.map((period, index) => (
                   <Badge 
                     key={`${period.month}-${period.year}`} 
                     variant="secondary" 
-                    className="pl-3 pr-1 py-1 gap-2 flex items-center bg-slate-100 border-slate-200 text-slate-700 text-xs hover:bg-slate-200 transition-all animate-in fade-in zoom-in-95 duration-200"
+                    className="pl-3 pr-1 py-1 gap-2 flex items-center bg-muted border-border text-foreground text-xs hover:bg-muted transition-all animate-in fade-in zoom-in-95 duration-200"
                   >
                     {months[period.month - 1]}/{period.year}
                     <button 
                       onClick={() => handleRemovePeriod(index)}
-                      className="hover:bg-slate-300 rounded-full p-0.5 ml-1 transition-colors"
+                      className="hover:bg-muted rounded-full p-0.5 ml-1 transition-colors"
                     >
                       <XIcon size={12} />
                     </button>
@@ -214,11 +214,11 @@ export const ExportReportModal = () => {
           )}
 
           {selectedPeriods.length <= 1 && (
-            <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl flex items-start gap-3">
-              <div className="text-blue-600 shrink-0 mt-0.5">
+            <div className="bg-primary/50 border border-primary p-4 rounded-xl flex items-start gap-3">
+              <div className="text-primary shrink-0 mt-0.5">
                 <DownloadIcon size={18} />
               </div>
-              <p className="text-xs text-blue-800 leading-relaxed">
+              <p className="text-xs text-primary leading-relaxed">
                 <strong>Dica:</strong> Adicione mais de um período para gerar automaticamente a aba de comparativos e gráficos de crescimento.
               </p>
             </div>
@@ -229,7 +229,7 @@ export const ExportReportModal = () => {
           <Button 
             onClick={handleExport} 
             disabled={isGenerating || selectedPeriods.length === 0}
-            className="w-full bg-slate-900 hover:bg-slate-800 text-white gap-2 font-bold h-11 transition-all"
+            className="w-full bg-foreground hover:bg-foreground text-background gap-2 font-bold h-11 transition-all"
           >
             {isGenerating ? (
               <>

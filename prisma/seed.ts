@@ -6,7 +6,7 @@ import { fakerPT_BR as faker } from "@faker-js/faker";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Starting robust and comprehensive seeding for Stocky...");
+  console.log("🌱 Starting robust and comprehensive seeding for Kipo...");
 
   const hashedPassword = await hash("senha123", 10);
 

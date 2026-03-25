@@ -1,4 +1,4 @@
-# 🚀 LinkedIn Content Base: Stocky (Enterprise Inventory Management)
+# 🚀 LinkedIn Content Base: Kipo (Enterprise Inventory Management)
 
 Este documento serve como repositório de ideias, dados técnicos e narrativas para posts no LinkedIn. O objetivo é destacar seu conhecimento técnico em **Next.js 16**, **React 19**, **Multi-tenancy** e **Arquitetura de Software**.
 
@@ -6,7 +6,7 @@ Este documento serve como repositório de ideias, dados técnicos e narrativas p
 
 ## 🏛️ Visão Geral do Projeto (Elevator Pitch)
 
-O **Stocky** não é apenas um gerenciador de estoque; é uma plataforma SaaS multi-tenant robusta desenvolvida para escala. Ele resolve a gestão fragmentada de pequenas empresas, unificando inventário, receitas (gastronomia), vendas e inteligência financeira em uma interface premium e reativa.
+O **Kipo** não é apenas um gerenciador de estoque; é uma plataforma SaaS multi-tenant robusta desenvolvida para escala. Ele resolve a gestão fragmentada de pequenas empresas, unificando inventário, receitas (gastronomia), vendas e inteligência financeira em uma interface premium e reativa.
 
 ### Destaques Técnicos para Postar:
 
@@ -23,7 +23,7 @@ O **Stocky** não é apenas um gerenciador de estoque; é uma plataforma SaaS mu
 
 **Foco**: Inovação e Early Adopter.
 
-- **Narrativa**: "Fui além do básico e atualizei o motor do Stocky para a versão mais recente do ecossistema React."
+- **Narrativa**: "Fui além do básico e atualizei o motor do Kipo para a versão mais recente do ecossistema React."
 - **Pontos Chave**:
   - Uso de **React 19 Actions** para simplificar o gerenciamento de estado em formulários complexos.
   - Implementação de **Partial Prerendering (PPR)** para dashboards instantâneos.

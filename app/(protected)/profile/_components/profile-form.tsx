@@ -79,7 +79,7 @@ export const ProfileForm = ({ user }: { user: UserProfile | null }) => {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-bold text-slate-400">E-mail (Apenas leitura)</FormLabel>
+                <FormLabel className="font-bold text-muted-foreground">E-mail (Apenas leitura)</FormLabel>
                 <FormControl>
                   <Input {...field} disabled />
                 </FormControl>
@@ -103,7 +103,7 @@ export const ProfileForm = ({ user }: { user: UserProfile | null }) => {
           />
         </div>
 
-        <div className="flex justify-end pt-4 border-t border-slate-100">
+        <div className="flex justify-end pt-4 border-t border-border">
           <Button type="submit" disabled={isPending} className="font-black gap-2 h-11 px-6">
             {isPending ? (
               <Loader2Icon className="h-4 w-4 animate-spin" />

@@ -18,6 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { toast } from "sonner";
 import { Loader2Icon, MailIcon, ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
+import { forgotPassword } from "@/app/_actions/auth/forgot-password";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("E-mail inválido"),
@@ -36,13 +37,16 @@ export default function ForgotPasswordPage() {
     },
   });
 
-  const onSubmit = async () => {
+  const onSubmit = async (values: ForgotPasswordValues) => {
     setIsPending(true);
     try {
-      // Simulate server action for recovery
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setIsSent(true);
-      toast.success("Se o e-mail existir, um link de recuperação foi enviado.");
+      const result = await forgotPassword(values.email);
+      if (result.success) {
+        setIsSent(true);
+        toast.success("Se o e-mail existir, um link de recuperação foi enviado.");
+      } else {
+        toast.error(result.error || "Erro ao solicitar recuperação.");
+      }
     } catch (error) {
       toast.error("Erro ao solicitar recuperação.");
     } finally {
@@ -51,8 +55,8 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
-      <Card className="w-full max-w-md border-slate-200 shadow-xl">
+    <div className="min-h-screen flex items-center justify-center bg-muted p-6">
+      <Card className="w-full max-w-md border-border shadow-xl">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-4">
                <div className="p-3 bg-primary/10 text-primary rounded-2xl">
@@ -96,7 +100,7 @@ export default function ForgotPasswordPage() {
           )}
         </CardContent>
         <CardFooter className="flex justify-center pt-2">
-            <Link href="/login" className="text-sm font-bold text-slate-500 hover:text-primary transition-colors flex items-center gap-2">
+            <Link href="/login" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
                 <ArrowLeftIcon size={14} />
                 Voltar para o login
             </Link>

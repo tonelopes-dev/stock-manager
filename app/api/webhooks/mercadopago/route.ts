@@ -1,8 +1,12 @@
 import { mpClient } from "@/app/_lib/mercadopago";
+import { sendEmail } from "@/app/_services/email.service";
+import { subscriptionActivatedTemplate } from "@/app/_services/email/templates";
 import { Payment } from "mercadopago";
 import { db } from "@/app/_lib/prisma";
 import { NextResponse } from "next/server";
 import { SubscriptionStatus } from "@prisma/client";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export const runtime = "nodejs";
 
@@ -78,6 +82,24 @@ export async function POST(req: Request) {
       console.log(`Nova Data de Expiração: ${companyAfter.expiresAt?.toLocaleString()}`);
       console.log("✅ Assinatura ativada com sucesso!");
       console.log("============================================================\n");
+
+      // Send subscription activation email (from develop)
+      if (owner?.user?.email) {
+        try {
+          await sendEmail({
+            to: owner.user.email,
+            subject: "Assinatura PRO Ativada! ✨",
+            html: subscriptionActivatedTemplate({
+              name: owner.user.name || "parceiro",
+              companyName: companyBefore?.name || "sua empresa",
+              expiryDateFormatted: format(thirtyDaysFromNow, "dd/MM/yyyy", { locale: ptBR }),
+            }),
+          });
+          console.log(`[MercadoPago Webhook] Activation email sent to ${owner.user.email}`);
+        } catch (err) {
+          console.error("[MercadoPago Webhook] Failed to send subscription activation email:", err);
+        }
+      }
 
       // Log audit event in a separate try-catch to avoid blocking the activation if logging fails
       try {

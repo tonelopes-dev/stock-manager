@@ -38,7 +38,7 @@ const ProductsPage = async ({ searchParams }: ProductsPageProps) => {
   const environmentId = resolvedSearchParams?.environmentId;
 
   return (
-    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
+    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-background p-8">
       {/* 
         The Suspense boundary was moved deeper into ProductVisualCatalog 
         to allow the Header and Toolbar to render immediately.

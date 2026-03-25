@@ -46,18 +46,18 @@ export const GoalCard = ({ goal, isAdmin, products }: GoalCardProps) => {
     goal.progressPercentage >= 100
       ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
       : goal.progressPercentage >= 75
-        ? "bg-blue-500"
+        ? "bg-primary"
         : goal.progressPercentage >= 50
-          ? "bg-amber-500"
+          ? "bg-orange-500"
           : "bg-primary";
 
   return (
     <>
-      <Card className="group relative overflow-hidden border-slate-200 bg-white transition-all hover:shadow-md">
+      <Card className="group relative overflow-hidden border-border bg-background transition-all hover:shadow-md">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-bold text-slate-700">
+          <CardTitle className="text-sm font-bold text-foreground">
             <div className="flex items-center gap-2">
-              <div className="rounded-lg bg-slate-50 p-1.5 text-slate-400 transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+              <div className="rounded-lg bg-muted p-1.5 text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
                 {isProductGoal ? (
                   <PackageIcon className="h-4 w-4" />
                 ) : (
@@ -69,7 +69,7 @@ export const GoalCard = ({ goal, isAdmin, products }: GoalCardProps) => {
           </CardTitle>
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 rounded-full border border-slate-100 bg-slate-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+            <div className="flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
               {goal.period === "MONTHLY"
                 ? "Mensal"
                 : goal.period === "WEEKLY"
@@ -84,9 +84,9 @@ export const GoalCard = ({ goal, isAdmin, products }: GoalCardProps) => {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="h-8 w-8 p-0 hover:bg-slate-50"
+                    className="h-8 w-8 p-0 hover:bg-muted"
                   >
-                    <MoreHorizontalIcon className="h-4 w-4 text-slate-400" />
+                    <MoreHorizontalIcon className="h-4 w-4 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-32">
@@ -98,7 +98,7 @@ export const GoalCard = ({ goal, isAdmin, products }: GoalCardProps) => {
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => setDeleteDialogOpen(true)}
-                    className="cursor-pointer gap-2 text-xs text-red-600 focus:text-red-600"
+                    className="cursor-pointer gap-2 text-xs text-destructive focus:text-destructive"
                   >
                     <TrashIcon className="h-3 w-3" /> Excluir
                   </DropdownMenuItem>
@@ -116,7 +116,7 @@ export const GoalCard = ({ goal, isAdmin, products }: GoalCardProps) => {
                   <span className="text-[10px] font-medium uppercase tracking-tight text-muted-foreground">
                     Realizado
                   </span>
-                  <span className="text-xl font-bold tabular-nums leading-none text-slate-900">
+                  <span className="text-xl font-bold tabular-nums leading-none text-foreground">
                     {formatCurrency(goal.currentValue)}
                   </span>
                 </div>
@@ -124,12 +124,12 @@ export const GoalCard = ({ goal, isAdmin, products }: GoalCardProps) => {
                   <span className="text-[10px] font-medium uppercase tracking-tight text-muted-foreground">
                     Objetivo
                   </span>
-                  <span className="text-xs font-semibold tabular-nums text-slate-600">
+                  <span className="text-xs font-semibold tabular-nums text-muted-foreground">
                     {formatCurrency(Number(goal.targetValue))}
                   </span>
                 </div>
               </div>
-              <div className="relative h-2 w-full overflow-hidden rounded-full bg-slate-100">
+              <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
                 <div
                   className={`h-full transition-all duration-500 ease-in-out ${progressColor}`}
                   style={{
@@ -140,23 +140,23 @@ export const GoalCard = ({ goal, isAdmin, products }: GoalCardProps) => {
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-[10px]">
-              <div className="flex flex-col gap-0.5 rounded-xl border border-slate-100 bg-slate-50/50 p-2.5 transition-colors group-hover:bg-white">
+              <div className="flex flex-col gap-0.5 rounded-xl border border-border bg-muted/50 p-2.5 transition-colors group-hover:bg-background">
                 <span className="font-medium text-muted-foreground">
                   Progresso
                 </span>
-                <span className="flex items-center gap-1 font-bold text-slate-700">
+                <span className="flex items-center gap-1 font-bold text-foreground">
                   <TrendingUpIcon
                     className={`h-3 w-3 ${goal.progressPercentage >= 100 ? "text-emerald-500" : "text-primary"}`}
                   />
                   {goal.progressPercentage.toFixed(1)}%
                 </span>
               </div>
-              <div className="flex flex-col gap-0.5 rounded-xl border border-slate-100 bg-slate-50/50 p-2.5 transition-colors group-hover:bg-white">
+              <div className="flex flex-col gap-0.5 rounded-xl border border-border bg-muted/50 p-2.5 transition-colors group-hover:bg-background">
                 <span className="font-medium text-muted-foreground">
                   Vencimento
                 </span>
-                <span className="flex items-center gap-1 font-bold text-slate-700">
-                  <CalendarIcon className="h-3 w-3 text-slate-400" />
+                <span className="flex items-center gap-1 font-bold text-foreground">
+                  <CalendarIcon className="h-3 w-3 text-muted-foreground" />
                   {goal.endDate
                     ? format(goal.endDate, "dd/MM/yy", { locale: ptBR })
                     : "Recorrente"}
@@ -165,7 +165,7 @@ export const GoalCard = ({ goal, isAdmin, products }: GoalCardProps) => {
             </div>
 
             {isProductGoal && goal.product && (
-              <div className="flex w-fit items-center gap-1.5 rounded-full border border-slate-100 bg-slate-50 px-3 py-1 text-[9px] font-bold text-slate-500 transition-colors group-hover:border-primary/10 group-hover:bg-primary/5 group-hover:text-primary">
+              <div className="flex w-fit items-center gap-1.5 rounded-full border border-border bg-muted px-3 py-1 text-[9px] font-bold text-muted-foreground transition-colors group-hover:border-primary/10 group-hover:bg-primary/5 group-hover:text-primary">
                 <PackageIcon className="h-3 w-3" />
                 PRODUTO: {goal.product.name}
               </div>
@@ -173,7 +173,7 @@ export const GoalCard = ({ goal, isAdmin, products }: GoalCardProps) => {
           </div>
         </CardContent>
 
-        <div className="absolute bottom-0 left-0 h-1 w-full overflow-hidden bg-slate-50">
+        <div className="absolute bottom-0 left-0 h-1 w-full overflow-hidden bg-muted">
           <div
             className={`h-full opacity-50 transition-all duration-700 ${progressColor}`}
             style={{ width: `${Math.min(goal.progressPercentage, 100)}%` }}

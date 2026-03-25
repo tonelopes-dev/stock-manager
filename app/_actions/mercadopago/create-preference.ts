@@ -45,8 +45,8 @@ export const createMercadoPagoPreference = actionClient.action(async () => {
       body: {
         items: [
           {
-            id: "stocky-subscription-pro",
-            title: "Assinatura Stocky Pro",
+            id: "kipo-subscription-pro",
+            title: "Assinatura Kipo Pro",
             unit_price: Number(process.env.MERCADO_PAGO_PRO_PRICE || "249"),
             quantity: 1,
             currency_id: "BRL",

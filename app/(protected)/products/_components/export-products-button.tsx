@@ -48,7 +48,7 @@ export const ExportProductsButton = ({ products }: ExportProductsButtonProps) =>
       
       const date = new Date().toISOString().split("T")[0];
       link.setAttribute("href", url);
-      link.setAttribute("download", `stocky-produtos-${date}.csv`);
+      link.setAttribute("download", `kipo-produtos-${date}.csv`);
       link.style.visibility = "hidden";
       document.body.appendChild(link);
       link.click();
@@ -65,7 +65,7 @@ export const ExportProductsButton = ({ products }: ExportProductsButtonProps) =>
     <Button 
         variant="outline" 
         size="sm" 
-        className="h-9 gap-2 text-slate-600 font-medium border-slate-200 hover:bg-slate-50"
+        className="h-9 gap-2 text-muted-foreground font-medium border-border hover:bg-muted"
         onClick={handleExport}
     >
       <DownloadIcon className="h-4 w-4" />

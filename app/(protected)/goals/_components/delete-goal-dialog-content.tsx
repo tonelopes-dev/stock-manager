@@ -47,7 +47,7 @@ export const DeleteGoalDialogContent = ({
         <DialogTitle>Excluir Meta</DialogTitle>
         <DialogDescription>
           Você tem certeza que deseja excluir a meta{" "}
-          <span className="font-bold text-slate-900">&quot;{name}&quot;</span>?
+          <span className="font-bold text-foreground">&quot;{name}&quot;</span>?
           Esta ação não pode ser desfeita.
         </DialogDescription>
       </DialogHeader>

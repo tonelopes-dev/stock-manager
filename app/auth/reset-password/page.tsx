@@ -19,6 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app
 import { toast } from "sonner";
 import { Loader2Icon, ShieldCheckIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { resetPassword } from "@/app/_actions/auth/reset-password";
 
 const resetPasswordSchema = z.object({
   password: z.string()
@@ -50,7 +51,7 @@ function ResetPasswordForm() {
     },
   });
 
-  const onSubmit = async () => {
+  const onSubmit = async (values: ResetPasswordValues) => {
     if (!token) {
         toast.error("Token de redefinição ausente ou inválido.");
         return;
@@ -58,10 +59,13 @@ function ResetPasswordForm() {
 
     setIsPending(true);
     try {
-      // Simulate server action for reset
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      toast.success("Senha redefinida com sucesso! Você já pode fazer login.");
-      router.push("/login");
+      const result = await resetPassword(token, values.password);
+      if (result.success) {
+        toast.success("Senha redefinida com sucesso! Você já pode fazer login.");
+        router.push("/login");
+      } else {
+        toast.error(result.error || "Erro ao redefinir senha.");
+      }
     } catch (error) {
       toast.error("Erro ao redefinir senha. O token pode ter expirado.");
     } finally {
@@ -70,7 +74,7 @@ function ResetPasswordForm() {
   };
 
   return (
-    <Card className="w-full max-w-md border-slate-200 shadow-xl">
+    <Card className="w-full max-w-md border-border shadow-xl">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-4">
                <div className="p-3 bg-primary/10 text-primary rounded-2xl">
@@ -129,12 +133,12 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
+    <div className="min-h-screen flex items-center justify-center bg-muted p-6">
       <Suspense fallback={
-        <Card className="w-full max-w-md border-slate-200 shadow-xl">
+        <Card className="w-full max-w-md border-border shadow-xl">
            <CardContent className="p-10 flex flex-col items-center justify-center space-y-4">
               <Loader2Icon className="h-10 w-10 text-primary animate-spin" />
-              <p className="text-sm text-slate-500 font-medium">Carregando...</p>
+              <p className="text-sm text-muted-foreground font-medium">Carregando...</p>
            </CardContent>
         </Card>
       }>

@@ -31,13 +31,13 @@ export const ComandaCard = ({ comanda, onClick }: ComandaCardProps) => {
     <Card
       onClick={() => onClick?.(comanda)}
       className={cn(
-        "group relative cursor-pointer overflow-hidden border-slate-100 bg-white transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]",
+        "group relative cursor-pointer overflow-hidden border-border bg-background transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]",
         isForgotten &&
-          "border-amber-400 shadow-amber-50 ring-1 ring-amber-400/20",
+          "border-orange-500 shadow-amber-50 ring-1 ring-orange-500/20",
       )}
     >
       {isForgotten && (
-        <div className="absolute right-0 top-0 rounded-bl-xl bg-amber-500 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-white shadow-sm">
+        <div className="absolute right-0 top-0 rounded-bl-xl bg-orange-500 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-background shadow-sm">
           Atenção: &gt;4h
         </div>
       )}
@@ -49,18 +49,18 @@ export const ComandaCard = ({ comanda, onClick }: ComandaCardProps) => {
               <div className="rounded-lg bg-primary/10 p-1.5 text-primary">
                 <User size={16} />
               </div>
-              <h3 className="line-clamp-1 text-sm font-black uppercase italic tracking-tighter text-slate-900">
+              <h3 className="line-clamp-1 text-sm font-black uppercase italic tracking-tighter text-foreground">
                 {comanda.customerName}
               </h3>
             </div>
-            <p className="text-[10px] font-bold text-slate-400">
+            <p className="text-[10px] font-bold text-muted-foreground">
               {comanda.customerPhone || "Sem telefone"}
             </p>
           </div>
 
           <Badge
             variant="outline"
-            className="border-slate-100 bg-slate-50/50 text-[10px] font-black text-slate-500"
+            className="border-border bg-muted/50 text-[10px] font-black text-muted-foreground"
           >
             {comanda.orderCount}{" "}
             {comanda.orderCount === 1 ? "Pedido" : "Pedidos"}
@@ -69,19 +69,19 @@ export const ComandaCard = ({ comanda, onClick }: ComandaCardProps) => {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <span className="flex items-center gap-1 text-[10px] font-black uppercase italic tracking-tighter text-slate-400">
+            <span className="flex items-center gap-1 text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
               <Clock
                 size={12}
                 className={cn(
-                  isForgotten ? "text-amber-500" : "text-slate-400",
+                  isForgotten ? "text-orange-500" : "text-muted-foreground",
                 )}
               />
               Aberta há
             </span>
             <p
               className={cn(
-                "text-xs font-bold text-slate-600",
-                isForgotten && "font-black text-amber-600",
+                "text-xs font-bold text-muted-foreground",
+                isForgotten && "font-black text-orange-500",
               )}
             >
               {formatDistanceToNow(comanda.firstOrderAt, { locale: ptBR })}
@@ -89,7 +89,7 @@ export const ComandaCard = ({ comanda, onClick }: ComandaCardProps) => {
           </div>
 
           <div className="space-y-1 text-right">
-            <span className="flex items-center justify-end gap-1 text-[10px] font-black uppercase italic tracking-tighter text-slate-400">
+            <span className="flex items-center justify-end gap-1 text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
               <ShoppingBag size={12} />
               Consumo
             </span>
@@ -100,19 +100,19 @@ export const ComandaCard = ({ comanda, onClick }: ComandaCardProps) => {
         </div>
 
         {/* Peek at items */}
-        <div className="mt-4 border-t border-slate-50 pt-4">
+        <div className="mt-4 border-t border-border pt-4">
           <div className="flex flex-wrap gap-1.5">
             {comanda.items.slice(0, 3).map((item, idx) => (
               <Badge
                 key={idx}
                 variant="secondary"
-                className="border-none bg-slate-50 text-[9px] font-medium text-slate-500"
+                className="border-none bg-muted text-[9px] font-medium text-muted-foreground"
               >
                 {item.quantity}x {item.name}
               </Badge>
             ))}
             {comanda.items.length > 3 && (
-              <span className="text-[9px] font-bold text-slate-300">
+              <span className="text-[9px] font-bold text-muted-foreground">
                 +{comanda.items.length - 3} mais
               </span>
             )}

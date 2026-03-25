@@ -218,14 +218,14 @@ export const CustomerChecklist = ({
     <>
       <div className="space-y-6">
         {checklists.length === 0 && (
-          <div className="rounded-xl border-2 border-dashed border-slate-100 bg-slate-50/50 p-8 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm">
-              <ClipboardList className="h-6 w-6 text-slate-400" />
+          <div className="rounded-xl border-2 border-dashed border-border bg-muted/50 p-8 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-sm">
+              <ClipboardList className="h-6 w-6 text-muted-foreground" />
             </div>
-            <h4 className="text-sm font-bold text-slate-900">
+            <h4 className="text-sm font-bold text-foreground">
               Nenhuma jornada iniciada
             </h4>
-            <p className="mb-6 text-xs text-slate-500">
+            <p className="mb-6 text-xs text-muted-foreground">
               Comece a acompanhar o progresso deste cliente aplicando um
               template.
             </p>
@@ -269,15 +269,15 @@ export const CustomerChecklist = ({
           return (
             <div
               key={checklist.id}
-              className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+              className="overflow-hidden rounded-xl border border-border bg-background shadow-sm"
             >
               {/* HEADER */}
-              <div className="flex items-center justify-between border-b border-slate-50 bg-slate-50/50 px-4 py-3">
+              <div className="flex items-center justify-between border-b border-border bg-muted/50 px-4 py-3">
                 <div className="flex items-center gap-3">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-6 w-6 p-0 text-slate-500"
+                    className="h-6 w-6 p-0 text-muted-foreground"
                     onClick={() => toggleExpand(checklist.id)}
                   >
                     {isExpanded ? (
@@ -306,7 +306,7 @@ export const CustomerChecklist = ({
                         />
                         <Button
                           size="sm"
-                          className="h-6 w-6 rounded-full bg-primary p-0 text-white shadow-lg shadow-primary/20 transition-all hover:scale-110 hover:bg-primary/90 active:scale-95"
+                          className="h-6 w-6 rounded-full bg-primary p-0 text-background shadow-lg shadow-primary/20 transition-all hover:scale-110 hover:bg-primary/90 active:scale-95"
                           onClick={() =>
                             handleUpdateChecklistTitle(checklist.id)
                           }
@@ -321,7 +321,7 @@ export const CustomerChecklist = ({
                       </div>
                     ) : (
                       <div className="group/title flex items-center gap-2">
-                        <h4 className="text-xs font-black uppercase italic tracking-tighter text-slate-900">
+                        <h4 className="text-xs font-black uppercase italic tracking-tighter text-foreground">
                           {checklist.title}
                         </h4>
                         <Button
@@ -330,7 +330,7 @@ export const CustomerChecklist = ({
                           className="h-5 w-5 p-0 opacity-0 group-hover/title:opacity-100"
                           onClick={() => handleStartEditingChecklist(checklist)}
                         >
-                          <Pencil className="h-2.5 w-2.5 text-slate-400" />
+                          <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
                         </Button>
                       </div>
                     )}
@@ -343,13 +343,13 @@ export const CustomerChecklist = ({
                     </span>
                     <Progress
                       value={progress}
-                      className="h-1.5 w-16 bg-slate-200"
+                      className="h-1.5 w-16 bg-muted"
                     />
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 w-7 p-0 text-red-400 hover:bg-red-50 hover:text-red-500"
+                    className="h-7 w-7 p-0 text-destructive/10 hover:bg-destructive/10 hover:text-destructive"
                     onClick={() => setDeletingChecklistId(checklist.id)}
                     disabled={isPending}
                   >
@@ -370,7 +370,7 @@ export const CustomerChecklist = ({
                   >
                     <div className="space-y-1">
                       {checklist.items.length === 0 && (
-                        <p className="py-2 text-center text-[10px] italic text-slate-400">
+                        <p className="py-2 text-center text-[10px] italic text-muted-foreground">
                           Checklist vazio
                         </p>
                       )}
@@ -382,7 +382,7 @@ export const CustomerChecklist = ({
                         .map((item: ChecklistItem) => (
                           <div
                             key={item.id}
-                            className="group flex items-center gap-3 rounded-lg px-2 py-1 transition-colors hover:bg-slate-50"
+                            className="group flex items-center gap-3 rounded-lg px-2 py-1 transition-colors hover:bg-muted"
                           >
                             <div className="flex h-4 w-4 shrink-0 items-center justify-center">
                               {togglingItemIds.has(item.id) ? (
@@ -396,7 +396,7 @@ export const CustomerChecklist = ({
                                   ) =>
                                     handleToggleItem(item.id, checked === true)
                                   }
-                                  className="h-4 w-4 rounded-md border-slate-300 data-[state=checked]:border-primary data-[state=checked]:bg-primary"
+                                  className="h-4 w-4 rounded-md border-border data-[state=checked]:border-primary data-[state=checked]:bg-primary"
                                 />
                               )}
                             </div>
@@ -423,8 +423,8 @@ export const CustomerChecklist = ({
                                   htmlFor={item.id}
                                   className={`flex-1 cursor-pointer text-sm font-medium transition-all duration-300 ${
                                     item.isChecked
-                                      ? "text-slate-400 line-through decoration-primary/40"
-                                      : "text-slate-600"
+                                      ? "text-muted-foreground line-through decoration-primary/40"
+                                      : "text-muted-foreground"
                                   }`}
                                   onDoubleClick={() => handleStartEditing(item)}
                                 >
@@ -434,7 +434,7 @@ export const CustomerChecklist = ({
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-6 w-6 p-0 text-slate-400 hover:text-primary"
+                                    className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
                                     onClick={() => handleStartEditing(item)}
                                   >
                                     <Pencil className="h-3 w-3" />
@@ -442,7 +442,7 @@ export const CustomerChecklist = ({
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-6 w-6 p-0 text-slate-400 hover:text-red-500"
+                                    className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
                                     onClick={() => handleDeleteItem(item.id)}
                                   >
                                     <Trash2 className="h-3 w-3" />
@@ -456,7 +456,7 @@ export const CustomerChecklist = ({
                       {/* ADD ITEM INPUT */}
                       <div className="mt-2 flex items-center gap-3 px-2">
                         <div className="flex h-4 w-4 shrink-0 items-center justify-center">
-                          <Plus className="h-3 w-3 text-slate-300" />
+                          <Plus className="h-3 w-3 text-muted-foreground" />
                         </div>
                         <Input
                           placeholder="Adicionar tarefa..."
@@ -475,7 +475,7 @@ export const CustomerChecklist = ({
                         {newItemTitles[checklist.id]?.trim() && (
                           <Button
                             size="sm"
-                            className="h-7 w-7 rounded-full bg-primary p-0 text-white shadow-lg shadow-primary/20 transition-all hover:scale-110 hover:bg-primary/90 active:scale-95"
+                            className="h-7 w-7 rounded-full bg-primary p-0 text-background shadow-lg shadow-primary/20 transition-all hover:scale-110 hover:bg-primary/90 active:scale-95"
                             onClick={() => handleAddItem(checklist.id)}
                             disabled={isPending}
                           >
@@ -500,7 +500,7 @@ export const CustomerChecklist = ({
             <Button
               variant="ghost"
               size="sm"
-              className="gap-2 text-[10px] font-black uppercase text-slate-400 hover:bg-primary/5 hover:text-primary"
+              className="gap-2 text-[10px] font-black uppercase text-muted-foreground hover:bg-primary/5 hover:text-primary"
               // This would open a template picker or just show them
             >
               <Plus className="h-3 w-3" /> Adicionar Outra Jornada
@@ -524,7 +524,7 @@ export const CustomerChecklist = ({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-600 font-bold uppercase italic tracking-tighter hover:bg-red-700"
+              className="bg-destructive font-bold uppercase italic tracking-tighter hover:bg-destructive"
               onClick={(e) => {
                 e.preventDefault();
                 deletingChecklistId &&
@@ -559,7 +559,7 @@ export const CustomerChecklist = ({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-600 font-bold uppercase italic tracking-tighter hover:bg-red-700"
+              className="bg-destructive font-bold uppercase italic tracking-tighter hover:bg-destructive"
               onClick={(e) => {
                 e.preventDefault();
                 deletingItemId && handleDeleteItem(deletingItemId);

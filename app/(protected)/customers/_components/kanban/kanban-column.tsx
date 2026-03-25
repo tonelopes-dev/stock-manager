@@ -77,14 +77,14 @@ export const KanbanColumn = memo(
     );
 
     return (
-      <div className="flex h-[calc(100vh-180px)] w-[300px] min-w-[300px] flex-col gap-4 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+      <div className="flex h-[calc(100vh-180px)] w-[300px] min-w-[300px] flex-col gap-4 rounded-xl border border-border bg-muted/50 p-3">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-xs font-black uppercase italic tracking-tighter text-slate-500">
+          <h3 className="text-xs font-black uppercase italic tracking-tighter text-muted-foreground">
             {stage.name}
           </h3>
           <Badge
             variant="outline"
-            className="border-slate-200 text-[10px] font-black text-slate-400"
+            className="border-border text-[10px] font-black text-muted-foreground"
           >
             {customers.length}
           </Badge>

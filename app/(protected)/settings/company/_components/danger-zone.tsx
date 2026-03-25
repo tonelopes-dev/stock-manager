@@ -92,9 +92,9 @@ export const DangerZone = ({ companyName, admins }: DangerZoneProps) => {
   };
 
   return (
-    <Card className="overflow-hidden border-red-100 bg-red-50/20 shadow-sm">
-      <CardHeader className="border-b border-red-100 bg-red-50/50">
-        <div className="flex items-center gap-3 text-red-700">
+    <Card className="overflow-hidden border-destructive/10 bg-destructive/10/20 shadow-sm">
+      <CardHeader className="border-b border-destructive/10 bg-destructive/10/50">
+        <div className="flex items-center gap-3 text-destructive">
           <AlertTriangleIcon size={20} />
           <CardTitle className="text-lg font-black">Zona de Perigo</CardTitle>
         </div>
@@ -103,10 +103,10 @@ export const DangerZone = ({ companyName, admins }: DangerZoneProps) => {
         {/* Transfer Ownership */}
         <div className="space-y-3">
           <div className="flex flex-col">
-            <h4 className="text-sm font-bold text-red-800">
+            <h4 className="text-sm font-bold text-destructive">
               Transferir Propriedade
             </h4>
-            <p className="text-xs text-red-600/80">
+            <p className="text-xs text-destructive/80">
               Transfira a conta para um administrador. Você perderá os
               privilégios de proprietário.
             </p>
@@ -119,7 +119,7 @@ export const DangerZone = ({ companyName, admins }: DangerZoneProps) => {
             <DialogTrigger asChild>
               <Button
                 variant="outline"
-                className="h-10 w-full gap-2 border-red-200 text-xs font-bold text-red-700 hover:bg-red-50"
+                className="h-10 w-full gap-2 border-destructive/10 text-xs font-bold text-destructive hover:bg-destructive/10"
               >
                 <UserPlusIcon size={14} />
                 Transferir Posse
@@ -137,7 +137,7 @@ export const DangerZone = ({ companyName, admins }: DangerZoneProps) => {
 
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase text-slate-500">
+                  <label className="text-xs font-black uppercase text-muted-foreground">
                     Selecionar Novo Proprietário
                   </label>
                   {admins.length > 0 ? (
@@ -157,24 +157,24 @@ export const DangerZone = ({ companyName, admins }: DangerZoneProps) => {
                       </SelectContent>
                     </Select>
                   ) : (
-                    <p className="text-xs font-medium italic text-amber-600">
+                    <p className="text-xs font-medium italic text-orange-500">
                       Não há outros administradores elegíveis. Promova alguém a
                       Admin primeiro.
                     </p>
                   )}
                 </div>
 
-                <div className="flex items-start space-x-3 rounded-lg border border-amber-100/50 bg-amber-50/30 p-4 py-4">
+                <div className="flex items-start space-x-3 rounded-lg border border-orange-500/50 bg-orange-500/30 p-4 py-4">
                   <input
                     type="checkbox"
                     id="transfer-confirm"
                     checked={transferConfirmed}
                     onChange={(e) => setTransferConfirmed(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                    className="mt-1 h-4 w-4 rounded border-orange-500 text-orange-500 focus:ring-orange-500"
                   />
                   <Label
                     htmlFor="transfer-confirm"
-                    className="cursor-pointer text-xs leading-tight text-amber-800"
+                    className="cursor-pointer text-xs leading-tight text-orange-500"
                   >
                     Estou ciente que perderei acesso administrativo total e
                     serei deslogado imediatamente.
@@ -209,13 +209,13 @@ export const DangerZone = ({ companyName, admins }: DangerZoneProps) => {
           </Dialog>
         </div>
 
-        <div className="h-px bg-red-100" />
+        <div className="h-px bg-destructive/10" />
 
         {/* Delete Company */}
         <div className="space-y-3">
           <div className="flex flex-col">
-            <h4 className="text-sm font-bold text-red-800">Excluir Empresa</h4>
-            <p className="text-xs text-red-600/80">
+            <h4 className="text-sm font-bold text-destructive">Excluir Empresa</h4>
+            <p className="text-xs text-destructive/80">
               Apaga permanentemente todos os dados vinculados a este
               CNPJ/Empresa.
             </p>
@@ -233,7 +233,7 @@ export const DangerZone = ({ companyName, admins }: DangerZoneProps) => {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle className="text-red-700">
+                <DialogTitle className="text-destructive">
                   Atenção Crítica!
                 </DialogTitle>
                 <DialogDescription>
@@ -245,9 +245,9 @@ export const DangerZone = ({ companyName, admins }: DangerZoneProps) => {
 
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase leading-tight text-slate-500">
+                  <label className="text-xs font-black uppercase leading-tight text-muted-foreground">
                     Digite{" "}
-                    <span className="font-black text-red-600">
+                    <span className="font-black text-destructive">
                       {companyName}
                     </span>{" "}
                     para confirmar
@@ -256,21 +256,21 @@ export const DangerZone = ({ companyName, admins }: DangerZoneProps) => {
                     placeholder="Nome da empresa..."
                     value={confirmDeleteName}
                     onChange={(e) => setConfirmDeleteName(e.target.value)}
-                    className="border-red-200 focus-visible:ring-red-500"
+                    className="border-destructive/10 focus-visible:ring-destructive"
                   />
                 </div>
 
-                <div className="flex items-start space-x-3 rounded-lg border border-red-100/50 bg-red-50/50 p-4 py-4">
+                <div className="flex items-start space-x-3 rounded-lg border border-destructive/10/50 bg-destructive/10/50 p-4 py-4">
                   <input
                     type="checkbox"
                     id="delete-confirm"
                     checked={deleteConfirmed}
                     onChange={(e) => setDeleteConfirmed(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-red-300 text-red-600 focus:ring-red-500"
+                    className="mt-1 h-4 w-4 rounded border-destructive/10 text-destructive focus:ring-destructive"
                   />
                   <Label
                     htmlFor="delete-confirm"
-                    className="cursor-pointer text-xs leading-tight text-red-800"
+                    className="cursor-pointer text-xs leading-tight text-destructive"
                   >
                     Compreendo que esta ação é irreversível e resultará na perda
                     total de dados.
