@@ -12,6 +12,7 @@
     "db:clear-seed": "npx tsx prisma/clear-seed.ts",
     "db:sync": "node scripts/sync-db.ts",
     "test:emails": "npx tsx scripts/test-personal-email.ts",
+    "test:all-emails": "npx tsx scripts/send-all-templates.ts",
     "DANGER_DESTRUCTIVE_db:fresh": "prisma migrate reset --force",
     "db:warning": "echo 'WARNING: Do not run reset or fresh in production!'"
   },

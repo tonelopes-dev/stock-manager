@@ -19,13 +19,13 @@ export function subscriptionReminderTemplate({ name, companyName, daysLeft, expi
     : `Gostaríamos de lembrar que sua assinatura para a empresa <strong>${companyName}</strong> vence em <strong>${daysLeft} dias</strong> (${expiryDateFormatted}).`;
 
   const content = `
-    <h1 style="color: ${isToday ? '#dc2626' : '#2563eb'}; margin-bottom: 8px;">${title}</h1>
+    <h1 style="color: ${isToday ? '#f97316' : '#7c3aed'};">${title}</h1>
     <p>Olá, ${name || "parceiro"}!</p>
     <p>${message}</p>
     
     <div class="highlight-box">
-        <p style="margin-top: 0;"><strong>Por que renovar?</strong></p>
-        <p style="margin-bottom: 0; font-size: 14px;">Mantenha todos os seus registros de estoque sincronizados, acesse relatórios de vendas em tempo real e colabore com sua equipe sem interrupções.</p>
+        <h2 style="margin-top: 0;">Por que renovar seu Kipo PRO? ✨</h2>
+        <p style="margin-bottom: 0; font-size: 14px;">Mantenha seu estoque sincronizado, acesse relatórios de vendas em tempo real e colabore com sua equipe sem interrupções.</p>
     </div>
 
     <div style="text-align: center;">
@@ -33,10 +33,10 @@ export function subscriptionReminderTemplate({ name, companyName, daysLeft, expi
     </div>
 
     <hr />
-    <p style="font-size: 12px; color: #9ca3af; text-align: center;">
+    <p style="font-size: 12px; color: #94a3b8; text-align: center;">
       Se você já realizou o pagamento via boleto, por favor ignore este e-mail. O processamento pode levar até 2 dias úteis.
     </p>
-    <p style="font-size: 12px; color: #9ca3af; text-align: center;">Equipe Kipo</p>
+    <p style="font-size: 12px; color: #94a3b8; text-align: center; font-weight: bold;">Equipe Kipo</p>
   `;
 
   return baseLayout({ 
