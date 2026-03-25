@@ -73,7 +73,7 @@ export const getActiveComandas = async (): Promise<ComandaDto[]> => {
         firstOrderAt: order.createdAt,
         lastOrderAt: order.createdAt,
         source: order.source,
-        deliveryAddress: order.deliveryAddress,
+        deliveryAddress: order.deliveryAddress ? JSON.stringify(order.deliveryAddress) : null,
         deliveryFee: Number(order.deliveryFee),
         items: [],
         orders: [],

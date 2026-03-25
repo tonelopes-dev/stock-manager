@@ -19,6 +19,8 @@ async function main() {
       plan: "PRO",
       subscriptionStatus: SubscriptionStatus.ACTIVE,
       expiresAt: new Date(new Date().setDate(new Date().getDate() + 90)),
+      ifoodMerchantId: process.argv.includes("--ifood-test") ? "mock-merchant-id" : undefined,
+      ifoodOrdersEnabled: process.argv.includes("--ifood-test"),
     },
     create: {
       id: "rota-360-id",
@@ -26,6 +28,7 @@ async function main() {
       plan: "PRO",
       subscriptionStatus: SubscriptionStatus.ACTIVE,
       expiresAt: new Date(new Date().setDate(new Date().getDate() + 90)),
+      ifoodMerchantId: process.argv.includes("--ifood-test") ? "mock-merchant-id" : undefined,
     },
   });
 

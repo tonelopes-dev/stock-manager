@@ -16,6 +16,9 @@ import { getOnboardingStats } from "@/app/_data-access/onboarding/get-onboarding
 import { getCurrentUserRole } from "@/app/_lib/rbac";
 import { UserRole } from "@prisma/client";
 import { getProductCategories } from "@/app/_data-access/product/get-product-categories";
+import { IfoodSyncButton } from "./_components/ifood-sync-button";
+import { db } from "@/app/_lib/prisma";
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
 interface ProductsPageProps {
   searchParams: Promise<{
@@ -59,14 +62,20 @@ const ProductTableWrapper = async ({
   const productsPromise = getProducts(30, status, environmentId);
   
   // Fetch metadata in parallel
-  const [role, onboardingStats, categories, environments] = await Promise.all([
+  const companyId = await getCurrentCompanyId();
+  const [role, onboardingStats, categories, environments, company] = await Promise.all([
     getCurrentUserRole(),
     getOnboardingStats(),
     getProductCategories(),
     getEnvironments(),
+    db.company.findUnique({
+      where: { id: companyId! },
+      select: { ifoodMerchantId: true },
+    }),
   ]);
 
   const isManagement = role === UserRole.OWNER || role === UserRole.ADMIN;
+  const hasIfood = !!company?.ifoodMerchantId;
 
   return (
     <div className="space-y-6">
@@ -78,6 +87,7 @@ const ProductTableWrapper = async ({
         <HeaderRight>
           <div className="flex gap-3">
             <ProductStatusFilter />
+            {isManagement && hasIfood && <IfoodSyncButton />}
             {isManagement && (
               <AddProductButton
                 hasProducts={onboardingStats?.hasProducts ?? true}

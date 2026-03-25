@@ -445,10 +445,10 @@ model OrderItem {
   product   Product  @relation(fields: [productId], references: [id])
 
   // Sub-items / Modifiers (iFood support)
+  isModifier   Boolean?    @default(false)
   parentItemId String?
   parentItem   OrderItem?  @relation("SubItems", fields: [parentItemId], references: [id], onDelete: Cascade)
   subItems     OrderItem[] @relation("SubItems")
-  isModifier   Boolean     @default(false)
 
   @@index([orderId])
   @@index([parentItemId])

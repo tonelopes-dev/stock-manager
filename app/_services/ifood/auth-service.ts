@@ -22,7 +22,6 @@ export class IfoodAuthService {
         ifoodClientSecret: true,
         ifoodAccessToken: true,
         ifoodTokenExpiry: true,
-        ifoodId: true, // Merchant ID might be needed for context
       },
     });
 

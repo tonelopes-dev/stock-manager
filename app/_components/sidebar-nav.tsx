@@ -12,6 +12,7 @@ import {
   TargetIcon,
   ChefHat,
   QrCode,
+  PlugIcon,
 } from "lucide-react";
 import SidebarButton from "./sidebar-button";
 import LogoutButton from "./logout-button";
@@ -80,6 +81,12 @@ export const SidebarNav = ({ isOwner, isAdminOrOwner }: SidebarNavProps) => {
         <SidebarButton href="/audit">
           <HistoryIcon size={18} />
           Auditoria
+        </SidebarButton>
+      )}
+      {isAdminOrOwner && (
+        <SidebarButton href="/settings/integrations">
+          <PlugIcon size={18} />
+          Integrações
         </SidebarButton>
       )}
       {isOwner && (

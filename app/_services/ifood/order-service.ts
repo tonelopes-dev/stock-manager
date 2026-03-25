@@ -147,7 +147,7 @@ export class IfoodOrderService {
             ifoodDisplayId: details.displayId,
             totalAmount: details.total.orderAmount,
             deliveryFee: details.total.deliveryFee,
-            deliveryAddress: details.delivery?.deliveryAddress ? JSON.stringify(details.delivery.deliveryAddress) : null,
+            deliveryAddress: (details.delivery?.deliveryAddress as any) || null,
             status: OrderStatus.PENDING,
             notes: `iFood Delivery - #${details.displayId}`,
           }
