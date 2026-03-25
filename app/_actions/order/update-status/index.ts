@@ -63,16 +63,27 @@ export const updateOrderStatusAction = actionClient
         });
 
         if (orderWithItems && !orderWithItems.sale) {
+          // Aggregate items by productId to avoid duplicate lines in the Sale
+          const aggregatedProducts = orderWithItems.orderItems.reduce((acc, item) => {
+            const existing = acc.find(p => p.id === item.productId);
+            if (existing) {
+              existing.quantity += Number(item.quantity);
+            } else {
+              acc.push({ 
+                id: item.productId, 
+                quantity: Number(item.quantity) 
+              });
+            }
+            return acc;
+          }, [] as { id: string, quantity: number }[]);
+
           await SaleService.upsertSale({
             orderId: orderWithItems.id,
             companyId,
             userId: session.user.id,
             customerId: orderWithItems.customerId || undefined,
             deliveryFee: Number(orderWithItems.deliveryFee || 0),
-            products: orderWithItems.orderItems.map(item => ({
-              id: item.productId,
-              quantity: Number(item.quantity)
-            }))
+            products: aggregatedProducts
           });
         }
       }

@@ -83,7 +83,9 @@ export class IfoodOrderService {
       throw new BusinessError(`Falha ao buscar detalhes do pedido ${orderId} no iFood.`);
     }
 
-    return response.json();
+    const details = await response.json();
+    console.log(`🔥 [iFood API Details - ${orderId}]:`, JSON.stringify(details, null, 2));
+    return details;
   }
 
   /**

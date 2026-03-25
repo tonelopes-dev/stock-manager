@@ -79,13 +79,13 @@ export function DeliveryKanban({ comandas, companyId }: DeliveryKanbanProps) {
     const pendingOrder = comanda.orders.find(o => o.status === OrderStatus.PENDING);
     if (!pendingOrder) return;
 
-    setIsUpdating(comanda.customerId);
+    setIsUpdating(comanda.id);
 
     // Optimistic UI: Update local state immediately
     const previousComandas = [...localComandas];
     setLocalComandas(prev => 
       prev.map(c => 
-        c.customerId === comanda.customerId 
+        c.id === comanda.id 
           ? { ...c, orders: c.orders.map(o => o.id === pendingOrder.id ? { ...o, status: OrderStatus.PREPARING } : o) }
           : c
       )
@@ -117,13 +117,13 @@ export function DeliveryKanban({ comandas, companyId }: DeliveryKanbanProps) {
     const readyOrder = comanda.orders.find(o => o.status === OrderStatus.READY);
     if (!readyOrder) return;
 
-    setIsUpdating(comanda.customerId);
+    setIsUpdating(comanda.id);
 
     // Optimistic UI
     const previousComandas = [...localComandas];
     setLocalComandas(prev => 
       prev.map(c => 
-        c.customerId === comanda.customerId 
+        c.id === comanda.id 
           ? { ...c, orders: c.orders.map(o => o.id === readyOrder.id ? { ...o, status: OrderStatus.DELIVERED } : o) }
           : c
       )
@@ -199,11 +199,11 @@ export function DeliveryKanban({ comandas, companyId }: DeliveryKanbanProps) {
             <div className="flex flex-1 flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
               {columnOrders.map((comanda) => (
                 <DeliveryCard 
-                  key={comanda.customerId} 
+                  key={comanda.id} 
                   comanda={comanda} 
                   onConfirm={() => handleConfirm(comanda)}
                   onDispatch={() => handleDispatch(comanda)}
-                  isUpdating={isUpdating === comanda.customerId}
+                  isUpdating={isUpdating === comanda.id}
                 />
               ))}
               {columnOrders.length === 0 && (

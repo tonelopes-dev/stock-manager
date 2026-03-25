@@ -3,6 +3,7 @@ import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { OrderStatus, OrderSource } from "@prisma/client";
 
 export interface ComandaDto {
+  id: string;
   customerId: string;
   customerName: string;
   customerPhone?: string | null;
@@ -62,10 +63,13 @@ export const getActiveComandas = async (): Promise<ComandaDto[]> => {
   const groups: Record<string, ComandaDto> = {};
 
   for (const order of activeOrders) {
-    const customerId = order.customerId!;
-    if (!groups[customerId]) {
-      groups[customerId] = {
-        customerId,
+    // For iFood, every order is a separate comanda. For others, group by customer.
+    const groupingId = order.source === OrderSource.IFOOD ? order.id : order.customerId!;
+    
+    if (!groups[groupingId]) {
+      groups[groupingId] = {
+        id: groupingId,
+        customerId: order.customerId!,
         customerName: order.customer?.name || "Cliente sem Nome",
         customerPhone: order.customer?.phone,
         totalAmount: 0,
@@ -80,7 +84,7 @@ export const getActiveComandas = async (): Promise<ComandaDto[]> => {
       };
     }
 
-    const group = groups[customerId];
+    const group = groups[groupingId];
     group.totalAmount += Number(order.totalAmount);
     group.orderCount++;
     group.lastOrderAt = order.createdAt;
@@ -93,15 +97,20 @@ export const getActiveComandas = async (): Promise<ComandaDto[]> => {
       source: order.source,
     });
 
-    // Aggregate items
+    // Aggregate items by productId within the comanda
     for (const item of order.orderItems) {
-      group.items.push({
-        id: item.id,
-        name: item.product.name,
-        quantity: Number(item.quantity),
-        price: Number(item.unitPrice),
-        createdAt: item.createdAt,
-      });
+      const existingItem = group.items.find(i => i.id === item.productId);
+      if (existingItem) {
+        existingItem.quantity += Number(item.quantity);
+      } else {
+        group.items.push({
+          id: item.productId, // Use productId for easier UI handling
+          name: item.product.name,
+          quantity: Number(item.quantity),
+          price: Number(item.unitPrice),
+          createdAt: item.createdAt,
+        });
+      }
     }
   }
 

@@ -12,6 +12,8 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     const payload = JSON.parse(rawBody);
     
+    console.log("🔥 [iFood Webhook RAW]:", JSON.stringify(payload, null, 2));
+    
     // Normalize to array
     const events: IfoodEvent[] = Array.isArray(payload) ? payload : [payload];
 

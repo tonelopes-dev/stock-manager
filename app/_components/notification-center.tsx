@@ -40,16 +40,16 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
       try {
         const data = JSON.parse(event.data);
         
-        // Use a stable ID based on type and orderId to prevent duplicates
+        // Use a stable ID based on type and orderId to prevent duplicates,
+        // and allow status updates to overwrite previous ones for the same order.
         const uniqueId = data.orderId 
-          ? `${data.type}-${data.orderId}-${data.status || ""}` 
+          ? `${data.type}-${data.orderId}` 
           : `notif-${Date.now()}`;
 
         setNotifications((prev) => {
-          // Prevent exact duplicates in the same batch
-          if (prev.some(n => n.id === uniqueId)) {
-            return prev;
-          }
+          // Remove any existing notification with the same stable ID
+          // to allow "updates" to replace the previous message for the same order.
+          const filtered = prev.filter(n => n.id !== uniqueId);
 
           if (data.type === "NEW_ORDER") {
             // Play Audio Alert
@@ -66,7 +66,7 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
                 timestamp: new Date(),
                 read: false,
               },
-              ...prev.slice(0, 19),
+              ...filtered.slice(0, 19),
             ];
           } else if (data.type === "STATUS_UPDATED") {
             return [
@@ -77,10 +77,10 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
                 timestamp: new Date(),
                 read: false,
               },
-              ...prev.slice(0, 19),
+              ...filtered.slice(0, 19),
             ];
           }
-          return prev;
+          return filtered;
         });
       } catch {
         // ignore parse errors
