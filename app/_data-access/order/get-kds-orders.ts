@@ -26,6 +26,13 @@ export const getKDSOrders = async (companyId: string): Promise<KDSOrderDto[]> =>
       status: {
         in: [OrderStatus.PENDING, OrderStatus.PREPARING, OrderStatus.READY],
       },
+      // Business Logic: Don't show iFood orders in KDS before they are accepted (PREPARING)
+      NOT: {
+        AND: [
+          { source: OrderSource.IFOOD },
+          { status: OrderStatus.PENDING }
+        ]
+      }
     },
     include: {
       orderItems: {

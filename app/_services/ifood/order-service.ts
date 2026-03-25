@@ -59,14 +59,11 @@ interface IfoodOrderItem {
 export class IfoodOrderService {
   private static API_BASE_URL = "https://merchant-api.ifood.com.br/order/v1.0/orders";
 
-  /**
-   * Processes an iFood event.
-   */
   static async processIfoodOrder(event: IfoodEvent) {
-    if (event.code === "PLACED") {
+    if (event.fullCode === "PLACED" || event.code === "PLC") {
       await this.handleNewOrder(event);
     } else {
-      console.log(`[iFood] Evento ${event.code} recebido, ignorado por enquanto.`);
+      console.log(`[iFood] Evento ${event.fullCode || event.code} recebido, ignorado por enquanto.`);
     }
   }
 
@@ -154,6 +151,15 @@ export class IfoodOrderService {
         });
 
         // C. Process Items and Modifiers
+        // Pega o primeiro produto da empresa para servir de fallback seguro (evita erro P2003)
+        const fallbackProduct = await trx.product.findFirst({
+          where: { companyId: company.id }
+        });
+
+        if (!fallbackProduct) {
+          throw new BusinessError("Nenhum produto cadastrado. Crie pelo menos um produto para receber pedidos.");
+        }
+
         for (const item of details.items) {
           // Find matching product
           const product = await trx.product.findFirst({
@@ -167,14 +173,18 @@ export class IfoodOrderService {
             }
           });
 
+          const parentProductId = product?.id || fallbackProduct.id;
+          const itemNotes = !product ? `[Item iFood não mapeado: ${item.name}]` : undefined;
+
           // Create Parent Item
           const parentItem = await trx.orderItem.create({
             data: {
               orderId: newOrder.id,
-              productId: product?.id || "manual_product_id", // Fallback if no mapping
+              productId: parentProductId, 
               quantity: item.quantity,
               unitPrice: item.unitPrice,
               isModifier: false,
+              notes: itemNotes,
             }
           });
 
@@ -191,14 +201,18 @@ export class IfoodOrderService {
                 }
               });
 
+              const modProductId = modifierProduct?.id || fallbackProduct.id;
+              const modNotes = !modifierProduct ? `[Adicional não mapeado: ${option.name}]` : undefined;
+
               await trx.orderItem.create({
                 data: {
                   orderId: newOrder.id,
-                  productId: modifierProduct?.id || product?.id || "manual_product_id",
+                  productId: modProductId,
                   quantity: option.quantity,
                   unitPrice: option.unitPrice,
                   isModifier: true,
                   parentItemId: parentItem.id,
+                  notes: modNotes,
                 }
               });
             }
@@ -208,20 +222,98 @@ export class IfoodOrderService {
         return newOrder;
       });
 
-      // 4. Notify KDS
+      // Notify clients (Notification Bell & Sales Kanban)
+      const { notifyKDS } = await import("@/app/api/kds/events/route");
       notifyKDS(company.id, { 
         type: "NEW_ORDER", 
         orderId: order.id,
+        orderNumber: order.orderNumber,
         customerId: order.customerId 
       });
 
-      console.log(`[iFood] Pedido ${details.displayId} salvo e enviado ao KDS.`);
+      console.log(`[iFood] Pedido ${details.displayId} salvo.`);
 
     } catch (error) {
       console.error(`[iFood] Erro ao persistir pedido ${event.orderId}:`, error);
       // We don't throw here to avoid failing the whole batch in the webhook, 
       // but the event won't be acknowledged if we handle error in webhook route.
       throw error; 
+    }
+  }
+
+  /**
+   * Confirms an order on iFood.
+   */
+  static async confirmOrder(orderId: string, companyId: string) {
+    const order = await db.order.findUnique({
+      where: { id: orderId },
+      select: { ifoodOrderId: true, orderNumber: true }
+    });
+
+    if (!order?.ifoodOrderId) {
+      console.warn(`[iFood] Tentativa de confirmar pedido ${orderId} sem ID do iFood.`);
+      return;
+    }
+
+    const accessToken = await IfoodAuthService.getAccessToken(companyId);
+
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/${order.ifoodOrderId}/confirm`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[iFood] Erro ao confirmar pedido ${order.ifoodOrderId}: ${errorText}`);
+        throw new BusinessError("Falha ao sincronizar confirmação com o iFood.");
+      }
+
+      console.log(`[iFood] Pedido ${order.ifoodOrderId} confirmado com sucesso.`);
+    } catch (error: any) {
+      console.error(`[iFood] Erro ao confirmar pedido ${orderId}:`, error);
+      throw new BusinessError(error.message || "Erro ao confirmar pedido no iFood.");
+    }
+  }
+
+  /**
+   * Dispatches an order on iFood (Saiu para entrega)
+   */
+  static async dispatchOrder(orderId: string, companyId: string) {
+    const order = await db.order.findUnique({
+      where: { id: orderId },
+      select: { ifoodOrderId: true }
+    });
+
+    if (!order?.ifoodOrderId) {
+      console.warn(`[iFood] Tentativa de despachar pedido ${orderId} sem ID do iFood.`);
+      return;
+    }
+
+    const accessToken = await IfoodAuthService.getAccessToken(companyId);
+
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/${order.ifoodOrderId}/dispatch`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[iFood] Erro ao despachar pedido ${order.ifoodOrderId}: ${errorText}`);
+        throw new BusinessError("Falha ao sincronizar despacho com o iFood.");
+      }
+
+      console.log(`[iFood] Pedido ${order.ifoodOrderId} despachado com sucesso.`);
+    } catch (error: any) {
+      console.error(`[iFood] Erro ao despachar pedido ${orderId}:`, error);
+      throw new BusinessError(error.message || "Erro ao despachar pedido no iFood.");
     }
   }
 }

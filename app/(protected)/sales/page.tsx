@@ -22,6 +22,9 @@ import { SalesViewTabs } from "./_components/sales-view-tabs";
 import { TipsReport } from "./_components/tips-report";
 import { ExportReportModal } from "./_components/export-report-modal";
 import { SalesComparisonMetrics } from "./_components/sales-comparison-metrics";
+import { OperationTabs } from "./_components/operation-tabs";
+import { DeliveryKanban } from "./_components/delivery-kanban";
+import { OrderStatus, OrderSource } from "@prisma/client";
 import { getOnboardingStats } from "@/app/_data-access/onboarding/get-onboarding-stats";
 import { getCurrentUserRole } from "@/app/_lib/rbac";
 import { UserRole } from "@prisma/client";
@@ -42,6 +45,7 @@ interface HomeProps {
     monthA?: string;
     monthB?: string;
     view?: "gestao" | "inteligencia" | "gorjetas";
+    tab?: "dinein" | "delivery";
   }>;
 }
 
@@ -72,6 +76,11 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
 
   const companyId = await getCurrentCompanyId();
   const activeComandas = companyId ? await getActiveComandas() : [];
+  const currentTab = resolvedSearchParams.tab || "dinein";
+
+  const pendingDeliveryCount = activeComandas.filter(
+    (c) => c.source === "IFOOD" && c.orders.some((o) => o.status === OrderStatus.PENDING)
+  ).length;
 
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-background p-8">
@@ -135,13 +144,19 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
       )}
 
       {view === "gestao" && (
-        <div className="space-y-8">
-          <ComandasGrid
-            initialComandas={activeComandas}
-            companyId={companyId || ""}
-            products={products}
-            productOptions={productOptions}
-          />
+        <div className="space-y-4">
+          <OperationTabs pendingDeliveryCount={pendingDeliveryCount} />
+          
+          {currentTab === "dinein" ? (
+            <ComandasGrid
+              initialComandas={activeComandas.filter(c => c.source !== OrderSource.IFOOD)}
+              companyId={companyId || ""}
+              products={products}
+              productOptions={productOptions}
+            />
+          ) : (
+            <DeliveryKanban comandas={activeComandas} companyId={companyId || ""} />
+          )}
         </div>
       )}
 

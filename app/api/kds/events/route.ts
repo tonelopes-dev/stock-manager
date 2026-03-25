@@ -8,7 +8,16 @@ type KDSClient = {
   controller: ReadableStreamDefaultController;
 };
 
-const clients = new Set<KDSClient>();
+// Persist clients across hot-reloads in development
+const globalForSSE = globalThis as unknown as {
+  kdsClients: Set<KDSClient>;
+};
+
+const clients = globalForSSE.kdsClients || new Set<KDSClient>();
+
+if (process.env.NODE_ENV !== "production") {
+  globalForSSE.kdsClients = clients;
+}
 
 export async function GET(req: NextRequest) {
   const companyId = req.nextUrl.searchParams.get("companyId");

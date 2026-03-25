@@ -32,8 +32,9 @@ export const KDSClient = ({ initialOrders, companyId }: KDSClientProps) => {
       try {
         const data = JSON.parse(event.data);
         if (data.type === "NEW_ORDER" || data.type === "STATUS_UPDATED") {
-          // Refetch data without losing client state
-          router.refresh();
+          // If the update was for an order we are already managing locally, skip refresh
+          // (The local state is handled by the handleStatusUpdate call)
+          router.refresh(); 
         }
       } catch (e) {
         console.error("Failed to parse SSE message");

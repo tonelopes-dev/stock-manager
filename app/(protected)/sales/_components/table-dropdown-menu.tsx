@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
-import UpsertSheetContent from "./upsert-sheet-content";
+import UpsertSheetContent, { SelectedProduct } from "./upsert-sheet-content";
 import { useState } from "react";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
 import { ProductDto } from "@/app/_data-access/product/get-products";
@@ -138,16 +138,27 @@ const SalesTableDropdownMenu = ({
         products={products}
         setSheetIsOpen={setUpsertSheetIsOpen}
         companyId={companyId}
-        defaultSelectedProducts={sale.saleItems.map((item) => {
-          const product = products.find((p) => p.id === item.productId);
-          return {
-            id: item.productId,
-            quantity: Number(item.quantity),
-            name: item.product.name,
-            price: Number(item.unitPrice),
-            stock: product?.stock ?? 0,
-          };
-        })}
+        defaultSelectedProducts={(() => {
+          // Aggregate items by productId to avoid duplicate keys and React errors
+          const aggregated: Record<string, SelectedProduct> = {};
+          
+          sale.saleItems.forEach((item) => {
+            if (aggregated[item.productId]) {
+              aggregated[item.productId].quantity += Number(item.quantity);
+            } else {
+              const product = products.find((p) => p.id === item.productId);
+              aggregated[item.productId] = {
+                id: item.productId,
+                quantity: Number(item.quantity),
+                name: item.product.name,
+                price: Number(item.unitPrice),
+                stock: product?.stock ?? 0,
+              };
+            }
+          });
+          
+          return Object.values(aggregated);
+        })()}
       />
     </Sheet>
   );

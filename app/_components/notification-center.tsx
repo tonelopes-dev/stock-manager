@@ -38,11 +38,17 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
       try {
         const data = JSON.parse(event.data);
         if (data.type === "NEW_ORDER") {
+          // Play Audio Alert
+          const audio = new Audio('/alert.mp3');
+          audio.play().catch(e => console.warn('Áudio bloqueado pelo navegador', e));
+
+          const orderMsg = data.orderNumber ? `Novo pedido iFood: #${data.orderNumber}` : `Novo pedido recebido!`;
+
           setNotifications((prev) => [
             {
               id: `notif-${Date.now()}`,
               type: "order",
-              message: `Novo pedido recebido!`,
+              message: orderMsg,
               timestamp: new Date(),
               read: false,
             },

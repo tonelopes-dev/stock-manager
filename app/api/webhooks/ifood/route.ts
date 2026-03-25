@@ -9,29 +9,32 @@ import { db } from "@/app/_lib/prisma";
  */
 export async function POST(req: Request) {
   try {
-    const events: IfoodEvent[] = await req.json();
+    const rawBody = await req.text();
+    const payload = JSON.parse(rawBody);
+    
+    // Normalize to array
+    const events: IfoodEvent[] = Array.isArray(payload) ? payload : [payload];
 
-    if (!Array.isArray(events) || events.length === 0) {
-      return NextResponse.json({ message: "No events to process" }, { status: 200 });
+    // Silence KEEPALIVE and skip processing
+    const nonKeepAlive = events.filter(e => e.code !== "KEEPALIVE");
+    if (nonKeepAlive.length === 0) {
+      // It's just keep-alive, ACK and return fast
+      return NextResponse.json({ message: "Keep-alive processed" }, { status: 200 });
     }
 
-    console.log(`[iFood Webhook] Recebidos ${events.length} eventos.`);
+    console.log(`[iFood Webhook] Processando ${nonKeepAlive.length} evento(s) real(is).`);
 
-    // 1. Process events (New orders, cancellations, etc.)
-    // For now, we process sequentially, but we could parallelize if needed.
-    for (const event of events) {
+    // 1. Process real events
+    for (const event of nonKeepAlive) {
       try {
         await IfoodOrderService.processIfoodOrder(event);
       } catch (error) {
-        // We log it but continue processing other events in the batch
         console.error(`[iFood Webhook] Erro ao processar o evento ${event.id}:`, error);
       }
     }
 
     // 2. Acknowledge events (ACK) to remove them from the iFood queue.
-    // We send back the IDs of the events we just processed.
     try {
-      // Find the companyId associated with these events (assuming all are for the same merchantId in this batch)
       const merchantId = events[0].merchantId;
       const company = await db.company.findFirst({
         where: { ifoodMerchantId: merchantId },
@@ -55,7 +58,7 @@ export async function POST(req: Request) {
           const errorText = await response.text();
           console.error(`[iFood Webhook] Falha ao enviar ACK para o iFood: ${errorText}`);
         } else {
-          console.log(`[iFood Webhook] ACK enviado com sucesso para ${events.length} eventos.`);
+          console.log(`[iFood Webhook] ACK enviado com sucesso para ${events.length} evento(s).`);
         }
       } else {
         console.warn(`[iFood Webhook] Empresa não encontrada para o merchantId: ${merchantId}`);
@@ -64,13 +67,10 @@ export async function POST(req: Request) {
       console.error("[iFood Webhook] Erro crítico ao tentar realizar o ACK:", ackError);
     }
 
-    // 3. Fast ACK: Always return 200 OK to the iFood request immediately after processing.
     return NextResponse.json({ message: "Events received and processed" }, { status: 200 });
 
   } catch (error) {
     console.error("[iFood Webhook] Erro fatal na rota de webhook:", error);
-    // Even on error, we return 200 to iFood so it doesn't keep retrying the SAME batch indefinitely (optional strategy)
-    // but the instruction was "Fast ACK", so let's stick to returning success.
     return NextResponse.json({ error: "Internal Server Error" }, { status: 200 });
   }
 }

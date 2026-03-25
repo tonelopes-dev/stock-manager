@@ -12,6 +12,7 @@ import { SubscriptionBanner } from "../_components/SubscriptionBanner";
 import { GlobalHeader } from "../_components/global-header";
 import { AppModeProvider } from "../_components/app-mode-provider";
 import { SubscriptionProvider } from "../_components/SubscriptionContext";
+import { NotificationSound } from "../_components/notification-sound";
 
 export default async function ProtectedLayout({
   children,
@@ -24,7 +25,7 @@ export default async function ProtectedLayout({
   }
 
   // Ensure company exists for the user
-  await getCurrentCompanyId();
+  const companyId = await getCurrentCompanyId();
 
   // Check security status
   const { needsPasswordChange } = await getUserSecurityStatus();

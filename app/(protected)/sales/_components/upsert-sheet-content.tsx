@@ -73,7 +73,7 @@ const formSchema = z.object({
 
 type FormSchema = z.infer<typeof formSchema>;
 
-interface SelectedProduct {
+export interface SelectedProduct {
   id: string;
   name: string;
   price: number;

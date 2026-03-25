@@ -6,12 +6,14 @@ import { UnitType, PaymentMethod } from "@prisma/client";
 
 interface UpsertSaleParams {
   id?: string;
+  orderId?: string;
   date?: Date;
   companyId: string;
   userId: string;
   customerId?: string;
   paymentMethod?: PaymentMethod;
   tipAmount?: number;
+  deliveryFee?: number;
   products: {
     id: string;
     quantity: number;
@@ -19,7 +21,7 @@ interface UpsertSaleParams {
 }
 
 export const SaleService = {
-  async upsertSale({ id, date, companyId, userId, customerId, paymentMethod, tipAmount, products }: UpsertSaleParams) {
+  async upsertSale({ id, orderId, date, companyId, userId, customerId, paymentMethod, tipAmount, deliveryFee, products }: UpsertSaleParams) {
     try {
       return await db.$transaction(async (trx) => {
         const isUpdate = Boolean(id);
@@ -77,8 +79,10 @@ export const SaleService = {
               companyId,
               userId,
               customerId: customerId || null,
+              orderId: orderId || null,
               paymentMethod: paymentMethod || null,
               tipAmount: tipAmount || 0,
+              deliveryFee: deliveryFee || 0,
             },
           });
           saleId = newSale.id;
@@ -90,8 +94,10 @@ export const SaleService = {
               date: date || undefined,
               userId,
               customerId: customerId || undefined,
+              orderId: orderId || undefined,
               paymentMethod: paymentMethod || undefined,
               tipAmount: tipAmount !== undefined ? tipAmount : undefined,
+              deliveryFee: deliveryFee !== undefined ? deliveryFee : undefined,
             },
           });
         }
@@ -102,7 +108,7 @@ export const SaleService = {
         });
 
         // 4. Process products — unified for RESELL and PREPARED
-        let totalAmount = 0;
+        let totalAmount = Number(deliveryFee || 0);
         let totalCost = 0;
 
         for (const product of products) {
