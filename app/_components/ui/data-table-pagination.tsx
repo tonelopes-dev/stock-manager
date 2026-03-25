@@ -53,12 +53,12 @@ export function DataTablePagination<TData>({
 
   return (
     <div className="flex items-center justify-between px-2 pt-4">
-      <div className="flex-1 text-xs font-bold text-slate-400">
+      <div className="flex-1 text-xs font-bold text-muted-foreground">
         {total} registros totais
       </div>
       <div className="flex items-center space-x-6 lg:space-x-8">
         <div className="flex items-center space-x-2">
-          <p className="text-xs font-black text-slate-500 uppercase tracking-tighter">Linhas por página</p>
+          <p className="text-xs font-black text-muted-foreground uppercase tracking-tighter">Linhas por página</p>
           <Select
             value={`${pageSize}`}
             onValueChange={handlePageSizeChange}
@@ -75,7 +75,7 @@ export function DataTablePagination<TData>({
             </SelectContent>
           </Select>
         </div>
-        <div className="flex w-[100px] items-center justify-center text-xs font-black text-slate-900">
+        <div className="flex w-[100px] items-center justify-center text-xs font-black text-foreground">
           Página {page} de {totalPages || 1}
         </div>
         <div className="flex items-center space-x-2">

@@ -69,7 +69,7 @@ const PlanActions = ({
     <div className="flex w-full flex-col gap-2">
       {externalLink && (
         <Button
-          className="w-full bg-amber-600 font-bold text-white hover:bg-amber-700"
+          className="w-full bg-orange-500 font-bold text-background hover:bg-orange-500"
           onClick={() => (window.location.href = externalLink)}
         >
           {externalLabel || "Visualizar Boleto"}

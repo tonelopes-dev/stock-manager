@@ -85,12 +85,12 @@ export const RevenueTrendChart = ({ data }: RevenueTrendChartProps) => {
           cursor={{ stroke: '#e2e8f0', strokeWidth: 1 }}
           content={
             <ChartTooltipContent
-              className="w-[180px] border-slate-100 shadow-xl"
+              className="w-[180px] border-border shadow-xl"
               formatter={(value, name) => (
                 <div className="flex items-center gap-2">
                     <div className="w-1 h-3 rounded-full" style={{ backgroundColor: name === 'revenue' ? 'var(--color-revenue)' : '#94a3b8' }} />
-                    <span className="text-slate-500">{name === 'revenue' ? 'Receita' : 'Custo'}:</span>
-                    <span className="font-black text-slate-900">{formatCurrency(Number(value))}</span>
+                    <span className="text-muted-foreground">{name === 'revenue' ? 'Receita' : 'Custo'}:</span>
+                    <span className="font-black text-foreground">{formatCurrency(Number(value))}</span>
                 </div>
               )}
             />

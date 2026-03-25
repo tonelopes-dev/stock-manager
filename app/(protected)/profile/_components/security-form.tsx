@@ -110,8 +110,8 @@ export const SecurityForm = () => {
           />
         </div>
 
-        <div className="flex justify-end pt-4 border-t border-slate-100">
-          <Button type="submit" disabled={isPending} variant="outline" className="font-black gap-2 h-11 px-6 border-slate-200">
+        <div className="flex justify-end pt-4 border-t border-border">
+          <Button type="submit" disabled={isPending} variant="outline" className="font-black gap-2 h-11 px-6 border-border">
             {isPending ? (
               <Loader2Icon className="h-4 w-4 animate-spin" />
             ) : (

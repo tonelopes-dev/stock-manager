@@ -172,7 +172,7 @@ export const CRMConfigModal = ({ categories, stages }: CRMConfigModalProps) => {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2 border-slate-200">
+        <Button variant="outline" className="gap-2 border-primary text-primary hover:bg-primary/10">
           <Settings2 className="h-4 w-4" />
           Configurar CRM
         </Button>
@@ -186,14 +186,14 @@ export const CRMConfigModal = ({ categories, stages }: CRMConfigModalProps) => {
 
         {migrationData ? (
           <div className="space-y-6 pt-4">
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <div className="rounded-lg border border-orange-500/20 bg-orange-500/10 p-4">
               <div className="flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                <AlertTriangle className="h-5 w-5 text-orange-500" />
                 <div className="space-y-1">
-                  <p className="text-sm font-bold leading-tight text-amber-900">
+                  <p className="text-sm font-bold leading-tight text-orange-500">
                     O item "{migrationData.name}" possui clientes vinculados.
                   </p>
-                  <p className="text-xs text-amber-700">
+                  <p className="text-xs text-orange-600">
                     Para excluir, você deve mover esses clientes para um novo
                     destino.
                   </p>
@@ -202,7 +202,7 @@ export const CRMConfigModal = ({ categories, stages }: CRMConfigModalProps) => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-slate-400">
+              <label className="text-[10px] font-black uppercase text-muted-foreground">
                 Mover clientes para:
               </label>
               <Combobox
@@ -271,7 +271,7 @@ export const CRMConfigModal = ({ categories, stages }: CRMConfigModalProps) => {
                 {categories.map((category) => (
                   <div
                     key={category.id}
-                    className="group flex items-center justify-between rounded-md border border-slate-100 p-2 hover:bg-slate-50"
+                    className="group flex items-center justify-between rounded-md border border-border p-2 hover:bg-muted"
                   >
                     {editingId === category.id ? (
                       <div className="flex w-full gap-2">
@@ -319,7 +319,7 @@ export const CRMConfigModal = ({ categories, stages }: CRMConfigModalProps) => {
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-7 w-7 text-red-500"
+                            className="h-7 w-7 text-destructive"
                             onClick={() => handleDeleteCategory(category.id)}
                           >
                             <Trash2 className="h-3 w-3" />
@@ -356,17 +356,17 @@ export const CRMConfigModal = ({ categories, stages }: CRMConfigModalProps) => {
                 {stages.map((stage) => (
                   <div
                     key={stage.id}
-                    className="group flex items-center justify-between rounded-md border border-slate-100 p-2 hover:bg-slate-50"
+                    className="group flex items-center justify-between rounded-md border border-border p-2 hover:bg-muted"
                   >
                     <div className="flex items-center gap-3">
-                      <GripVertical className="h-4 w-4 cursor-grab text-slate-300 active:cursor-grabbing" />
+                      <GripVertical className="h-4 w-4 cursor-grab text-muted-foreground active:cursor-grabbing" />
                       <span className="text-sm font-medium">{stage.name}</span>
                     </div>
                     <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-7 w-7 text-red-500"
+                        className="h-7 w-7 text-destructive"
                         onClick={() => handleDeleteStage(stage.id)}
                       >
                         <Trash2 className="h-3 w-3" />
@@ -375,7 +375,7 @@ export const CRMConfigModal = ({ categories, stages }: CRMConfigModalProps) => {
                   </div>
                 ))}
               </div>
-              <p className="text-center text-[10px] font-bold uppercase italic text-slate-400">
+              <p className="text-center text-[10px] font-bold uppercase italic text-muted-foreground">
                 A ordem aqui define as colunas do seu Kanban
               </p>
             </TabsContent>

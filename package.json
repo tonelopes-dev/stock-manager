@@ -1,5 +1,5 @@
 {
-  "name": "stocky",
+  "name": "kipo",
   "version": "1.4.0",
   "private": true,
   "scripts": {
@@ -11,6 +11,8 @@
     "db:seed": "prisma db seed",
     "db:clear-seed": "npx tsx prisma/clear-seed.ts",
     "db:sync": "node scripts/sync-db.ts",
+    "test:emails": "npx tsx scripts/test-personal-email.ts",
+    "test:all-emails": "npx tsx scripts/send-all-templates.ts",
     "DANGER_DESTRUCTIVE_db:fresh": "prisma migrate reset --force",
     "db:warning": "echo 'WARNING: Do not run reset or fresh in production!'"
   },
@@ -51,7 +53,7 @@
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.3",
     "exceljs": "^4.4.0",
-    "framer-motion": "^12.35.0",
+    "framer-motion": "^12.38.0",
     "lucide-react": "^0.441.0",
     "mercadopago": "^2.12.0",
     "next": "16.1.6",
@@ -67,9 +69,10 @@
     "react-number-format": "^5.4.2",
     "react-window": "^2.2.7",
     "recharts": "^2.15.0",
+    "resend": "^6.9.4",
     "server-only": "^0.0.1",
     "sonner": "^1.5.0",
-    "tailwind-merge": "^2.5.2",
+    "tailwind-merge": "^2.6.1",
     "tailwindcss-animate": "^1.0.7",
     "use-debounce": "^10.1.0",
     "zod": "^3.25.10"
@@ -80,6 +83,7 @@
     "@types/react": "19.2.0",
     "@types/react-dom": "19.2.0",
     "concurrently": "^9.2.1",
+    "dotenv": "^17.3.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "postcss": "^8",

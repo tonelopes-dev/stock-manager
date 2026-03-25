@@ -11,6 +11,7 @@ interface UpsertSaleParams {
   userId: string;
   customerId?: string;
   paymentMethod?: PaymentMethod;
+  tipAmount?: number;
   products: {
     id: string;
     quantity: number;
@@ -18,7 +19,7 @@ interface UpsertSaleParams {
 }
 
 export const SaleService = {
-  async upsertSale({ id, date, companyId, userId, customerId, paymentMethod, products }: UpsertSaleParams) {
+  async upsertSale({ id, date, companyId, userId, customerId, paymentMethod, tipAmount, products }: UpsertSaleParams) {
     try {
       return await db.$transaction(async (trx) => {
         const isUpdate = Boolean(id);
@@ -77,6 +78,7 @@ export const SaleService = {
               userId,
               customerId: customerId || null,
               paymentMethod: paymentMethod || null,
+              tipAmount: tipAmount || 0,
             },
           });
           saleId = newSale.id;
@@ -89,6 +91,7 @@ export const SaleService = {
               userId,
               customerId: customerId || undefined,
               paymentMethod: paymentMethod || undefined,
+              tipAmount: tipAmount !== undefined ? tipAmount : undefined,
             },
           });
         }

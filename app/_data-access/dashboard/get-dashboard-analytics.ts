@@ -28,6 +28,7 @@ export interface DashboardAnalyticsDto {
     cogs: AnalyticsMetric;
     profit: AnalyticsMetric;
     margin: AnalyticsMetric;
+    tips: AnalyticsMetric;
     salesCount: AnalyticsMetric;
     averageTicket: AnalyticsMetric;
     revenueTimeSeries: {
@@ -126,6 +127,10 @@ export const getDashboardAnalytics = async (
         margin: {
             value: currentMetrics.margin,
             trend: calculateTrend(currentMetrics.margin, previousMetrics.margin)
+        },
+        tips: {
+            value: currentMetrics.totalTips,
+            trend: calculateTrend(currentMetrics.totalTips, previousMetrics.totalTips)
         },
         salesCount: {
             value: currentSalesCount,

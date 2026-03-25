@@ -67,24 +67,25 @@ const DashboardContent = async ({
         profit={data.profit}
         cogs={data.cogs}
         margin={data.margin}
+        tips={data.tips}
       />
 
       <Suspense
         fallback={
-          <div className="h-44 animate-pulse rounded-xl border border-slate-100 bg-slate-50" />
+          <div className="h-44 animate-pulse rounded-xl border border-border bg-muted" />
         }
       >
         <GoalsSummary />
       </Suspense>
 
       {/* 3. SALES CHART */}
-      <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-sm">
+      <div className="rounded-xl border border-border/80 bg-background p-6 shadow-sm">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-black uppercase italic tracking-tighter text-slate-900">
+            <h3 className="text-lg font-black uppercase italic tracking-tighter text-foreground">
               Análise de Vendas
             </h3>
-            <p className="text-xs font-medium text-slate-500">
+            <p className="text-xs font-medium text-muted-foreground">
               Receita vs. Lucro por dia — COGS visível no tooltip.
             </p>
           </div>
@@ -115,15 +116,15 @@ const DashboardContent = async ({
 const DashboardLoadingSkeleton = () => (
   <div className="space-y-8">
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-      <div className="h-32 animate-pulse rounded-xl bg-slate-100" />
-      <div className="h-32 animate-pulse rounded-xl bg-slate-100" />
-      <div className="h-32 animate-pulse rounded-xl bg-slate-100" />
-      <div className="h-32 animate-pulse rounded-xl bg-slate-100" />
+      <div className="h-32 animate-pulse rounded-xl bg-muted" />
+      <div className="h-32 animate-pulse rounded-xl bg-muted" />
+      <div className="h-32 animate-pulse rounded-xl bg-muted" />
+      <div className="h-32 animate-pulse rounded-xl bg-muted" />
     </div>
-    <div className="h-[440px] w-full animate-pulse rounded-xl bg-slate-50" />
+    <div className="h-[440px] w-full animate-pulse rounded-xl bg-muted" />
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-      <div className="h-64 animate-pulse rounded-xl bg-slate-50" />
-      <div className="h-64 animate-pulse rounded-xl bg-slate-50" />
+      <div className="h-64 animate-pulse rounded-xl bg-muted" />
+      <div className="h-64 animate-pulse rounded-xl bg-muted" />
     </div>
   </div>
 );

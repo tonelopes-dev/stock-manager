@@ -15,6 +15,7 @@ export const upsertProductSchema = z.object({
   }).default(0),
   sku: z.string().trim().nullable().optional(),
   categoryId: z.string().trim().nullable().optional(),
+  environmentId: z.string().trim().nullable().optional(),
   stock: z.coerce.number().int().min(0, {
     message: "A quantidade em estoque é obrigatória.",
   }).default(0),

@@ -198,22 +198,22 @@ const InviteMemberButton = () => {
                 </div>
              </div>
              <div>
-                <h3 className="text-xl font-black text-slate-900">Acesso Criado!</h3>
-                <p className="text-sm text-slate-500 mt-2">
+                <h3 className="text-xl font-black text-foreground">Acesso Criado!</h3>
+                <p className="text-sm text-muted-foreground mt-2">
                     As credenciais foram registradas. Agora, envie o convite para o colaborador via WhatsApp.
                 </p>
              </div>
 
-             <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-left">
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Credenciais Geradas</p>
+             <div className="p-4 bg-muted border border-border rounded-xl text-left">
+                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-2">Credenciais Geradas</p>
                 <div className="space-y-1">
-                    <p className="text-sm text-slate-900"><strong className="text-slate-400">Login:</strong> {form.getValues("email")}</p>
-                    <p className="text-sm text-slate-900"><strong className="text-slate-400">Senha:</strong> {invitationResult.tempPass}</p>
+                    <p className="text-sm text-foreground"><strong className="text-muted-foreground">Login:</strong> {form.getValues("email")}</p>
+                    <p className="text-sm text-foreground"><strong className="text-muted-foreground">Senha:</strong> {invitationResult.tempPass}</p>
                 </div>
              </div>
 
              <Button 
-                className="w-full bg-[#25D366] hover:bg-[#20ba59] text-white font-black h-12 gap-2"
+                className="w-full bg-[#25D366] hover:bg-[#20ba59] text-background font-black h-12 gap-2"
                 onClick={() => {
                     window.open(invitationResult.whatsappUrl, "_blank");
                     handleClose();
@@ -223,7 +223,7 @@ const InviteMemberButton = () => {
                 Enviar via WhatsApp
              </Button>
 
-             <p className="text-[10px] text-slate-400">
+             <p className="text-[10px] text-muted-foreground">
                 O colaborador será obrigado a trocar a senha ao entrar.
              </p>
           </div>

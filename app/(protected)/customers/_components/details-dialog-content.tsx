@@ -192,8 +192,8 @@ export const CustomerDetailsDialogContent = ({
 
   return (
     <>
-      <DialogContent className="max-h-[85vh] max-w-xl overflow-y-auto border-none bg-white p-0 shadow-2xl">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white/80 px-6 py-4 backdrop-blur-md">
+      <DialogContent className="max-h-[85vh] max-w-xl overflow-y-auto border-none bg-background p-0 shadow-2xl">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/80 px-6 py-4 backdrop-blur-md">
           <DialogHeader className="p-0">
             <DialogTitle className="flex items-center gap-3 text-xl font-black uppercase italic tracking-tighter">
               <User className="h-6 w-6 text-primary" />
@@ -205,7 +205,7 @@ export const CustomerDetailsDialogContent = ({
               <Button
                 size="sm"
                 variant="outline"
-                className="gap-2 border-slate-200"
+                className="gap-2 border-border"
                 onClick={() => setIsEditing(true)}
               >
                 <Pencil className="h-3 w-3" /> Editar
@@ -232,7 +232,7 @@ export const CustomerDetailsDialogContent = ({
           <div className="grid grid-cols-2 gap-8">
             <div className="space-y-6">
               <div className="space-y-4">
-                <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   <Mail className="h-3 w-3" /> Informações Básicas
                 </span>
                 {isEditing ? (
@@ -264,13 +264,13 @@ export const CustomerDetailsDialogContent = ({
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <p className="text-sm font-semibold text-slate-900">
+                    <p className="text-sm font-semibold text-foreground">
                       {customer.name}
                     </p>
-                    <p className="text-sm font-medium text-slate-500">
+                    <p className="text-sm font-medium text-muted-foreground">
                       {customer.email || "Sem e-mail"}
                     </p>
-                    <p className="text-sm font-medium text-slate-500">
+                    <p className="text-sm font-medium text-muted-foreground">
                       {customer.phoneNumber || "Sem telefone"}
                     </p>
                   </div>
@@ -278,13 +278,13 @@ export const CustomerDetailsDialogContent = ({
               </div>
 
               <div className="space-y-4">
-                <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   <Tag className="h-3 w-3" /> CRM & Pipeline
                 </span>
                 {isEditing ? (
                   <div className="space-y-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase text-slate-400">
+                      <label className="text-[10px] font-bold uppercase text-muted-foreground">
                         Categorias
                       </label>
                       <MultiSelect
@@ -297,7 +297,7 @@ export const CustomerDetailsDialogContent = ({
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase text-slate-400">
+                      <label className="text-[10px] font-bold uppercase text-muted-foreground">
                         Estágio
                       </label>
                       <Select
@@ -343,7 +343,7 @@ export const CustomerDetailsDialogContent = ({
                     ) : (
                       <Badge
                         variant="outline"
-                        className="text-[10px] font-bold text-slate-300"
+                        className="text-[10px] font-bold text-muted-foreground"
                       >
                         Sem Categoria
                       </Badge>
@@ -358,7 +358,7 @@ export const CustomerDetailsDialogContent = ({
                     ) : (
                       <Badge
                         variant="outline"
-                        className="text-[10px] font-bold text-slate-300"
+                        className="text-[10px] font-bold text-muted-foreground"
                       >
                         Sem Estágio
                       </Badge>
@@ -370,12 +370,12 @@ export const CustomerDetailsDialogContent = ({
 
             <div className="space-y-6">
               <div className="space-y-4">
-                <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   <Calendar className="h-3 w-3" /> Outros Detalhes
                 </span>
                 {isEditing ? (
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase text-slate-400">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">
                       Aniversário
                     </label>
                     <DatePicker
@@ -392,10 +392,10 @@ export const CustomerDetailsDialogContent = ({
                 ) : (
                   <div className="space-y-4">
                     <div className="space-y-1">
-                      <p className="text-[10px] font-bold uppercase text-slate-400">
+                      <p className="text-[10px] font-bold uppercase text-muted-foreground">
                         Aniversário
                       </p>
-                      <p className="text-sm font-medium text-slate-600">
+                      <p className="text-sm font-medium text-muted-foreground">
                         {customer.birthDate
                           ? format(new Date(customer.birthDate), "dd/MM/yyyy", {
                               locale: ptBR,
@@ -404,10 +404,10 @@ export const CustomerDetailsDialogContent = ({
                       </p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[10px] font-bold uppercase text-slate-400">
+                      <p className="text-[10px] font-bold uppercase text-muted-foreground">
                         Data de Cadastro
                       </p>
-                      <p className="text-sm font-medium text-slate-600">
+                      <p className="text-sm font-medium text-muted-foreground">
                         {customer.createdAt
                           ? format(new Date(customer.createdAt), "dd/MM/yyyy", {
                               locale: ptBR,
@@ -420,7 +420,7 @@ export const CustomerDetailsDialogContent = ({
               </div>
 
               <div className="space-y-4">
-                <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   <Notebook className="h-3 w-3" /> Observações
                 </span>
                 {isEditing ? (
@@ -433,7 +433,7 @@ export const CustomerDetailsDialogContent = ({
                     }
                   />
                 ) : (
-                  <p className="whitespace-pre-wrap text-sm font-medium italic leading-relaxed text-slate-600">
+                  <p className="whitespace-pre-wrap text-sm font-medium italic leading-relaxed text-muted-foreground">
                     {customer.notes || "Sem observações adicionais."}
                   </p>
                 )}
@@ -441,9 +441,9 @@ export const CustomerDetailsDialogContent = ({
             </div>
           </div>
 
-          <div className="mt-12 border-t border-slate-100 pt-8">
+          <div className="mt-12 border-t border-border pt-8">
             <div className="mb-6 flex items-center justify-between">
-              <h3 className="flex items-center gap-2 text-xs font-black uppercase italic tracking-tighter text-slate-800">
+              <h3 className="flex items-center gap-2 text-xs font-black uppercase italic tracking-tighter text-foreground">
                 <ListChecks className="h-4 w-4" /> Jornada do Cliente
               </h3>
 
@@ -499,13 +499,13 @@ export const CustomerDetailsDialogContent = ({
             />
           </div>
 
-          <div className="mt-12 border-t border-slate-100 pt-8">
-            <h3 className="mb-6 flex items-center gap-2 text-xs font-black uppercase italic tracking-tighter text-slate-800">
+          <div className="mt-12 border-t border-border pt-8">
+            <h3 className="mb-6 flex items-center gap-2 text-xs font-black uppercase italic tracking-tighter text-foreground">
               <ShoppingBag className="h-4 w-4" /> Histórico de Compras
             </h3>
             {isLoadingFull ? (
               <div className="flex items-center justify-center py-10">
-                <Loader2Icon className="h-6 w-6 animate-spin text-slate-300" />
+                <Loader2Icon className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             ) : (
               <SalesTimeline sales={fullCustomer.sales || []} />
@@ -513,13 +513,13 @@ export const CustomerDetailsDialogContent = ({
           </div>
         </div>
 
-        <div className="sticky bottom-0 z-10 flex items-center justify-between border-t border-slate-100 bg-white/80 px-6 py-4 backdrop-blur-md">
+        <div className="sticky bottom-0 z-10 flex items-center justify-between border-t border-border bg-background/80 px-6 py-4 backdrop-blur-md">
           <div>
             {!isEditing && (
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-8 w-8 p-0 text-red-500 hover:bg-red-50 hover:text-red-600"
+                className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 onClick={() => setShowDeleteConfirm(true)}
               >
                 <Trash2 className="h-4 w-4" />
@@ -527,7 +527,7 @@ export const CustomerDetailsDialogContent = ({
             )}
           </div>
           <DialogClose asChild>
-            <Button size="sm" variant="outline" className="border-slate-200">
+            <Button size="sm" variant="outline" className="border-border">
               Fechar
             </Button>
           </DialogClose>
@@ -547,7 +547,7 @@ export const CustomerDetailsDialogContent = ({
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive hover:bg-destructive"
             >
               Excluir permanentemente
             </AlertDialogAction>

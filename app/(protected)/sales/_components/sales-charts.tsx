@@ -31,12 +31,12 @@ export const SalesCharts = ({ comparison }: SalesChartsProps) => {
 
   return (
     <div className="grid grid-cols-1 gap-6">
-      <Card className="border-slate-200 shadow-sm border-none bg-slate-50/50">
+      <Card className="border-border shadow-sm border-none bg-muted/50">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-black italic tracking-tighter uppercase text-slate-800">
+          <CardTitle className="text-lg font-black italic tracking-tighter uppercase text-foreground">
             Diferencial de Performance
           </CardTitle>
-          <CardDescription className="text-xs font-semibold text-slate-400 uppercase">
+          <CardDescription className="text-xs font-semibold text-muted-foreground uppercase">
             Comparação direta de faturamento bruto entre períodos
           </CardDescription>
         </CardHeader>

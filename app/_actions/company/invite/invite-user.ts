@@ -6,6 +6,8 @@ import { inviteUserSchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { assertRole, ADMIN_AND_OWNER } from "@/app/_lib/rbac";
+import { sendEmail } from "@/app/_services/email.service";
+import { invitationTemplate } from "@/app/_services/email/templates";
 
 export const inviteUser = actionClient
   .schema(inviteUserSchema)
@@ -46,6 +48,27 @@ export const inviteUser = actionClient
         companyId,
       },
     });
+
+    // Send invitation email
+    const company = await db.company.findUnique({
+      where: { id: companyId },
+      select: { name: true },
+    });
+
+    const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/register?email=${email}`;
+
+    try {
+      await sendEmail({
+        to: email,
+        subject: `Você foi convidado para a empresa ${company?.name || "Kipo"}`,
+        html: invitationTemplate({
+          companyName: company?.name || "Kipo",
+          inviteLink,
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to send invitation email:", err);
+    }
 
     revalidatePath("/company/members");
   });

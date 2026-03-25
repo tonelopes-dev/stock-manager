@@ -54,7 +54,7 @@ export const CompanyForm = ({ initialData }: CompanyFormProps) => {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-bold text-slate-700">Nome da Empresa</FormLabel>
+              <FormLabel className="font-bold text-foreground">Nome da Empresa</FormLabel>
               <FormControl>
                 <Input placeholder="Ex: Minha Empresa LTDA" {...field} />
               </FormControl>
@@ -70,9 +70,9 @@ export const CompanyForm = ({ initialData }: CompanyFormProps) => {
           control={form.control}
           name="allowNegativeStock"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border border-slate-100 p-4 bg-slate-50/50">
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border p-4 bg-muted/50">
               <div className="space-y-0.5">
-                <FormLabel className="text-base font-bold text-slate-800">
+                <FormLabel className="text-base font-bold text-foreground">
                   Permitir Estoque Negativo
                 </FormLabel>
                 <FormDescription className="text-xs">

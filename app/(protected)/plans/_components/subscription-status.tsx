@@ -28,7 +28,7 @@ const configs: Record<
     label: "Teste Grátis",
     icon: <ClockIcon className="h-3 w-3" />,
     variant: "outline",
-    className: "border-blue-400 text-blue-600 bg-blue-50",
+    className: "border-primary text-primary bg-primary/10",
   },
   ACTIVE: {
     label: "Assinatura Ativa",

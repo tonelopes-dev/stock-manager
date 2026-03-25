@@ -23,16 +23,16 @@ export const SummaryCard = ({ children, title, icon: Icon, trend, info }: Summar
   const iconContent = Icon && (
     <div className={cn(
         "p-2 rounded-xl transition-all",
-        info ? "bg-slate-50 hover:bg-slate-100 cursor-pointer text-primary" : "text-slate-400"
+        info ? "bg-muted hover:bg-muted cursor-pointer text-primary" : "text-muted-foreground"
     )}>
         <Icon size={16} />
     </div>
   );
 
   return (
-    <Card className="overflow-hidden border-slate-100 transition-hover hover:border-primary/20">
+    <Card className="overflow-hidden border-border transition-hover hover:border-primary/20">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-        <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+        <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
           {title}
         </CardTitle>
         
@@ -44,7 +44,7 @@ export const SummaryCard = ({ children, title, icon: Icon, trend, info }: Summar
                             {iconContent}
                         </button>
                     </PopoverTrigger>
-                    <PopoverContent side="top" align="end" className="max-w-[240px] text-xs font-medium leading-relaxed bg-slate-900 text-white border-slate-800 shadow-xl">
+                    <PopoverContent side="top" align="end" className="max-w-[240px] text-xs font-medium leading-relaxed bg-foreground text-background border-foreground shadow-xl">
                         {info}
                     </PopoverContent>
                 </Popover>
@@ -57,7 +57,7 @@ export const SummaryCard = ({ children, title, icon: Icon, trend, info }: Summar
           <div className={`flex items-center gap-1 text-xs font-bold ${trend >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
             {trend >= 0 ? <ArrowUpIcon size={12} strokeWidth={3} /> : <ArrowDownIcon size={12} strokeWidth={3} />}
             <span>{Math.abs(trend)}%</span>
-            <span className="text-slate-400 font-medium ml-0.5">vs. período ant.</span>
+            <span className="text-muted-foreground font-medium ml-0.5">vs. período ant.</span>
           </div>
         )}
       </CardContent>

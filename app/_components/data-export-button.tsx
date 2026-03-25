@@ -45,11 +45,11 @@ export const DataExportButton = ({
     <Button
       variant="outline"
       size="sm"
-      className="font-bold border-slate-200 hover:bg-slate-50 transition-all gap-2 h-9 px-4 rounded-lg shadow-sm"
+      className="font-bold border-border hover:bg-muted transition-all gap-2 h-9 px-4 rounded-lg shadow-sm"
       onClick={handleExport}
       disabled={isExporting}
     >
-      <DownloadIcon size={15} className="text-slate-500" />
+      <DownloadIcon size={15} className="text-muted-foreground" />
       <span className="text-xs">{isExporting ? "Gerando..." : label}</span>
     </Button>
   );

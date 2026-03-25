@@ -6,12 +6,14 @@ export interface ProductCategoryOption {
   name: string;
 }
 
-export const getProductCategories = async (): Promise<ProductCategoryOption[]> => {
+export const getProductCategories = async (environmentId?: string): Promise<ProductCategoryOption[]> => {
   const companyId = await getCurrentCompanyId();
   if (!companyId) return [];
 
+  const where: any = { companyId };
+
   return db.category.findMany({
-    where: { companyId },
+    where,
     select: { id: true, name: true },
     orderBy: { name: "asc" },
   });

@@ -19,6 +19,7 @@ import { SalesSummary } from "./_components/sales-summary";
 import { SalesCharts } from "./_components/sales-charts";
 import { MonthComparisonFilter } from "./_components/month-comparison-filter";
 import { SalesViewTabs } from "./_components/sales-view-tabs";
+import { TipsReport } from "./_components/tips-report";
 import { ExportReportModal } from "./_components/export-report-modal";
 import { SalesComparisonMetrics } from "./_components/sales-comparison-metrics";
 import { getOnboardingStats } from "@/app/_data-access/onboarding/get-onboarding-stats";
@@ -40,7 +41,7 @@ interface HomeProps {
     pageSize?: string;
     monthA?: string;
     monthB?: string;
-    view?: "gestao" | "inteligencia";
+    view?: "gestao" | "inteligencia" | "gorjetas";
   }>;
 }
 
@@ -73,11 +74,11 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
   const activeComandas = companyId ? await getActiveComandas() : [];
 
   return (
-    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
+    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-background p-8">
       <div className="flex flex-col gap-6">
         <div className="space-y-1">
           <HeaderSubtitle>
-            {view === "gestao" ? "Operação de Vendas" : "Análise de Resultados"}
+            {view === "gestao" ? "Operação de Vendas" : view === "inteligencia" ? "Análise de Resultados" : "Financeiro Staff"}
           </HeaderSubtitle>
           <HeaderTitle>Vendas</HeaderTitle>
         </div>
@@ -107,10 +108,10 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
           <div className="space-y-4">
             <div className="flex items-end justify-between gap-2">
               <div className="flex flex-col gap-2">
-                <h3 className="text-sm font-black uppercase italic tracking-tighter text-slate-500">
+                <h3 className="text-sm font-black uppercase italic tracking-tighter text-muted-foreground">
                   Listagem Técnica de Vendas
                 </h3>
-                <p className="text-[10px] font-medium text-slate-400">
+                <p className="text-[10px] font-medium text-muted-foreground">
                   Detalhamento individual de cada operação realizada no período
                 </p>
               </div>
@@ -143,8 +144,43 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
           />
         </div>
       )}
+
+      {view === "gorjetas" && (
+        <div className="space-y-4">
+          <div className="flex items-end justify-between gap-2">
+            <div className="flex flex-col gap-2">
+              <h3 className="text-sm font-black uppercase italic tracking-tighter text-muted-foreground">
+                Detalhamento de Gorjetas
+              </h3>
+              <p className="text-[10px] font-medium text-muted-foreground">
+                Acompanhamento individual para repasse à equipe
+              </p>
+            </div>
+            <PeriodFilter />
+          </div>
+          <Suspense fallback={<SaleTableSkeleton />}>
+            <TipsReportWrapper
+              from={resolvedSearchParams.from}
+              to={resolvedSearchParams.to}
+            />
+          </Suspense>
+        </div>
+      )}
     </div>
   );
+};
+
+const TipsReportWrapper = async ({
+  from,
+  to,
+}: {
+  from?: string;
+  to?: string;
+}) => {
+  const { data: sales } = await getSales({ from, to, page: 1, pageSize: 1000 }); // Large page size to see all tips
+  const analytics = await getSalesAnalytics(from, to);
+
+  return <TipsReport sales={sales} totalTips={analytics.totalTips.value} />;
 };
 
 interface SalesTableWrapperProps {

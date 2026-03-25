@@ -88,9 +88,9 @@ export const GlobalSearch = () => {
   const sales = results.filter((r) => r.type === "sale");
 
   const typeIcons = {
-    customer: <Users className="h-4 w-4 text-blue-500" />,
+    customer: <Users className="h-4 w-4 text-primary" />,
     product: <Package className="h-4 w-4 text-emerald-500" />,
-    sale: <ShoppingBasket className="h-4 w-4 text-violet-500" />,
+    sale: <ShoppingBasket className="h-4 w-4 text-primary" />,
   };
 
   return (
@@ -98,11 +98,11 @@ export const GlobalSearch = () => {
       {/* Trigger button */}
       <button
         onClick={() => setOpen(true)}
-        className="flex h-9 w-72 items-center gap-2 rounded-xl border border-slate-200/80 bg-slate-50/80 px-3 text-sm text-slate-400 shadow-inner transition-all hover:border-slate-300 hover:bg-white hover:shadow-sm"
+        className="flex h-9 w-72 items-center gap-2 rounded-xl border border-border/80 bg-muted/80 px-3 text-sm text-muted-foreground shadow-inner transition-all hover:border-border hover:bg-background hover:shadow-sm"
       >
-        <Sparkles className="h-3.5 w-3.5 text-slate-300" />
+        <Sparkles className="h-3.5 w-3.5 text-muted-foreground" />
         <span className="flex-1 text-left text-xs">Buscar em tudo...</span>
-        <kbd className="pointer-events-none hidden rounded-md border border-slate-200 bg-white px-1.5 py-0.5 font-mono text-[10px] font-bold text-slate-400 shadow-sm sm:inline-flex">
+        <kbd className="pointer-events-none hidden rounded-md border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] font-bold text-muted-foreground shadow-sm sm:inline-flex">
           Ctrl K
         </kbd>
       </button>
@@ -118,12 +118,12 @@ export const GlobalSearch = () => {
           <CommandEmpty>
             {loading ? (
               <div className="flex items-center justify-center gap-2 py-4">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-slate-600" />
-                <span className="text-sm text-slate-500">Buscando...</span>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-slate-600" />
+                <span className="text-sm text-muted-foreground">Buscando...</span>
               </div>
             ) : query.length < 2 ? (
               <div className="space-y-4 py-2">
-                <p className="text-xs font-medium text-slate-400">
+                <p className="text-xs font-medium text-muted-foreground">
                   Atalhos rápidos
                 </p>
                 <div className="space-y-1">
@@ -143,12 +143,12 @@ export const GlobalSearch = () => {
                     <button
                       key={s.path}
                       onClick={() => handleShortcut(s.path)}
-                      className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-slate-100"
+                      className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-muted"
                     >
-                      <span className="font-medium text-slate-700">
+                      <span className="font-medium text-foreground">
                         {s.label}
                       </span>
-                      <code className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-400">
+                      <code className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground">
                         {s.shortcut}
                       </code>
                     </button>
@@ -172,9 +172,9 @@ export const GlobalSearch = () => {
                   {typeIcons[r.type]}
                   <div className="flex flex-1 flex-col">
                     <span className="text-sm font-semibold">{r.title}</span>
-                    <span className="text-xs text-slate-400">{r.subtitle}</span>
+                    <span className="text-xs text-muted-foreground">{r.subtitle}</span>
                   </div>
-                  <ArrowRight className="h-3 w-3 text-slate-300" />
+                  <ArrowRight className="h-3 w-3 text-muted-foreground" />
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -194,11 +194,11 @@ export const GlobalSearch = () => {
                     {typeIcons[r.type]}
                     <div className="flex flex-1 flex-col">
                       <span className="text-sm font-semibold">{r.title}</span>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-muted-foreground">
                         {r.subtitle}
                       </span>
                     </div>
-                    <ArrowRight className="h-3 w-3 text-slate-300" />
+                    <ArrowRight className="h-3 w-3 text-muted-foreground" />
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -221,11 +221,11 @@ export const GlobalSearch = () => {
                     {typeIcons[r.type]}
                     <div className="flex flex-1 flex-col">
                       <span className="text-sm font-semibold">{r.title}</span>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-muted-foreground">
                         {r.subtitle}
                       </span>
                     </div>
-                    <ArrowRight className="h-3 w-3 text-slate-300" />
+                    <ArrowRight className="h-3 w-3 text-muted-foreground" />
                   </CommandItem>
                 ))}
               </CommandGroup>

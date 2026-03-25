@@ -8,6 +8,7 @@ import Header, {
   HeaderSubtitle,
   HeaderTitle,
 } from "../../_components/header";
+import { getEnvironments } from "@/app/_data-access/product/get-environments";
 
 import { Suspense } from "react";
 import { ProductTableSkeleton } from "./_components/table-skeleton";
@@ -19,6 +20,7 @@ import { getProductCategories } from "@/app/_data-access/product/get-product-cat
 interface ProductsPageProps {
   searchParams: Promise<{
     status?: string;
+    environmentId?: string;
   }>;
 }
 
@@ -33,31 +35,35 @@ const ProductsPage = async ({ searchParams }: ProductsPageProps) => {
       ? statusParam
       : "ACTIVE"
   ) as "ACTIVE" | "INACTIVE" | "ALL";
+  const environmentId = resolvedSearchParams?.environmentId;
 
   return (
-    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
+    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-background p-8">
       {/* 
         The Suspense boundary was moved deeper into ProductVisualCatalog 
         to allow the Header and Toolbar to render immediately.
       */}
-      <ProductTableWrapper status={status} />
+      <ProductTableWrapper status={status} environmentId={environmentId} />
     </div>
   );
 };
 
 const ProductTableWrapper = async ({
   status,
+  environmentId,
 }: {
   status: "ACTIVE" | "INACTIVE" | "ALL";
+  environmentId?: string;
 }) => {
   // Start fetching products immediately (non-blocking)
-  const productsPromise = getProducts(30, status);
+  const productsPromise = getProducts(30, status, environmentId);
   
   // Fetch metadata in parallel
-  const [role, onboardingStats, categories] = await Promise.all([
+  const [role, onboardingStats, categories, environments] = await Promise.all([
     getCurrentUserRole(),
     getOnboardingStats(),
     getProductCategories(),
+    getEnvironments(),
   ]);
 
   const isManagement = role === UserRole.OWNER || role === UserRole.ADMIN;
@@ -76,6 +82,7 @@ const ProductTableWrapper = async ({
               <AddProductButton
                 hasProducts={onboardingStats?.hasProducts ?? true}
                 categories={categories}
+                environments={environments}
               />
             )}
           </div>
@@ -86,6 +93,7 @@ const ProductTableWrapper = async ({
         productsPromise={productsPromise}
         userRole={role as UserRole}
         categories={categories}
+        environments={environments}
       />
     </div>
   );

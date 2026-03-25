@@ -8,7 +8,7 @@ import { Skeleton } from "../../_components/ui/skeleton";
 
 const SalesLoading = () => {
   return (
-    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-white p-8">
+    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-background p-8">
       <Header>
         <HeaderLeft>
           <HeaderSubtitle>Gestão de Vendas</HeaderSubtitle>

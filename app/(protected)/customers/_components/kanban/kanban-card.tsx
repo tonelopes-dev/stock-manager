@@ -68,7 +68,7 @@ export const KanbanCard = memo(
         <div
           ref={setNodeRef}
           style={{ ...style, height: calculateHeight() }}
-          className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-100 opacity-30"
+          className="rounded-lg border-2 border-dashed border-border bg-muted opacity-30"
         />
       );
     }
@@ -80,17 +80,17 @@ export const KanbanCard = memo(
         {...attributes}
         {...listeners}
         onClick={onClick}
-        className="group cursor-grab border-slate-200 transition-colors hover:border-primary active:cursor-grabbing"
+        className="group cursor-grab border-border transition-colors hover:border-primary active:cursor-grabbing"
       >
         <CardContent className="space-y-2 p-3">
           <div className="flex items-start justify-between">
-            <span className="line-clamp-1 pr-1 text-sm font-black uppercase italic tracking-tighter text-slate-800">
+            <span className="line-clamp-1 pr-1 text-sm font-black uppercase italic tracking-tighter text-foreground">
               {customer.name}
             </span>
           </div>
 
           {customer.notes && (
-            <p className="line-clamp-2 text-[10px] italic leading-tight text-slate-500">
+            <p className="line-clamp-2 text-[10px] italic leading-tight text-muted-foreground">
               {customer.notes}
             </p>
           )}
@@ -117,16 +117,16 @@ export const KanbanCard = memo(
             {customer.categories && customer.categories.length > 2 && (
               <Badge
                 variant="secondary"
-                className="border-none bg-slate-100 px-1 py-0 text-[10px] font-black uppercase text-slate-400"
+                className="border-none bg-muted px-1 py-0 text-[10px] font-black uppercase text-muted-foreground"
               >
                 +{customer.categories.length - 2}
               </Badge>
             )}
           </div>
 
-          <div className="flex items-center justify-between pt-1 text-[10px] font-bold uppercase text-slate-400">
+          <div className="flex items-center justify-between pt-1 text-[10px] font-bold uppercase text-muted-foreground">
             <span>Total Gasto</span>
-            <span className="font-black text-slate-600">
+            <span className="font-black text-muted-foreground">
               {formatCurrency(Number(customer.totalSpent))}
             </span>
           </div>
@@ -135,14 +135,14 @@ export const KanbanCard = memo(
             <div className="pt-2">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-tighter">
-                  <span className="flex items-center gap-1 text-slate-500">
+                  <span className="flex items-center gap-1 text-muted-foreground">
                     <ListChecks className="h-3 w-3" /> Jornada
                   </span>
                   <span className={progress === 100 ? "text-green-600" : ""}>
                     {completedItems}/{totalItems}
                   </span>
                 </div>
-                <Progress value={progress} className="h-1.5 bg-slate-100" />
+                <Progress value={progress} className="h-1.5 bg-muted" />
               </div>
             </div>
           )}

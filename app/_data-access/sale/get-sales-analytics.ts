@@ -18,6 +18,10 @@ export interface SalesAnalyticsDto {
         value: number;
         trend: number;
     };
+    totalTips: {
+        value: number;
+        trend: number;
+    };
     totalProfit: {
         value: number;
         trend: number;
@@ -141,6 +145,10 @@ export const getSalesAnalytics = async (
             value: currentMetrics.revenue - currentMetrics.cost,
             trend: calculateTrend(currentMetrics.revenue - currentMetrics.cost, previousMetrics.revenue - previousMetrics.cost)
         },
+        totalTips: {
+            value: currentMetrics.tips,
+            trend: calculateTrend(currentMetrics.tips, previousMetrics.tips)
+        },
         averageTicket: {
             value: currentMetrics.salesCount > 0 ? currentMetrics.revenue / currentMetrics.salesCount : 0,
             trend: calculateTrend(
@@ -172,10 +180,11 @@ export const getSalesAnalytics = async (
 
 
 async function fetchSalesMetrics(companyId: string, start: Date, end: Date) {
-    const totals = await db.$queryRaw<{ revenue: number; cost: number; salesCount: number }[]>`
+    const totals = await db.$queryRaw<{ revenue: number; cost: number; tips: number; salesCount: number }[]>`
         SELECT 
             COALESCE(SUM("unitPrice" * "quantity"), 0)::float as revenue,
             COALESCE(SUM("baseCost" * "quantity"), 0)::float as cost,
+            (SELECT COALESCE(SUM("tipAmount"), 0)::float FROM "Sale" WHERE "companyId" = ${companyId} AND "status" = 'ACTIVE' AND "date" >= ${start} AND "date" < ${end}) as tips,
             COUNT(DISTINCT "saleId")::int as "salesCount"
         FROM "SaleProduct"
         JOIN "Sale" ON "Sale"."id" = "SaleProduct"."saleId"
@@ -188,6 +197,7 @@ async function fetchSalesMetrics(companyId: string, start: Date, end: Date) {
     return {
         revenue: totals[0].revenue,
         cost: totals[0].cost,
+        tips: totals[0].tips,
         salesCount: totals[0].salesCount
     };
 }

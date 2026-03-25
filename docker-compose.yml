@@ -1,33 +1,30 @@
 services:
-  stocky-db:
+  kipo-db:
     image: postgres:17
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: stocky
+      POSTGRES_DB: kipo
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d stocky"]
+      test: ["CMD-SHELL", "pg_isready -U user -d kipo"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  stocky-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      DATABASE_URL: "postgresql://user:password@stocky-db:5432/stocky"
-    depends_on:
-      stocky-db:
-        condition: service_healthy
-    command: >
-      sh -c "npx prisma migrate deploy && npm run start"
+#  kipo-app:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    ports:
+#      - "3000:3000"
+#    env_file:
+#      - .env
+#    command: >
+#      sh -c "npx prisma migrate deploy && npm run start"
 
 volumes:
   postgres_data:

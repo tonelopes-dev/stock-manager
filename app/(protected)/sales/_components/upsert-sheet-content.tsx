@@ -51,6 +51,7 @@ import { createOrderAction } from "@/app/_actions/order/create-order";
 import { toast } from "sonner";
 import { useAction } from "next-safe-action/hooks";
 import { flattenValidationErrors } from "next-safe-action";
+import { cn } from "@/app/_lib/utils";
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { QuantityStepper } from "@/app/_components/ui/quantity-stepper";
 import {
@@ -91,6 +92,7 @@ interface UpsertSheetContentProps {
   defaultSelectedProducts?: SelectedProduct[];
   customerId?: string | null;
   paymentMethod?: PaymentMethod | null;
+  tipAmount?: number | null;
   hasSales?: boolean;
   companyId: string;
 }
@@ -106,6 +108,7 @@ const UpsertSheetContent = ({
   setSheetIsOpen,
   defaultSelectedProducts,
   paymentMethod: defaultPaymentMethod,
+  tipAmount: defaultTipAmount,
   companyId,
 }: UpsertSheetContentProps) => {
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>(
@@ -122,6 +125,7 @@ const UpsertSheetContent = ({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | undefined>(
     (defaultPaymentMethod as PaymentMethod) || undefined,
   );
+  const [tipAmount, setTipAmount] = useState<number>(0);
 
   const { execute: executeUpsertSale, isPending: isUpsertPending } = useAction(
     upsertSale,
@@ -177,11 +181,13 @@ const UpsertSheetContent = ({
       );
       setCustomerId(defaultCustomerId || undefined);
       setPaymentMethod((defaultPaymentMethod as PaymentMethod) || undefined);
+      setTipAmount(Number(defaultTipAmount) || 0);
     } else {
       form.reset();
       setSelectedProducts([]);
       setCustomerId(undefined);
       setPaymentMethod(undefined);
+      setTipAmount(0);
     }
   }, [
     form,
@@ -247,8 +253,9 @@ const UpsertSheetContent = ({
       0,
     );
     const itenCount = selectedProducts.reduce((acc, p) => acc + p.quantity, 0);
-    return { subtotal, itenCount };
-  }, [selectedProducts]);
+    const totalWithTip = subtotal + tipAmount;
+    return { subtotal, itenCount, totalWithTip };
+  }, [selectedProducts, tipAmount]);
 
   const onSubmitSale = () => {
     if (selectedProducts.length === 0) return;
@@ -278,6 +285,7 @@ const UpsertSheetContent = ({
         date: date ? new Date(date + "T12:00:00") : undefined,
         customerId,
         paymentMethod,
+        tipAmount,
         products: selectedProducts.map((p) => ({
           id: p.id,
           quantity: p.quantity,
@@ -289,7 +297,7 @@ const UpsertSheetContent = ({
     <SheetContent className="flex h-full !max-w-[700px] flex-col border-none p-0">
       <div className="flex h-full flex-col">
         {/* Header Section */}
-        <div className="sticky top-0 z-10 border-b border-slate-100 bg-white p-6">
+        <div className="sticky top-0 z-10 border-b border-border bg-background p-6">
           <SheetHeader className="text-left">
             <div className="mb-1 flex items-center gap-2">
               <div className="rounded-lg bg-primary/10 p-1.5 text-primary">
@@ -299,18 +307,18 @@ const UpsertSheetContent = ({
                 {saleId ? "Editar Venda" : "Nova Venda"}
               </SheetTitle>
             </div>
-            <SheetDescription className="text-xs font-semibold uppercase tracking-tight text-slate-400">
+            <SheetDescription className="text-xs font-semibold uppercase tracking-tight text-muted-foreground">
               Venda rápida • Atualização em tempo real
             </SheetDescription>
           </SheetHeader>
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 space-y-8 overflow-y-auto bg-slate-50/30 p-6">
+        <div className="flex-1 space-y-8 overflow-y-auto bg-muted/30 p-6">
           {/* Sale Metadata Section */}
-          <div className="grid grid-cols-2 gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="grid grid-cols-2 gap-4 rounded-2xl border border-border bg-background p-6 shadow-sm">
             <div className="space-y-1">
-              <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400">
+              <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-muted-foreground">
                 <CalendarIcon size={12} />
                 Data da Venda
               </Label>
@@ -319,38 +327,63 @@ const UpsertSheetContent = ({
                 onChange={(newDate) =>
                   setDate(newDate ? format(newDate, "yyyy-MM-dd") : "")
                 }
-                className="h-10 w-full border-slate-200 text-xs font-bold"
+                className="h-10 w-full border-border text-xs font-bold"
               />
             </div>
 
-            <div className="space-y-1">
-              <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400">
-                <UsersIcon size={12} className="text-secondary" />
-                Cliente
-              </Label>
-              <Combobox
-                options={customerOptions}
-                value={customerId || ""}
-                onChange={(val) => setCustomerId(val || undefined)}
-                placeholder="Selecione o Cliente..."
-              />
-              {!customerId && (
-                <p className="flex animate-pulse items-center gap-1 text-[9px] font-bold uppercase text-amber-500">
-                  <AlertTriangle size={10} /> Vincule um cliente para histórico
-                  CRM
-                </p>
-              )}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-muted-foreground">
+                  <UsersIcon size={12} className="text-secondary" />
+                  Cliente
+                </Label>
+                <Combobox
+                  options={customerOptions}
+                  value={customerId || ""}
+                  onChange={(val) => setCustomerId(val || undefined)}
+                  placeholder="Selecione o Cliente..."
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  onClick={() => setCustomerId(undefined)}
+                  className={cn(
+                    "h-8 px-3 text-[10px] font-black uppercase tracking-widest transition-all",
+                    !customerId
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                      : "text-muted-foreground hover:bg-muted",
+                  )}
+                >
+                  {!customerId ? (
+                    <span className="flex items-center gap-1.5">
+                      <CheckIcon size={12} /> Venda Avulsa Ativada
+                    </span>
+                  ) : (
+                    "Ativar Venda Avulsa"
+                  )}
+                </Button>
+
+                {customerId && (
+                   <p className="text-[9px] font-bold uppercase text-muted-foreground italic">
+                      Cliente selecionado
+                   </p>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Product Composition Area */}
-          <div className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="space-y-6 rounded-2xl border border-border bg-background p-6 shadow-sm">
+            <div className="flex items-center justify-between border-b border-border pb-4">
               <div className="space-y-0.5">
-                <h4 className="text-sm font-bold text-slate-900">
+                <h4 className="text-sm font-bold text-foreground">
                   Compor Carrinho
                 </h4>
-                <p className="text-[10px] font-medium uppercase text-slate-400">
+                <p className="text-[10px] font-medium uppercase text-muted-foreground">
                   Adicione produtos e quantidades
                 </p>
               </div>
@@ -367,7 +400,7 @@ const UpsertSheetContent = ({
                     name="productId"
                     render={({ field }) => (
                       <FormItem className="md:col-span-7">
-                        <FormLabel className="text-[10px] font-black uppercase text-slate-400">
+                        <FormLabel className="text-[10px] font-black uppercase text-muted-foreground">
                           Produto
                         </FormLabel>
                         <FormControl>
@@ -387,7 +420,7 @@ const UpsertSheetContent = ({
                     name="quantity"
                     render={({ field }) => (
                       <FormItem className="md:col-span-5">
-                        <FormLabel className="text-[10px] font-black uppercase text-slate-400">
+                        <FormLabel className="text-[10px] font-black uppercase text-muted-foreground">
                           Quantidade
                         </FormLabel>
                         <FormControl>
@@ -399,9 +432,9 @@ const UpsertSheetContent = ({
                           />
                         </FormControl>
                         {currentProduct && (
-                          <p className="mt-1.5 text-[10px] font-bold text-slate-400">
+                          <p className="mt-1.5 text-[10px] font-bold text-muted-foreground">
                             Estoque:{" "}
-                            <span className="text-slate-900">
+                            <span className="text-foreground">
                               {currentProduct.stock} unid.
                             </span>
                           </p>
@@ -413,18 +446,18 @@ const UpsertSheetContent = ({
                 </div>
 
                 {currentProduct && (
-                  <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-4 transition-all animate-in fade-in slide-in-from-top-2 md:flex-row md:items-center">
+                  <div className="flex flex-col justify-between gap-4 rounded-xl border border-border bg-muted p-4 transition-all animate-in fade-in slide-in-from-top-2 md:flex-row md:items-center">
                     <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase tracking-tighter text-slate-400">
+                      <p className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground">
                         Resumo Parcial
                       </p>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-lg font-black text-slate-900">
+                        <span className="text-lg font-black text-foreground">
                           {formatCurrency(
                             Number(currentProduct.price) * selectedQuantity,
                           )}
                         </span>
-                        <span className="text-[10px] font-bold text-slate-400">
+                        <span className="text-[10px] font-bold text-muted-foreground">
                           ({selectedQuantity}x{" "}
                           {formatCurrency(Number(currentProduct.price))})
                         </span>
@@ -447,46 +480,46 @@ const UpsertSheetContent = ({
           {/* Added Products Table */}
           <div className="space-y-4 pb-32">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-bold uppercase italic tracking-tighter text-slate-900">
+              <h4 className="text-sm font-bold uppercase italic tracking-tighter text-foreground">
                 Itens da Venda
               </h4>
-              <p className="text-[10px] font-bold uppercase text-slate-400">
+              <p className="text-[10px] font-bold uppercase text-muted-foreground">
                 {selectedProducts.length} produtos adicionados
               </p>
             </div>
 
             {selectedProducts.length === 0 ? (
-              <div className="flex h-32 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-white/50 text-slate-400">
+              <div className="flex h-32 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-background/50 text-muted-foreground">
                 <ShoppingCartIcon size={24} className="mb-2 opacity-20" />
                 <p className="text-xs font-bold uppercase tracking-widest opacity-50">
                   Carrinho Vazio
                 </p>
               </div>
             ) : (
-              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div className="overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
                 <Table>
-                  <TableHeader className="bg-slate-50/50">
-                    <TableRow className="border-slate-100 hover:bg-transparent">
-                      <TableHead className="h-10 text-[10px] font-black uppercase text-slate-400">
+                  <TableHeader className="bg-muted/50">
+                    <TableRow className="border-border hover:bg-transparent">
+                      <TableHead className="h-10 text-[10px] font-black uppercase text-muted-foreground">
                         Produto
                       </TableHead>
-                      <TableHead className="h-10 text-[10px] font-black uppercase text-slate-400">
+                      <TableHead className="h-10 text-[10px] font-black uppercase text-muted-foreground">
                         Qtd
                       </TableHead>
-                      <TableHead className="h-10 text-right text-[10px] font-black uppercase text-slate-400">
+                      <TableHead className="h-10 text-right text-[10px] font-black uppercase text-muted-foreground">
                         Unitário
                       </TableHead>
-                      <TableHead className="h-10 text-right text-[10px] font-black uppercase text-slate-400">
+                      <TableHead className="h-10 text-right text-[10px] font-black uppercase text-muted-foreground">
                         Total
                       </TableHead>
-                      <TableHead className="h-10 w-10 text-center text-[10px] font-black uppercase text-slate-400"></TableHead>
+                      <TableHead className="h-10 w-10 text-center text-[10px] font-black uppercase text-muted-foreground"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {selectedProducts.map((p) => (
-                      <TableRow key={p.id} className="group border-slate-100">
+                      <TableRow key={p.id} className="group border-border">
                         <TableCell className="py-4">
-                          <p className="text-sm font-bold text-slate-900">
+                          <p className="text-sm font-bold text-foreground">
                             {p.name}
                           </p>
                         </TableCell>
@@ -498,10 +531,10 @@ const UpsertSheetContent = ({
                             className="h-8"
                           />
                         </TableCell>
-                        <TableCell className="py-4 text-right font-medium text-slate-600">
+                        <TableCell className="py-4 text-right font-medium text-muted-foreground">
                           {formatCurrency(p.price)}
                         </TableCell>
-                        <TableCell className="py-4 text-right font-black text-slate-900">
+                        <TableCell className="py-4 text-right font-black text-foreground">
                           {formatCurrency(p.price * p.quantity)}
                         </TableCell>
                         <TableCell className="py-4 text-center">
@@ -524,74 +557,93 @@ const UpsertSheetContent = ({
         </div>
 
         {/* Sticky Summary Footer */}
-        <div className="sticky bottom-0 z-10 border-t border-slate-100 bg-white p-6 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] transition-all">
+        <div className="sticky bottom-0 z-10 border-t border-border bg-background p-6 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] transition-all">
           <div className="mb-6 flex items-center justify-between">
             <div className="space-y-0.5">
-              <p className="text-[10px] font-black uppercase italic tracking-tighter text-slate-400">
+              <p className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
                 Resumo Financeiro
               </p>
-              <p className="text-xs font-bold uppercase tracking-tighter text-slate-900">
+              <p className="text-xs font-bold uppercase tracking-tighter text-foreground">
                 {totals.itenCount} itens no total
               </p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] font-black uppercase italic tracking-tighter text-slate-400">
+              <p className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
                 Total Geral
               </p>
               <h2 className="text-3xl font-black leading-none tracking-tighter text-primary">
-                {formatCurrency(totals.subtotal)}
+                {formatCurrency(totals.totalWithTip)}
               </h2>
             </div>
           </div>
 
-          <div className="mb-6 space-y-2">
-            <Label className="text-[10px] font-black uppercase italic tracking-tighter text-slate-400">
-              Forma de Pagamento
-            </Label>
-            <Select
-              value={paymentMethod}
-              onValueChange={(val) => setPaymentMethod(val as PaymentMethod)}
-            >
-              <SelectTrigger className="h-12 border-slate-200 font-bold focus:ring-primary/20">
-                <SelectValue placeholder="Selecione como recebeu..." />
-              </SelectTrigger>
-              <SelectContent className="border-slate-100">
-                <SelectItem value="CASH" className="font-bold text-slate-700">
-                  <div className="flex items-center gap-2">
-                    <BanknoteIcon size={16} className="text-emerald-500" />
-                    Dinheiro
-                  </div>
-                </SelectItem>
-                <SelectItem value="PIX" className="font-bold text-slate-700">
-                  <div className="flex items-center gap-2">
-                    <SmartphoneIcon size={16} className="text-cyan-500" />
-                    PIX
-                  </div>
-                </SelectItem>
-                <SelectItem
-                  value="CREDIT_CARD"
-                  className="font-bold text-slate-700"
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
+                  Gorjeta / Taxa
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">R$</span>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0,00"
+                    value={tipAmount || ""}
+                    onChange={(e) => setTipAmount(Number(e.target.value))}
+                    className="h-12 border-border pl-8 font-bold text-foreground focus-visible:ring-primary/20"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
+                  Forma de Pagamento
+                </Label>
+                <Select
+                  value={paymentMethod}
+                  onValueChange={(val) => setPaymentMethod(val as PaymentMethod)}
                 >
-                  <div className="flex items-center gap-2">
-                    <CreditCardIcon size={16} className="text-indigo-500" />
-                    Cartão de Crédito
-                  </div>
-                </SelectItem>
-                <SelectItem
-                  value="DEBIT_CARD"
-                  className="font-bold text-slate-700"
-                >
-                  <div className="flex items-center gap-2">
-                    <WalletIcon size={16} className="text-blue-500" />
-                    Cartão de Débito
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+                  <SelectTrigger className="h-12 border-border font-bold focus:ring-primary/20">
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent className="border-border">
+                    <SelectItem value="CASH" className="font-bold text-foreground">
+                      <div className="flex items-center gap-2">
+                        <BanknoteIcon size={16} className="text-emerald-500" />
+                        Dinheiro
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="PIX" className="font-bold text-foreground">
+                      <div className="flex items-center gap-2">
+                        <SmartphoneIcon size={16} className="text-cyan-500" />
+                        PIX
+                      </div>
+                    </SelectItem>
+                    <SelectItem
+                      value="CREDIT_CARD"
+                      className="font-bold text-foreground"
+                    >
+                      <div className="flex items-center gap-2">
+                        <CreditCardIcon size={16} className="text-primary" />
+                        Cartão
+                      </div>
+                    </SelectItem>
+                    <SelectItem
+                      value="DEBIT_CARD"
+                      className="font-bold text-foreground"
+                    >
+                      <div className="flex items-center gap-2">
+                        <WalletIcon size={16} className="text-primary" />
+                        Cartão
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
           <Button
-            className="h-12 w-full gap-2 text-sm font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+            className="mt-6 h-12 w-full gap-2 text-sm font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
             disabled={selectedProducts.length === 0 || isPending}
             onClick={onSubmitSale}
           >

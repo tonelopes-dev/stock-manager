@@ -68,7 +68,7 @@ export const inviteUserViaWhatsApp = actionClient
     const company = await db.company.findUnique({ where: { id: companyId } });
     const encodedMessage = encodeURIComponent(
       `Olá ${name}! 👋\n\n` +
-      `Você foi convidado por ${session.user.name} para se juntar à equipe da *${company?.name}* no *Stocky*.\n\n` +
+      `Você foi convidado por ${session.user.name} para se juntar à equipe da *${company?.name}* no *Kipo*.\n\n` +
       `Seu acesso como *${role === "ADMIN" ? "Administrador" : "Membro"}* está pronto:\n` +
       `🔐 *E-mail:* ${email}\n` +
       `🔑 *Senha Temporária:* ${tempPassword}\n\n` +

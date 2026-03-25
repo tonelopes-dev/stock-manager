@@ -12,7 +12,7 @@ const LogoutButton = () => {
   return (
     <Button
       variant="ghost"
-      className="w-full justify-start gap-2 text-red-500 hover:bg-red-50 hover:text-red-600"
+      className="w-full justify-start gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
       onClick={handleLogout}
     >
       <LogOutIcon size={20} />

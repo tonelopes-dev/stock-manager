@@ -302,7 +302,7 @@ const UpsertIngredientDialogContent = ({
             )}
           />
 
-          <div className="space-y-4 rounded-lg border border-slate-100 p-4">
+          <div className="space-y-4 rounded-lg border border-border p-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-sm font-bold">Controle de Validade</Label>

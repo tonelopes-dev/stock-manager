@@ -26,19 +26,19 @@ const ProductRankingsCard = ({ topProfitable, worstMargin, mostSold }: ProductRa
     return (
         <Card className="h-full overflow-hidden flex flex-col min-h-[440px]">
             <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-400">Rankings de Produtos</CardTitle>
+                <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Rankings de Produtos</CardTitle>
             </CardHeader>
             <CardContent className="flex-1 p-0 overflow-hidden">
                 <Tabs defaultValue="profitable" className="w-full h-full flex flex-col">
                     <div className="px-6 pb-2">
-                        <TabsList className="grid w-full grid-cols-3 bg-slate-100/50">
-                            <TabsTrigger value="profitable" className="text-[10px] font-bold uppercase tracking-tight data-[state=active]:bg-white data-[state=active]:text-primary">
+                        <TabsList className="grid w-full grid-cols-3 bg-muted/50">
+                            <TabsTrigger value="profitable" className="text-[10px] font-bold uppercase tracking-tight data-[state=active]:bg-background data-[state=active]:text-primary">
                                 Lucro
                             </TabsTrigger>
-                            <TabsTrigger value="volume" className="text-[10px] font-bold uppercase tracking-tight data-[state=active]:bg-white data-[state=active]:text-primary">
+                            <TabsTrigger value="volume" className="text-[10px] font-bold uppercase tracking-tight data-[state=active]:bg-background data-[state=active]:text-primary">
                                 Volume
                             </TabsTrigger>
-                            <TabsTrigger value="margin" className="text-[10px] font-bold uppercase tracking-tight data-[state=active]:bg-white data-[state=active]:text-rose-600">
+                            <TabsTrigger value="margin" className="text-[10px] font-bold uppercase tracking-tight data-[state=active]:bg-background data-[state=active]:text-rose-600">
                                 Margem
                             </TabsTrigger>
                         </TabsList>
@@ -68,19 +68,19 @@ const ProductRankingsCard = ({ topProfitable, worstMargin, mostSold }: ProductRa
 };
 
 const RankingItem = ({ product, index, type }: { product: RawProductRanking, index: number, type: 'profit' | 'margin' | 'volume' }) => (
-    <div className="flex items-center gap-3 group transition-all hover:bg-slate-50/50 p-1 -m-1 rounded-lg">
-        <div className="flex-none w-6 h-6 rounded-lg bg-white flex items-center justify-center text-[10px] font-black text-slate-400 border border-slate-100 group-hover:border-primary/20 group-hover:text-primary transition-colors">
+    <div className="flex items-center gap-3 group transition-all hover:bg-muted/50 p-1 -m-1 rounded-lg">
+        <div className="flex-none w-6 h-6 rounded-lg bg-background flex items-center justify-center text-[10px] font-black text-muted-foreground border border-border group-hover:border-primary/20 group-hover:text-primary transition-colors">
             {index + 1}
         </div>
         <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-slate-900 truncate tracking-tight">{product.productName}</p>
+            <p className="text-sm font-bold text-foreground truncate tracking-tight">{product.productName}</p>
             <div className="flex items-center gap-2">
                 {type === 'volume' ? (
-                    <p className="text-[10px] font-medium text-slate-500 uppercase">Total: {product.totalSold} un.</p>
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase">Total: {product.totalSold} un.</p>
                 ) : (
-                    <p className="text-[10px] font-medium text-slate-500 uppercase">Rev: {formatCurrency(product.revenue)}</p>
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase">Rev: {formatCurrency(product.revenue)}</p>
                 )}
-                <div className="w-1 h-1 rounded-full bg-slate-200" />
+                <div className="w-1 h-1 rounded-full bg-muted" />
                 <p className={`text-[10px] font-bold uppercase ${type === 'margin' ? 'text-rose-600' : 'text-emerald-600'}`}>
                     {type === 'profit' ? `Lucro: ${formatCurrency(product.profit || 0)}` : 
                      type === 'volume' ? `Valor: ${formatCurrency(product.revenue)}` :

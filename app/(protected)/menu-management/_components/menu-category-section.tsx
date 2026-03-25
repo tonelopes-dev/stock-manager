@@ -17,13 +17,13 @@ export const MenuCategorySection = ({ category }: MenuCategorySectionProps) => {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-1.5">
+        <div className="flex items-center gap-2 rounded-lg bg-muted px-3 py-1.5">
           {category.icon ? (
             <span className="text-base">{category.icon}</span>
           ) : (
-            <Layers className="h-4 w-4 text-slate-500" />
+            <Layers className="h-4 w-4 text-muted-foreground" />
           )}
-          <h3 className="text-sm font-black text-slate-700">{category.name}</h3>
+          <h3 className="text-sm font-black text-foreground">{category.name}</h3>
         </div>
         <Badge variant="outline" className="text-[10px] font-bold">
           {visibleCount}/{category.products.length} visíveis

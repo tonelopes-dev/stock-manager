@@ -48,10 +48,10 @@ export const PeriodFilter = () => {
   };
 
   return (
-    <div className="flex items-center gap-1 p-1 bg-white rounded-lg border border-slate-200 shadow-sm w-fit">
-      <div className="flex items-center gap-1.5 px-3 border-r border-slate-200 mr-1">
-          <ClockIcon size={14} className="text-slate-400" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ver</span>
+    <div className="flex items-center gap-1 p-1 bg-background rounded-lg border border-border shadow-sm w-fit">
+      <div className="flex items-center gap-1.5 px-3 border-r border-border mr-1">
+          <ClockIcon size={14} className="text-muted-foreground" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Ver</span>
       </div>
       {filters.map((filter) => (
         <Button
@@ -61,8 +61,8 @@ export const PeriodFilter = () => {
           className={cn(
             "h-7 px-3 font-bold text-[11px] rounded-md transition-all",
             currentRange === filter.value 
-              ? "bg-slate-100 text-primary" 
-              : "text-slate-500 hover:text-slate-900"
+              ? "bg-muted text-primary" 
+              : "text-muted-foreground hover:text-foreground"
           )}
           onClick={() => handleRangeChange(filter.value)}
         >
@@ -72,7 +72,7 @@ export const PeriodFilter = () => {
       <Button 
         variant="ghost" 
         size="sm" 
-        className="h-7 px-2 text-slate-300 hover:text-slate-600 rounded-md"
+        className="h-7 px-2 text-muted-foreground hover:text-muted-foreground rounded-md"
         disabled
       >
         <CalendarIcon size={14} />

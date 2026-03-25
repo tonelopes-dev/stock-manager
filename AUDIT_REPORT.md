@@ -1,4 +1,4 @@
-# 🔍 Relatório Técnico — Varredura de Estoque e Auditoria (Stockly)
+# 🔍 Relatório Técnico — Varredura de Estoque e Auditoria (Kipo)
 
 > **Data:** 2026-03-13 | **Arquivos analisados:** 16 | **Problemas identificados:** 14
 

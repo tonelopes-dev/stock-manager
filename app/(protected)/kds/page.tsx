@@ -15,14 +15,14 @@ export default async function KDSPage() {
   const initialOrders = await getKDSOrders(companyId);
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-slate-100">
-      <Header className="shrink-0 border-b border-slate-200 bg-white px-8 py-4">
+    <div className="flex h-screen flex-col overflow-hidden bg-muted">
+      <Header className="shrink-0 border-b border-border bg-background px-8 py-4">
         <HeaderLeft>
           <div className="flex flex-col">
             <HeaderSubtitle>Monitoramento de Cozinha</HeaderSubtitle>
             <div className="text-2xl font-black italic tracking-tighter">
               <HeaderTitle>
-                KDS<span className="text-blue-600">.</span>
+                KDS<span className="text-primary">.</span>
               </HeaderTitle>
             </div>
           </div>
