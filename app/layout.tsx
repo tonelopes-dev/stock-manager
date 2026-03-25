@@ -4,7 +4,7 @@ import { Inter } from "next/font/google";
 
 export const metadata: Metadata = {
   title: "Kipo",
-  description: "Sistema de gerenciamento de estoque",
+  description: "O sistema de gestão para seu negócio",
 };
 
 const inter = Inter({

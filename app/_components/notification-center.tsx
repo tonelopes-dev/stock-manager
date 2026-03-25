@@ -9,6 +9,7 @@ import {
 } from "@/app/_components/ui/popover";
 import { Badge } from "@/app/_components/ui/badge";
 import { Button } from "@/app/_components/ui/button";
+import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -21,6 +22,7 @@ interface Notification {
 }
 
 export const NotificationCenter = ({ companyId }: { companyId: string }) => {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
 
@@ -37,35 +39,49 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        if (data.type === "NEW_ORDER") {
-          // Play Audio Alert
-          const audio = new Audio('/alert.mp3');
-          audio.play().catch(e => console.warn('Áudio bloqueado pelo navegador', e));
+        
+        // Use a stable ID based on type and orderId to prevent duplicates
+        const uniqueId = data.orderId 
+          ? `${data.type}-${data.orderId}-${data.status || ""}` 
+          : `notif-${Date.now()}`;
 
-          const orderMsg = data.orderNumber ? `Novo pedido iFood: #${data.orderNumber}` : `Novo pedido recebido!`;
+        setNotifications((prev) => {
+          // Prevent exact duplicates in the same batch
+          if (prev.some(n => n.id === uniqueId)) {
+            return prev;
+          }
 
-          setNotifications((prev) => [
-            {
-              id: `notif-${Date.now()}`,
-              type: "order",
-              message: orderMsg,
-              timestamp: new Date(),
-              read: false,
-            },
-            ...prev.slice(0, 19),
-          ]);
-        } else if (data.type === "STATUS_UPDATED") {
-          setNotifications((prev) => [
-            {
-              id: `notif-${Date.now()}`,
-              type: "status",
-              message: `Pedido atualizado → ${data.status || "Novo status"}`,
-              timestamp: new Date(),
-              read: false,
-            },
-            ...prev.slice(0, 19),
-          ]);
-        }
+          if (data.type === "NEW_ORDER") {
+            // Play Audio Alert
+            const audio = new Audio('/alert.mp3');
+            audio.play().catch(e => console.warn('Áudio bloqueado pelo navegador', e));
+
+            const orderMsg = data.orderNumber ? `Novo pedido iFood: #${data.orderNumber}` : `Novo pedido recebido!`;
+
+            return [
+              {
+                id: uniqueId,
+                type: "order",
+                message: orderMsg,
+                timestamp: new Date(),
+                read: false,
+              },
+              ...prev.slice(0, 19),
+            ];
+          } else if (data.type === "STATUS_UPDATED") {
+            return [
+              {
+                id: uniqueId,
+                type: "status",
+                message: `Pedido atualizado → ${data.status || "Novo status"}`,
+                timestamp: new Date(),
+                read: false,
+              },
+              ...prev.slice(0, 19),
+            ];
+          }
+          return prev;
+        });
       } catch {
         // ignore parse errors
       }
@@ -129,12 +145,16 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
             notifications.map((notif) => (
               <div
                 key={notif.id}
-                className={`flex items-start gap-3 border-b border-border px-4 py-3 transition-colors ${
-                  !notif.read ? "bg-primary/40" : ""
+                onClick={() => {
+                  router.push("/sales?tab=delivery");
+                  setOpen(false);
+                }}
+                className={`flex cursor-pointer items-start gap-3 border-b border-border px-4 py-3 transition-colors hover:bg-muted/50 ${
+                  !notif.read ? "bg-primary/5" : ""
                 }`}
               >
                 <div
-                  className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${
+                  className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
                     !notif.read ? "bg-primary" : "bg-transparent"
                   }`}
                 />
@@ -142,12 +162,24 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
                   <p className="text-xs font-medium text-foreground">
                     {notif.message}
                   </p>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground">
-                    {formatDistanceToNow(notif.timestamp, {
-                      locale: ptBR,
-                      addSuffix: true,
-                    })}
-                  </p>
+                  <div className="mt-1 flex items-center justify-between">
+                    <p className="text-[10px] text-muted-foreground">
+                      {formatDistanceToNow(notif.timestamp, {
+                        locale: ptBR,
+                        addSuffix: true,
+                      })}
+                    </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push("/kds");
+                        setOpen(false);
+                      }}
+                      className="text-[10px] font-bold text-primary hover:underline"
+                    >
+                      Detalhes
+                    </button>
+                  </div>
                 </div>
               </div>
             ))

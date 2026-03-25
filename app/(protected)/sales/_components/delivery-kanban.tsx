@@ -28,10 +28,22 @@ export function DeliveryKanban({ comandas, companyId }: DeliveryKanbanProps) {
 
   // Synchronize local state when server props change,
   // but avoid overriding during an optimistic update
+  // Synchronize local state when server props change,
+  // but avoid overriding a specific order during an optimistic update
   useEffect(() => {
-    if (!isUpdating) {
-      setLocalComandas(comandas);
-    }
+    setLocalComandas(current => {
+      // If we are currently updating an order, we must preserve its optimistic state
+      if (isUpdating) {
+        return comandas.map(serverComanda => {
+          const locallyUpdating = current.find(c => c.customerId === isUpdating);
+          if (locallyUpdating && serverComanda.customerId === isUpdating) {
+            return locallyUpdating;
+          }
+          return serverComanda;
+        });
+      }
+      return comandas;
+    });
   }, [comandas, isUpdating]);
 
   // SSE Integration for Real-time UI refresh
@@ -96,7 +108,8 @@ export function DeliveryKanban({ comandas, companyId }: DeliveryKanbanProps) {
       setLocalComandas(previousComandas);
       toast.error("Erro ao aceitar pedido. Tente novamente.");
     } finally {
-      setIsUpdating(null);
+      // Add a small delay for server props to catch up
+      setTimeout(() => setIsUpdating(null), 500);
     }
   };
 
@@ -129,7 +142,7 @@ export function DeliveryKanban({ comandas, companyId }: DeliveryKanbanProps) {
       setLocalComandas(previousComandas);
       toast.error("Erro ao despachar pedido.");
     } finally {
-      setIsUpdating(null);
+      setTimeout(() => setIsUpdating(null), 500);
     }
   };
 
