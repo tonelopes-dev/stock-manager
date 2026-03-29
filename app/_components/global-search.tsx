@@ -86,11 +86,13 @@ export const GlobalSearch = () => {
   const customers = results.filter((r) => r.type === "customer");
   const products = results.filter((r) => r.type === "product");
   const sales = results.filter((r) => r.type === "sale");
+  const orders = results.filter((r) => r.type === "order");
 
   const typeIcons = {
     customer: <Users className="h-4 w-4 text-primary" />,
     product: <Package className="h-4 w-4 text-emerald-500" />,
     sale: <ShoppingBasket className="h-4 w-4 text-primary" />,
+    order: <ShoppingBasket className="h-4 w-4 text-purple-500" />,
   };
 
   return (
@@ -143,7 +145,7 @@ export const GlobalSearch = () => {
                     <button
                       key={s.path}
                       onClick={() => handleShortcut(s.path)}
-                      className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-muted"
+                      className="flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-muted"
                     >
                       <span className="font-medium text-foreground">
                         {s.label}
@@ -167,7 +169,7 @@ export const GlobalSearch = () => {
                   key={r.id}
                   value={r.title}
                   onSelect={() => handleSelect(r)}
-                  className="flex items-center gap-3"
+                  className="flex cursor-pointer items-center gap-3"
                 >
                   {typeIcons[r.type]}
                   <div className="flex flex-1 flex-col">
@@ -189,7 +191,34 @@ export const GlobalSearch = () => {
                     key={r.id}
                     value={r.title}
                     onSelect={() => handleSelect(r)}
-                    className="flex items-center gap-3"
+                    className="flex cursor-pointer items-center gap-3"
+                  >
+                    {typeIcons[r.type]}
+                    <div className="flex flex-1 flex-col">
+                      <span className="text-sm font-semibold">{r.title}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {r.subtitle}
+                      </span>
+                    </div>
+                    <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </>
+          )}
+
+          {orders.length > 0 && (
+            <>
+              {(customers.length > 0 ||
+                products.length > 0 ||
+                sales.length > 0) && <CommandSeparator />}
+              <CommandGroup heading="Comandas Abertas">
+                {orders.map((r) => (
+                  <CommandItem
+                    key={r.id}
+                    value={r.title}
+                    onSelect={() => handleSelect(r)}
+                    className="flex cursor-pointer items-center gap-3"
                   >
                     {typeIcons[r.type]}
                     <div className="flex flex-1 flex-col">
@@ -207,16 +236,16 @@ export const GlobalSearch = () => {
 
           {sales.length > 0 && (
             <>
-              {(customers.length > 0 || products.length > 0) && (
-                <CommandSeparator />
-              )}
-              <CommandGroup heading="Vendas">
+              {(customers.length > 0 ||
+                products.length > 0 ||
+                orders.length > 0) && <CommandSeparator />}
+              <CommandGroup heading="Vendas Finalizadas">
                 {sales.map((r) => (
                   <CommandItem
                     key={r.id}
                     value={r.title}
                     onSelect={() => handleSelect(r)}
-                    className="flex items-center gap-3"
+                    className="flex cursor-pointer items-center gap-3"
                   >
                     {typeIcons[r.type]}
                     <div className="flex flex-1 flex-col">

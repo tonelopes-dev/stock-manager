@@ -5,10 +5,13 @@ import { UserRole } from "@prisma/client";
 import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
 import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
 import * as React from "react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Input } from "@/app/_components/ui/input";
 import { SearchIcon, ArrowDownWideNarrow, ChevronsUpDown } from "lucide-react";
 import { ProductCard } from "./product-card";
+import { Dialog } from "@/app/_components/ui/dialog";
+import UpsertProductDialogContent from "./upsert-dialog-content";
 import { Button } from "@/app/_components/ui/button";
 import { Badge } from "@/app/_components/ui/badge";
 import { PlusIcon } from "lucide-react";
@@ -24,7 +27,6 @@ import {
 import { CategoryManagementDialog } from "./category-management-dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 
-import { Suspense } from "react";
 import { ProductGrid } from "./product-grid";
 import { ProductGridSkeleton } from "./product-grid-skeleton";
 import { EnvironmentFilter } from "./environment-filter";
@@ -125,6 +127,11 @@ export const ProductVisualCatalog = ({
 
       {/* Product List with Suspense */}
       <Suspense key={`${search}-${sortBy}-${selectedCategoryId}`} fallback={<ProductGridSkeleton />}>
+        <ProductSearchHandler 
+          productsPromise={productsPromise}
+          categories={categories}
+          environments={environments}
+        />
         <ProductGrid 
           productsPromise={productsPromise}
           search={search}
@@ -136,6 +143,77 @@ export const ProductVisualCatalog = ({
         />
       </Suspense>
     </div>
+  );
+};
+
+// Internal component to handle search params and modal cleanup for products
+const ProductSearchHandler = ({
+  productsPromise,
+  categories,
+  environments,
+}: {
+  productsPromise: Promise<ProductDto[]>;
+  categories: ProductCategoryOption[];
+  environments: EnvironmentOption[];
+}) => {
+  const products = React.use(productsPromise);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [selectedProduct, setSelectedProduct] = useState<ProductDto | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const action = searchParams.get("action");
+    const id = searchParams.get("id");
+
+    if (action === "edit" && id) {
+      const product = products.find((p) => p.id === id);
+      if (product) {
+        setSelectedProduct(product);
+        setIsOpen(true);
+      }
+    }
+  }, [searchParams, products]);
+
+  const handleClose = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("action");
+      params.delete("id");
+      const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+      router.replace(newUrl, { scroll: false });
+      setSelectedProduct(null);
+    }
+  };
+
+  if (!selectedProduct) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <UpsertProductDialogContent
+        setDialogIsOpen={setIsOpen}
+        categories={categories}
+        environments={environments}
+        defaultValues={{
+          id: selectedProduct.id,
+          name: selectedProduct.name,
+          type: selectedProduct.type,
+          price: Number(selectedProduct.price),
+          cost: Number(selectedProduct.cost),
+          sku: selectedProduct.sku || "",
+          stock: selectedProduct.stock,
+          minStock: selectedProduct.minStock,
+          unit: selectedProduct.unit,
+          categoryId: selectedProduct.categoryId || "",
+          environmentId: selectedProduct.environmentId || "",
+          expirationDate: selectedProduct.expirationDate,
+          trackExpiration: selectedProduct.trackExpiration,
+          imageUrl: selectedProduct.imageUrl || "",
+        }}
+      />
+    </Dialog>
   );
 };
 

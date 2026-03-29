@@ -2,8 +2,9 @@
 
 import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
 import { ComandaCard } from "./comanda-card";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { RefreshCcw, Search, ShoppingBag } from "lucide-react";
+import { useSearchParams, usePathname } from "next/navigation";
 import { Input } from "@/app/_components/ui/input";
 import { Button } from "@/app/_components/ui/button";
 import { useRouter } from "next/navigation";
@@ -32,6 +33,8 @@ export const ComandasGrid = ({
     null,
   );
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   // Sync with initialComandas
   useEffect(() => {
@@ -73,6 +76,28 @@ export const ComandasGrid = ({
 
     return () => eventSource.close();
   }, [companyId, router]);
+
+  // Deep Link Search Handler
+  useEffect(() => {
+    const action = searchParams.get("action");
+    const customerId = searchParams.get("customerId");
+
+    if (action === "open-comanda" && customerId) {
+      const comanda = initialComandas.find((c) => c.customerId === customerId);
+      if (comanda) {
+        setSelectedComanda(comanda);
+      }
+    }
+  }, [searchParams, initialComandas]);
+
+  const handleCloseSheet = () => {
+    setSelectedComanda(null);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("action");
+    params.delete("customerId");
+    const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+    router.replace(newUrl, { scroll: false });
+  };
 
   const filteredComandas = comandas.filter(
     (c) =>
@@ -149,7 +174,7 @@ export const ComandasGrid = ({
       <ComandaDetailsSheet
         comanda={selectedComanda}
         isOpen={!!selectedComanda}
-        onClose={() => setSelectedComanda(null)}
+        onClose={handleCloseSheet}
         companyId={companyId}
         products={products}
         productOptions={productOptions}

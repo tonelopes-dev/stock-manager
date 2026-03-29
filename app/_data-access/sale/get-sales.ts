@@ -110,3 +110,62 @@ export const getSales = async ({
     total,
   };
 };
+
+export const getSaleById = async (id: string): Promise<SaleDto | null> => {
+  const companyId = await getCurrentCompanyId();
+  if (!companyId) return null;
+
+  const sale = await db.sale.findUnique({
+    where: {
+      id,
+      companyId,
+    },
+    include: {
+      saleItems: {
+        include: {
+          product: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+      customer: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  if (!sale) return null;
+
+  return {
+    id: sale.id,
+    date: sale.date,
+    totalAmount: Number(sale.totalAmount),
+    totalCost: Number(sale.totalCost),
+    status: sale.status,
+    productNames: sale.saleItems
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((item: any) => item.product.name)
+      .join(", "),
+    totalProducts: sale.saleItems.reduce(
+      (acc: number, item: any) => acc + Number(item.quantity),
+      0,
+    ),
+    customerName: sale.customer?.name || null,
+    customerId: sale.customerId,
+    paymentMethod: sale.paymentMethod,
+    tipAmount: Number(sale.tipAmount),
+    saleItems: sale.saleItems.map((item: any) => ({
+      ...item,
+      unitPrice: Number(item.unitPrice),
+      baseCost: Number(item.baseCost),
+      quantity: Number(item.quantity),
+      discountAmount: Number(item.discountAmount),
+      totalAmount: Number(item.totalAmount),
+      totalCost: Number(item.totalCost),
+    })) as SaleItemDto[],
+  };
+};
