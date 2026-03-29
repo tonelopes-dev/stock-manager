@@ -176,7 +176,7 @@ const CategoryTabs = ({
 
   return (
     <Tabs defaultValue="all" value={selectedCategoryId} onValueChange={setSelectedCategoryId} className="flex-1">
-      <TabsList className="bg-muted border border-border h-11 p-1">
+      <TabsList className="bg-muted border border-border h-auto flex-wrap p-1 justify-start">
         <TabsTrigger 
           value="all" 
           className="px-6 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
