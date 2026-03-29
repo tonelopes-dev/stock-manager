@@ -4,6 +4,7 @@ import { OrderStatus, OrderSource } from "@prisma/client";
 export interface KDSOrderDto {
   id: string;
   orderNumber: number;
+  ifoodDisplayId?: string | null;
   status: OrderStatus;
   source: OrderSource;
   tableNumber: string | null;
@@ -47,6 +48,7 @@ export const getKDSOrders = async (companyId: string): Promise<KDSOrderDto[]> =>
   return orders.map((order) => ({
     id: order.id,
     orderNumber: order.orderNumber,
+    ifoodDisplayId: order.ifoodDisplayId,
     status: order.status,
     source: order.source,
     tableNumber: order.tableNumber,

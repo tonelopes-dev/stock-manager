@@ -12,6 +12,7 @@ export interface ComandaDto {
   firstOrderAt: Date;
   lastOrderAt: Date;
   source: OrderSource;
+  ifoodDisplayId?: string | null;
   deliveryAddress?: string | null;
   deliveryFee?: number | null;
   items: {
@@ -19,11 +20,19 @@ export interface ComandaDto {
     name: string;
     quantity: number;
     price: number;
+    notes?: string | null;
     createdAt: Date;
+    subItems?: {
+      id: string;
+      name: string;
+      quantity: number;
+      price: number;
+    }[];
   }[];
   orders: {
     id: string;
     orderNumber: number;
+    ifoodDisplayId?: string | null;
     status: OrderStatus;
     createdAt: Date;
     source: OrderSource;
@@ -47,9 +56,15 @@ export const getActiveComandas = async (): Promise<ComandaDto[]> => {
     include: {
       customer: true,
       orderItems: {
+        where: { isModifier: false }, // Only top-level items for base list
         include: {
           product: {
             select: { name: true }
+          },
+          subItems: { // Include modifiers per item
+            include: {
+              product: { select: { name: true } }
+            }
           }
         }
       }
@@ -77,6 +92,7 @@ export const getActiveComandas = async (): Promise<ComandaDto[]> => {
         firstOrderAt: order.createdAt,
         lastOrderAt: order.createdAt,
         source: order.source,
+        ifoodDisplayId: order.ifoodDisplayId, // Single order ID
         deliveryAddress: order.deliveryAddress ? JSON.stringify(order.deliveryAddress) : null,
         deliveryFee: Number(order.deliveryFee),
         items: [],
@@ -92,6 +108,7 @@ export const getActiveComandas = async (): Promise<ComandaDto[]> => {
     group.orders.push({
       id: order.id,
       orderNumber: order.orderNumber,
+      ifoodDisplayId: order.ifoodDisplayId,
       status: order.status,
       createdAt: order.createdAt,
       source: order.source,
@@ -104,11 +121,18 @@ export const getActiveComandas = async (): Promise<ComandaDto[]> => {
         existingItem.quantity += Number(item.quantity);
       } else {
         group.items.push({
-          id: item.productId, // Use productId for easier UI handling
+          id: item.productId,
           name: item.product.name,
           quantity: Number(item.quantity),
           price: Number(item.unitPrice),
+          notes: item.notes,
           createdAt: item.createdAt,
+          subItems: item.subItems.map(sub => ({
+            id: sub.id,
+            name: sub.product.name,
+            quantity: Number(sub.quantity),
+            price: Number(sub.unitPrice)
+          }))
         });
       }
     }

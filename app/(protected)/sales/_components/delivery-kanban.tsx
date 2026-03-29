@@ -5,13 +5,22 @@ import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
 import { Card } from "@/app/_components/ui/card";
 import { Badge } from "@/app/_components/ui/badge";
 import { Button } from "@/app/_components/ui/button";
-import { Clock, MapPin, CheckCircle2, PlayCircle, PackageCheck, Loader2 } from "lucide-react";
+import { Clock, MapPin, CheckCircle2, PlayCircle, PackageCheck } from "lucide-react";
 import { formatCurrency } from "@/app/_helpers/currency";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/app/_lib/utils";
 import { toast } from "sonner";
 import { updateOrderStatusAction } from "@/app/_actions/order/update-status";
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetHeader, 
+  SheetTitle, 
+  SheetTrigger,
+  SheetDescription
+} from "@/app/_components/ui/sheet";
+import { Info, ReceiptText, Truck, ShoppingBag, Loader2 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -240,7 +249,7 @@ function DeliveryCard({ comanda, onConfirm, onDispatch, isUpdating }: DeliveryCa
       <div className="mb-3 flex items-start justify-between">
         <div className="space-y-1">
           <h4 className="text-sm font-black uppercase italic leading-none text-foreground line-clamp-1">
-            {comanda.customerName}
+            {comanda.ifoodDisplayId ? `#${comanda.ifoodDisplayId} - ` : ""}{comanda.customerName}
           </h4>
           <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground">
             <Clock size={10} />
@@ -270,7 +279,7 @@ function DeliveryCard({ comanda, onConfirm, onDispatch, isUpdating }: DeliveryCa
       </div>
 
       <div className="flex items-center justify-between border-t pt-3">
-        <span className="text-sm font-black tracking-tighter text-primary">
+        <span className="text-lg font-black tracking-tighter text-primary">
           {formatCurrency(comanda.totalAmount + (comanda.deliveryFee || 0))}
         </span>
         
@@ -293,9 +302,134 @@ function DeliveryCard({ comanda, onConfirm, onDispatch, isUpdating }: DeliveryCa
             {isUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <><PackageCheck size={12} /> DESPACHAR</>}
           </Button>
         ) : (
-          <Button variant="outline" size="sm" className="h-8 font-bold text-[10px]">
-            DETALHES
-          </Button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8 font-black text-[10px] border-primary/20 text-primary hover:bg-primary/5">
+                <ReceiptText size={12} className="mr-1" />
+                DETALHES
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="w-[400px] sm:w-[540px] px-0">
+              <SheetHeader className="px-6 pb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge className="bg-red-600 font-black text-[10px] border-none">iFood</Badge>
+                  <Badge variant="outline" className="font-bold text-[10px] capitalize">
+                    {comanda.orders[0]?.status.toLowerCase()}
+                  </Badge>
+                </div>
+                <SheetTitle className="text-2xl font-black italic uppercase tracking-tighter">
+                  {comanda.ifoodDisplayId ? `#${comanda.ifoodDisplayId}` : "Pedido"} - {comanda.customerName}
+                </SheetTitle>
+                <SheetDescription className="text-xs font-medium text-muted-foreground italic">
+                  Extrato detalhado do delivery
+                </SheetDescription>
+              </SheetHeader>
+
+              <div className="h-[calc(100vh-130px)] overflow-y-auto px-6 custom-scrollbar">
+                <div className="space-y-8 pb-10">
+                  {/* Entrega Section */}
+                  <section className="space-y-3">
+                    <div className="flex items-center gap-2 text-primary">
+                      <Truck size={16} />
+                      <h5 className="text-xs font-black uppercase tracking-widest">Informações de Entrega</h5>
+                    </div>
+                    <div className="rounded-2xl border bg-muted/30 p-4 space-y-3">
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-muted-foreground mb-1">Endereço</p>
+                        <p className="text-xs font-bold leading-relaxed text-foreground">
+                          {address?.formattedAddress || "Endereço não informado"}
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-[10px] font-black uppercase text-muted-foreground mb-1">Bairro</p>
+                          <p className="text-xs font-bold text-foreground">{address?.neighborhood || "-"}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase text-muted-foreground mb-1">Referência</p>
+                          <p className="text-xs font-bold text-foreground italic">{address?.reference || "Nenhuma"}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* Itens Section */}
+                  <section className="space-y-3">
+                    <div className="flex items-center gap-2 text-primary">
+                      <ShoppingBag size={16} />
+                      <h5 className="text-xs font-black uppercase tracking-widest">Itens do Pedido</h5>
+                    </div>
+                    <div className="space-y-4">
+                      {comanda.items.map((item) => (
+                        <div key={item.id} className="group rounded-2xl border bg-background p-4 transition-all hover:border-primary/30">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex gap-3">
+                              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-[10px] font-black text-background">
+                                {item.quantity}
+                              </span>
+                              <div>
+                                <p className="text-xs font-black uppercase leading-tight text-foreground">
+                                  {item.name}
+                                </p>
+                                {item.notes && (
+                                  <p className={cn(
+                                    "text-[10px] mt-1 font-bold italic",
+                                    item.notes.includes("[Item iFood não mapeado]") 
+                                      ? "text-red-600 font-extrabold" 
+                                      : "text-muted-foreground"
+                                  )}>
+                                    OBS: {item.notes}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <span className="text-xs font-black text-muted-foreground">
+                              {formatCurrency(item.price * item.quantity)}
+                            </span>
+                          </div>
+
+                          {/* Modificadores */}
+                          {item.subItems && item.subItems.length > 0 && (
+                            <div className="mt-3 ml-9 space-y-2 border-l-2 border-muted pl-4">
+                              {item.subItems.map((sub) => (
+                                <div key={sub.id} className="flex justify-between items-center text-[10px]">
+                                  <span className="font-bold text-muted-foreground/80 lowercase italic">
+                                    + {sub.quantity}x {sub.name}
+                                  </span>
+                                  <span className="font-black text-muted-foreground/60">
+                                    {formatCurrency(sub.price * sub.quantity)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+
+                  {/* Financeiro Section */}
+                  <section className="space-y-4 pt-4 border-t">
+                    <div className="flex justify-between text-xs font-bold text-muted-foreground">
+                      <span>Subtotal</span>
+                      <span>{formatCurrency(comanda.totalAmount)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs font-bold text-red-600">
+                      <span>Taxa de Entrega</span>
+                      <span>{formatCurrency(comanda.deliveryFee || 0)}</span>
+                    </div>
+                    <div className="h-px bg-border w-full" />
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-black uppercase italic tracking-tighter">Total Geral</span>
+                      <span className="text-2xl font-black tracking-tighter text-primary">
+                        {formatCurrency(comanda.totalAmount + (comanda.deliveryFee || 0))}
+                      </span>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
         )}
       </div>
     </Card>

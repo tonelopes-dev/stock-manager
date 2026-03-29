@@ -56,7 +56,7 @@ export const ComandaCard = ({ comanda, onClick }: ComandaCardProps) => {
                 <User size={16} />
               </div>
               <h3 className="line-clamp-1 text-sm font-black uppercase italic tracking-tighter text-foreground">
-                {comanda.customerName}
+                {comanda.ifoodDisplayId ? `#${comanda.ifoodDisplayId} - ` : ""}{comanda.customerName}
               </h3>
             </div>
             <p className="text-[10px] font-bold text-muted-foreground">

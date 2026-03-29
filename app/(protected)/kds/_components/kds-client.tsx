@@ -149,7 +149,7 @@ const KDSColumn = ({
                     Pedido
                   </span>
                   <span className="text-3xl font-black italic text-foreground">
-                    #{order.orderNumber}
+                    {order.ifoodDisplayId ? `#${order.ifoodDisplayId}` : `#${order.orderNumber}`}
                   </span>
                 </div>
                 <div className="flex flex-col items-end">
