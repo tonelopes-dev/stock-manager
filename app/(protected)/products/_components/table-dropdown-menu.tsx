@@ -36,6 +36,7 @@ interface ProductTableDropdownMenuProps {
   userRole: UserRole;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
+  products: ProductDto[]; // Full list for technical sheet selector
 }
 
 const ProductTableDropdownMenu = ({
@@ -43,6 +44,7 @@ const ProductTableDropdownMenu = ({
   userRole,
   categories,
   environments,
+  products: allProducts,
 }: ProductTableDropdownMenuProps) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [adjustStockDialogOpen, setAdjustStockDialogOpen] = useState(false);
@@ -51,7 +53,6 @@ const ProductTableDropdownMenu = ({
   const [isPending, startTransition] = useTransition();
 
   const handleToggleStatus = async () => {
-    // Re-activate directly, deactivate with confirmation
     if (product.isActive) {
       setToggleStatusDialogOpen(true);
       return;
@@ -154,13 +155,18 @@ const ProductTableDropdownMenu = ({
             unit: product.unit,
             categoryId: product.categoryId || "",
             environmentId: product.environmentId || "",
-            expirationDate: product.expirationDate,
+            expirationDate: product.expirationDate ? new Date(product.expirationDate) : undefined,
             trackExpiration: product.trackExpiration,
             imageUrl: product.imageUrl || "",
+            compositions: product.parentCompositions?.map((c: any) => ({
+              childId: c.childId,
+              quantity: Number(c.quantity),
+            })) || [],
           }}
           setDialogIsOpen={setEditDialogOpen}
           categories={categories}
           environments={environments}
+          products={allProducts}
         />
       </Dialog>
 

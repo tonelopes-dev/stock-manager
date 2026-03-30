@@ -1,8 +1,7 @@
 import { db } from "@/app/_lib/prisma";
 import { recordStockMovement } from "@/app/_lib/stock";
 import { BusinessError } from "@/app/_lib/errors";
-import { calculateRealCost } from "@/app/_lib/units";
-import { UnitType, PaymentMethod } from "@prisma/client";
+import { PaymentMethod, Prisma } from "@prisma/client";
 
 interface UpsertSaleParams {
   id?: string;
@@ -16,6 +15,59 @@ interface UpsertSaleParams {
     id: string;
     quantity: number;
   }[];
+}
+
+/**
+ * Recursively deducts stock for a product and its components.
+ */
+async function processDeduction(
+  productId: string,
+  quantity: number | Prisma.Decimal,
+  companyId: string,
+  userId: string,
+  saleId: string,
+  trx: Prisma.TransactionClient
+) {
+  // Use a map to prevent infinite loops should the UI validation fail
+  const visited = new Set<string>();
+  
+  const recursive = async (pid: string, qty: Prisma.Decimal) => {
+    if (visited.has(pid)) return;
+    visited.add(pid);
+
+    // Fetch product with its composition (child items)
+    const product = await trx.product.findUnique({
+      where: { id: pid },
+      include: { parentCompositions: true },
+    });
+
+    if (!product) return;
+
+    // Record movement for the product itself (Always deduct)
+    await recordStockMovement(
+      {
+        productId: pid,
+        companyId,
+        userId,
+        type: "SALE",
+        quantity: qty.negated(),
+        saleId,
+        forceAllowNegative: true, // PDV recursive deduction never blocks
+      },
+      trx
+    );
+
+    // If it has children (COMBO or PRODUCAO_PROPRIA), recurse for each
+    if (product.parentCompositions && product.parentCompositions.length > 0) {
+      for (const comp of product.parentCompositions) {
+        await recursive(comp.childId, qty.mul(comp.quantity));
+      }
+    }
+    
+    visited.delete(pid);
+  };
+
+  await recursive(productId, new Prisma.Decimal(quantity.toString()));
 }
 
 export const SaleService = {
@@ -38,19 +90,27 @@ export const SaleService = {
             throw new BusinessError("Não é possível editar uma venda cancelada.");
           }
 
-          // 1. Revert stock for ALL product types (unified)
-          for (const sp of existingSale.saleItems) {
-            await recordStockMovement(
-              {
-                productId: sp.productId,
-                companyId,
-                userId,
-                type: "CANCEL",
-                quantity: sp.quantity,
-                saleId: existingSale.id,
-              },
-              trx
-            );
+          // 1. Revert stock
+          // We find all movements linked to this sale and revert them.
+          const movements = await trx.stockMovement.findMany({
+            where: { saleId: existingSale.id, companyId },
+          });
+
+          for (const movement of movements) {
+            if (movement.productId) {
+              await recordStockMovement(
+                {
+                  productId: movement.productId,
+                  companyId,
+                  userId,
+                  type: "CANCEL",
+                  quantity: movement.quantityDecimal ? new Prisma.Decimal(movement.quantityDecimal).negated() : 0,
+                  saleId: existingSale.id,
+                  forceAllowNegative: true,
+                },
+                trx
+              );
+            }
           }
 
           // 2. Clear old products
@@ -58,7 +118,7 @@ export const SaleService = {
             where: { saleId: id },
           });
 
-          // 3. Update date
+          // 3. Update basic info (date/user)
           await trx.sale.update({
             where: { id },
             data: {
@@ -83,7 +143,7 @@ export const SaleService = {
           });
           saleId = newSale.id;
         } else {
-          // Update date/customer for existing
+          // Update details for update mode
           await trx.sale.update({
             where: { id: saleId, companyId },
             data: {
@@ -96,23 +156,13 @@ export const SaleService = {
           });
         }
 
-        const company = await trx.company.findUnique({
-          where: { id: companyId },
-          select: { allowNegativeStock: true },
-        });
-
-        // 4. Process products — unified for RESELL and PREPARED
+        // 4. Process products with RECURSIVE deduction
         let totalAmount = 0;
         let totalCost = 0;
 
         for (const product of products) {
           const productFromDb = await trx.product.findUnique({
             where: { id: product.id },
-            include: {
-              recipes: {
-                include: { ingredient: true }
-              }
-            }
           });
 
           if (!productFromDb) {
@@ -123,53 +173,31 @@ export const SaleService = {
             throw new BusinessError(`O produto ${productFromDb.name} está desativado.`);
           }
 
-          // Calculate point-in-time cost for PREPARED products
-          let effectiveCost = Number(productFromDb.cost);
-          if (productFromDb.type === "PREPARED" && productFromDb.recipes.length > 0) {
-            const recipeCost = productFromDb.recipes.reduce((sum, recipe) => {
-              const partialCost = calculateRealCost(
-                recipe.quantity,
-                recipe.unit as UnitType,
-                recipe.ingredient.unit as UnitType,
-                recipe.ingredient.cost
-              );
-              return sum + Number(partialCost);
-            }, 0);
-            effectiveCost = recipeCost;
-          }
-
-          // Validate stock (applies to both RESELL and PREPARED)
-          const productIsOutOfStock = product.quantity > productFromDb.stock;
-          if (productIsOutOfStock && !company?.allowNegativeStock) {
-            throw new BusinessError(`Estoque insuficiente para o produto ${productFromDb.name}.`);
-          }
-
-          // Deduct product stock (SALE movement)
-          await recordStockMovement(
-            {
-              productId: product.id,
-              companyId,
-              userId,
-              type: "SALE",
-              quantity: -product.quantity,
-              saleId: saleId!,
-            },
+          // Recursive Stock Deduction
+          await processDeduction(
+            product.id,
+            product.quantity,
+            companyId,
+            userId,
+            saleId!,
             trx
           );
 
-          // Create SaleItem with historical cost
+          // Create SaleItem with current cost SNAPSHOT
           await trx.saleItem.create({
             data: {
               saleId: saleId!,
               productId: product.id,
               quantity: product.quantity,
               unitPrice: productFromDb.price,
-              baseCost: effectiveCost,
+              baseCost: productFromDb.cost,
+              totalAmount: new Prisma.Decimal(productFromDb.price).mul(product.quantity),
+              totalCost: new Prisma.Decimal(productFromDb.cost).mul(product.quantity),
             },
           });
 
           totalAmount += Number(productFromDb.price) * product.quantity;
-          totalCost += effectiveCost * product.quantity;
+          totalCost += Number(productFromDb.cost) * product.quantity;
         }
 
         const updatedSale = await trx.sale.update({
@@ -180,15 +208,12 @@ export const SaleService = {
           },
         });
 
-        // 6. CRM Auto-upgrade (Move to Converted stage)
+        // 5. CRM Auto-upgrade (Converted stage)
         if (customerId) {
           const convertedStage = await trx.cRMStage.findFirst({
             where: {
               companyId,
-              name: {
-                contains: "Convertido",
-                mode: "insensitive",
-              },
+              name: { contains: "Convertido", mode: "insensitive" },
             },
           });
 
@@ -201,13 +226,9 @@ export const SaleService = {
         }
 
         return updatedSale;
-
       });
     } catch (error) {
-      if (error instanceof BusinessError) {
-        throw error;
-      }
-      
+      if (error instanceof BusinessError) throw error;
       console.error(error);
       throw error;
     }

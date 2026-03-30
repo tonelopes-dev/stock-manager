@@ -8,17 +8,20 @@ import { useState } from "react";
 import UpsertProductDialogContent from "./upsert-dialog-content";
 import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
 import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
+import { ProductDto } from "@/app/_data-access/product/get-products";
 
 interface CreateProductButtonProps {
   hasProducts: boolean;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
+  products: ProductDto[];
 }
 
 const CreateProductButton = ({
   hasProducts,
   categories,
   environments,
+  products,
 }: CreateProductButtonProps) => {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
 
@@ -35,6 +38,7 @@ const CreateProductButton = ({
         hasProducts={hasProducts}
         categories={categories}
         environments={environments}
+        products={products}
       />
     </Dialog>
   );

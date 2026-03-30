@@ -1,8 +1,7 @@
 import { db } from "@/app/_lib/prisma";
 import { recordStockMovement } from "@/app/_lib/stock";
-import { calculateStockDeduction, calculateRealCost } from "@/app/_lib/units";
 import { BusinessError } from "@/app/_lib/errors";
-import { Prisma, UnitType } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 const Decimal = Prisma.Decimal;
 
@@ -13,138 +12,98 @@ interface ProduceParams {
   userId: string;
 }
 
-interface IngredientConsumption {
-  ingredientId: string;
-  ingredientName: string;
-  recipeQty: Prisma.Decimal;
-  recipeUnit: UnitType;
-  stockUnit: UnitType;
-  deductionInStockUnit: Prisma.Decimal;
+interface ComponentConsumption {
+  childId: string;
+  childName: string;
+  quantityToDeduct: Prisma.Decimal;
   costContribution: Prisma.Decimal;
-  currentStock: Prisma.Decimal;
 }
 
 export const ProductionService = {
   /**
-   * Produces a batch of a PREPARED product.
-   * 1. Validates product, recipe, and ingredient stock (BEFORE transaction)
-   * 2. Inside a single transaction: deducts ingredients, increments product stock,
-   *    creates StockMovements, creates ProductionOrder
+   * Produces a batch of a PRODUCAO_PROPRIA product.
+   * 1. Validates product and composition.
+   * 2. Inside a single transaction: deducts components (1 level), increments product stock,
+   *    creates StockMovements, creates ProductionOrder.
    */
   async produce({ productId, quantity, companyId, userId }: ProduceParams) {
     try {
-      // ========================================
-      // 1. PRE-VALIDATION (before transaction)
-      // ========================================
-
       if (quantity <= 0) {
         throw new BusinessError("A quantidade deve ser maior que zero.");
       }
 
       const product = await db.product.findFirst({
         where: { id: productId, companyId, isActive: true },
+        include: {
+          parentCompositions: {
+            include: {
+              child: true,
+            },
+          },
+        },
       });
 
       if (!product) {
         throw new BusinessError("Produto não encontrado.");
       }
 
-      if (product.type !== "PREPARED") {
-        throw new BusinessError("Apenas produtos do tipo Produção Própria podem ser produzidos.");
+      if (product.type !== "PRODUCAO_PROPRIA") {
+        throw new BusinessError("Apenas produtos do tipo Produção Própria podem ser produzidos manualmente.");
       }
 
-      const recipes = await db.productRecipe.findMany({
-        where: { productId },
-        include: { ingredient: true },
-      });
-
-      if (recipes.length === 0) {
-        throw new BusinessError("Este produto não possui receita cadastrada. Adicione ingredientes antes de produzir.");
+      if (product.parentCompositions.length === 0) {
+        throw new BusinessError("Este produto não possui composição cadastrada. Adicione itens à ficha técnica antes de produzir.");
       }
 
-      // ========================================
-      // 2. CALCULATE CONSUMPTION & VALIDATE STOCK
-      // ========================================
-
-      const consumptions: IngredientConsumption[] = [];
+      const consumptions: ComponentConsumption[] = [];
       let totalCost = new Decimal(0);
 
-      for (const rawRecipe of recipes) {
-        const recipeUnit = rawRecipe.unit as UnitType;
-        const ingredientUnit = rawRecipe.ingredient.unit as UnitType;
+      for (const composition of product.parentCompositions) {
+        const child = composition.child;
+        
+        // Total deduction = composition.quantity × production quantity
+        const quantityToDeduct = new Decimal(composition.quantity.toString()).mul(quantity);
 
-        // Total recipe qty = recipe.quantity × production quantity
-        const totalRecipeQty = new Decimal(rawRecipe.quantity.toString()).mul(quantity);
-
-        // How much to deduct from ingredient stock (in stock unit)
-        const deductionInStockUnit = calculateStockDeduction(
-          totalRecipeQty,
-          recipeUnit,
-          ingredientUnit,
-        );
-
-        // Cost contribution
-        const costContribution = calculateRealCost(
-          totalRecipeQty,
-          recipeUnit,
-          ingredientUnit,
-          rawRecipe.ingredient.cost,
-        );
+        // Cost contribution = child.cost × quantityToDeduct
+        const costContribution = new Decimal(child.cost.toString()).mul(quantityToDeduct);
 
         totalCost = totalCost.add(costContribution);
 
-        const currentStock = new Decimal(rawRecipe.ingredient.stock.toString());
-
-        // Pre-validate stock BEFORE opening transaction
-        if (currentStock.lt(deductionInStockUnit)) {
-          throw new BusinessError(
-            `Estoque insuficiente de "${rawRecipe.ingredient.name}". ` +
-            `Necessário: ${deductionInStockUnit.toFixed(4)} ${ingredientUnit}, ` +
-            `Disponível: ${currentStock.toFixed(4)} ${ingredientUnit}.`
-          );
-        }
-
         consumptions.push({
-          ingredientId: rawRecipe.ingredient.id,
-          ingredientName: rawRecipe.ingredient.name,
-          recipeQty: totalRecipeQty,
-          recipeUnit,
-          stockUnit: ingredientUnit,
-          deductionInStockUnit,
+          childId: child.id,
+          childName: child.name,
+          quantityToDeduct,
           costContribution,
-          currentStock,
         });
       }
 
-      // ========================================
-      // 3. TRANSACTION — All-or-nothing
-      // ========================================
-
+      // TRANSACTION — All-or-nothing
       return await db.$transaction(async (trx) => {
-        // 3a. Deduct ingredient stock + create StockMovements
+        // 3a. Deduct component stock
         for (const consumption of consumptions) {
           await recordStockMovement(
             {
-              ingredientId: consumption.ingredientId,
+              productId: consumption.childId,
               companyId,
               userId,
               type: "PRODUCTION",
-              quantity: consumption.deductionInStockUnit.negated(),
-              reason: `Produção de ${quantity}x ${product.name}`,
+              quantity: consumption.quantityToDeduct.negated(),
+              reason: `Consumo p/ produção de ${quantity}x ${product.name}`,
+              forceAllowNegative: true, // Follow PDV logic: speed over blocking
             },
             trx,
           );
         }
 
-        // 3b. Increment product stock + create StockMovement
+        // 3b. Increment product stock
         await recordStockMovement(
           {
             productId,
             companyId,
             userId,
             type: "PRODUCTION",
-            quantity: quantity,
-            reason: `Produção de ${quantity} unidades`,
+            quantity: new Decimal(quantity),
+            reason: `Entrada de produção: ${quantity} unidades`,
           },
           trx,
         );
@@ -154,7 +113,7 @@ export const ProductionService = {
           data: {
             productId,
             companyId,
-            quantity,
+            quantity: Math.floor(quantity), // ProductionOrder quantity is Int in schema
             totalCost,
             createdById: userId,
           },
@@ -163,19 +122,13 @@ export const ProductionService = {
         return {
           productionOrder,
           totalCost,
-          consumptions: consumptions.map((c) => ({
-            ingredientName: c.ingredientName,
-            deducted: c.deductionInStockUnit,
-            unit: c.stockUnit,
-            cost: c.costContribution,
-          })),
+          consumptions,
         };
       });
     } catch (error) {
       if (error instanceof BusinessError) {
         throw error;
       }
-
       console.error(error);
       throw error;
     }

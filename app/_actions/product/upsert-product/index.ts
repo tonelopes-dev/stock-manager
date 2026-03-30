@@ -6,26 +6,69 @@ import { upsertProductSchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { recordStockMovement } from "@/app/_lib/stock";
-import { calculateStockDeduction } from "@/app/_lib/units";
-import { recalculateProductCost } from "../recipe/recalculate-cost";
 import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
 import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
 import { AuditService } from "@/app/_services/audit";
-import { AuditEventType, UnitType, Prisma } from "@prisma/client";
+import { AuditEventType, Prisma } from "@prisma/client";
 
+/**
+ * Re-calculates the cost of a product based on its composition (recursive).
+ */
+async function updateProductCostRecursive(
+  productId: string,
+  trx: Prisma.TransactionClient
+) {
+  const product = await trx.product.findUnique({
+    where: { id: productId },
+    include: {
+      parentCompositions: {
+        include: { child: true },
+      },
+    },
+  });
 
+  if (!product) return 0;
+
+  // Only COMBO and PRODUCAO_PROPRIA have costs derived from children
+  if (product.type !== "COMBO" && product.type !== "PRODUCAO_PROPRIA") {
+    return Number(product.cost);
+  }
+
+  let totalCost = 0;
+  for (const item of product.parentCompositions) {
+    const childCost = Number(item.child.cost);
+    totalCost += childCost * Number(item.quantity);
+  }
+
+  // Update this product's cost
+  await trx.product.update({
+    where: { id: productId },
+    data: { cost: totalCost },
+  });
+
+  // Now, we might need to update any PARENTS of this product
+  const compositionsWhereThisIsChild = await trx.productComposition.findMany({
+    where: { childId: productId },
+    select: { parentId: true },
+  });
+
+  for (const composition of compositionsWhereThisIsChild) {
+    await updateProductCostRecursive(composition.parentId, trx);
+  }
+
+  return totalCost;
+}
 
 export const upsertProduct = actionClient
   .schema(upsertProductSchema)
-  .action(async ({ parsedInput: { id, ...data } }) => {
+  .action(async ({ parsedInput: { id, compositions, ...data } }) => {
     const companyId = await getCurrentCompanyId();
     const { userId } = await assertRole(ADMIN_AND_OWNER);
     await requireActiveSubscription(companyId);
 
-
     const sku = data.sku?.trim() || null;
 
-    await db.$transaction(async (trx) => {
+    const result = await db.$transaction(async (trx) => {
       const { stock, unit, type, cost, expirationDate, trackExpiration, imageUrl, ...rest } = data;
       
       const categoryId = data.categoryId?.trim() || null;
@@ -39,17 +82,17 @@ export const upsertProduct = actionClient
         expirationDate,
         trackExpiration,
         imageUrl,
-        cost: type === "PREPARED" ? undefined : cost
+        // If it's a combo/production, we'll calculate cost later
+        cost: (type === "COMBO" || type === "PRODUCAO_PROPRIA") ? undefined : cost
       };
-
 
       let productId = id;
 
       if (id) {
-        // Fetch current stock before update to calculate difference
+        // 1. Fetch current for stock diff
         const currentProduct = await trx.product.findUniqueOrThrow({
           where: { id, companyId },
-          select: { stock: true, type: true, unit: true },
+          select: { stock: true },
         });
 
         const updatedProduct = await trx.product.update({
@@ -61,71 +104,30 @@ export const upsertProduct = actionClient
           },
         });
 
-        // If stock changed, record stock movement
+        // 2. Handle stock adjustment
         if (stock !== undefined) {
-          const stockDifference = stock - currentProduct.stock;
-          if (stockDifference !== 0) {
+          const stockDifference = new Prisma.Decimal(stock.toString()).minus(currentProduct.stock);
+          if (!stockDifference.isZero()) {
             await recordStockMovement(
               {
                 productId: id,
                 companyId,
                 userId,
-                type: "MANUAL",
+                type: "ADJUSTMENT",
                 quantity: stockDifference,
                 unit: updatedProduct.unit,
                 reason: "Ajuste manual via edição do produto",
               },
               trx
             );
-
-            // For PREPARED products, reverse ingredient consumption proportionally
-            if (updatedProduct.type === "PREPARED" && stockDifference < 0) {
-              const recipes = await trx.productRecipe.findMany({
-                where: { productId: id },
-                include: { ingredient: true },
-              });
-
-              const unitsReturned = Math.abs(stockDifference);
-
-              for (const recipe of recipes) {
-                const recipeUnit = recipe.unit as UnitType;
-                const ingredientUnit = recipe.ingredient.unit as UnitType;
-
-                const recipeQtyPerUnit = new Prisma.Decimal(recipe.quantity.toString());
-                const totalRecipeQty = recipeQtyPerUnit.mul(unitsReturned);
-
-                const deductionInStockUnit = calculateStockDeduction(
-                  totalRecipeQty,
-                  recipeUnit,
-                  ingredientUnit,
-                );
-
-                // Return ingredients to stock (positive quantity = increase)
-                await recordStockMovement(
-                  {
-                    ingredientId: recipe.ingredientId,
-                    companyId,
-                    userId,
-                    type: "MANUAL",
-                    quantity: deductionInStockUnit,
-                    unit: recipe.ingredient.unit,
-                    reason: `Devolução de insumo: ajuste de estoque de ${currentProduct.stock} → ${stock} un de ${updatedProduct.name}`,
-                  },
-                  trx,
-                );
-              }
-            }
           }
         }
-
-        if (updatedProduct.type === "PREPARED") {
-          await recalculateProductCost(id, trx);
-        }
       } else {
+        // 1. Create product
         const product = await trx.product.create({
           data: { 
             ...updateData, 
-            cost: type === "PREPARED" ? 0 : (cost || 0),
+            cost: (type === "COMBO" || type === "PRODUCAO_PROPRIA") ? 0 : (cost || 0),
             companyId, 
             stock: 0,
             categoryId,
@@ -134,13 +136,14 @@ export const upsertProduct = actionClient
         });
         productId = product.id;
 
+        // 2. Initial stock
         if (stock && stock > 0) {
           await recordStockMovement(
             {
               productId: product.id,
               companyId,
               userId,
-              type: "MANUAL",
+              type: "ADJUSTMENT",
               quantity: stock,
               unit: product.unit,
               reason: "Estoque inicial",
@@ -150,12 +153,34 @@ export const upsertProduct = actionClient
         }
       }
 
-      // 3. Log Audit within transaction
+      // 3. Handle Compositions (Ficha Técnica)
+      if (type === "COMBO" || type === "PRODUCAO_PROPRIA") {
+        // Clear old composition
+        await trx.productComposition.deleteMany({
+          where: { parentId: productId },
+        });
+
+        // Create new ones
+        if (compositions && compositions.length > 0) {
+          await trx.productComposition.createMany({
+            data: compositions.map((c) => ({
+              parentId: productId!,
+              childId: c.childId,
+              quantity: c.quantity,
+            })),
+          });
+        }
+
+        // Update cost based on new composition
+        await updateProductCostRecursive(productId!, trx);
+      }
+
+      // 4. Log Audit
       await AuditService.logWithTransaction(trx, {
         type: id ? AuditEventType.PRODUCT_UPDATED : AuditEventType.PRODUCT_CREATED,
         companyId,
         entityType: "PRODUCT",
-        entityId: productId,
+        entityId: productId!,
         metadata: {
           productId,
           sku,
@@ -164,13 +189,13 @@ export const upsertProduct = actionClient
           type: data.type,
         },
       });
+
+      return productId;
     });
 
     revalidatePath("/", "layout");
-    revalidatePath("/products", "page");
-    if (id) {
-      revalidatePath(`/products/${id}`, "page");
-    }
-    revalidatePath("/ingredients", "page");
+    revalidatePath("/products");
     revalidatePath("/dashboard");
+    
+    return result;
   });

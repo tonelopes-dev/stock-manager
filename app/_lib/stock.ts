@@ -6,8 +6,7 @@ type Decimal = Prisma.Decimal;
 const Decimal = Prisma.Decimal;
 
 interface RecordStockMovementParams {
-  productId?: string;
-  ingredientId?: string;
+  productId: string;
   companyId: string;
   userId?: string | null;
   type: StockMovementType;
@@ -16,6 +15,7 @@ interface RecordStockMovementParams {
   saleId?: string;
   orderId?: string;
   reason?: string;
+  forceAllowNegative?: boolean; // New flag for PDV recursive deduction
 }
 
 export const recordStockMovement = async (
@@ -26,88 +26,51 @@ export const recordStockMovement = async (
     try {
       const qty = new Decimal(params.quantity.toString());
 
-      if (params.productId) {
-        // 1. Update product
-        const updatedProduct = await t.product.update({
-          where: { id: params.productId },
-          data: {
-            stock: {
-              increment: qty.toNumber(),
-            },
+      // 1. Update product
+      const updatedProduct = await t.product.update({
+        where: { id: params.productId },
+        data: {
+          stock: {
+            increment: qty,
           },
-          select: {
-            stock: true,
-            unit: true,
-            company: {
-              select: { allowNegativeStock: true },
-            },
+        },
+        select: {
+          stock: true,
+          unit: true,
+          company: {
+            select: { allowNegativeStock: true },
           },
-        });
+        },
+      });
 
-        const stockAfter = new Decimal(updatedProduct.stock);
-        const stockBefore = stockAfter.minus(qty);
+      const stockAfter = new Decimal(updatedProduct.stock.toString());
+      const stockBefore = stockAfter.minus(qty);
 
-        // 2. Validate negative stock
-        if (stockAfter.lt(0) && !updatedProduct.company.allowNegativeStock) {
-          throw new BusinessError("Estoque insuficiente. A empresa não permite estoque negativo.");
-        }
-
-        return await t.stockMovement.create({
-          data: {
-            productId: params.productId,
-            companyId: params.companyId,
-            userId: params.userId,
-            type: params.type,
-            saleId: params.saleId,
-            reason: params.reason,
-            stockBefore,
-            stockAfter,
-            unit: params.unit || updatedProduct.unit,
-            quantityDecimal: qty,
-          },
-        });
-      } else if (params.ingredientId) {
-        // 1. Update ingredient
-        const updatedIngredient = await t.ingredient.update({
-          where: { id: params.ingredientId },
-          data: {
-            stock: {
-              increment: qty,
-            },
-          },
-          select: {
-            stock: true,
-            unit: true,
-            company: {
-              select: { allowNegativeStock: true },
-            },
-          },
-        });
-
-        const stockAfter = new Decimal(updatedIngredient.stock.toString());
-        const stockBefore = stockAfter.minus(qty);
-
-        if (stockAfter.lt(0) && !updatedIngredient.company.allowNegativeStock) {
-          throw new BusinessError("Estoque insuficiente de insumo. A empresa não permite estoque negativo.");
-        }
-
-        return await t.stockMovement.create({
-          data: {
-            ingredientId: params.ingredientId,
-            companyId: params.companyId,
-            userId: params.userId,
-            type: params.type,
-            saleId: params.saleId,
-            reason: params.reason,
-            stockBefore,
-            stockAfter,
-            unit: params.unit || updatedIngredient.unit,
-            quantityDecimal: qty,
-          },
-        });
-      } else {
-        throw new Error("Either productId or ingredientId must be provided.");
+      // 2. Validate negative stock (ignore if forceAllowNegative is true)
+      if (
+        stockAfter.lt(0) && 
+        !updatedProduct.company.allowNegativeStock && 
+        !params.forceAllowNegative
+      ) {
+        throw new BusinessError(
+          "Estoque insuficiente. A empresa não permite estoque negativo."
+        );
       }
+
+      return await t.stockMovement.create({
+        data: {
+          productId: params.productId,
+          companyId: params.companyId,
+          userId: params.userId,
+          type: params.type,
+          saleId: params.saleId,
+          reason: params.reason,
+          stockBefore,
+          stockAfter,
+          unit: params.unit || updatedProduct.unit,
+          quantityDecimal: qty,
+        },
+      });
     } catch (err) {
       throw err;
     }

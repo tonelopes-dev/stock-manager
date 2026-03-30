@@ -77,6 +77,7 @@ export class AuditMapper {
 
       // Business (Products)
       case AuditEventType.STOCK_ADJUSTED:
+      case AuditEventType.INGREDIENT_STOCK_ADJUSTED: // Map legacy
         return {
           title: "Ajuste de estoque",
           description: `${actor} alterou o estoque de "${String(meta.name || "item")}" em ${Number(meta.qty || 0)} ${String(meta.unit || "")}. (De ${meta.before || 0} para ${meta.after || 0})`,
@@ -94,7 +95,6 @@ export class AuditMapper {
         return {
           title: "Venda realizada",
           description: `${actor} registrou uma nova venda no valor de R$ ${Number(meta.totalAmount || 0).toFixed(2)}.`,
-
           icon: <ShoppingCart className="h-4 w-4" />,
           variant: "info",
         };
@@ -113,55 +113,28 @@ export class AuditMapper {
           variant: "warning",
         };
       case AuditEventType.PRODUCT_CREATED:
+      case AuditEventType.INGREDIENT_CREATED: // Map legacy
         return {
-          title: "Produto criado",
-          description: `${actor} adicionou o produto "${String(meta.name || "Sem nome")}" (${String(meta.unit || "UN")}) ao catálogo.`,
+          title: "Item criado",
+          description: `${actor} adicionou "${String(meta.name || "Sem nome")}" (${String(meta.unit || "UN")}) ao catálogo.`,
           icon: <Package className="h-4 w-4" />,
           variant: "info",
         };
       case AuditEventType.PRODUCT_UPDATED:
+      case AuditEventType.INGREDIENT_UPDATED: // Map legacy
         return {
-          title: "Produto atualizado",
-          description: `${actor} editou as informações do produto "${String(meta.name || "Sem nome")}".`,
+          title: "Item atualizado",
+          description: `${actor} editou as informações de "${String(meta.name || "Sem nome")}".`,
           icon: <Package className="h-4 w-4" />,
           variant: "info",
         };
       case AuditEventType.PRODUCT_DELETED:
+      case AuditEventType.INGREDIENT_DELETED: // Map legacy
         return {
-          title: "Produto desativado",
-          description: `${actor} desativou o produto "${String(meta.name || "Sem nome")}" do catálogo.`,
+          title: "Item desativado/removido",
+          description: `${actor} removeu "${String(meta.name || "Sem nome")}" do catálogo.`,
           icon: <Trash2 className="h-4 w-4" />,
           variant: "warning",
-        };
-
-      // Insumos (Ingredients)
-      case AuditEventType.INGREDIENT_CREATED:
-        return {
-          title: "Insumo criado",
-          description: `${actor} adicionou o insumo "${String(meta.name || "Sem nome")}" (${String(meta.unit || "")}) ao estoque.`,
-          icon: <Info className="h-4 w-4" />,
-          variant: "info",
-        };
-      case AuditEventType.INGREDIENT_UPDATED:
-        return {
-          title: "Insumo atualizado",
-          description: `${actor} editou as informações do insumo "${String(meta.name || "Sem nome")}".`,
-          icon: <Info className="h-4 w-4" />,
-          variant: "info",
-        };
-      case AuditEventType.INGREDIENT_DELETED:
-        return {
-          title: "Insumo removido",
-          description: `${actor} removeu o insumo "${String(meta.name || "Sem nome")}".`,
-          icon: <Trash2 className="h-4 w-4" />,
-          variant: "warning",
-        };
-      case AuditEventType.INGREDIENT_STOCK_ADJUSTED:
-        return {
-          title: "Ajuste de insumo",
-          description: `${actor} alterou o estoque de "${String(meta.name || "insumo")}" em ${Number(meta.qty || 0)} ${String(meta.unit || "")}. (De ${meta.before || 0} para ${meta.after || 0})`,
-          icon: <RefreshCcw className="h-4 w-4" />,
-          variant: "info",
         };
 
       // Billing

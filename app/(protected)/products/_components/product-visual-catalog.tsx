@@ -9,12 +9,9 @@ import { useState, useMemo, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Input } from "@/app/_components/ui/input";
 import { SearchIcon, ArrowDownWideNarrow, ChevronsUpDown } from "lucide-react";
-import { ProductCard } from "./product-card";
 import { Dialog } from "@/app/_components/ui/dialog";
 import UpsertProductDialogContent from "./upsert-dialog-content";
 import { Button } from "@/app/_components/ui/button";
-import { Badge } from "@/app/_components/ui/badge";
-import { PlusIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +33,7 @@ interface ProductVisualCatalogProps {
   userRole: UserRole;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
+  products: ProductDto[]; // Full list for technical sheet selector
 }
 
 type SortOption = "latest" | "low-stock" | "price-asc" | "price-desc";
@@ -45,12 +43,12 @@ export const ProductVisualCatalog = ({
   userRole,
   categories,
   environments,
+  products: allProducts,
 }: ProductVisualCatalogProps) => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("latest");
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
 
-  // Reset category filter when category list changes (e.g. environment change)
   useEffect(() => {
     if (selectedCategoryId !== "all") {
         const categoryExists = categories.some(cat => cat.id === selectedCategoryId);
@@ -131,6 +129,7 @@ export const ProductVisualCatalog = ({
           productsPromise={productsPromise}
           categories={categories}
           environments={environments}
+          allProducts={allProducts}
         />
         <ProductGrid 
           productsPromise={productsPromise}
@@ -140,6 +139,7 @@ export const ProductVisualCatalog = ({
           userRole={userRole}
           categories={categories}
           environments={environments}
+          products={allProducts}
         />
       </Suspense>
     </div>
@@ -151,12 +151,14 @@ const ProductSearchHandler = ({
   productsPromise,
   categories,
   environments,
+  allProducts,
 }: {
   productsPromise: Promise<ProductDto[]>;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
+  allProducts: ProductDto[];
 }) => {
-  const products = React.use(productsPromise);
+  const productsResult = React.use(productsPromise);
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -168,13 +170,13 @@ const ProductSearchHandler = ({
     const id = searchParams.get("id");
 
     if (action === "edit" && id) {
-      const product = products.find((p) => p.id === id);
+      const product = productsResult.find((p) => p.id === id);
       if (product) {
         setSelectedProduct(product);
         setIsOpen(true);
       }
     }
-  }, [searchParams, products]);
+  }, [searchParams, productsResult]);
 
   const handleClose = (open: boolean) => {
     setIsOpen(open);
@@ -196,6 +198,7 @@ const ProductSearchHandler = ({
         setDialogIsOpen={setIsOpen}
         categories={categories}
         environments={environments}
+        products={allProducts}
         defaultValues={{
           id: selectedProduct.id,
           name: selectedProduct.name,
@@ -208,9 +211,13 @@ const ProductSearchHandler = ({
           unit: selectedProduct.unit,
           categoryId: selectedProduct.categoryId || "",
           environmentId: selectedProduct.environmentId || "",
-          expirationDate: selectedProduct.expirationDate,
+          expirationDate: selectedProduct.expirationDate ? new Date(selectedProduct.expirationDate) : undefined,
           trackExpiration: selectedProduct.trackExpiration,
           imageUrl: selectedProduct.imageUrl || "",
+          compositions: selectedProduct.parentCompositions?.map((c: any) => ({
+            childId: c.childId,
+            quantity: Number(c.quantity),
+          })) || [],
         }}
       />
     </Dialog>
@@ -232,22 +239,11 @@ const CategoryTabs = ({
 }: CategoryTabsProps) => {
   const products = React.use(productsPromise);
   
-  // Get active category IDs from current products
   const activeCategoryIds = useMemo(() => {
     const ids = new Set(products.map(p => p.categoryId).filter(Boolean));
     return ids;
   }, [products]);
 
-  // Filter categories to show
-  // If no environment filter is active (selectedCategoryId can still be "all", 
-  // but we mean if the products are not filtered by environment fundamentally...)
-  // Actually, we show all categories if we are in "All Environments" 
-  // (which is handled by the parent passing the environment id).
-  // Wait, ProductVisualCatalog doesn't know the environmentId directly, 
-  // but it's in the searchParams.
-  // Actually, the productsPromise IS the filtered list.
-  // So if we show only categories that have products in productsPromise, 
-  // it automatically reacts to environment changes!
   const filteredCategories = useMemo(() => {
     return categories.filter(cat => activeCategoryIds.has(cat.id));
   }, [categories, activeCategoryIds]);

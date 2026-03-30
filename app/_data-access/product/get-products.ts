@@ -1,11 +1,10 @@
 import "server-only";
 
 import { db } from "@/app/_lib/prisma";
-import { Product, Prisma, UnitType } from "@prisma/client";
+import { Product, Prisma } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { calculateMargin } from "@/app/_lib/pricing";
 import { subDays } from "date-fns";
-import { calculateRealCost } from "@/app/_lib/units";
 
 export type ProductStatusDto = "IN_STOCK" | "OUT_OF_STOCK" | "LOW_STOCK" | "SLOW_MOVING";
 
@@ -20,6 +19,7 @@ export interface ProductDto extends Omit<Product, "price" | "cost" | "category">
   trackExpiration: boolean;
   environmentId: string | null;
   environment?: { id: string; name: string } | null;
+  parentCompositions?: any[]; // Simplified for DTO
   _count?: {
     saleItems: number;
     productionOrders: number;
@@ -65,9 +65,9 @@ export const getProducts = async (
         },
         take: 1,
       },
-      recipes: {
+      parentCompositions: {
         include: {
-          ingredient: true,
+          child: true,
         },
       },
       category: {
@@ -80,35 +80,12 @@ export const getProducts = async (
   })) as any[];
 
   return products.map((product) => {
-    const isOutOfStock = product.stock <= 0;
-    const isLowStock = product.stock <= product.minStock;
+    const isOutOfStock = Number(product.stock) <= 0;
+    const isLowStock = Number(product.stock) <= Number(product.minStock);
     const isSlowMoving = product.saleItems.length === 0 && !isOutOfStock;
 
-    // Calculate effective cost: use recipe cost for PREPARED products
-    let effectiveCost = Number(product.cost);
-    
-    if (product.type === "PREPARED") {
-      const recipeCost = product.recipes.reduce((sum: number, recipe: any) => {
-        try {
-          const partialCost = calculateRealCost(
-            recipe.quantity,
-            recipe.unit as UnitType,
-            recipe.ingredient.unit as UnitType,
-            recipe.ingredient.cost
-          );
-          return sum + Number(partialCost);
-        } catch (error) {
-          console.error(`Error calculating cost for product ${product.id} recipe item ${recipe.id}:`, error);
-          return sum;
-        }
-      }, 0);
-      
-      // If the product has a recipe, use it. 
-      // This "fixes" the bug where cost was reset to 0 in the DB.
-      if (product.recipes.length > 0) {
-        effectiveCost = recipeCost;
-      }
-    }
+    // The cost is now persisted in the DB and updated by the action
+    const effectiveCost = Number(product.cost);
 
     return {
       id: product.id,
@@ -118,8 +95,8 @@ export const getProducts = async (
       type: product.type,
       sku: product.sku,
       unit: product.unit,
-      stock: product.stock,
-      minStock: product.minStock,
+      stock: Number(product.stock),
+      minStock: Number(product.minStock),
       isActive: product.isActive,
       isVisibleOnMenu: product.isVisibleOnMenu,
       isPromotion: product.isPromotion,
@@ -128,7 +105,7 @@ export const getProducts = async (
       updatedAt: product.updatedAt,
       price: Number(product.price),
       cost: effectiveCost,
-      margin: calculateMargin(product.price, effectiveCost),
+      margin: calculateMargin(Number(product.price), effectiveCost),
       status: isOutOfStock
         ? "OUT_OF_STOCK"
         : isLowStock

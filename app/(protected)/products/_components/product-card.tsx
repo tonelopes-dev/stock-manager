@@ -18,23 +18,26 @@ interface ProductCardProps {
   userRole: UserRole;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
+  products: ProductDto[]; // Full list for technical sheet selector
 }
 
 const PRODUCT_TYPE_LABELS: Record<
   string,
-  { label: string; variant: "default" | "secondary" | "outline" }
+  { label: string; variant: "default" | "secondary" | "outline" | "premium" }
 > = {
-  RESELL: { label: "Revenda", variant: "secondary" },
-  PREPARED: { label: "Produção Própria", variant: "default" },
+  REVENDA: { label: "Revenda", variant: "secondary" },
+  PRODUCAO_PROPRIA: { label: "Produção Própria", variant: "default" },
+  COMBO: { label: "Combo", variant: "premium" },
+  INSUMO: { label: "Insumo", variant: "outline" },
 };
 
-export const ProductCard = ({ product, userRole, categories, environments }: ProductCardProps) => {
+export const ProductCard = ({ product, userRole, categories, environments, products: allProducts }: ProductCardProps) => {
   const router = useRouter();
   const [hasError, setHasError] = React.useState(false);
-  const typeConfig = PRODUCT_TYPE_LABELS[product.type] || PRODUCT_TYPE_LABELS.RESELL;
+  
+  const typeConfig = PRODUCT_TYPE_LABELS[product.type] || PRODUCT_TYPE_LABELS.REVENDA;
 
   const handleClick = (e: React.MouseEvent) => {
-    // Prevent redirect if clicking on the dropdown or other interactive elements
     const target = e.target as HTMLElement;
     if (
       target.closest("button") || 
@@ -74,7 +77,10 @@ export const ProductCard = ({ product, userRole, categories, environments }: Pro
         )}
         
         <div className="absolute top-3 left-3 flex flex-col gap-2">
-          <Badge variant={typeConfig.variant} className="shadow-sm border-none backdrop-blur-md bg-background/80 text-foreground">
+          <Badge 
+            variant={typeConfig.variant as any} 
+            className="shadow-sm border-none backdrop-blur-md bg-background/80 text-foreground"
+          >
             {typeConfig.label}
           </Badge>
           {!product.isActive && (
@@ -90,6 +96,7 @@ export const ProductCard = ({ product, userRole, categories, environments }: Pro
                 userRole={userRole} 
                 categories={categories}
                 environments={environments}
+                products={allProducts}
             />
         </div>
       </div>
@@ -132,7 +139,7 @@ export const ProductCard = ({ product, userRole, categories, environments }: Pro
             <div className="space-y-1">
                 <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-tight">Estoque</span>
                 <p className="text-sm font-semibold text-foreground">
-                    {product.stock} un
+                    {product.stock} {product.unit}
                 </p>
             </div>
             <ProductStatusBadge status={product.status} />
