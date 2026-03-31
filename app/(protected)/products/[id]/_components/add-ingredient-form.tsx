@@ -64,7 +64,7 @@ export default function AddIngredientForm({
 
   const { execute, isPending } = useAction(addRecipeIngredient, {
     onSuccess: () => {
-      toast.success("Insumo adicionado à receita.");
+      toast.success("Item adicionado com sucesso.");
       setIngredientId("");
       setQuantity("");
       setUnit("");
@@ -101,13 +101,13 @@ export default function AddIngredientForm({
     <div className="flex items-end gap-3 border-t pt-4">
       <div className="flex-1 space-y-1">
         <label className="text-xs font-medium text-muted-foreground">
-          Insumo
+          Item / Componente
         </label>
         <Combobox
           value={ingredientId}
           onChange={handleIngredientChange}
           options={ingredientOptions}
-          placeholder="Selecionar insumo..."
+          placeholder="Selecionar item..."
         />
       </div>
 
@@ -122,6 +122,7 @@ export default function AddIngredientForm({
           placeholder={selectedUnitConfig?.placeholder || "Ex: 150"}
           value={quantity}
           onChange={(e) => setQuantity(e.target.value)}
+          aria-label="Quantidade"
         />
       </div>
 
@@ -130,7 +131,7 @@ export default function AddIngredientForm({
           Unidade
         </label>
         <Select value={unit} onValueChange={setUnit}>
-          <SelectTrigger>
+          <SelectTrigger aria-label="Unidade de Medida">
             <SelectValue placeholder="Un." />
           </SelectTrigger>
           <SelectContent>
@@ -148,6 +149,7 @@ export default function AddIngredientForm({
         disabled={isPending}
         size="icon"
         className="shrink-0"
+        aria-label="Adicionar"
       >
         {isPending ? (
           <Loader2Icon className="animate-spin" size={16} />

@@ -63,6 +63,7 @@ import {
 } from "@/app/_components/ui/select";
 import { DatePicker } from "@/app/_components/ui/date-picker";
 import { parseISO } from "date-fns";
+import { Switch } from "@/app/_components/ui/switch";
 
 const formSchema = z.object({
   productId: z.string().uuid({
@@ -125,7 +126,7 @@ const UpsertSheetContent = ({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | undefined>(
     (defaultPaymentMethod as PaymentMethod) || undefined,
   );
-  const [tipAmount, setTipAmount] = useState<number>(0);
+  const [applyServiceCharge, setApplyServiceCharge] = useState<boolean>(true);
 
   const { execute: executeUpsertSale, isPending: isUpsertPending } = useAction(
     upsertSale,
@@ -181,13 +182,13 @@ const UpsertSheetContent = ({
       );
       setCustomerId(defaultCustomerId || undefined);
       setPaymentMethod((defaultPaymentMethod as PaymentMethod) || undefined);
-      setTipAmount(Number(defaultTipAmount) || 0);
+      setApplyServiceCharge(defaultTipAmount === undefined ? true : Number(defaultTipAmount) > 0);
     } else {
       form.reset();
       setSelectedProducts([]);
       setCustomerId(undefined);
       setPaymentMethod(undefined);
-      setTipAmount(0);
+      setApplyServiceCharge(true);
     }
   }, [
     form,
@@ -196,6 +197,7 @@ const UpsertSheetContent = ({
     saleDate,
     defaultCustomerId,
     defaultPaymentMethod,
+    defaultTipAmount,
   ]);
 
   const onSubmit = (data: FormSchema) => {
@@ -205,23 +207,21 @@ const UpsertSheetContent = ({
     setSelectedProducts((current) => {
       const existing = current.find((p) => p.id === product.id);
       if (existing) {
-        if (existing.quantity + data.quantity > product.stock) {
-          form.setError("quantity", { message: "Estoque insuficiente." });
-          return current;
-        }
         return current.map((p) =>
           p.id === product.id
             ? { ...p, quantity: p.quantity + data.quantity }
             : p,
         );
       }
-      if (data.quantity > product.stock) {
-        form.setError("quantity", { message: "Estoque insuficiente." });
-        return current;
-      }
       return [
         ...current,
-        { ...product, price: Number(product.price), quantity: data.quantity },
+        {
+          ...product,
+          price: Number(product.price),
+          cost: Number(product.cost),
+          stock: Number(product.stock),
+          quantity: data.quantity,
+        },
       ];
     });
     form.reset({ productId: "", quantity: 1 });
@@ -230,11 +230,6 @@ const UpsertSheetContent = ({
   const updateQuantity = (productId: string, newQuantity: number) => {
     const product = products.find((p) => p.id === productId);
     if (!product) return;
-
-    if (newQuantity > product.stock) {
-      toast.error(`Apenas ${product.stock} unidades disponíveis.`);
-      return;
-    }
 
     setSelectedProducts((current) =>
       current.map((p) =>
@@ -253,9 +248,16 @@ const UpsertSheetContent = ({
       0,
     );
     const itenCount = selectedProducts.reduce((acc, p) => acc + p.quantity, 0);
-    const totalWithTip = subtotal + tipAmount;
-    return { subtotal, itenCount, totalWithTip };
-  }, [selectedProducts, tipAmount]);
+    
+    // Calculate 10% with 2 decimal precision
+    const serviceChargeAmount = applyServiceCharge 
+      ? Math.round(subtotal * 0.1 * 100) / 100 
+      : 0;
+
+    const totalWithTip = Math.round((subtotal + serviceChargeAmount) * 100) / 100;
+    
+    return { subtotal, itenCount, serviceChargeAmount, totalWithTip };
+  }, [selectedProducts, applyServiceCharge]);
 
   const onSubmitSale = () => {
     if (selectedProducts.length === 0) return;
@@ -285,7 +287,7 @@ const UpsertSheetContent = ({
         date: date ? new Date(date + "T12:00:00") : undefined,
         customerId,
         paymentMethod,
-        tipAmount,
+        tipAmount: totals.serviceChargeAmount,
         products: selectedProducts.map((p) => ({
           id: p.id,
           quantity: p.quantity,
@@ -407,6 +409,7 @@ const UpsertSheetContent = ({
                           <Combobox
                             placeholder="Buscar produto..."
                             options={productOptions}
+                            data-testid="product-search-combobox"
                             {...field}
                           />
                         </FormControl>
@@ -427,7 +430,6 @@ const UpsertSheetContent = ({
                           <QuantityStepper
                             value={field.value}
                             onChange={field.onChange}
-                            max={currentProduct?.stock}
                             className="h-10 justify-start"
                           />
                         </FormControl>
@@ -435,7 +437,7 @@ const UpsertSheetContent = ({
                           <p className="mt-1.5 text-[10px] font-bold text-muted-foreground">
                             Estoque:{" "}
                             <span className="text-foreground">
-                              {currentProduct.stock} unid.
+                              {Number(currentProduct.stock)} unid.
                             </span>
                           </p>
                         )}
@@ -578,21 +580,27 @@ const UpsertSheetContent = ({
           </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <Label className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
-                  Gorjeta / Taxa
+                  Taxa de Serviço (10%)
                 </Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">R$</span>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0,00"
-                    value={tipAmount || ""}
-                    onChange={(e) => setTipAmount(Number(e.target.value))}
-                    className="h-12 border-border pl-8 font-bold text-foreground focus-visible:ring-primary/20"
-                  />
+                <div className="flex h-12 items-center justify-between rounded-xl border border-border bg-muted/50 px-4">
+                   <div className="flex items-center gap-3">
+                      <Switch 
+                        checked={applyServiceCharge}
+                        onCheckedChange={setApplyServiceCharge}
+                        id="service-charge"
+                      />
+                      <Label htmlFor="service-charge" className="text-xs font-bold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                         {applyServiceCharge ? "Ativada" : "Desativada"}
+                      </Label>
+                   </div>
+                   <span className={cn(
+                      "text-sm font-black transition-colors",
+                      applyServiceCharge ? "text-primary" : "text-muted-foreground/50"
+                   )}>
+                      {formatCurrency(totals.serviceChargeAmount)}
+                   </span>
                 </div>
               </div>
               <div className="space-y-2">
@@ -603,7 +611,11 @@ const UpsertSheetContent = ({
                   value={paymentMethod}
                   onValueChange={(val) => setPaymentMethod(val as PaymentMethod)}
                 >
-                  <SelectTrigger className="h-12 border-border font-bold focus:ring-primary/20">
+                  <SelectTrigger 
+                    className="h-12 border-border font-bold focus:ring-primary/20"
+                    aria-label="Forma de Pagamento"
+                    data-testid="payment-method-select"
+                  >
                     <SelectValue placeholder="Selecione..." />
                   </SelectTrigger>
                   <SelectContent className="border-border">
@@ -644,6 +656,7 @@ const UpsertSheetContent = ({
 
           <Button
             className="mt-6 h-12 w-full gap-2 text-sm font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+            data-testid="finalize-sale-button"
             disabled={selectedProducts.length === 0 || isPending}
             onClick={onSubmitSale}
           >

@@ -22,10 +22,7 @@ export const upsertProductSchema = z.object({
   expirationDate: z.coerce.date().nullable().optional(),
   trackExpiration: z.boolean().default(false),
   imageUrl: z.string().url().optional().or(z.literal("")),
-  compositions: z.array(z.object({
-    childId: z.string().uuid(),
-    quantity: z.number().positive(),
-  })).optional(),
+
 }).refine((data) => {
   // PRODUCAO_PROPRIA and COMBO products get their cost from composition, skip validation if it's 0 here
   if (data.type === "PRODUCAO_PROPRIA" || data.type === "COMBO") return true;

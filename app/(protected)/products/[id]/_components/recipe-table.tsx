@@ -73,7 +73,7 @@ export default function RecipeTable({ recipes, recipeCost }: RecipeTableProps) {
     updateRecipeIngredient,
     {
       onSuccess: () => {
-        toast.success("Insumo atualizado.");
+        toast.success("Item atualizado.");
         setEditingId(null);
       },
       onError: ({ error: { serverError } }) => {
@@ -86,7 +86,7 @@ export default function RecipeTable({ recipes, recipeCost }: RecipeTableProps) {
     deleteRecipeIngredient,
     {
       onSuccess: () => {
-        toast.success("Insumo removido da receita.");
+        toast.success("Item removido com sucesso.");
       },
       onError: ({ error: { serverError } }) => {
         toast.error(serverError || "Erro ao remover insumo.");
@@ -138,7 +138,7 @@ export default function RecipeTable({ recipes, recipeCost }: RecipeTableProps) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Insumo</TableHead>
+          <TableHead>Item</TableHead>
           <TableHead className="text-right">Quantidade</TableHead>
           <TableHead>Unidade</TableHead>
           <TableHead className="text-right">Custo Unit.</TableHead>

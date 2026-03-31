@@ -21,7 +21,7 @@ export interface ComboboxOption {
   unit?: string;
 }
 
-interface ComboboxProps {
+interface ComboboxProps extends Omit<React.ComponentPropsWithoutRef<typeof Button>, "onChange"> {
   options: ComboboxOption[];
   value: string;
   onChange: (value: string) => void;
@@ -33,6 +33,7 @@ export const Combobox = ({
   options,
   placeholder,
   onChange,
+  ...props
 }: ComboboxProps) => {
   const [open, setOpen] = React.useState(false);
 
@@ -44,6 +45,7 @@ export const Combobox = ({
           role="combobox"
           aria-expanded={open}
           className="w-full justify-between"
+          {...props}
         >
           {value
             ? options.find((option) => option.value === value)?.label

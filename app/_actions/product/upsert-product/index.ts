@@ -61,7 +61,7 @@ async function updateProductCostRecursive(
 
 export const upsertProduct = actionClient
   .schema(upsertProductSchema)
-  .action(async ({ parsedInput: { id, compositions, ...data } }) => {
+  .action(async ({ parsedInput: { id, ...data } }) => {
     const companyId = await getCurrentCompanyId();
     const { userId } = await assertRole(ADMIN_AND_OWNER);
     await requireActiveSubscription(companyId);
@@ -153,26 +153,12 @@ export const upsertProduct = actionClient
         }
       }
 
-      // 3. Handle Compositions (Ficha Técnica)
-      if (type === "COMBO" || type === "PRODUCAO_PROPRIA") {
-        // Clear old composition
-        await trx.productComposition.deleteMany({
-          where: { parentId: productId },
+      // 3. Update cost if it's a new combo/production (it starts at 0 and is updated later via individual additions)
+      if (!id && (type === "COMBO" || type === "PRODUCAO_PROPRIA")) {
+        await trx.product.update({
+          where: { id: productId },
+          data: { cost: 0 },
         });
-
-        // Create new ones
-        if (compositions && compositions.length > 0) {
-          await trx.productComposition.createMany({
-            data: compositions.map((c) => ({
-              parentId: productId!,
-              childId: c.childId,
-              quantity: c.quantity,
-            })),
-          });
-        }
-
-        // Update cost based on new composition
-        await updateProductCostRecursive(productId!, trx);
       }
 
       // 4. Log Audit

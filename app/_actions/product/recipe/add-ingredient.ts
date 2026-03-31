@@ -6,15 +6,20 @@ import { addRecipeIngredientSchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { isUnitCompatible } from "@/app/_lib/units";
-import { recalculateProductCost } from "./recalculate-cost";
-import { UnitType } from "@prisma/client";
+import { recalculateProductCostRecursive } from "./recalculate-cost";
+import { ProductType, UnitType } from "@prisma/client";
 
 export const addRecipeIngredient = actionClient
   .schema(addRecipeIngredientSchema)
   .action(async ({ parsedInput: { productId, ingredientId, quantity, unit } }) => {
     const companyId = await getCurrentCompanyId();
 
-    // Validate product exists, belongs to company, and is PREPARED
+    // Loop prevention
+    if (productId === ingredientId) {
+      throw new Error("Um produto não pode ser ingrediente de si mesmo.");
+    }
+
+    // Validate product exists, belongs to company, and is PRODUCAO_PROPRIA or COMBO
     const product = await db.product.findFirst({
       where: { id: productId, companyId, isActive: true },
     });
@@ -23,47 +28,55 @@ export const addRecipeIngredient = actionClient
       throw new Error("Produto não encontrado.");
     }
 
-    if (product.type !== "PREPARED") {
-      throw new Error("Apenas produtos do tipo Produção Própria podem ter receita.");
+    const isCompositionAllowed = 
+      product.type === ProductType.PRODUCAO_PROPRIA || 
+      product.type === ProductType.COMBO;
+
+    if (!isCompositionAllowed) {
+      throw new Error("Apenas produtos de Produção Própria ou Combos podem ter composição.");
     }
 
-    // Validate ingredient exists and belongs to company
-    const ingredient = await db.ingredient.findFirst({
+    // Validate child product (ingredient)
+    const child = await db.product.findFirst({
       where: { id: ingredientId, companyId, isActive: true },
     });
 
-    if (!ingredient) {
-      throw new Error("Insumo não encontrado.");
+    if (!child) {
+      throw new Error("Item a ser adicionado não encontrado.");
     }
 
-    // Check unit compatibility
-    if (!isUnitCompatible(unit as UnitType, ingredient.unit)) {
+    if (child.type === ProductType.COMBO) {
+      throw new Error("Combos não podem fazer parte de uma ficha técnica para evitar loops infinitos.");
+    }
+
+    // Check unit compatibility (assuming composition quantity unit matches child's natural unit)
+    if (!isUnitCompatible(unit as UnitType, child.unit)) {
       throw new Error(
-        `Unidade incompatível: O insumo ${ingredient.name} é estocado em ${ingredient.unit} e não pode ser convertido para ${unit}.`
+        `Unidade incompatível: O item ${child.name} é estocado em ${child.unit} e não pode ser usado como ${unit}.`
       );
     }
 
-    // Check for duplicate (@@unique constraint)
-    const existing = await db.productRecipe.findUnique({
+    // Check for duplicate
+    const existing = await db.productComposition.findUnique({
       where: {
-        productId_ingredientId: { productId, ingredientId },
+        parentId_childId: { parentId: productId, childId: ingredientId },
       },
     });
 
     if (existing) {
-      throw new Error("Este insumo já está na receita. Edite a quantidade existente.");
+      throw new Error("Este item já está na composição. Edite a quantidade existente.");
     }
 
-    await db.productRecipe.create({
+    await db.productComposition.create({
       data: {
-        productId,
-        ingredientId,
+        parentId: productId,
+        childId: ingredientId,
         quantity,
-        unit,
       },
     });
 
-    await recalculateProductCost(productId);
+    // Recalculate cost recursively up the tree
+    await recalculateProductCostRecursive(productId);
 
     revalidatePath(`/products/${productId}`, "page");
     revalidatePath("/products", "page");

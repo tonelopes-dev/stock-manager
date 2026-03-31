@@ -1,0 +1,36 @@
+app/(protected)/products/_components/product-card.tsx(142,21): error TS2322: Type 'Decimal' is not assignable to type 'ReactNode'.
+app/(protected)/products/_components/product-grid.tsx(49,37): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+app/(protected)/products/_components/product-grid.tsx(49,47): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+app/(protected)/products/_components/product-visual-catalog.tsx(209,11): error TS2322: Type 'Decimal' is not assignable to type 'number'.
+app/(protected)/products/_components/product-visual-catalog.tsx(210,11): error TS2322: Type 'Decimal' is not assignable to type 'number'.
+app/(protected)/products/_components/table-dropdown-menu.tsx(153,13): error TS2322: Type 'Decimal' is not assignable to type 'number'.
+app/(protected)/products/_components/table-dropdown-menu.tsx(154,13): error TS2322: Type 'Decimal' is not assignable to type 'number'.
+app/(protected)/products/_components/table-dropdown-menu.tsx(181,11): error TS2322: Type 'Decimal' is not assignable to type 'number'.
+app/(protected)/sales/_components/sales-data-table.tsx(159,9): error TS2322: Type '{ id: string; quantity: number; name: string; price: number; stock: number | Decimal; }[]' is not assignable to type 'SelectedProduct[]'.
+  Type '{ id: string; quantity: number; name: string; price: number; stock: number | Decimal; }' is not assignable to type 'SelectedProduct'.
+    Types of property 'stock' are incompatible.
+      Type 'number | Decimal' is not assignable to type 'number'.
+        Type 'Decimal' is not assignable to type 'number'.
+app/(protected)/sales/_components/table-dropdown-menu.tsx(141,9): error TS2322: Type '{ id: string; quantity: number; name: string; price: number; stock: number | Decimal; }[]' is not assignable to type 'SelectedProduct[]'.
+  Type '{ id: string; quantity: number; name: string; price: number; stock: number | Decimal; }' is not assignable to type 'SelectedProduct'.
+    Types of property 'stock' are incompatible.
+      Type 'number | Decimal' is not assignable to type 'number'.
+        Type 'Decimal' is not assignable to type 'number'.
+app/_actions/ingredient/adjust-ingredient-stock/index.ts(39,36): error TS2339: Property 'ingredient' does not exist on type 'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">'.
+app/_data-access/product/get-product-by-id.ts(57,7): error TS2353: Object literal may only specify known properties, and 'recipes' does not exist in type 'ProductInclude<DefaultArgs>'.
+app/_data-access/product/get-product-by-id.ts(67,50): error TS2339: Property 'recipes' does not exist on type '{ id: string; name: string; description: string | null; imageUrl: string | null; type: ProductType; price: Decimal; cost: Decimal; sku: string | null; stock: Decimal; ... 11 more ...; trackExpiration: boolean; }'.
+app/_data-access/product/get-product-by-id.ts(67,63): error TS7006: Parameter 'recipe' implicitly has an 'any' type.
+app/_data-access/product/get-product-by-id.ts(110,25): error TS2367: This comparison appears to be unintentional because the types 'ProductType' and '"PREPARED"' have no overlap.
+app/_data-access/product/get-product-by-id.ts(120,5): error TS2322: Type 'Decimal' is not assignable to type 'number'.
+app/_data-access/product/get-product-by-id.ts(121,5): error TS2322: Type 'Decimal' is not assignable to type 'number'.
+app/_data-access/product/get-products.ts(90,12): error TS2352: Conversion of type '{ id: any; name: any; description: any; imageUrl: any; type: any; sku: any; unit: any; stock: number; minStock: number; isActive: any; isVisibleOnMenu: any; isPromotion: any; companyId: any; createdAt: any; ... 11 more ...; trackExpiration: any; }' to type 'ProductDto' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Types of property 'stock' are incompatible.
+    Type 'number' is not comparable to type 'Decimal'.
+app/_data-access/stock-movement/get-stock-movements.ts(68,9): error TS2353: Object literal may only specify known properties, and 'ingredient' does not exist in type 'StockMovementInclude<DefaultArgs>'.
+app/_data-access/stock-movement/get-stock-movements.ts(88,13): error TS2339: Property 'user' does not exist on type '{ id: string; type: StockMovementType; stockBefore: Decimal; stockAfter: Decimal; productId: string | null; companyId: string; userId: string | null; ... 6 more ...; unit: UnitType | null; }'.
+app/_data-access/stock-movement/get-stock-movements.ts(89,16): error TS2551: Property 'product' does not exist on type '{ id: string; type: StockMovementType; stockBefore: Decimal; stockAfter: Decimal; productId: string | null; companyId: string; userId: string | null; ... 6 more ...; unit: UnitType | null; }'. Did you mean 'productId'?
+app/_data-access/stock-movement/get-stock-movements.ts(90,19): error TS2339: Property 'ingredient' does not exist on type '{ id: string; type: StockMovementType; stockBefore: Decimal; stockAfter: Decimal; productId: string | null; companyId: string; userId: string | null; ... 6 more ...; unit: UnitType | null; }'.
+prisma/clear-seed.ts(36,20): error TS2339: Property 'productRecipe' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+prisma/clear-seed.ts(38,20): error TS2339: Property 'ingredient' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+scripts/fix-recipe-units.ts(8,32): error TS2339: Property 'productRecipe' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+scripts/fix-recipe-units.ts(19,18): error TS2339: Property 'productRecipe' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.

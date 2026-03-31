@@ -1,7 +1,7 @@
 import "server-only";
 
 import { db } from "@/app/_lib/prisma";
-import { Ingredient } from "@prisma/client";
+import { Product } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
 export type IngredientStatusDto = "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
@@ -14,7 +14,7 @@ const UNIT_LABELS: Record<string, string> = {
   UN: "Un",
 };
 
-export interface IngredientDto extends Omit<Ingredient, "cost" | "stock" | "minStock"> {
+export interface IngredientDto extends Omit<Product, "cost" | "stock" | "minStock"> {
   cost: number;
   stock: number;
   minStock: number;
@@ -27,8 +27,12 @@ export interface IngredientDto extends Omit<Ingredient, "cost" | "stock" | "minS
 export const getIngredients = async (): Promise<IngredientDto[]> => {
   const companyId = await getCurrentCompanyId();
 
-  const ingredients = (await db.ingredient.findMany({
-    where: { companyId, isActive: true },
+  const ingredients = (await db.product.findMany({
+    where: {
+      companyId,
+      type: { in: ["INSUMO", "REVENDA", "PRODUCAO_PROPRIA"] },
+      isActive: true,
+    },
     orderBy: { name: "asc" },
   })) as any[];
 
@@ -44,6 +48,7 @@ export const getIngredients = async (): Promise<IngredientDto[]> => {
         return {
           id: ingredient.id,
           name: ingredient.name,
+          type: ingredient.type,
           unit: ingredient.unit,
           unitLabel: UNIT_LABELS[ingredient.unit] || ingredient.unit,
           cost: Number(ingredient.cost),

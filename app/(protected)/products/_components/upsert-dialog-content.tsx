@@ -46,7 +46,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon, X, CalendarIcon, ImageIcon, PlusIcon, Trash2Icon, InfoIcon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as React from "react";
 import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
@@ -70,7 +70,6 @@ interface UpsertProductDialogContentProps {
   hasProducts?: boolean;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
-  products: ProductDto[]; // All products for composition selection
 }
 
 const UpsertProductDialogContent = ({
@@ -78,7 +77,6 @@ const UpsertProductDialogContent = ({
   setDialogIsOpen,
   categories,
   environments,
-  products,
 }: UpsertProductDialogContentProps) => {
   const { execute: executeUpsertProduct, isPending } = useAction(
     upsertProduct,
@@ -114,8 +112,9 @@ const UpsertProductDialogContent = ({
     resolver: zodResolver(upsertProductSchema),
     defaultValues: defaultValues ? {
       ...defaultValues,
+      compositions: undefined,
       expirationDate: defaultValues.expirationDate ? new Date(defaultValues.expirationDate) : undefined,
-    } : {
+    } as any : {
       name: "",
       type: "REVENDA",
       unit: UnitType.UN,
@@ -125,17 +124,12 @@ const UpsertProductDialogContent = ({
       stock: 0,
       minStock: 0,
       trackExpiration: false,
-      compositions: [],
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "compositions",
-  });
-
   const productType = form.watch("type");
-  const isCompositionType = productType === "COMBO" || productType === "PRODUCAO_PROPRIA";
+  const isCompositionType =
+    productType === "COMBO" || productType === "PRODUCAO_PROPRIA";
 
   const onSubmit = (data: UpsertProductSchema) => {
     executeUpsertProduct({ ...data, id: defaultValues?.id });
@@ -146,25 +140,42 @@ const UpsertProductDialogContent = ({
     if (!file) return;
     try {
       setIsUploading(true);
-      const imageCompression = (await import("browser-image-compression")).default;
-      const compressedFile = await imageCompression(file, { maxSizeMB: 0.8, maxWidthOrHeight: 1200 });
-      const response = await fetch(`/api/upload?filename=${compressedFile.name}`, { method: "POST", body: compressedFile });
+      const imageCompression = (
+        await import("browser-image-compression")
+      ).default;
+      const compressedFile = await imageCompression(file, {
+        maxSizeMB: 0.8,
+        maxWidthOrHeight: 1200,
+      });
+      const response = await fetch(
+        `/api/upload?filename=${compressedFile.name}`,
+        { method: "POST", body: compressedFile }
+      );
       if (!response.ok) throw new Error("Upload failed");
       const blob = await response.json();
       form.setValue("imageUrl", blob.url);
       toast.success("Imagem enviada!");
     } catch (error) {
       toast.error("Erro no upload.");
-    } finally { setIsUploading(false); }
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
     <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-6">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="h-full flex flex-col space-y-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="h-full flex flex-col space-y-6"
+        >
           <DialogHeader>
-            <DialogTitle>{defaultValues ? "Editar" : "Criar"} Produto</DialogTitle>
-            <DialogDescription>Preencha os dados técnicos do item.</DialogDescription>
+            <DialogTitle>
+              {defaultValues ? "Editar" : "Criar"} Produto
+            </DialogTitle>
+            <DialogDescription>
+              Preencha os dados técnicos do item.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto px-1 pr-3 space-y-6">
@@ -177,7 +188,10 @@ const UpsertProductDialogContent = ({
                     <FormItem>
                       <FormLabel>Nome</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: X-Salada, Coca-Cola..." {...field} />
+                        <Input
+                          placeholder="Ex: X-Salada, Coca-Cola..."
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -191,7 +205,10 @@ const UpsertProductDialogContent = ({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Tipo de Produto</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue />
@@ -199,9 +216,13 @@ const UpsertProductDialogContent = ({
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="REVENDA">Revenda</SelectItem>
-                            <SelectItem value="PRODUCAO_PROPRIA">Produção Própria</SelectItem>
+                            <SelectItem value="PRODUCAO_PROPRIA">
+                              Produção Própria
+                            </SelectItem>
                             <SelectItem value="COMBO">Combo</SelectItem>
-                            <SelectItem value="INSUMO">Insumo / Matéria-prima</SelectItem>
+                            <SelectItem value="INSUMO">
+                              Insumo / Matéria-prima
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -215,18 +236,31 @@ const UpsertProductDialogContent = ({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Unidade</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value={UnitType.UN}>Unidade (UN)</SelectItem>
-                            <SelectItem value={UnitType.KG}>Quilograma (kg)</SelectItem>
-                            <SelectItem value={UnitType.G}>Grama (g)</SelectItem>
-                            <SelectItem value={UnitType.L}>Litro (L)</SelectItem>
-                            <SelectItem value={UnitType.ML}>Mililitro (ml)</SelectItem>
+                            <SelectItem value={UnitType.UN}>
+                              Unidade (UN)
+                            </SelectItem>
+                            <SelectItem value={UnitType.KG}>
+                              Quilograma (kg)
+                            </SelectItem>
+                            <SelectItem value={UnitType.G}>
+                              Grama (g)
+                            </SelectItem>
+                            <SelectItem value={UnitType.L}>
+                              Litro (L)
+                            </SelectItem>
+                            <SelectItem value={UnitType.ML}>
+                              Mililitro (ml)
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -245,14 +279,28 @@ const UpsertProductDialogContent = ({
                     <div className="relative w-32 h-32 rounded-xl border-2 border-dashed border-border flex items-center justify-center overflow-hidden bg-muted hover:bg-muted/80 transition-colors">
                       {field.value ? (
                         <>
-                          <img src={field.value} className="w-full h-full object-cover" alt="Produto" />
-                          <button onClick={() => field.onChange("")} className="absolute top-1 right-1 bg-destructive text-destructive-foreground p-1 rounded-full shadow-md"><X size={14} /></button>
+                          <img
+                            src={field.value}
+                            className="w-full h-full object-cover"
+                            alt="Produto"
+                          />
+                          <button
+                            onClick={() => field.onChange("")}
+                            className="absolute top-1 right-1 bg-destructive text-destructive-foreground p-1 rounded-full shadow-md"
+                          >
+                            <X size={14} />
+                          </button>
                         </>
                       ) : (
                         <label className="cursor-pointer flex flex-col items-center gap-1 text-muted-foreground pt-2">
                           <ImageIcon size={24} />
                           <span className="text-[10px] font-bold">UPLOAD</span>
-                          <input type="file" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
+                          <input
+                            type="file"
+                            className="hidden"
+                            onChange={handleImageUpload}
+                            disabled={isUploading}
+                          />
                         </label>
                       )}
                     </div>
@@ -326,85 +374,16 @@ const UpsertProductDialogContent = ({
                   <FormItem>
                     <FormLabel>SKU / Código</FormLabel>
                     <FormControl>
-                      <Input placeholder="Opcional" {...field} value={field.value || ""} />
+                      <Input
+                        placeholder="Opcional"
+                        {...field}
+                        value={field.value || ""}
+                      />
                     </FormControl>
                   </FormItem>
                 )}
               />
             </div>
-
-            {/* TECHNICAL SHEET SECTION */}
-            {isCompositionType && (
-              <div className="space-y-4 pt-4 border-t">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Label className="text-base font-bold">Ficha Técnica / Composição</Label>
-                    <Popover>
-                      <PopoverTrigger><InfoIcon size={14} className="text-muted-foreground"/></PopoverTrigger>
-                      <PopoverContent className="text-xs w-64">
-                        Adicione os componentes que fazem parte deste produto. O estoque será deduzido recursivamente na venda.
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <Button type="button" variant="outline" size="sm" onClick={() => append({ childId: "", quantity: 1 })}>
-                    <PlusIcon size={14} className="mr-2"/> Adicionar Item
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  {fields.length === 0 && (
-                    <div className="text-center py-6 border-2 border-dashed rounded-lg text-muted-foreground text-sm">
-                      Nenhum componente adicionado.
-                    </div>
-                  )}
-
-                  {fields.map((item, index) => (
-                    <div key={item.id} className="flex gap-2 items-end bg-muted/50 p-2 rounded-lg group animate-in slide-in-from-left-2">
-                      <div className="flex-1">
-                        <Label className="text-[10px] font-bold px-1 uppercase mb-1 block">Componente</Label>
-                        <FormField
-                          control={form.control}
-                          name={`compositions.${index}.childId`}
-                          render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione..." />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {products
-                                  .filter(p => p.id !== defaultValues?.id)
-                                  .map(p => (
-                                    <SelectItem key={p.id} value={p.id}>
-                                      {p.name} ({p.unit})
-                                    </SelectItem>
-                                  ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-                        />
-                      </div>
-                      <div className="w-24">
-                        <Label className="text-[10px] font-bold px-1 uppercase mb-1 block">Qtde</Label>
-                        <FormField
-                          control={form.control}
-                          name={`compositions.${index}.quantity`}
-                          render={({ field }) => (
-                            <FormControl>
-                              <Input type="number" step="any" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
-                            </FormControl>
-                          )}
-                        />
-                      </div>
-                      <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10" onClick={() => remove(index)}>
-                        <Trash2Icon size={16} />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             <div className="grid grid-cols-2 gap-6 pt-4 border-t">
               <FormField

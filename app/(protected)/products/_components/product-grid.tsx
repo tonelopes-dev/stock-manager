@@ -17,7 +17,6 @@ interface ProductGridProps {
   userRole: UserRole;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
-  products: ProductDto[]; // Full list for technical sheet selector
 }
 
 export const ProductGrid = ({
@@ -28,7 +27,6 @@ export const ProductGrid = ({
   userRole,
   categories,
   environments,
-  products: allProducts,
 }: ProductGridProps) => {
   const productsResult = use(productsPromise);
 
@@ -92,7 +90,6 @@ export const ProductGrid = ({
                 userRole={userRole}
                 categories={categories}
                 environments={environments}
-                products={allProducts}
               />
             ))}
           </div>

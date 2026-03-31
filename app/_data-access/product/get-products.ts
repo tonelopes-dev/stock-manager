@@ -8,10 +8,12 @@ import { subDays } from "date-fns";
 
 export type ProductStatusDto = "IN_STOCK" | "OUT_OF_STOCK" | "LOW_STOCK" | "SLOW_MOVING";
 
-export interface ProductDto extends Omit<Product, "price" | "cost" | "category"> {
+export interface ProductDto extends Omit<Product, "price" | "cost" | "category" | "stock" | "minStock"> {
   price: number;
   cost: number;
   margin: number;
+  stock: number;
+  minStock: number;
   status: ProductStatusDto;
   categoryId: string | null;
   category?: { id: string; name: string } | null;
@@ -46,7 +48,7 @@ export const getProducts = async (
     where.environmentId = environmentId;
   }
 
-  const products = (await db.product.findMany({
+  const products = await db.product.findMany({
     where,
     orderBy: { createdAt: "desc" },
     include: {
@@ -77,15 +79,20 @@ export const getProducts = async (
         select: { id: true, name: true },
       },
     }
-  })) as any[];
+  });
 
   return products.map((product) => {
-    const isOutOfStock = Number(product.stock) <= 0;
-    const isLowStock = Number(product.stock) <= Number(product.minStock);
+    const stock = product.stock.toNumber();
+    const minStock = product.minStock.toNumber();
+    const price = product.price.toNumber();
+    const cost = product.cost.toNumber();
+
+    const isOutOfStock = stock <= 0;
+    const isLowStock = stock <= minStock;
     const isSlowMoving = product.saleItems.length === 0 && !isOutOfStock;
 
     // The cost is now persisted in the DB and updated by the action
-    const effectiveCost = Number(product.cost);
+    const effectiveCost = cost;
 
     return {
       id: product.id,
@@ -95,17 +102,17 @@ export const getProducts = async (
       type: product.type,
       sku: product.sku,
       unit: product.unit,
-      stock: Number(product.stock),
-      minStock: Number(product.minStock),
+      stock: stock,
+      minStock: minStock,
       isActive: product.isActive,
       isVisibleOnMenu: product.isVisibleOnMenu,
       isPromotion: product.isPromotion,
       companyId: product.companyId,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
-      price: Number(product.price),
+      price: price,
       cost: effectiveCost,
-      margin: calculateMargin(Number(product.price), effectiveCost),
+      margin: calculateMargin(price, effectiveCost),
       status: isOutOfStock
         ? "OUT_OF_STOCK"
         : isLowStock
@@ -120,6 +127,6 @@ export const getProducts = async (
       environment: product.environment,
       expirationDate: product.expirationDate,
       trackExpiration: product.trackExpiration,
-    } as ProductDto;
+    };
   });
 };

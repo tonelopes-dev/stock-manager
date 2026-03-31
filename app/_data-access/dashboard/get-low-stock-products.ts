@@ -25,5 +25,11 @@ export const getLowStockProducts = async () => {
     take: 5,
   });
 
-  return products;
+  return products.map(product => ({
+    ...product,
+    stock: Number(product.stock),
+    minStock: Number(product.minStock),
+    price: Number(product.price),
+    cost: Number(product.cost),
+  }));
 };

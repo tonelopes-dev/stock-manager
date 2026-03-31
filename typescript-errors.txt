@@ -1,0 +1,6 @@
+app/(protected)/audit/_components/table-columns.tsx(45,20): error TS2339: Property 'ingredient' does not exist on type 'StockMovementDto'.
+app/(protected)/audit/_components/table-columns.tsx(51,29): error TS2339: Property 'ingredient' does not exist on type 'StockMovementDto'.
+prisma/clear-seed.ts(36,20): error TS2339: Property 'productRecipe' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+prisma/clear-seed.ts(38,20): error TS2339: Property 'ingredient' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+scripts/fix-recipe-units.ts(8,32): error TS2339: Property 'productRecipe' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+scripts/fix-recipe-units.ts(19,18): error TS2339: Property 'productRecipe' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.

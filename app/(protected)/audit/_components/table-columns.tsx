@@ -36,19 +36,9 @@ export const stockMovementTableColumns: ColumnDef<StockMovementDto>[] = [
         return (
           <div className="flex flex-col">
             <span className="text-xs font-semibold uppercase text-muted-foreground">
-              Produto
+              Item
             </span>
             <span>{movement.product.name}</span>
-          </div>
-        );
-      }
-      if (movement.ingredient) {
-        return (
-          <div className="flex flex-col">
-            <span className="text-xs font-semibold uppercase text-muted-foreground">
-              Insumo
-            </span>
-            <span>{movement.ingredient.name}</span>
           </div>
         );
       }

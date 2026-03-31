@@ -23,25 +23,8 @@ export async function GET(req: NextRequest) {
     const checkDateLimit = new Date();
     checkDateLimit.setDate(checkDateLimit.getDate() - 3); // 3 days ago for anti-spam
 
-    // 3. Scan Products
-    const expiringProducts = await db.product.findMany({
-      where: {
-        isActive: true,
-        trackExpiration: true,
-        expirationDate: {
-          lte: warningDate,
-          not: null,
-        },
-      },
-      include: {
-        environment: {
-          select: { name: true },
-        },
-      },
-    });
-
-    // 4. Scan Ingredients
-    const expiringIngredients = await db.ingredient.findMany({
+    // 3. Scan Expiring Items (Unified)
+    const expiringItems = await db.product.findMany({
       where: {
         isActive: true,
         trackExpiration: true,
@@ -53,15 +36,19 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         name: true,
+        type: true,
         expirationDate: true,
         companyId: true,
+        environment: {
+          select: { name: true },
+        },
       },
     });
 
-    const items = [
-      ...expiringProducts.map((p) => ({ ...p, itemType: "Produto" })),
-      ...expiringIngredients.map((i) => ({ ...i, itemType: "Insumo" })),
-    ];
+    const items = expiringItems.map((item) => ({ 
+      ...item, 
+      itemType: item.type === "INSUMO" ? "Insumo" : "Produto" 
+    }));
 
     let createdCount = 0;
 

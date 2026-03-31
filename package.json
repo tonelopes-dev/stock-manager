@@ -17,6 +17,10 @@
     "test:watch": "dotenv -e .env.test -- vitest",
     "test:integration": "dotenv -e .env.test -- vitest run tests/integration",
     "test:setup-db": "dotenv -e .env.test -- npx prisma db push --force-reset --accept-data-loss --skip-generate",
+    "e2e": "npx playwright test",
+    "e2e:ui": "npx playwright test --ui",
+    "e2e:headed": "npx playwright test --headed",
+    "e2e:report": "npx playwright show-report",
     "DANGER_DESTRUCTIVE_db:fresh": "prisma migrate reset --force",
     "db:warning": "echo 'WARNING: Do not run reset or fresh in production!'"
   },
@@ -83,6 +87,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^10.3.0",
+    "@playwright/test": "^1.58.2",
     "@types/node": "^20",
     "@types/react": "19.2.0",
     "@types/react-dom": "19.2.0",

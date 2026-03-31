@@ -33,7 +33,6 @@ interface ProductVisualCatalogProps {
   userRole: UserRole;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
-  products: ProductDto[]; // Full list for technical sheet selector
 }
 
 type SortOption = "latest" | "low-stock" | "price-asc" | "price-desc";
@@ -43,7 +42,6 @@ export const ProductVisualCatalog = ({
   userRole,
   categories,
   environments,
-  products: allProducts,
 }: ProductVisualCatalogProps) => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("latest");
@@ -129,7 +127,6 @@ export const ProductVisualCatalog = ({
           productsPromise={productsPromise}
           categories={categories}
           environments={environments}
-          allProducts={allProducts}
         />
         <ProductGrid 
           productsPromise={productsPromise}
@@ -139,7 +136,6 @@ export const ProductVisualCatalog = ({
           userRole={userRole}
           categories={categories}
           environments={environments}
-          products={allProducts}
         />
       </Suspense>
     </div>
@@ -151,12 +147,10 @@ const ProductSearchHandler = ({
   productsPromise,
   categories,
   environments,
-  allProducts,
 }: {
   productsPromise: Promise<ProductDto[]>;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
-  allProducts: ProductDto[];
 }) => {
   const productsResult = React.use(productsPromise);
   const searchParams = useSearchParams();
@@ -194,11 +188,16 @@ const ProductSearchHandler = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <UpsertProductDialogContent
-        setDialogIsOpen={setIsOpen}
+        <UpsertProductDialogContent
+        setDialogIsOpen={(val) => {
+          if (typeof val === 'function') {
+            handleClose(val(isOpen));
+          } else {
+            handleClose(val);
+          }
+        }}
         categories={categories}
         environments={environments}
-        products={allProducts}
         defaultValues={{
           id: selectedProduct.id,
           name: selectedProduct.name,
@@ -211,13 +210,11 @@ const ProductSearchHandler = ({
           unit: selectedProduct.unit,
           categoryId: selectedProduct.categoryId || "",
           environmentId: selectedProduct.environmentId || "",
-          expirationDate: selectedProduct.expirationDate ? new Date(selectedProduct.expirationDate) : undefined,
+          expirationDate: selectedProduct.expirationDate
+            ? new Date(selectedProduct.expirationDate)
+            : undefined,
           trackExpiration: selectedProduct.trackExpiration,
           imageUrl: selectedProduct.imageUrl || "",
-          compositions: selectedProduct.parentCompositions?.map((c: any) => ({
-            childId: c.childId,
-            quantity: Number(c.quantity),
-          })) || [],
         }}
       />
     </Dialog>

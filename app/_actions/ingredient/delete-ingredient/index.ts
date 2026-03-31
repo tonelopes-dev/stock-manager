@@ -19,8 +19,8 @@ export const deleteIngredient = actionClient
     await assertRole(ADMIN_AND_OWNER);
 
 
-    const ingredient = await db.ingredient.findFirst({
-      where: { id, companyId },
+    const ingredient = await db.product.findFirst({
+      where: { id, companyId, type: "INSUMO" },
     });
 
     if (!ingredient) {
@@ -28,7 +28,7 @@ export const deleteIngredient = actionClient
     }
 
     await db.$transaction(async (trx) => {
-      await trx.ingredient.update({
+      await trx.product.update({
         where: { id },
         data: { isActive: false },
       });

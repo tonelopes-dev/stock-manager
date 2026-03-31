@@ -11,6 +11,7 @@ export default defineConfig({
       concurrent: false,
     },
     include: ["tests/**/*.test.ts"],
+    exclude: ["e2e/**", "node_modules/**"],
   },
   resolve: {
     alias: {

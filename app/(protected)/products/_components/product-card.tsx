@@ -18,7 +18,6 @@ interface ProductCardProps {
   userRole: UserRole;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
-  products: ProductDto[]; // Full list for technical sheet selector
 }
 
 const PRODUCT_TYPE_LABELS: Record<
@@ -27,11 +26,11 @@ const PRODUCT_TYPE_LABELS: Record<
 > = {
   REVENDA: { label: "Revenda", variant: "secondary" },
   PRODUCAO_PROPRIA: { label: "Produção Própria", variant: "default" },
-  COMBO: { label: "Combo", variant: "premium" },
-  INSUMO: { label: "Insumo", variant: "outline" },
+  COMBO: { label: "Combo", variant: "premium" as any },
+  INSUMO: { label: "Insumo", variant: "outline" as any },
 };
 
-export const ProductCard = ({ product, userRole, categories, environments, products: allProducts }: ProductCardProps) => {
+export const ProductCard = ({ product, userRole, categories, environments }: ProductCardProps) => {
   const router = useRouter();
   const [hasError, setHasError] = React.useState(false);
   
@@ -96,7 +95,6 @@ export const ProductCard = ({ product, userRole, categories, environments, produ
                 userRole={userRole} 
                 categories={categories}
                 environments={environments}
-                products={allProducts}
             />
         </div>
       </div>
