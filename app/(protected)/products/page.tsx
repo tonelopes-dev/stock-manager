@@ -58,13 +58,12 @@ const ProductTableWrapper = async ({
   // Start fetching products immediately (non-blocking)
   const productsPromise = getProducts(30, status, environmentId);
   
-  // Fetch metadata and ALL products (for technical sheet selection) in parallel
-  const [role, onboardingStats, categories, environments, allProducts] = await Promise.all([
+  // Fetch metadata in parallel
+  const [role, onboardingStats, categories, environments] = await Promise.all([
     getCurrentUserRole(),
     getOnboardingStats(),
     getProductCategories(),
     getEnvironments(),
-    getProducts(0, "ACTIVE"), // Get all active products for selection
   ]);
 
   const isManagement = role === UserRole.OWNER || role === UserRole.ADMIN;
@@ -84,7 +83,6 @@ const ProductTableWrapper = async ({
                 hasProducts={onboardingStats?.hasProducts ?? true}
                 categories={categories}
                 environments={environments}
-                products={allProducts}
               />
             )}
           </div>
@@ -96,7 +94,6 @@ const ProductTableWrapper = async ({
         userRole={role as UserRole}
         categories={categories}
         environments={environments}
-        products={allProducts}
       />
     </div>
   );
