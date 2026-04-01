@@ -13,7 +13,9 @@ import { Input } from "@/app/_components/ui/input";
 import { Label } from "@/app/_components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { register, RegisterState } from "@/app/_actions/auth/register";
 import { KipoLogo } from "@/app/_components/logo";
 
@@ -33,6 +35,7 @@ function SubmitButton() {
 
 export default function RegisterPage() {
   const [state, formAction] = useFormState(register, initialState);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   if (state.success) {
@@ -43,7 +46,9 @@ export default function RegisterPage() {
     <Card className="w-full max-w-md border-none shadow-2xl">
       <CardHeader className="space-y-4 pt-10">
         <div className="flex flex-col items-center justify-center gap-4">
-          <KipoLogo />
+          <Link href="/" className="transition-all hover:scale-[1.02]">
+            <KipoLogo />
+          </Link>
         </div>
         <CardDescription className="text-center text-muted-foreground">
           Crie sua conta para começar
@@ -78,14 +83,28 @@ export default function RegisterPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Senha</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="••••••••"
-              minLength={6}
-              required
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                minLength={6}
+                required
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
