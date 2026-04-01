@@ -78,6 +78,7 @@ export const getMenuManagementData = async (): Promise<{
     products: cat.products.map((p) => ({
       ...p,
       price: Number(p.price),
+      stock: Number(p.stock),
     })),
   }));
 
@@ -90,6 +91,7 @@ export const getMenuManagementData = async (): Promise<{
       products: uncategorized.map((p) => ({
         ...p,
         price: Number(p.price),
+        stock: Number(p.stock),
       })),
     });
   }

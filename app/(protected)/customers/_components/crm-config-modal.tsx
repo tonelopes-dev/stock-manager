@@ -32,6 +32,24 @@ import { deleteCRMStage } from "@/app/_actions/crm/delete-stage";
 import { reorderCRMStages } from "@/app/_actions/crm/reorder-stages";
 import { Combobox } from "@/app/_components/ui/combobox";
 import { AlertTriangle } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { useEffect } from "react";
 
 interface CRMConfigModalProps {
   categories: { id: string; name: string }[];
@@ -45,6 +63,23 @@ export const CRMConfigModal = ({ categories, stages }: CRMConfigModalProps) => {
   const [newStage, setNewStage] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+
+  const [localStages, setLocalStages] = useState(stages);
+
+  useEffect(() => {
+    setLocalStages(stages);
+  }, [stages]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   // Migration State
   const [migrationData, setMigrationData] = useState<{
@@ -149,6 +184,46 @@ export const CRMConfigModal = ({ categories, stages }: CRMConfigModalProps) => {
         toast.error(error.message || "Erro ao excluir estágio.");
       }
     });
+  };
+
+  const handleUpdateStage = (id: string, name: string) => {
+    if (!name) return;
+    startTransition(async () => {
+      const result = await upsertCRMStage({ id, name });
+      if (result?.validationErrors || result?.serverError) {
+        toast.error("Erro ao atualizar estágio.");
+      } else {
+        toast.success("Estágio atualizado!");
+        setEditingId(null);
+      }
+    });
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = localStages.findIndex((s) => s.id === active.id);
+      const newIndex = localStages.findIndex((s) => s.id === over.id);
+
+      const newOrder = arrayMove(localStages, oldIndex, newIndex);
+      setLocalStages(newOrder);
+
+      startTransition(async () => {
+        try {
+          const result = await reorderCRMStages({
+            stageIds: newOrder.map((s) => s.id),
+          });
+          if (result?.validationErrors || result?.serverError) {
+            toast.error("Erro ao reordenar estágios.");
+            setLocalStages(stages); // Rollback
+          }
+        } catch (error) {
+          toast.error("Erro ao reordenar estágios.");
+          setLocalStages(stages); // Rollback
+        }
+      });
+    }
   };
 
   const migrationOptions =
@@ -352,28 +427,36 @@ export const CRMConfigModal = ({ categories, stages }: CRMConfigModalProps) => {
                   )}
                 </Button>
               </div>
-              <div className="max-h-[300px] space-y-2 overflow-auto pr-2">
-                {stages.map((stage) => (
-                  <div
-                    key={stage.id}
-                    className="group flex items-center justify-between rounded-md border border-border p-2 hover:bg-muted"
+              <div className="max-h-[300px] overflow-auto pr-2">
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={localStages.map((s) => s.id)}
+                    strategy={verticalListSortingStrategy}
                   >
-                    <div className="flex items-center gap-3">
-                      <GripVertical className="h-4 w-4 cursor-grab text-muted-foreground active:cursor-grabbing" />
-                      <span className="text-sm font-medium">{stage.name}</span>
+                    <div className="space-y-2">
+                      {localStages.map((stage) => (
+                        <SortableStageItem
+                          key={stage.id}
+                          stage={stage}
+                          isEditing={editingId === stage.id}
+                          editingName={editingName}
+                          onEditClick={() => {
+                            setEditingId(stage.id);
+                            setEditingName(stage.name);
+                          }}
+                          onCancelEdit={() => setEditingId(null)}
+                          onSaveEdit={(name) => handleUpdateStage(stage.id, name)}
+                          onDeleteClick={() => handleDeleteStage(stage.id)}
+                          isPending={isPending}
+                        />
+                      ))}
                     </div>
-                    <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 text-destructive"
-                        onClick={() => handleDeleteStage(stage.id)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  </SortableContext>
+                </DndContext>
               </div>
               <p className="text-center text-[10px] font-bold uppercase italic text-muted-foreground">
                 A ordem aqui define as colunas do seu Kanban
@@ -383,5 +466,111 @@ export const CRMConfigModal = ({ categories, stages }: CRMConfigModalProps) => {
         )}
       </DialogContent>
     </Dialog>
+  );
+};
+
+interface SortableStageItemProps {
+  stage: { id: string; name: string };
+  isEditing: boolean;
+  editingName: string;
+  onEditClick: () => void;
+  onCancelEdit: () => void;
+  onSaveEdit: (name: string) => void;
+  onDeleteClick: () => void;
+  isPending: boolean;
+}
+
+const SortableStageItem = ({
+  stage,
+  isEditing,
+  editingName,
+  onEditClick,
+  onCancelEdit,
+  onSaveEdit,
+  onDeleteClick,
+  isPending,
+}: SortableStageItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: stage.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
+  const [localName, setLocalName] = useState(editingName);
+
+  useEffect(() => {
+    if (isEditing) setLocalName(editingName);
+  }, [isEditing, editingName]);
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`group flex items-center justify-between rounded-md border border-border p-2 hover:bg-muted ${isDragging ? "bg-muted shadow-sm" : "bg-background"}`}
+    >
+      {isEditing ? (
+        <div className="flex w-full gap-2">
+          <Input
+            value={localName}
+            onChange={(e) => setLocalName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") onSaveEdit(localName);
+              if (e.key === "Escape") onCancelEdit();
+            }}
+            autoFocus
+          />
+          <Button
+            size="sm"
+            onClick={() => onSaveEdit(localName)}
+            disabled={isPending}
+          >
+            {isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "OK"
+            )}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={onCancelEdit}>
+            X
+          </Button>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center gap-3">
+            <div {...attributes} {...listeners}>
+              <GripVertical className="h-4 w-4 cursor-grab text-muted-foreground active:cursor-grabbing" />
+            </div>
+            <span className="text-sm font-medium">{stage.name}</span>
+          </div>
+          <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7"
+              onClick={onEditClick}
+            >
+              <Pencil className="h-3 w-3" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7 text-destructive"
+              onClick={onDeleteClick}
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </div>
+        </>
+      )}
+    </div>
   );
 };

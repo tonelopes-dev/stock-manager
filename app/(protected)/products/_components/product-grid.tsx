@@ -28,9 +28,9 @@ export const ProductGrid = ({
   categories,
   environments,
 }: ProductGridProps) => {
-  const products = use(productsPromise);
+  const productsResult = use(productsPromise);
 
-  const filteredProducts = products.filter((p) => {
+  const filteredProducts = productsResult.filter((p) => {
     const matchesSearch =
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       (p.sku && p.sku.toLowerCase().includes(search.toLowerCase()));
@@ -83,10 +83,10 @@ export const ProductGrid = ({
             </Badge>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {items.map((product) => (
+            {items.map((p) => (
               <ProductCard
-                key={product.id}
-                product={product}
+                key={p.id}
+                product={p}
                 userRole={userRole}
                 categories={categories}
                 environments={environments}

@@ -16,32 +16,33 @@ export const IngredientService = {
     trx?: Prisma.TransactionClient,
   ) {
     const execute = async (t: Prisma.TransactionClient) => {
-      // 1. Get current ingredient and company settings
-      const ingredient = await t.ingredient.findUnique({
+      // 1. Get current item and company settings
+      const item = await t.product.findUnique({
         where: { id: params.ingredientId },
         select: {
           stock: true,
           unit: true,
+          type: true,
           company: { select: { allowNegativeStock: true } },
         },
       });
 
-      if (!ingredient) {
-        throw new BusinessError("Insumo não encontrado.");
+      if (!item) {
+        throw new BusinessError("Item não encontrado.");
       }
 
-      const stockBefore = Number(ingredient.stock);
+      const stockBefore = Number(item.stock);
       const stockAfter = stockBefore + params.quantity;
 
       // 2. Validate negative stock
-      if (stockAfter < 0 && !ingredient.company.allowNegativeStock) {
+      if (stockAfter < 0 && !item.company.allowNegativeStock) {
         throw new BusinessError(
           "Estoque insuficiente. A empresa não permite estoque negativo.",
         );
       }
 
-      // 3. Update ingredient stock
-      await t.ingredient.update({
+      // 3. Update stock
+      await t.product.update({
         where: { id: params.ingredientId },
         data: {
           stock: { increment: params.quantity },
@@ -51,14 +52,14 @@ export const IngredientService = {
       // 4. Create stock movement record
       return await t.stockMovement.create({
         data: {
-          ingredientId: params.ingredientId,
+          productId: params.ingredientId, // Unified table uses productId
           companyId: params.companyId,
           userId: params.userId,
           type: "MANUAL",
           quantityDecimal: params.quantity,
           stockBefore: stockBefore,
           stockAfter: stockAfter,
-          unit: ingredient.unit,
+          unit: item.unit,
           reason: params.reason,
         },
       });

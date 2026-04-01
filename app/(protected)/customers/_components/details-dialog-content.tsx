@@ -32,6 +32,11 @@ import {
   Loader2Icon,
   Plus,
   Sparkles,
+  Bell,
+  Clock,
+  Check,
+  Loader2,
+  Calendar as CalendarIcon,
 } from "lucide-react";
 import { SalesTimeline } from "./sales-timeline";
 import { CustomerChecklist } from "./customer-checklist";
@@ -54,9 +59,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/_components/ui/select";
-import { Textarea } from "@/app/_components/ui/textarea";
-import { upsertCustomer } from "@/app/_actions/customer/upsert-customer";
-import { deleteCustomer } from "@/app/_actions/customer/delete-customer";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/app/_components/ui/popover";
+import { updateCustomerBirthdayReminder } from "@/app/_actions/crm/update-birthday-reminder";
+import { setHours, setMinutes, isPast } from "date-fns";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -68,6 +77,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/app/_components/ui/alert-dialog";
+import { upsertCustomer } from "@/app/_actions/customer/upsert-customer";
+import { deleteCustomer } from "@/app/_actions/customer/delete-customer";
+import { Textarea } from "@/app/_components/ui/textarea";
+
+// Helper to handle date strings/objects from Prisma/Server correctly in local time
+// avoiding the "one day off" bug due to UTC vs Local shifts (especially common in birthdays)
+const getSafeDate = (dateInput: string | Date | null | undefined): Date | undefined => {
+  if (!dateInput) return undefined;
+  const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+  if (isNaN(date.getTime())) return undefined;
+
+  // For birthdays, we treat the UTC date components as local ones
+  // e.g., 2026-03-04T00:00:00Z becomes 2026-03-04 Local midnight
+  return new Date(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate()
+  );
+};
 
 interface CustomerDetailsDialogContentProps {
   customer: any;
@@ -379,7 +407,7 @@ export const CustomerDetailsDialogContent = ({
                       Aniversário
                     </label>
                     <DatePicker
-                      value={formData.birthDate ? parseISO(formData.birthDate) : undefined}
+                      value={getSafeDate(formData.birthDate)}
                       onChange={(date) =>
                         setFormData({
                           ...formData,
@@ -397,11 +425,15 @@ export const CustomerDetailsDialogContent = ({
                       </p>
                       <p className="text-sm font-medium text-muted-foreground">
                         {customer.birthDate
-                          ? format(new Date(customer.birthDate), "dd/MM/yyyy", {
+                          ? format(getSafeDate(customer.birthDate)!, "dd/MM/yyyy", {
                               locale: ptBR,
                             })
                           : "Não informado"}
                       </p>
+                      <CustomerBirthdayReminder 
+                        customer={customer} 
+                        onUpdate={fetchFullCustomer} 
+                      />
                     </div>
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold uppercase text-muted-foreground">
@@ -555,5 +587,142 @@ export const CustomerDetailsDialogContent = ({
         </AlertDialogContent>
       </AlertDialog>
     </>
+  );
+};
+
+interface CustomerBirthdayReminderProps {
+  customer: any;
+  onUpdate: () => void;
+}
+
+const CustomerBirthdayReminder = ({
+  customer,
+  onUpdate,
+}: CustomerBirthdayReminderProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [date, setDate] = useState<Date | undefined>(
+    customer.birthdayReminderDate
+      ? new Date(customer.birthdayReminderDate)
+      : undefined,
+  );
+  const [hours, setHoursState] = useState(
+    customer.birthdayReminderDate
+      ? new Date(customer.birthdayReminderDate).getHours().toString().padStart(2, "0")
+      : "09",
+  );
+  const [minutes, setMinutesState] = useState(
+    customer.birthdayReminderDate
+      ? new Date(customer.birthdayReminderDate).getMinutes().toString().padStart(2, "0")
+      : "00",
+  );
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleSave = async () => {
+    let finalDate = date;
+    if (finalDate) {
+      finalDate = setHours(finalDate, parseInt(hours));
+      finalDate = setMinutes(finalDate, parseInt(minutes));
+    }
+
+    setIsUpdating(true);
+    try {
+      await updateCustomerBirthdayReminder({
+        id: customer.id,
+        birthdayReminderDate: finalDate || null,
+      });
+      onUpdate();
+      setIsOpen(false);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const isOverdue =
+    customer.birthdayReminderDate && isPast(new Date(customer.birthdayReminderDate));
+
+  return (
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          size="sm"
+          variant="ghost"
+          className={`h-6 w-6 p-0 transition-all ${
+            customer.birthdayReminderDate
+              ? "text-primary hover:bg-primary/10"
+              : "text-muted-foreground opacity-30 hover:opacity-100"
+          }`}
+        >
+          <Bell
+            className={`h-3 w-3 ${isOverdue ? "animate-pulse text-destructive" : ""}`}
+          />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-4" align="start">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              Lembrete de Aniversário
+            </h4>
+            <DatePicker value={date} onChange={setDate} />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="grid flex-1 gap-1">
+              <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                Hora
+              </label>
+              <Input
+                type="number"
+                min="0"
+                max="23"
+                value={hours}
+                onChange={(e) => setHoursState(e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="grid flex-1 gap-1">
+              <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                Min
+              </label>
+              <Input
+                type="number"
+                min="0"
+                max="59"
+                value={minutes}
+                onChange={(e) => setMinutesState(e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 flex-1 text-[10px] font-bold uppercase"
+              onClick={() => {
+                setDate(undefined);
+                handleSave();
+              }}
+              disabled={isUpdating}
+            >
+              Remover
+            </Button>
+            <Button
+              size="sm"
+              className="h-8 flex-1 text-[10px] font-bold uppercase"
+              onClick={handleSave}
+              disabled={isUpdating || !date}
+            >
+              {isUpdating ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                "Salvar"
+              )}
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 };

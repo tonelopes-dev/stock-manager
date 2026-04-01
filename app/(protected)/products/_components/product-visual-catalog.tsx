@@ -5,13 +5,13 @@ import { UserRole } from "@prisma/client";
 import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
 import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
 import * as React from "react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Input } from "@/app/_components/ui/input";
 import { SearchIcon, ArrowDownWideNarrow, ChevronsUpDown } from "lucide-react";
-import { ProductCard } from "./product-card";
+import { Dialog } from "@/app/_components/ui/dialog";
+import UpsertProductDialogContent from "./upsert-dialog-content";
 import { Button } from "@/app/_components/ui/button";
-import { Badge } from "@/app/_components/ui/badge";
-import { PlusIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +24,6 @@ import {
 import { CategoryManagementDialog } from "./category-management-dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 
-import { Suspense } from "react";
 import { ProductGrid } from "./product-grid";
 import { ProductGridSkeleton } from "./product-grid-skeleton";
 import { EnvironmentFilter } from "./environment-filter";
@@ -48,7 +47,6 @@ export const ProductVisualCatalog = ({
   const [sortBy, setSortBy] = useState<SortOption>("latest");
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
 
-  // Reset category filter when category list changes (e.g. environment change)
   useEffect(() => {
     if (selectedCategoryId !== "all") {
         const categoryExists = categories.some(cat => cat.id === selectedCategoryId);
@@ -125,6 +123,11 @@ export const ProductVisualCatalog = ({
 
       {/* Product List with Suspense */}
       <Suspense key={`${search}-${sortBy}-${selectedCategoryId}`} fallback={<ProductGridSkeleton />}>
+        <ProductSearchHandler 
+          productsPromise={productsPromise}
+          categories={categories}
+          environments={environments}
+        />
         <ProductGrid 
           productsPromise={productsPromise}
           search={search}
@@ -136,6 +139,85 @@ export const ProductVisualCatalog = ({
         />
       </Suspense>
     </div>
+  );
+};
+
+// Internal component to handle search params and modal cleanup for products
+const ProductSearchHandler = ({
+  productsPromise,
+  categories,
+  environments,
+}: {
+  productsPromise: Promise<ProductDto[]>;
+  categories: ProductCategoryOption[];
+  environments: EnvironmentOption[];
+}) => {
+  const productsResult = React.use(productsPromise);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [selectedProduct, setSelectedProduct] = useState<ProductDto | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const action = searchParams.get("action");
+    const id = searchParams.get("id");
+
+    if (action === "edit" && id) {
+      const product = productsResult.find((p) => p.id === id);
+      if (product) {
+        setSelectedProduct(product);
+        setIsOpen(true);
+      }
+    }
+  }, [searchParams, productsResult]);
+
+  const handleClose = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("action");
+      params.delete("id");
+      const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+      router.replace(newUrl, { scroll: false });
+      setSelectedProduct(null);
+    }
+  };
+
+  if (!selectedProduct) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+        <UpsertProductDialogContent
+        setDialogIsOpen={(val) => {
+          if (typeof val === 'function') {
+            handleClose(val(isOpen));
+          } else {
+            handleClose(val);
+          }
+        }}
+        categories={categories}
+        environments={environments}
+        defaultValues={{
+          id: selectedProduct.id,
+          name: selectedProduct.name,
+          type: selectedProduct.type,
+          price: Number(selectedProduct.price),
+          cost: Number(selectedProduct.cost),
+          sku: selectedProduct.sku || "",
+          stock: selectedProduct.stock,
+          minStock: selectedProduct.minStock,
+          unit: selectedProduct.unit,
+          categoryId: selectedProduct.categoryId || "",
+          environmentId: selectedProduct.environmentId || "",
+          expirationDate: selectedProduct.expirationDate
+            ? new Date(selectedProduct.expirationDate)
+            : undefined,
+          trackExpiration: selectedProduct.trackExpiration,
+          imageUrl: selectedProduct.imageUrl || "",
+        }}
+      />
+    </Dialog>
   );
 };
 
@@ -154,29 +236,18 @@ const CategoryTabs = ({
 }: CategoryTabsProps) => {
   const products = React.use(productsPromise);
   
-  // Get active category IDs from current products
   const activeCategoryIds = useMemo(() => {
     const ids = new Set(products.map(p => p.categoryId).filter(Boolean));
     return ids;
   }, [products]);
 
-  // Filter categories to show
-  // If no environment filter is active (selectedCategoryId can still be "all", 
-  // but we mean if the products are not filtered by environment fundamentally...)
-  // Actually, we show all categories if we are in "All Environments" 
-  // (which is handled by the parent passing the environment id).
-  // Wait, ProductVisualCatalog doesn't know the environmentId directly, 
-  // but it's in the searchParams.
-  // Actually, the productsPromise IS the filtered list.
-  // So if we show only categories that have products in productsPromise, 
-  // it automatically reacts to environment changes!
   const filteredCategories = useMemo(() => {
     return categories.filter(cat => activeCategoryIds.has(cat.id));
   }, [categories, activeCategoryIds]);
 
   return (
     <Tabs defaultValue="all" value={selectedCategoryId} onValueChange={setSelectedCategoryId} className="flex-1">
-      <TabsList className="bg-muted border border-border h-11 p-1">
+      <TabsList className="bg-muted border border-border h-auto flex-wrap p-1 justify-start">
         <TabsTrigger 
           value="all" 
           className="px-6 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"

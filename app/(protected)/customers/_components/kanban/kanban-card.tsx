@@ -55,6 +55,10 @@ export const KanbanCard = memo(
     const progress =
       totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
+    const hasDelayedTasks = checklistItems.some(
+      (i: any) => !i.isChecked && i.dueDate && new Date(i.dueDate) < new Date(),
+    );
+
     const calculateHeight = () => {
       let height = 85;
       if (customer.notes) height += 32;
@@ -84,9 +88,14 @@ export const KanbanCard = memo(
       >
         <CardContent className="space-y-2 p-3">
           <div className="flex items-start justify-between">
-            <span className="line-clamp-1 pr-1 text-sm font-black uppercase italic tracking-tighter text-foreground">
-              {customer.name}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="line-clamp-1 pr-1 text-sm font-black uppercase italic tracking-tighter text-foreground">
+                {customer.name}
+              </span>
+              {hasDelayedTasks && (
+                <div className="h-2 w-2 rounded-full bg-destructive animate-pulse" title="Tarefas Atrasadas" />
+              )}
+            </div>
           </div>
 
           {customer.notes && (
@@ -135,10 +144,11 @@ export const KanbanCard = memo(
             <div className="pt-2">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-tighter">
-                  <span className="flex items-center gap-1 text-muted-foreground">
-                    <ListChecks className="h-3 w-3" /> Jornada
+                  <span className={`flex items-center gap-1 ${hasDelayedTasks ? "text-destructive" : "text-muted-foreground"}`}>
+                    <ListChecks className="h-3 w-3" /> 
+                    {hasDelayedTasks ? "Atrasado" : "Jornada"}
                   </span>
-                  <span className={progress === 100 ? "text-green-600" : ""}>
+                  <span className={progress === 100 ? "text-green-600" : (hasDelayedTasks ? "text-destructive" : "")}>
                     {completedItems}/{totalItems}
                   </span>
                 </div>

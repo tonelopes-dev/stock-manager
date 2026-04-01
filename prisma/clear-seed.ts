@@ -33,9 +33,8 @@ async function main() {
       await prisma.saleItem.deleteMany({ where: { sale: { companyId: SEED_COMPANY_ID } } });
       await prisma.sale.deleteMany({ where: { companyId: SEED_COMPANY_ID } });
       await prisma.productionOrder.deleteMany({ where: { companyId: SEED_COMPANY_ID } });
-      await prisma.productRecipe.deleteMany({ where: { product: { companyId: SEED_COMPANY_ID } } });
+      await prisma.productComposition.deleteMany({ where: { parent: { companyId: SEED_COMPANY_ID } } });
       await prisma.product.deleteMany({ where: { companyId: SEED_COMPANY_ID } });
-      await prisma.ingredient.deleteMany({ where: { companyId: SEED_COMPANY_ID } });
       await prisma.auditEvent.deleteMany({ where: { companyId: SEED_COMPANY_ID } });
       await prisma.orderItem.deleteMany({ where: { order: { companyId: SEED_COMPANY_ID } } });
       await prisma.order.deleteMany({ where: { companyId: SEED_COMPANY_ID } });

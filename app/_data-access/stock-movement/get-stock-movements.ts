@@ -21,10 +21,6 @@ export interface StockMovementDto {
     name: string;
     unit: string;
   } | null;
-  ingredient?: {
-    name: string;
-    unit: string;
-  } | null;
 }
 
 interface GetStockMovementsParams {
@@ -65,12 +61,6 @@ export const getStockMovements = async (
             unit: true,
           },
         },
-        ingredient: {
-          select: {
-            name: true,
-            unit: true,
-          },
-        },
       },
     }),
     db.stockMovement.count({ where }),
@@ -79,15 +69,14 @@ export const getStockMovements = async (
   const data: StockMovementDto[] = movements.map((m) => ({
     id: m.id,
     type: m.type,
-    stockBefore: Number(m.stockBefore),
-    stockAfter: Number(m.stockAfter),
-    quantity: Number(m.quantityDecimal ?? 0),
+    stockBefore: m.stockBefore.toNumber(),
+    stockAfter: m.stockAfter.toNumber(),
+    quantity: m.quantityDecimal ? m.quantityDecimal.toNumber() : 0,
     unit: m.unit, // Added unit from StockMovement
     reason: m.reason,
     createdAt: m.createdAt,
     user: m.user || { name: "Usuário Removido", email: "" },
     product: m.product,
-    ingredient: m.ingredient,
   }));
 
   return { data, total };

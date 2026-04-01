@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
-import { LayoutList, LayoutDashboard } from "lucide-react";
+import { LayoutDashboard, BarChart3 } from "lucide-react";
 import { TransitionStartFunction } from "react";
 
 interface CustomerViewSwitcherProps {
@@ -36,8 +36,8 @@ export const CustomerViewSwitcher = ({
           value="table"
           className="gap-2 text-[10px] font-black uppercase italic tracking-tighter data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
         >
-          <LayoutList className="h-3 w-3" />
-          Tabela
+          <BarChart3 className="h-3.5 w-3.5" />
+          Jornadas
         </TabsTrigger>
         <TabsTrigger
           value="kanban"

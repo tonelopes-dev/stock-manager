@@ -5,7 +5,7 @@ import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
 export interface SearchResult {
   id: string;
-  type: "customer" | "product" | "sale";
+  type: "customer" | "product" | "sale" | "order";
   title: string;
   subtitle: string;
   href: string;
@@ -19,7 +19,7 @@ export const globalSearch = async (query: string): Promise<SearchResult[]> => {
 
   const searchTerm = query.trim();
 
-  const [customers, products, sales] = await Promise.all([
+  const [customers, products, sales, activeOrders] = await Promise.all([
     db.customer.findMany({
       where: {
         companyId,
@@ -56,7 +56,37 @@ export const globalSearch = async (query: string): Promise<SearchResult[]> => {
       take: 5,
       orderBy: { date: "desc" },
     }),
+    db.order.findMany({
+      where: {
+        companyId,
+        status: {
+          in: ["PENDING", "PREPARING", "READY", "DELIVERED"],
+        },
+        OR: [
+          { customer: { name: { contains: searchTerm, mode: "insensitive" } } },
+        ],
+      },
+      select: {
+        id: true,
+        totalAmount: true,
+        createdAt: true,
+        customerId: true,
+        customer: { select: { name: true } },
+      },
+      take: 5,
+      orderBy: { createdAt: "desc" },
+    }),
   ]);
+
+  const currencyFormatter = Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+
+  const dateFormatter = Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+  });
 
   const results: SearchResult[] = [
     ...customers.map((c) => ({
@@ -64,27 +94,28 @@ export const globalSearch = async (query: string): Promise<SearchResult[]> => {
       type: "customer" as const,
       title: c.name,
       subtitle: c.phone || "Sem telefone",
-      href: `/customers`,
+      href: `/customers?action=edit&id=${c.id}`,
     })),
     ...products.map((p) => ({
       id: p.id,
       type: "product" as const,
       title: p.name,
-      subtitle: Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      }).format(Number(p.price)),
-      href: `/products/${p.id}`,
+      subtitle: currencyFormatter.format(Number(p.price)),
+      href: `/products?action=edit&id=${p.id}`,
+    })),
+    ...activeOrders.map((o) => ({
+      id: o.id,
+      type: "order" as const,
+      title: `Comanda Aberta — ${o.customer?.name || "Cliente Avulso"}`,
+      subtitle: `Consumo: ${currencyFormatter.format(Number(o.totalAmount))}`,
+      href: `/sales?view=gestao&action=open-comanda&customerId=${o.customerId}`,
     })),
     ...sales.map((s) => ({
       id: s.id,
       type: "sale" as const,
-      title: `Venda — ${s.customer?.name || "Cliente Avulso"}`,
-      subtitle: Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      }).format(Number(s.totalAmount)),
-      href: `/sales`,
+      title: `Venda Finalizada — ${s.customer?.name || "Cliente Avulso"}`,
+      subtitle: `${dateFormatter.format(s.date)} • ${currencyFormatter.format(Number(s.totalAmount))}`,
+      href: `/sales?view=inteligencia&saleId=${s.id}`,
     })),
   ];
 

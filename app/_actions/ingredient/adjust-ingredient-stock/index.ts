@@ -36,7 +36,7 @@ export const adjustIngredientStock = actionClient
         trx,
       );
 
-      const ingredient = await trx.ingredient.findUniqueOrThrow({
+      const ingredient = await trx.product.findUniqueOrThrow({
         where: { id },
         select: { name: true, unit: true },
       });

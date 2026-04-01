@@ -9,20 +9,35 @@ import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
 
 const deleteCategorySchema = z.object({
   id: z.string().cuid(),
+  destinationId: z.string().cuid().optional(),
 });
 
 export const deleteCategory = actionClient
   .schema(deleteCategorySchema)
-  .action(async ({ parsedInput: { id } }) => {
+  .action(async ({ parsedInput: { id, destinationId } }) => {
     const companyId = await getCurrentCompanyId();
     await assertRole(ADMIN_AND_OWNER);
 
-    // Products with this category will have categoryId set to null automatically if onDelete: SetNull is configured
-    // or we can handle it manually if needed. In our schema we use SetNull or Restrict?
-    // Let's check schema.prisma later if needed, but for now we assume it's safe or we handle it.
-    
-    await db.category.delete({
-      where: { id, companyId },
+    // Check if there are products in this category
+    const productsCount = await db.product.count({
+      where: { categoryId: id, companyId },
+    });
+
+    if (productsCount > 0 && !destinationId) {
+      throw new Error("MIGRATION_REQUIRED");
+    }
+
+    await db.$transaction(async (tx) => {
+      if (productsCount > 0 && destinationId) {
+        await tx.product.updateMany({
+          where: { categoryId: id, companyId },
+          data: { categoryId: destinationId },
+        });
+      }
+
+      await tx.category.delete({
+        where: { id, companyId },
+      });
     });
 
     revalidatePath("/products");

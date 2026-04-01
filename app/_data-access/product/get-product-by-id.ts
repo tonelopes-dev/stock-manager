@@ -41,6 +41,11 @@ export interface ProductDetailDto {
   stock: number;
   minStock: number;
   unit: UnitType;
+  categoryId: string | null;
+  environmentId: string | null;
+  imageUrl: string | null;
+  trackExpiration: boolean;
+  expirationDate: Date | null;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -54,9 +59,9 @@ export const getProductById = async (id: string): Promise<ProductDetailDto | nul
   const product = await db.product.findFirst({
     where: { id, companyId, isActive: true },
     include: {
-      recipes: {
+      parentCompositions: {
         include: {
-          ingredient: true,
+          child: true,
         },
       },
     },
@@ -64,27 +69,25 @@ export const getProductById = async (id: string): Promise<ProductDetailDto | nul
 
   if (!product) return null;
 
-  const recipes: RecipeIngredientDto[] = product.recipes.map((recipe) => {
+  const recipes: RecipeIngredientDto[] = product.parentCompositions.map((recipe) => {
     let partialCost = 0;
     let consumptionPerUnit = 0;
+
+    const childCost = recipe.child.cost.toNumber();
+    const recipeQuantity = recipe.quantity.toNumber();
 
     try {
       partialCost = Number(
         calculateRealCost(
-          recipe.quantity,
-          recipe.unit as UnitType,
-          recipe.ingredient.unit as UnitType,
-          recipe.ingredient.cost
+          recipeQuantity,
+          recipe.child.unit as UnitType,
+          recipe.child.unit as UnitType, // Note: child is the ingredient, so the recipe unit is missing from ProductComposition now? The query needs to use child.unit. Wait, old ProductRecipe had a `unit`. ProductComposition does not have a unit. We assume quantity is in child's unit.
+          childCost
         )
       );
 
-      consumptionPerUnit = Number(
-        calculateStockDeduction(
-          recipe.quantity,
-          recipe.unit as UnitType,
-          recipe.ingredient.unit as UnitType,
-        )
-      );
+      // Since ProductComposition doesn't have a unit, consumption per unit is just quantity
+      consumptionPerUnit = recipeQuantity;
     } catch (e) {
       console.error(`Error calculating recipe values for ${recipe.id}:`, e);
       // Incompatible units, keep values at 0
@@ -92,34 +95,44 @@ export const getProductById = async (id: string): Promise<ProductDetailDto | nul
 
     return {
       id: recipe.id,
-      ingredientId: recipe.ingredientId,
-      ingredientName: recipe.ingredient.name,
-      quantity: Number(recipe.quantity),
-      unit: recipe.unit,
-      unitLabel: UNIT_LABELS[recipe.unit] || recipe.unit,
-      ingredientCost: Number(recipe.ingredient.cost),
-      ingredientUnit: recipe.ingredient.unit,
-      ingredientUnitLabel: UNIT_LABELS[recipe.ingredient.unit] || recipe.ingredient.unit,
-      ingredientStock: Number(recipe.ingredient.stock),
-      partialCost,
+      ingredientId: recipe.childId,
+      ingredientName: recipe.child.name,
+      quantity: recipeQuantity,
+      unit: recipe.child.unit,
+      unitLabel: UNIT_LABELS[recipe.child.unit] || recipe.child.unit,
+      ingredientCost: childCost,
+      ingredientUnit: recipe.child.unit,
+      ingredientUnitLabel: UNIT_LABELS[recipe.child.unit] || recipe.child.unit,
+      ingredientStock: recipe.child.stock.toNumber(),
+      partialCost: recipeQuantity * childCost, // simplification since units are the same now
       consumptionPerUnit,
     };
   });
 
   const recipeCost = recipes.reduce((sum, r) => sum + r.partialCost, 0);
-  const effectiveCost = product.type === "PREPARED" ? recipeCost : Number(product.cost);
+  const productCost = product.cost.toNumber();
+  const effectiveCost =
+    product.type === "PRODUCAO_PROPRIA" || product.type === "COMBO"
+      ? recipeCost
+      : productCost;
+  const price = product.price.toNumber();
 
   return {
     id: product.id,
     name: product.name,
     type: product.type,
-    price: Number(product.price),
+    price,
     cost: effectiveCost,
-    margin: calculateMargin(product.price, effectiveCost),
+    margin: calculateMargin(price, effectiveCost),
     sku: product.sku,
-    stock: product.stock,
-    minStock: product.minStock,
+    stock: product.stock.toNumber(),
+    minStock: product.minStock.toNumber(),
     unit: product.unit,
+    categoryId: product.categoryId,
+    environmentId: product.environmentId,
+    imageUrl: product.imageUrl,
+    trackExpiration: product.trackExpiration,
+    expirationDate: product.expirationDate,
     isActive: product.isActive,
     createdAt: product.createdAt,
     updatedAt: product.updatedAt,

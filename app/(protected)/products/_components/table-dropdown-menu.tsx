@@ -51,7 +51,6 @@ const ProductTableDropdownMenu = ({
   const [isPending, startTransition] = useTransition();
 
   const handleToggleStatus = async () => {
-    // Re-activate directly, deactivate with confirmation
     if (product.isActive) {
       setToggleStatusDialogOpen(true);
       return;
@@ -154,7 +153,7 @@ const ProductTableDropdownMenu = ({
             unit: product.unit,
             categoryId: product.categoryId || "",
             environmentId: product.environmentId || "",
-            expirationDate: product.expirationDate,
+            expirationDate: product.expirationDate ? new Date(product.expirationDate) : undefined,
             trackExpiration: product.trackExpiration,
             imageUrl: product.imageUrl || "",
           }}

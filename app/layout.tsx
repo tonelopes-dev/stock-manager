@@ -30,7 +30,7 @@ export default function RootLayout({
         </Suspense>
         {children}
         <CookieBanner />
-        <Toaster richColors closeButton position="top-center" />
+        <Toaster richColors closeButton position="top-left" />
       </body>
     </html>
   );

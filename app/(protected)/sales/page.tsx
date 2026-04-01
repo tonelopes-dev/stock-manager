@@ -8,7 +8,7 @@ import {
   ProductDto,
 } from "../../_data-access/product/get-products";
 import { getCustomers } from "../../_data-access/customer/get-customers";
-import { getSales } from "../../_data-access/sale/get-sales";
+import { getSales, getSaleById, SaleDto } from "../../_data-access/sale/get-sales";
 import UpsertSaleButton from "./_components/create-sale-button";
 import { SalesDataTable } from "./_components/sales-data-table";
 import { Suspense } from "react";
@@ -42,6 +42,9 @@ interface HomeProps {
     monthA?: string;
     monthB?: string;
     view?: "gestao" | "inteligencia" | "gorjetas";
+    saleId?: string;
+    customerId?: string;
+    action?: string;
   }>;
 }
 
@@ -72,6 +75,12 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
 
   const companyId = await getCurrentCompanyId();
   const activeComandas = companyId ? await getActiveComandas() : [];
+
+  // Server-side pre-fetching for deep-linked sale
+  let preFetchedSale: SaleDto | null = null;
+  if (resolvedSearchParams.saleId) {
+    preFetchedSale = await getSaleById(resolvedSearchParams.saleId);
+  }
 
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-background p-8">
@@ -128,6 +137,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
                 pageSize={Number(resolvedSearchParams.pageSize) || 10}
                 userRole={role as UserRole}
                 companyId={companyId || ""}
+                preFetchedSale={preFetchedSale}
               />
             </Suspense>
           </div>
@@ -192,6 +202,7 @@ interface SalesTableWrapperProps {
   pageSize: number;
   userRole: UserRole;
   companyId: string;
+  preFetchedSale?: SaleDto | null;
 }
 
 const SalesTableWrapper = async ({
@@ -204,6 +215,7 @@ const SalesTableWrapper = async ({
   userRole,
   customerOptions,
   companyId,
+  preFetchedSale,
 }: SalesTableWrapperProps & { customerOptions: ComboboxOption[] }) => {
   const { data: sales, total } = await getSales({ from, to, page, pageSize });
 
@@ -223,6 +235,7 @@ const SalesTableWrapper = async ({
       userRole={userRole}
       customerOptions={customerOptions}
       companyId={companyId}
+      preFetchedSale={preFetchedSale}
     />
   );
 };

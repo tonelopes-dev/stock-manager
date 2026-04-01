@@ -46,6 +46,11 @@ const deleteItemSchema = z.object({
   id: z.string(),
 });
 
+const updateItemDueDateSchema = z.object({
+  id: z.string(),
+  dueDate: z.date().nullable(),
+});
+
 // ACTIONS
 export const toggleChecklistItem = actionClient
   .schema(toggleItemSchema)
@@ -53,12 +58,44 @@ export const toggleChecklistItem = actionClient
     const companyId = await getCurrentCompanyId();
     await assertRole(ALL_ROLES);
 
-    await db.checklistItem.update({
+    const item = await db.checklistItem.findUnique({
       where: { id, companyId },
-      data: { isChecked },
+      include: { 
+        checklist: { 
+          include: { customer: true } 
+        } 
+      }
     });
 
+    if (!item) throw new Error("Item não encontrado.");
+
+    const completedAt = isChecked ? new Date() : null;
+
+    await db.checklistItem.update({
+      where: { id, companyId },
+      data: { isChecked, completedAt },
+    });
+
+    if (isChecked) {
+      const { AuditService } = await import("@/app/_services/audit");
+      const { AuditEventType } = await import("@prisma/client");
+      
+      await AuditService.log({
+        type: AuditEventType.CHECKLIST_ITEM_COMPLETED,
+        companyId,
+        entityType: "CUSTOMER",
+        entityId: item.checklist.customerId,
+        metadata: {
+          itemTitle: item.title,
+          checklistTitle: item.checklist.title,
+          customerName: item.checklist.customer.name,
+          customerId: item.checklist.customerId,
+        },
+      });
+    }
+
     revalidatePath("/customers");
+    revalidatePath("/journeys");
   });
 
 export const applyChecklistTemplate = actionClient
@@ -190,4 +227,19 @@ export const deleteChecklistItem = actionClient
     });
 
     revalidatePath("/customers");
+  });
+
+export const updateChecklistItemDueDate = actionClient
+  .schema(updateItemDueDateSchema)
+  .action(async ({ parsedInput: { id, dueDate } }) => {
+    const companyId = await getCurrentCompanyId();
+    await assertRole(ALL_ROLES);
+
+    await db.checklistItem.update({
+      where: { id, companyId },
+      data: { dueDate },
+    });
+
+    revalidatePath("/customers");
+    revalidatePath("/journeys");
   });

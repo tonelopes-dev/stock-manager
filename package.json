@@ -13,6 +13,14 @@
     "db:sync": "node scripts/sync-db.ts",
     "test:emails": "npx tsx scripts/test-personal-email.ts",
     "test:all-emails": "npx tsx scripts/send-all-templates.ts",
+    "test": "dotenv -e .env.test -- vitest run",
+    "test:watch": "dotenv -e .env.test -- vitest",
+    "test:integration": "dotenv -e .env.test -- vitest run tests/integration",
+    "test:setup-db": "dotenv -e .env.test -- npx prisma db push --force-reset --accept-data-loss --skip-generate",
+    "e2e": "npx playwright test",
+    "e2e:ui": "npx playwright test --ui",
+    "e2e:headed": "npx playwright test --headed",
+    "e2e:report": "npx playwright show-report",
     "DANGER_DESTRUCTIVE_db:fresh": "prisma migrate reset --force",
     "db:warning": "echo 'WARNING: Do not run reset or fresh in production!'"
   },
@@ -79,18 +87,21 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^10.3.0",
+    "@playwright/test": "^1.58.2",
     "@types/node": "^20",
     "@types/react": "19.2.0",
     "@types/react-dom": "19.2.0",
     "concurrently": "^9.2.1",
     "dotenv": "^17.3.1",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "postcss": "^8",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.6",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.2"
   },
   "overrides": {
     "react": "$react",

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Bell } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
+import { Bell, Cake, Clock, Check, Loader2 } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -11,20 +12,68 @@ import { Badge } from "@/app/_components/ui/badge";
 import { Button } from "@/app/_components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { getCRMAlertsAction } from "@/app/_actions/crm/get-alerts";
+import Link from "next/link";
 
 interface Notification {
   id: string;
-  type: string;
+  type: "order" | "status" | "crm" | "birthday";
   message: string;
   timestamp: Date;
   read: boolean;
+  href?: string;
 }
 
 export const NotificationCenter = ({ companyId }: { companyId: string }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
+  const [isShaking, setIsShaking] = useState(false);
+  const isFirstRender = useRef(true);
+
+  const triggerAlert = (message: string) => {
+    setIsShaking(true);
+    toast.info(message, {
+      icon: "🔔",
+      duration: 5000,
+    });
+    setTimeout(() => setIsShaking(false), 2000);
+  };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  // Poll for CRM alerts
+  useEffect(() => {
+    const fetchCRMAlerts = async () => {
+      const result = await getCRMAlertsAction();
+      if (result?.data) {
+        const crmNotifications: Notification[] = result.data.map((alert) => ({
+          id: `crm-${alert.id}`,
+          type: alert.type === "BIRTHDAY" ? "birthday" : "crm",
+          message: alert.type === "BIRTHDAY" ? `Bolo: ${alert.customerName}` : `${alert.customerName}: ${alert.title}`,
+          timestamp: new Date(alert.dueDate),
+          read: false,
+          href: `/customers?action=open-modal&customerId=${alert.customerId}`,
+        }));
+
+        setNotifications((prev) => {
+          const existingIds = new Set(prev.map((n) => n.id));
+          const newOnes = crmNotifications.filter((n) => !existingIds.has(n.id));
+          
+          if (newOnes.length > 0 && !isFirstRender.current) {
+            triggerAlert(`${newOnes.length} novos alertas do CRM!`);
+          }
+          
+          isFirstRender.current = false;
+          return [...newOnes, ...prev].slice(0, 50);
+        });
+      }
+    };
+
+    fetchCRMAlerts();
+    const interval = setInterval(fetchCRMAlerts, 60000); // 60s polling
+
+    return () => clearInterval(interval);
+  }, []);
 
   // SSE listener
   useEffect(() => {
@@ -38,6 +87,7 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
       try {
         const data = JSON.parse(event.data);
         if (data.type === "NEW_ORDER") {
+          triggerAlert("Novo pedido recebido!");
           setNotifications((prev) => [
             {
               id: `notif-${Date.now()}`,
@@ -46,9 +96,10 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
               timestamp: new Date(),
               read: false,
             },
-            ...prev.slice(0, 19),
+            ...prev.slice(0, 49),
           ]);
         } else if (data.type === "STATUS_UPDATED") {
+          triggerAlert(`Pedido atualizado → ${data.status || "Novo status"}`);
           setNotifications((prev) => [
             {
               id: `notif-${Date.now()}`,
@@ -57,7 +108,7 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
               timestamp: new Date(),
               read: false,
             },
-            ...prev.slice(0, 19),
+            ...prev.slice(0, 49),
           ]);
         }
       } catch {
@@ -84,7 +135,7 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
           size="icon"
           className="relative h-9 w-9 rounded-xl text-muted-foreground transition-all hover:bg-muted hover:text-muted-foreground"
         >
-          <Bell className="h-4 w-4" />
+          <Bell className={`h-4 w-4 ${isShaking ? "animate-shake text-primary" : ""}`} />
           {unreadCount > 0 && (
             <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-0.5 text-[9px] font-black text-background shadow-sm">
               {unreadCount > 9 ? "9+" : unreadCount}
@@ -116,35 +167,49 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
                 Nenhuma notificação
               </p>
               <p className="mt-1 text-[10px] text-muted-foreground">
-                Eventos da cozinha aparecerão aqui
+                Alertas do CRM e Cozinha aparecerão aqui
               </p>
             </div>
           ) : (
-            notifications.map((notif) => (
-              <div
-                key={notif.id}
-                className={`flex items-start gap-3 border-b border-border px-4 py-3 transition-colors ${
-                  !notif.read ? "bg-primary/40" : ""
-                }`}
-              >
+            notifications.map((notif) => {
+              const content = (
                 <div
-                  className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${
-                    !notif.read ? "bg-primary" : "bg-transparent"
+                  key={notif.id}
+                  className={`flex items-start gap-3 border-b border-border px-4 py-3 transition-colors ${
+                    !notif.read ? "bg-primary/5" : "hover:bg-muted/50"
                   }`}
-                />
-                <div className="flex-1">
-                  <p className="text-xs font-medium text-foreground">
-                    {notif.message}
-                  </p>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground">
-                    {formatDistanceToNow(notif.timestamp, {
-                      locale: ptBR,
-                      addSuffix: true,
-                    })}
-                  </p>
+                >
+                  <div
+                    className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${
+                      !notif.read ? "bg-primary" : "bg-transparent"
+                    }`}
+                  />
+                  <div className="flex-1">
+                    <p className={`text-xs font-medium ${notif.type === "crm" || notif.type === "birthday" ? "text-primary" : "text-foreground"}`}>
+                      {notif.type === "crm" && "⏰ "}
+                      {notif.type === "birthday" && "🎂 "}
+                      {notif.message}
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">
+                      {formatDistanceToNow(notif.timestamp, {
+                        locale: ptBR,
+                        addSuffix: true,
+                      })}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+
+              if (notif.href) {
+                return (
+                  <Link key={notif.id} href={notif.href} onClick={() => setOpen(false)}>
+                    {content}
+                  </Link>
+                );
+              }
+
+              return content;
+            })
           )}
         </div>
       </PopoverContent>

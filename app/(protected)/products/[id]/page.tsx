@@ -18,15 +18,19 @@ import {
   ArrowLeftIcon,
   PackageIcon,
   BeakerIcon,
-  DollarSignIcon,
-  BarChart3Icon,
-  BoxIcon,
 } from "lucide-react";
 import Link from "next/link";
 import RecipeTable from "./_components/recipe-table";
 import AddIngredientForm from "./_components/add-ingredient-form";
 import ProduceBatchModal from "./_components/produce-batch-modal";
+import InlineFinancialSummary from "./_components/inline-financial-summary";
+import InlineStockStatus from "./_components/inline-stock-status";
+import InlineAdditionalInfo from "./_components/inline-additional-info";
+import InlineProductHeader from "./_components/inline-product-header";
+import InlineProductImage from "./_components/inline-product-image";
 import { getIngredients } from "@/app/_data-access/ingredient/get-ingredients";
+import { getProductCategories } from "@/app/_data-access/product/get-product-categories";
+import { getEnvironments } from "@/app/_data-access/product/get-environments";
 
 const formatCurrency = (value: number) =>
   Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -35,10 +39,12 @@ const formatCurrency = (value: number) =>
 
 const PRODUCT_TYPE_LABELS: Record<
   string,
-  { label: string; variant: "default" | "secondary" }
+  { label: string; variant: "default" | "secondary" | "outline" | "premium" }
 > = {
-  RESELL: { label: "Revenda", variant: "secondary" },
-  PREPARED: { label: "Produção Própria", variant: "default" },
+  REVENDA: { label: "Revenda", variant: "secondary" },
+  PRODUCAO_PROPRIA: { label: "Produção Própria", variant: "default" },
+  COMBO: { label: "Combo", variant: "premium" as any },
+  INSUMO: { label: "Insumo", variant: "outline" as any },
 };
 
 interface ProductDetailsPageProps {
@@ -47,9 +53,11 @@ interface ProductDetailsPageProps {
 
 const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
   const { id } = await params;
-  const [product, ingredients] = await Promise.all([
+  const [product, ingredients, categories, environments] = await Promise.all([
     getProductById(id),
     getIngredients(),
+    getProductCategories(),
+    getEnvironments(),
   ]);
 
   if (!product) {
@@ -57,60 +65,30 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
   }
 
   const typeConfig =
-    PRODUCT_TYPE_LABELS[product.type] || PRODUCT_TYPE_LABELS.RESELL;
-  const isPrepared = product.type === "PREPARED";
+    PRODUCT_TYPE_LABELS[product.type] || PRODUCT_TYPE_LABELS.REVENDA;
+  const isPrepared = 
+    product.type === "PRODUCAO_PROPRIA" || 
+    product.type === "COMBO";
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6 p-6">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" asChild>
+    <div className="mx-auto w-full max-w-6xl p-8 space-y-8">
+      <div className="flex items-center gap-6">
+        <Button variant="ghost" size="icon" asChild className="h-10 w-10 border shadow-sm hover:bg-muted">
           <Link href="/products">
-            <ArrowLeftIcon size={16} />
+            <ArrowLeftIcon size={18} className="text-muted-foreground" />
           </Link>
         </Button>
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-bold tracking-tight">{product.name}</h1>
-          <Badge variant={typeConfig.variant} className="h-fit">
-            {typeConfig.label}
-          </Badge>
+        <div className="flex-1">
+          <InlineProductHeader product={product as any} />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-3">
         {/* Main Content - Left Column (2/3) */}
-        <div className="space-y-6 lg:col-span-2">
-          {/* Financial Summary Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Resumo Financeiro
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <p className="text-xs text-muted-foreground">Preço de Venda</p>
-                  <p className="text-xl font-bold">
-                    {formatCurrency(product.price)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">
-                    {isPrepared ? "Custo (Receita)" : "Custo Fixo"}
-                  </p>
-                  <p className="text-xl font-bold">
-                    {formatCurrency(product.cost)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Margem</p>
-                  <p className="text-xl font-bold text-primary">
-                    {product.margin}%
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="space-y-10 lg:col-span-2">
+          {/* Financial Summary Block (Inline Editable) */}
+          <InlineFinancialSummary product={product as any} />
+
 
           {/* Composition / Recipe Section */}
           {isPrepared ? (
@@ -130,26 +108,28 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
                   recipeCost={product.recipeCost}
                 />
                 <div className="rounded-lg border border-dashed p-4">
-                  <h4 className="mb-4 text-sm font-medium">Adicionar Insumo</h4>
+                  <h4 className="mb-4 text-sm font-medium">Adicionar Item à Composição</h4>
                   <AddIngredientForm
                     productId={product.id}
-                    ingredientOptions={ingredients.map((i) => ({
-                      value: i.id,
-                      label: `${i.name} (${i.unitLabel})`,
-                      unit: i.unit,
-                    }))}
+                    ingredientOptions={ingredients
+                      .filter((i) => i.id !== product.id)
+                      .map((i) => ({
+                        value: i.id,
+                        label: `${i.name} (${i.unitLabel})`,
+                        unit: i.unit,
+                      }))}
                   />
                 </div>
               </CardContent>
             </Card>
           ) : (
-            <Card className="bg-muted/30">
-              <CardContent className="flex flex-col items-center justify-center py-10 text-center">
-                <PackageIcon className="mb-2 text-muted-foreground" size={40} />
-                <CardTitle className="text-base">Produto de Revenda</CardTitle>
-                <CardDescription className="max-w-[300px]">
-                  Este produto não possui ficha técnica por ser um item de
-                  revenda direta de fornecedor.
+            <Card className="bg-muted/30 border-dashed border-2">
+              <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                <PackageIcon className="mb-4 text-muted-foreground/30" size={64} />
+                <CardTitle className="text-xl font-bold">Produto Simples</CardTitle>
+                <CardDescription className="max-w-[400px] text-base mt-2">
+                  Produtos do tipo <strong>Revenda</strong> ou <strong>Insumo</strong> 
+                  não possuem ficha técnica pois não são compostos por outros itens.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -157,68 +137,35 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
         </div>
 
         {/* Sidebar - Right Column (1/3) */}
-        <div className="space-y-6">
-          <Card className="border-primary/20 bg-primary/5">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Status do Estoque
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black">
-                    {product.stock.toString()}
-                  </span>
-                  <span className="text-lg font-medium text-muted-foreground">
-                    {product.unit}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground">Disponível em estoque</p>
-              </div>
+        <div className="space-y-10">
+          {/* Product Image Card (Sidebar Top) */}
+          <InlineProductImage product={product as any} />
 
-              <div className="flex items-center justify-between rounded-md bg-background p-3 text-sm border">
-                <span className="text-muted-foreground">Estoque Mínimo:</span>
-                <span className="font-semibold">
-                  {product.minStock} {product.unit}
-                </span>
-              </div>
+          {/* Stock Status Block (Inline Editable) */}
+          <InlineStockStatus product={product as any} />
 
-              {isPrepared && (
-                <div className="pt-2">
-                  <ProduceBatchModal
-                    productId={product.id}
-                    productName={product.name}
-                    productStock={product.stock}
-                    recipeCost={product.recipeCost}
-                    recipes={product.recipes}
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Informações Adicionais
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">SKU:</span>
-                <span>{product.sku || "N/A"}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Criado em:</span>
-                <span>{new Date(product.createdAt).toLocaleDateString()}</span>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Additional Info Block (Inline Editable) */}
+          <InlineAdditionalInfo 
+            product={product as any} 
+            categories={categories} 
+            environments={environments} 
+          />
+          
+          {isPrepared && (
+            <div className="pt-2">
+              <ProduceBatchModal
+                productId={product.id}
+                productName={product.name}
+                productStock={product.stock}
+                recipeCost={product.recipeCost}
+                recipes={product.recipes}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default ProductDetailsPage;

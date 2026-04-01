@@ -29,16 +29,16 @@ export const upsertIngredient = actionClient
       let ingredientId = id;
 
       if (id) {
-        // Update ingredient metadata only, ignore stock field from form
-        const updated = await trx.ingredient.update({
+        // Update metadata only, ignore stock field from form
+        const updated = await trx.product.update({
           where: { id },
           data,
         });
         ingredientId = updated.id;
       } else {
-        // Create new ingredient with 0 stock initially
-        const ingredient = await trx.ingredient.create({
-          data: { ...data, companyId, stock: 0 },
+        // Create new product of type INSUMO with 0 price and 0 stock initially
+        const ingredient = await trx.product.create({
+          data: { ...data, companyId, type: "INSUMO", price: 0, stock: 0 },
         });
         ingredientId = ingredient.id;
 

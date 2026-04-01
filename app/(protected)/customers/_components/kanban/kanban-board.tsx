@@ -8,6 +8,7 @@ import {
   useCallback,
   memo,
 } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   DndContext,
   DragOverlay,
@@ -61,6 +62,7 @@ export const KanbanBoard = ({
   categories,
   checklistTemplates,
 }: KanbanBoardProps) => {
+  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [activeCustomer, setActiveCustomer] = useState<any | null>(null);
   const [viewingCustomer, setViewingCustomer] = useState<any | null>(null);
@@ -250,6 +252,13 @@ export const KanbanBoard = ({
         <div className="scrollbar-hide flex min-h-[600px] items-start gap-6 overflow-x-auto px-4 pb-6">
           {stages.map((stage) => {
             const displayItems = columnMap[stage.id] || [];
+            
+            // If a filter is active, hide empty columns
+            const isFilterActive = (searchParams.get("search") || "") !== "" || (searchParams.get("category") || "ALL") !== "ALL";
+            if (isFilterActive && displayItems.length === 0) {
+              return null;
+            }
+
             return (
               <KanbanColumn
                 key={stage.id}
