@@ -506,28 +506,133 @@ async function main() {
   }
 
   // =============================================
-  // 13. Goals, Checklists, Notifications
+  // 13. CRM Checklists & Journey Data
   // =============================================
-  console.log("🎯 Seeding goals, checklists, and notifications...");
+  console.log("📝 Seeding realistic CRM journeys (checklists)...");
+  
+  const checklistPlanNames = [
+    "Integração Inicial",
+    "Onboarding Técnico",
+    "Mapeamento de Necessidades",
+    "Acompanhamento Pós-Venda",
+    "Renovação de Contrato"
+  ];
+
+  const itemTitles = [
+    "Reunião de Alinhamento",
+    "Configuração de Cadastro",
+    "Envio de Documentação",
+    "Treinamento da Equipe",
+    "Primeiro Checkout",
+    "Visita Técnica",
+    "Call de Feedback",
+    "Aprovação de Layout"
+  ];
+
+  for (const customer of customers) {
+    const checklist = await prisma.checklist.create({
+      data: {
+        title: faker.helpers.arrayElement(checklistPlanNames),
+        customerId: customer.id,
+        companyId: company.id,
+      },
+    });
+
+    // Create 5-8 items per checklist
+    const numItems = faker.number.int({ min: 5, max: 8 });
+    for (let j = 0; j < numItems; j++) {
+      const daysOffset = faker.number.int({ min: -60, max: 60 });
+      const dueDate = addDays(new Date(), daysOffset);
+      const isPast = daysOffset < 0;
+      
+      let completedAt: Date | null = null;
+      let isChecked = false;
+
+      if (isPast) {
+        // 80% chance of being completed if in the past
+        if (faker.number.float() < 0.8) {
+          isChecked = true;
+          completedAt = addHours(dueDate, faker.number.int({ min: -24, max: 0 }));
+        }
+      } else {
+        // 10% chance of being pre-completed if in the future (unlikely but possible)
+        if (faker.number.float() < 0.1) {
+          isChecked = true;
+          completedAt = new Date();
+        }
+      }
+
+      const item = await prisma.checklistItem.create({
+        data: {
+          title: faker.helpers.arrayElement(itemTitles),
+          isChecked,
+          completedAt,
+          dueDate,
+          order: j,
+          checklistId: checklist.id,
+          companyId: company.id,
+        },
+      });
+
+      // If completed, log an audit event
+      if (isChecked && completedAt) {
+        await prisma.auditEvent.create({
+          data: {
+            type: "CHECKLIST_ITEM_COMPLETED",
+            companyId: company.id,
+            actorId: users["Atendente"].id,
+            actorName: "Atendente",
+            actorEmail: "atendente@rota360.com",
+            entityType: "CUSTOMER",
+            entityId: customer.id,
+            createdAt: completedAt,
+            metadata: {
+              itemTitle: item.title,
+              checklistTitle: checklist.title,
+              customerName: customer.name,
+              customerId: customer.id,
+            }
+          }
+        });
+      }
+    }
+  }
+
+  // =============================================
+  // 14. CRM Stage Move History (Audit Events)
+  // =============================================
+  console.log("🔄 Seeding CRM stage movement history...");
+  for (let k = 0; k < 40; k++) {
+    const customer = faker.helpers.arrayElement(customers);
+    const fromS = faker.helpers.arrayElement(stagesData).name;
+    const toS = faker.helpers.arrayElement(stagesData).name;
+    
+    await prisma.auditEvent.create({
+      data: {
+        type: "CUSTOMER_STAGE_UPDATED",
+        companyId: company.id,
+        actorId: users["Everton"].id,
+        actorName: "Everton",
+        actorEmail: "everton@rota360.com",
+        entityType: "CUSTOMER",
+        entityId: customer.id,
+        createdAt: subDays(new Date(), faker.number.int({ min: 0, max: 60 })),
+        metadata: {
+          customerName: customer.name,
+          fromStage: fromS,
+          toStage: toS,
+          customerId: customer.id,
+        }
+      }
+    });
+  }
+
+  console.log("🎯 Seeding goals and notifications...");
   await prisma.goal.createMany({
     data: [
       { name: "Meta de Vendas Mensal", type: GoalType.GLOBAL, targetValue: 15000, startDate: startOfDay(today), companyId: company.id, createdById: users["Matheus"].id },
       { name: "Meta Coxinhas", type: GoalType.PRODUCT, productId: products["Coxinha Especial"].id, targetValue: 500, startDate: startOfDay(today), companyId: company.id, createdById: users["Matheus"].id },
     ],
-  });
-
-  await prisma.checklist.create({
-    data: {
-      title: "Checklist de Abertura",
-      customerId: customers[0].id,
-      companyId: company.id,
-      items: {
-        create: [
-          { title: "Limpar mesas", order: 0, companyId: company.id },
-          { title: "Ligar máquinas de café", order: 1, companyId: company.id },
-        ],
-      },
-    },
   });
 
   await prisma.notification.createMany({

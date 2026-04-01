@@ -29,10 +29,12 @@ export function DatePicker({
   placeholder = "Selecione uma data",
   disabled,
   className,
-  showDropdowns = false,
+  showDropdowns = true,
 }: DatePickerProps) {
+  const [open, setOpen] = React.useState(false);
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant={"outline"}
@@ -54,12 +56,15 @@ export function DatePicker({
         <Calendar
           mode="single"
           selected={value}
-          onSelect={onChange}
+          onSelect={(date) => {
+            onChange(date);
+            setOpen(false);
+          }}
           disabled={disabled}
           initialFocus
           captionLayout={showDropdowns ? "dropdown" : "label"}
-          fromYear={showDropdowns ? 1900 : undefined}
-          toYear={showDropdowns ? new Date().getFullYear() : undefined}
+          fromYear={1900}
+          toYear={new Date().getFullYear() + 10}
         />
       </PopoverContent>
     </Popover>

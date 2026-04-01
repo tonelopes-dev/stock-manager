@@ -4,7 +4,9 @@ import { use, useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { CustomerDataTable } from "./customer-data-table";
 import { KanbanBoard } from "./kanban/kanban-board";
+import { JourneyDashboard } from "./journeys/journey-dashboard";
 import { CustomerDto } from "@/app/_data-access/customer/get-customers";
+import { JourneyAnalytics } from "@/app/_data-access/crm/get-crm-analytics";
 import { UserRole } from "@prisma/client";
 import { Dialog } from "@/app/_components/ui/dialog";
 import { CustomerDetailsDialogContent } from "./details-dialog-content";
@@ -20,6 +22,7 @@ interface CustomerListResultsProps {
   role: UserRole;
   categoriesData: any[];
   stagesData: any[];
+  journeyData: JourneyAnalytics;
 }
 
 export const CustomerListResults = ({
@@ -33,6 +36,7 @@ export const CustomerListResults = ({
   role,
   categoriesData,
   stagesData,
+  journeyData,
 }: CustomerListResultsProps) => {
   // Unwrap the promise (triggers Suspense boundary in CustomerPageClient)
   const { data: customers, total } = use(customersPromise);
@@ -47,18 +51,7 @@ export const CustomerListResults = ({
         checklistTemplates={checklistTemplates}
       />
       {isTable ? (
-        <CustomerDataTable
-          customers={customers}
-          userRole={role as UserRole}
-          categories={categoriesData}
-          stages={stagesData}
-          checklistTemplates={checklistTemplates}
-          pagination={{
-            total,
-            page,
-            pageSize,
-          }}
-        />
+        <JourneyDashboard data={journeyData} />
       ) : (
         <KanbanBoard
           initialCustomers={customers}
@@ -93,10 +86,10 @@ const CustomerSearchHandler = ({
 
   useEffect(() => {
     const action = searchParams.get("action");
-    const id = searchParams.get("id");
+    const idFromParam = searchParams.get("id") || searchParams.get("customerId");
 
-    if (action === "edit" && id) {
-      const customer = customers.find((c) => c.id === id);
+    if ((action === "edit" || action === "open-modal") && idFromParam) {
+      const customer = customers.find((c) => c.id === idFromParam);
       if (customer) {
         setSelectedCustomer(customer);
         setIsOpen(true);

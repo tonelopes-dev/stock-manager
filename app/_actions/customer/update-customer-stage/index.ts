@@ -11,10 +11,38 @@ export const updateCustomerStage = actionClient
   .action(async ({ parsedInput: { customerId, stageId } }) => {
     const companyId = await getCurrentCompanyId();
 
+    const customer = await db.customer.findUnique({
+      where: { id: customerId, companyId },
+      include: { stage: true }
+    });
+
+    if (!customer) throw new Error("Cliente não encontrado.");
+
+    const newStage = await db.cRMStage.findUnique({
+      where: { id: stageId, companyId }
+    });
+
     await db.customer.update({
       where: { id: customerId, companyId },
       data: { stageId },
     });
 
+    const { AuditService } = await import("@/app/_services/audit");
+    const { AuditEventType } = await import("@prisma/client");
+
+    await AuditService.log({
+      type: AuditEventType.CUSTOMER_STAGE_UPDATED,
+      companyId,
+      entityType: "CUSTOMER",
+      entityId: customerId,
+      metadata: {
+        customerName: customer.name,
+        fromStage: customer.stage?.name || "Sem funil",
+        toStage: newStage?.name || "Sem funil",
+        customerId,
+      },
+    });
+
     revalidatePath("/customers");
+    revalidatePath("/journeys");
   });

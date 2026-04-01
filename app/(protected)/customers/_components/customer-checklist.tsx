@@ -15,7 +15,19 @@ import {
   Pencil,
   Check,
   Loader2,
+  Bell,
+  Calendar as CalendarIcon,
+  Clock,
+  Info,
 } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/app/_components/ui/popover";
+import { DatePicker } from "@/app/_components/ui/date-picker";
+import { format, setHours, setMinutes, getHours, getMinutes, isPast } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +47,7 @@ import {
   updateChecklistItemTitle,
   deleteChecklistItem,
   updateChecklistTitle,
+  updateChecklistItemDueDate,
 } from "@/app/_actions/checklist";
 import { Input } from "@/app/_components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
@@ -379,11 +392,19 @@ export const CustomerChecklist = ({
                           (a: ChecklistItem, b: ChecklistItem) =>
                             a.order - b.order,
                         )
-                        .map((item: ChecklistItem) => (
-                          <div
-                            key={item.id}
-                            className="group flex items-center gap-3 rounded-lg px-2 py-1 transition-colors hover:bg-muted"
-                          >
+                        .map((item: ChecklistItem) => {
+                          const isOverdue = item.dueDate && isPast(new Date(item.dueDate)) && !item.isChecked;
+                          return (
+                            <div
+                              key={item.id}
+                              className="group flex items-center gap-3 rounded-lg px-2 py-1 transition-colors hover:bg-muted"
+                            >
+                            {isOverdue && (
+                              <div className="flex shrink-0 items-center justify-center rounded-full bg-destructive/10 p-0.5 text-destructive animate-pulse">
+                                <Info className="h-3 w-3" />
+                              </div>
+                            )}
+
                             <div className="flex h-4 w-4 shrink-0 items-center justify-center">
                               {togglingItemIds.has(item.id) ? (
                                 <Loader2 className="h-3 w-3 animate-spin text-primary" />
@@ -431,6 +452,10 @@ export const CustomerChecklist = ({
                                   {item.title}
                                 </label>
                                 <div className="flex opacity-0 transition-opacity group-hover:opacity-100">
+                                  <ChecklistItemReminder 
+                                    item={item} 
+                                    onUpdate={refreshData} 
+                                  />
                                   <Button
                                     variant="ghost"
                                     size="sm"
@@ -451,7 +476,8 @@ export const CustomerChecklist = ({
                               </div>
                             )}
                           </div>
-                        ))}
+                            );
+                          })}
 
                       {/* ADD ITEM INPUT */}
                       <div className="mt-2 flex items-center gap-3 px-2">
@@ -579,5 +605,139 @@ export const CustomerChecklist = ({
         </AlertDialogContent>
       </AlertDialog>
     </>
+  );
+};
+
+const ChecklistItemReminder = ({ 
+  item, 
+  onUpdate 
+}: { 
+  item: ChecklistItem; 
+  onUpdate?: () => void;
+}) => {
+  const [isPending, startTransition] = useTransition();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    item.dueDate ? new Date(item.dueDate) : undefined
+  );
+  const [selectedTime, setSelectedTime] = useState(
+    item.dueDate ? format(new Date(item.dueDate), "HH:mm") : "12:00"
+  );
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSave = () => {
+    if (!selectedDate) return;
+
+    const [hours, minutes] = selectedTime.split(":").map(Number);
+    const finalDate = setMinutes(setHours(selectedDate, hours), minutes);
+
+    startTransition(async () => {
+      const result = await updateChecklistItemDueDate({
+        id: item.id,
+        dueDate: finalDate,
+      });
+
+      if (result?.serverError) {
+        toast.error("Erro ao definir lembrete.");
+      } else {
+        toast.success("Lembrete definido!");
+        setIsOpen(false);
+        onUpdate?.();
+      }
+    });
+  };
+
+  const handleRemove = () => {
+    startTransition(async () => {
+      const result = await updateChecklistItemDueDate({
+        id: item.id,
+        dueDate: null,
+      });
+
+      if (result?.serverError) {
+        toast.error("Erro ao remover lembrete.");
+      } else {
+        toast.success("Lembrete removido.");
+        setSelectedDate(undefined);
+        setIsOpen(false);
+        onUpdate?.();
+      }
+    });
+  };
+
+  const isOverdue = item.dueDate && isPast(new Date(item.dueDate)) && !item.isChecked;
+
+  return (
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className={`h-6 w-6 p-0 transition-colors ${
+            item.dueDate 
+              ? isOverdue ? "text-destructive animate-pulse" : "text-primary" 
+              : "text-muted-foreground hover:text-primary"
+          }`}
+        >
+          <Bell className="h-3 w-3" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 rounded-xl border-none p-4 shadow-2xl" align="end">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Bell className="h-4 w-4 text-primary" />
+            <span className="text-xs font-black uppercase italic tracking-tighter">
+              Definir Lembrete
+            </span>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase text-muted-foreground">
+              Data do Alerta
+            </label>
+            <DatePicker
+              value={selectedDate}
+              onChange={setSelectedDate}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase text-muted-foreground">
+              Horário
+            </label>
+            <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-1">
+              <Clock className="h-3 w-3 text-muted-foreground" />
+              <input
+                type="time"
+                className="flex-1 bg-transparent text-xs outline-none"
+                value={selectedTime}
+                onChange={(e) => setSelectedTime(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            {item.dueDate && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex-1 text-[10px] font-bold uppercase text-destructive hover:bg-destructive/10"
+                onClick={handleRemove}
+                disabled={isPending}
+              >
+                Remover
+              </Button>
+            )}
+            <Button
+              size="sm"
+              className="flex-1 text-[10px] font-bold uppercase"
+              onClick={handleSave}
+              disabled={isPending || !selectedDate}
+            >
+              {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Salvar"}
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 };

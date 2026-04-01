@@ -6,6 +6,7 @@ import { CustomerPageClient } from "./_components/customer-page-client";
 import { CustomerListResults } from "./_components/customer-list-results";
 import { getChecklistTemplates } from "../../_data-access/checklist/get-checklist-templates";
 import { getCustomers } from "../../_data-access/customer/get-customers";
+import { getCRMAnalytics } from "../../_data-access/crm/get-crm-analytics";
 
 interface CustomersPageProps {
   searchParams: Promise<{
@@ -28,11 +29,12 @@ const CustomersPage = async ({ searchParams }: CustomersPageProps) => {
   const pageSize = Number(resolvedSearchParams?.pageSize) || 10;
 
   // 1. Parallelize metadata fetching (Instant Shell)
-  const [categories, stages, role, templates] = await Promise.all([
+  const [categories, stages, role, templates, journeyData] = await Promise.all([
     getCustomerCategories(),
     getCRMStages(),
     getCurrentUserRole(),
     getChecklistTemplates(),
+    getCRMAnalytics(),
   ]);
 
   // 2. Start fetching customers list as a Promise (Non-blocking)
@@ -64,6 +66,7 @@ const CustomersPage = async ({ searchParams }: CustomersPageProps) => {
           role={role as UserRole}
           categoriesData={categories}
           stagesData={stages}
+          journeyData={journeyData}
         />
       </CustomerPageClient>
     </div>

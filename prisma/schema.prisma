@@ -297,6 +297,7 @@ model Customer {
   source      CustomerSource       @default(MANUAL)
   externalId  String?
   birthday    DateTime?
+  birthdayReminderDate DateTime?
   notes       String?
   isActive    Boolean              @default(true)
   companyId   String
@@ -456,6 +457,8 @@ model ChecklistItem {
   companyId   String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+  dueDate     DateTime?
   checklist   Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
   company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
@@ -579,6 +582,8 @@ enum AuditEventType {
   INGREDIENT_UPDATED
   INGREDIENT_DELETED
   INGREDIENT_STOCK_ADJUSTED
+  CUSTOMER_STAGE_UPDATED
+  CHECKLIST_ITEM_COMPLETED
 }
 
 enum CustomerCategoryEnum {

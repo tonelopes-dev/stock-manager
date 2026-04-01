@@ -62,6 +62,20 @@ export const getCustomers = async (
       { name: { contains: search, mode: "insensitive" } },
       { phone: { contains: search, mode: "insensitive" } },
       { email: { contains: search, mode: "insensitive" } },
+      {
+        checklists: {
+          some: {
+            OR: [
+              { title: { contains: search, mode: "insensitive" } },
+              {
+                items: {
+                  some: { title: { contains: search, mode: "insensitive" } },
+                },
+              },
+            ],
+          },
+        },
+      },
     ];
   }
 
