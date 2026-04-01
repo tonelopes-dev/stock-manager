@@ -11,7 +11,13 @@ import {
   SelectValue 
 } from "@/app/_components/ui/select";
 import { Badge } from "@/app/_components/ui/badge";
-import { EditIcon, CheckIcon, XIcon, Loader2Icon } from "lucide-react";
+import { EditIcon, CheckIcon, XIcon, Loader2Icon, SettingsIcon } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/app/_components/ui/tooltip";
 import { useAction } from "next-safe-action/hooks";
 import { upsertProduct } from "@/app/_actions/product/upsert-product";
 import { toast } from "sonner";
@@ -119,14 +125,20 @@ export default function InlineProductHeader({ product }: InlineProductHeaderProp
                 </div>
               </div>
             ) : (
-              <div className="space-y-3">
-                <h1 className="text-4xl font-black tracking-tight text-foreground">{name}</h1>
-                <div className="flex items-center gap-2">
-                  <Badge className={cn("px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border", typeConfig.className)}>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-3">
+                  <Badge className={cn("px-3 py-0.5 rounded-xl text-[9px] font-black uppercase tracking-[0.1em] border-none shadow-sm", typeConfig.className)}>
                     {typeConfig.label}
                   </Badge>
-                  <Badge variant="secondary" className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider opacity-60">
-                    {product.unit}
+                  <div className="h-1 w-1 rounded-full bg-slate-300" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">
+                    ID: {product.id.slice(-6).toUpperCase()}
+                  </span>
+                </div>
+                <h1 className="text-4xl sm:text-6xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-slate-950 via-slate-800 to-slate-900 leading-[1] py-1">{name}</h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className="px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-widest text-muted-foreground border-slate-200 bg-white/50 backdrop-blur-sm">
+                    Unidade: {product.unit}
                   </Badge>
                 </div>
               </div>
@@ -136,20 +148,46 @@ export default function InlineProductHeader({ product }: InlineProductHeaderProp
 
         <div className="ml-4">
           {!isEditing ? (
-            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="gap-2 h-10 px-4 rounded-xl border-border/60 hover:bg-primary hover:text-white transition-all duration-300" aria-label="Editar Nome e Tipo">
-              <EditIcon size={14} />
-              <span className="text-xs font-bold uppercase tracking-wider">Identificação</span>
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="gap-2 h-10 px-4 rounded-xl border-border/60 hover:bg-primary hover:text-white transition-all duration-300" aria-label="Editar Nome e Tipo">
+                    <SettingsIcon size={14} className="text-muted-foreground group-hover:text-white" />
+                    <span className="text-xs font-bold uppercase tracking-wider">Identificação</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Alterar nome, tipo ou unidade</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           ) : (
-            <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl">
-              <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)} disabled={isPending} className="h-9 w-9 p-0 rounded-xl hover:bg-white text-muted-foreground shadow-sm" aria-label="Cancelar Edição">
-                <XIcon size={18} />
-              </Button>
-              <Button size="sm" onClick={handleSave} disabled={isPending} className="h-9 px-4 rounded-xl shadow-lg bg-primary hover:primary/90 transition-all font-bold text-xs uppercase tracking-wider" aria-label="Salvar Alterações">
-                {isPending ? <Loader2Icon size={16} className="animate-spin" /> : <CheckIcon size={16} className="mr-2" />}
-                Salvar
-              </Button>
-            </div>
+            <TooltipProvider>
+              <div className="flex gap-2 p-1 bg-muted/30 rounded-2xl">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)} disabled={isPending} className="h-9 w-9 p-0 rounded-xl hover:bg-white text-destructive shadow-sm" aria-label="Cancelar Edição">
+                      <XIcon size={18} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Cancelar alterações</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="sm" onClick={handleSave} disabled={isPending} className="h-9 px-4 rounded-xl shadow-lg bg-primary hover:primary/90 transition-all font-bold text-xs uppercase tracking-wider" aria-label="Salvar Alterações">
+                      {isPending ? <Loader2Icon size={16} className="animate-spin" /> : <CheckIcon size={16} className="mr-2" />}
+                      Salvar
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Confirmar e salvar</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
           )}
         </div>
       </div>

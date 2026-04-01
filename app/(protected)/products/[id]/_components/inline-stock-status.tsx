@@ -58,18 +58,18 @@ export default function InlineStockStatus({ product }: InlineStockStatusProps) {
 
   return (
     <Card className={cn(
-      "border border-border/40 bg-card rounded-xl shadow-sm transition-all duration-300",
-      isEditing && "ring-1 ring-amber-500/20 border-amber-500/40 shadow-md"
+      "border-none bg-white rounded-[2rem] shadow-sm transition-all duration-300",
+      isEditing && "ring-2 ring-amber-500/10 shadow-xl"
     )}>
       <CardHeader className="flex flex-row items-center justify-between p-6 pb-2">
         <div className="flex items-center gap-2">
           <div className={cn(
-            "p-2 rounded-lg",
+            "p-2 rounded-xl",
             isLowStock ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"
           )}>
-            <BoxIcon size={16} />
+            <BoxIcon size={18} />
           </div>
-          <CardTitle className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
+          <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 leading-none mt-1">
             Status do Estoque
           </CardTitle>
         </div>
@@ -89,31 +89,33 @@ export default function InlineStockStatus({ product }: InlineStockStatusProps) {
         )}
       </CardHeader>
       <CardContent className="p-6 pt-2 space-y-6">
-        <div>
-          <div className="flex items-baseline gap-2">
-            {isEditing ? (
-              <Input 
-                type="number" 
-                step="any"
-                value={stock} 
-                onChange={(e) => setStock(Number(e.target.value))}
-                className="h-10 text-3xl font-black w-32 bg-muted/20 border-none shadow-none focus-visible:ring-1 focus-visible:ring-primary/20"
-              />
-            ) : (
-              <span className={cn(
-                "text-4xl font-black tracking-tight",
-                isLowStock ? "text-amber-600" : "text-foreground"
-              )}>{stock.toString()}</span>
-            )}
-            <span className="text-sm font-bold text-muted-foreground uppercase opacity-40">{product.unit}</span>
+        <div className="relative overflow-hidden rounded-3xl bg-slate-50/50 p-6">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-baseline gap-2">
+              {isEditing ? (
+                <Input 
+                  type="number" 
+                  step="any"
+                  value={stock} 
+                  onChange={(e) => setStock(Number(e.target.value))}
+                  className="h-10 text-3xl font-black w-32 bg-white border-slate-200 shadow-sm px-3 rounded-xl focus-visible:ring-primary/20"
+                />
+              ) : (
+                <span className={cn(
+                  "text-5xl font-black tracking-tighter tabular-nums",
+                  isLowStock ? "text-amber-600" : "text-slate-900"
+                )}>{stock.toString()}</span>
+              )}
+              <span className="text-sm font-black text-muted-foreground/30 uppercase tracking-widest">{product.unit}</span>
+            </div>
+            <p className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest mt-1">Disponível em Estoque</p>
           </div>
-          <p className="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest mt-1">Disponível</p>
         </div>
 
-        <div className="flex items-center justify-between rounded-xl bg-muted/20 p-4 text-xs">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-muted-foreground/60 font-bold uppercase tracking-widest">Estoque Mínimo</span>
-            <span className="text-[10px] text-muted-foreground font-medium opacity-60">Alerta de reposição</span>
+        <div className="flex items-center justify-between rounded-2xl bg-slate-100/40 p-5">
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] text-muted-foreground/60 font-black uppercase tracking-widest leading-none">Estoque Mínimo</span>
+            <span className="text-[10px] text-muted-foreground font-medium opacity-50">Alerta de reposição ativado</span>
           </div>
           {isEditing ? (
             <Input 
@@ -121,12 +123,23 @@ export default function InlineStockStatus({ product }: InlineStockStatusProps) {
               step="any"
               value={minStock} 
               onChange={(e) => setMinStock(Number(e.target.value))}
-              className="h-9 w-20 text-right font-black bg-white/50 border-none shadow-sm"
+              className="h-9 w-20 text-right font-black bg-white border-slate-200 shadow-sm rounded-lg"
             />
           ) : (
-            <div className="flex items-center gap-2">
-               {isLowStock && <AlertCircleIcon size={12} className="text-amber-600" />}
-               <span className="font-black text-sm">{minStock} {product.unit}</span>
+            <div className="flex flex-col items-end">
+               <div className="flex items-center gap-1.5">
+                  <span className={cn(
+                    "font-black text-base tabular-nums",
+                    isLowStock ? "text-amber-700" : "text-slate-700"
+                  )}>{minStock}</span>
+                  <span className="text-[9px] font-black text-muted-foreground/40 uppercase">{product.unit}</span>
+               </div>
+               {isLowStock && (
+                 <div className="flex items-center gap-1 mt-0.5">
+                   <AlertCircleIcon size={10} className="text-amber-600" />
+                   <span className="text-[9px] font-black text-amber-600 uppercase tracking-tighter">Crítico</span>
+                 </div>
+               )}
             </div>
           )}
         </div>

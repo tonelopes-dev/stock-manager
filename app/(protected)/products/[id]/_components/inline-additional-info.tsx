@@ -75,16 +75,16 @@ export default function InlineAdditionalInfo({
 
   return (
     <Card className={cn(
-      "border border-border/40 bg-card rounded-xl shadow-sm transition-all duration-300",
-      isEditing && "ring-1 ring-primary/20 border-primary/30 shadow-md"
+      "border-none bg-white rounded-[2rem] shadow-sm transition-all duration-300",
+      isEditing && "ring-2 ring-primary/10 shadow-xl"
     )}>
       <CardHeader className="flex flex-row items-center justify-between p-6 pb-2">
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-slate-100 text-slate-700">
-            <InfoIcon size={16} />
+          <div className="p-2 rounded-xl bg-slate-100 text-slate-700">
+            <InfoIcon size={18} />
           </div>
-          <CardTitle className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
-            Informações Adicionais
+          <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 leading-none mt-1">
+            Detalhes Adicionais
           </CardTitle>
         </div>
         {!isEditing ? (
@@ -109,12 +109,12 @@ export default function InlineAdditionalInfo({
         )}
       </CardHeader>
       <CardContent className="p-6 pt-2 space-y-5">
-        <div className="flex justify-between items-center group/item h-12 border-b border-border/20 last:border-0">
+        <div className="flex justify-between items-center group/item h-11">
           <div className="flex items-center gap-3">
-             <div className="p-2 rounded-md bg-muted/30 text-muted-foreground opacity-60">
+             <div className="p-2 rounded-lg bg-slate-50 text-slate-400 group-hover/item:text-primary transition-colors">
                <TagIcon size={14} />
              </div>
-             <span className="text-xs font-bold text-muted-foreground/50 uppercase tracking-widest">SKU</span>
+             <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.1em]">SKU</span>
           </div>
           {isEditing ? (
             <Input 
@@ -128,12 +128,12 @@ export default function InlineAdditionalInfo({
           )}
         </div>
 
-        <div className="flex justify-between items-center group/item h-12 border-b border-border/20 last:border-0">
+        <div className="flex justify-between items-center group/item h-11">
           <div className="flex items-center gap-3">
-             <div className="p-2 rounded-md bg-muted/30 text-muted-foreground opacity-60">
+             <div className="p-2 rounded-lg bg-slate-50 text-slate-400 group-hover/item:text-primary transition-colors">
                <LayersIcon size={14} />
              </div>
-             <span className="text-xs font-bold text-muted-foreground/50 uppercase tracking-widest">Categoria</span>
+             <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.1em]">Categoria</span>
           </div>
           {isEditing ? (
             <Select onValueChange={setCategoryId} value={categoryId}>
@@ -150,12 +150,12 @@ export default function InlineAdditionalInfo({
           )}
         </div>
 
-        <div className="flex justify-between items-center group/item h-12">
+        <div className="flex justify-between items-center group/item h-11">
           <div className="flex items-center gap-3">
-             <div className="p-2 rounded-md bg-muted/30 text-muted-foreground opacity-60">
+             <div className="p-2 rounded-lg bg-slate-50 text-slate-400 group-hover/item:text-primary transition-colors">
                <MapPinIcon size={14} />
              </div>
-             <span className="text-xs font-bold text-muted-foreground/50 uppercase tracking-widest">Ambiente</span>
+             <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.1em]">Ambiente</span>
           </div>
           {isEditing ? (
             <Select onValueChange={setEnvironmentId} value={environmentId}>

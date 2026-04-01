@@ -16,9 +16,9 @@ import {
   Check,
   Loader2,
   Bell,
-  Calendar as CalendarIcon,
   Clock,
   Info,
+  X,
 } from "lucide-react";
 import {
   Popover,
@@ -26,8 +26,13 @@ import {
   PopoverTrigger,
 } from "@/app/_components/ui/popover";
 import { DatePicker } from "@/app/_components/ui/date-picker";
-import { format, setHours, setMinutes, getHours, getMinutes, isPast } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/app/_components/ui/tooltip";
+import { format, setHours, setMinutes, isPast } from "date-fns";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -287,18 +292,27 @@ export const CustomerChecklist = ({
               {/* HEADER */}
               <div className="flex items-center justify-between border-b border-border bg-muted/50 px-4 py-3">
                 <div className="flex items-center gap-3">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 text-muted-foreground"
-                    onClick={() => toggleExpand(checklist.id)}
-                  >
-                    {isExpanded ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-muted-foreground"
+                          onClick={() => toggleExpand(checklist.id)}
+                        >
+                          {isExpanded ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{isExpanded ? "Recolher" : "Expandir"}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <div className="flex items-center gap-2">
                     <ClipboardList className="h-4 w-4 text-primary" />
                     {editingTitleChecklistId === checklist.id ? (
@@ -317,34 +331,52 @@ export const CustomerChecklist = ({
                               setEditingTitleChecklistId(null);
                           }}
                         />
-                        <Button
-                          size="sm"
-                          className="h-6 w-6 rounded-full bg-primary p-0 text-background shadow-lg shadow-primary/20 transition-all hover:scale-110 hover:bg-primary/90 active:scale-95"
-                          onClick={() =>
-                            handleUpdateChecklistTitle(checklist.id)
-                          }
-                          disabled={isPending}
-                        >
-                          {isPending ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Check className="h-3 w-3" />
-                          )}
-                        </Button>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="sm"
+                                className="h-6 w-6 rounded-full bg-primary p-0 text-background shadow-lg shadow-primary/20 transition-all hover:scale-110 hover:bg-primary/90 active:scale-95"
+                                onClick={() =>
+                                  handleUpdateChecklistTitle(checklist.id)
+                                }
+                                disabled={isPending}
+                              >
+                                {isPending ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Check className="h-3 w-3" />
+                                )}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Salvar título</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     ) : (
                       <div className="group/title flex items-center gap-2">
                         <h4 className="text-xs font-black uppercase italic tracking-tighter text-foreground">
                           {checklist.title}
                         </h4>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-5 w-5 p-0 opacity-0 group-hover/title:opacity-100"
-                          onClick={() => handleStartEditingChecklist(checklist)}
-                        >
-                          <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
-                        </Button>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-5 w-5 p-0 opacity-0 group-hover/title:opacity-100"
+                                onClick={() => handleStartEditingChecklist(checklist)}
+                              >
+                                <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Renomear jornada</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     )}
                   </div>
@@ -359,15 +391,24 @@ export const CustomerChecklist = ({
                       className="h-1.5 w-16 bg-muted"
                     />
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 w-7 p-0 text-destructive/10 hover:bg-destructive/10 hover:text-destructive"
-                    onClick={() => setDeletingChecklistId(checklist.id)}
-                    disabled={isPending}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0 text-destructive/10 hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => setDeletingChecklistId(checklist.id)}
+                          disabled={isPending}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Excluir jornada</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
 
@@ -393,16 +434,25 @@ export const CustomerChecklist = ({
                             a.order - b.order,
                         )
                         .map((item: ChecklistItem) => {
-                          const isOverdue = item.dueDate && isPast(new Date(item.dueDate)) && !item.isChecked;
+                          const isOverdueItem = item.dueDate && isPast(new Date(item.dueDate)) && !item.isChecked;
                           return (
                             <div
                               key={item.id}
                               className="group flex items-center gap-3 rounded-lg px-2 py-1 transition-colors hover:bg-muted"
                             >
-                            {isOverdue && (
-                              <div className="flex shrink-0 items-center justify-center rounded-full bg-destructive/10 p-0.5 text-destructive animate-pulse">
-                                <Info className="h-3 w-3" />
-                              </div>
+                            {isOverdueItem && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="flex shrink-0 items-center justify-center rounded-full bg-destructive/10 p-0.5 text-destructive animate-pulse cursor-help">
+                                      <Info className="h-3 w-3" />
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="right" sideOffset={8}>
+                                    <p>Esta tarefa está atrasada</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             )}
 
                             <div className="flex h-4 w-4 shrink-0 items-center justify-center">
@@ -451,27 +501,48 @@ export const CustomerChecklist = ({
                                 >
                                   {item.title}
                                 </label>
-                                <div className="flex opacity-0 transition-opacity group-hover:opacity-100">
-                                  <ChecklistItemReminder 
-                                    item={item} 
-                                    onUpdate={refreshData} 
-                                  />
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
-                                    onClick={() => handleStartEditing(item)}
-                                  >
-                                    <Pencil className="h-3 w-3" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                                    onClick={() => handleDeleteItem(item.id)}
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
+                                <div className="flex items-center group/item">
+                                  <div className={`${item.dueDate ? "opacity-100" : "opacity-0 group-hover:opacity-100"} transition-opacity`}>
+                                    <ChecklistItemReminder 
+                                      item={item} 
+                                      onUpdate={refreshData} 
+                                    />
+                                  </div>
+                                  <div className="flex opacity-0 transition-opacity group-hover:opacity-100">
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
+                                            onClick={() => handleStartEditing(item)}
+                                          >
+                                            <Pencil className="h-3 w-3" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Editar tarefa</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                                            onClick={() => setDeletingItemId(item.id)}
+                                          >
+                                            <Trash2 className="h-3 w-3" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Excluir tarefa</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  </div>
                                 </div>
                               </div>
                             )}
@@ -499,18 +570,27 @@ export const CustomerChecklist = ({
                           }}
                         />
                         {newItemTitles[checklist.id]?.trim() && (
-                          <Button
-                            size="sm"
-                            className="h-7 w-7 rounded-full bg-primary p-0 text-background shadow-lg shadow-primary/20 transition-all hover:scale-110 hover:bg-primary/90 active:scale-95"
-                            onClick={() => handleAddItem(checklist.id)}
-                            disabled={isPending}
-                          >
-                            {isPending ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                              <Check className="h-4 w-4" />
-                            )}
-                          </Button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  className="h-7 w-7 rounded-full bg-primary p-0 text-background shadow-lg shadow-primary/20 transition-all hover:scale-110 hover:bg-primary/90 active:scale-95"
+                                  onClick={() => handleAddItem(checklist.id)}
+                                  disabled={isPending}
+                                >
+                                  {isPending ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <Check className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Adicionar tarefa</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                       </div>
                     </div>
@@ -527,7 +607,6 @@ export const CustomerChecklist = ({
               variant="ghost"
               size="sm"
               className="gap-2 text-[10px] font-black uppercase text-muted-foreground hover:bg-primary/5 hover:text-primary"
-              // This would open a template picker or just show them
             >
               <Plus className="h-3 w-3" /> Adicionar Outra Jornada
             </Button>
@@ -667,77 +746,103 @@ const ChecklistItemReminder = ({
   const isOverdue = item.dueDate && isPast(new Date(item.dueDate)) && !item.isChecked;
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={`h-6 w-6 p-0 transition-colors ${
-            item.dueDate 
-              ? isOverdue ? "text-destructive animate-pulse" : "text-primary" 
-              : "text-muted-foreground hover:text-primary"
-          }`}
-        >
-          <Bell className="h-3 w-3" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-64 rounded-xl border-none p-4 shadow-2xl" align="end">
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Bell className="h-4 w-4 text-primary" />
-            <span className="text-xs font-black uppercase italic tracking-tighter">
-              Definir Lembrete
-            </span>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase text-muted-foreground">
-              Data do Alerta
-            </label>
-            <DatePicker
-              value={selectedDate}
-              onChange={setSelectedDate}
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase text-muted-foreground">
-              Horário
-            </label>
-            <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-1">
-              <Clock className="h-3 w-3 text-muted-foreground" />
-              <input
-                type="time"
-                className="flex-1 bg-transparent text-xs outline-none"
-                value={selectedTime}
-                onChange={(e) => setSelectedTime(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-2 pt-2">
-            {item.dueDate && (
+    <TooltipProvider>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="flex-1 text-[10px] font-bold uppercase text-destructive hover:bg-destructive/10"
-                onClick={handleRemove}
-                disabled={isPending}
+                className={`h-6 w-6 p-0 transition-colors group/bell ${
+                  item.dueDate 
+                    ? "hover:bg-primary/10" 
+                    : "text-muted-foreground opacity-30 hover:opacity-100 hover:bg-primary/10"
+                }`}
               >
-                Remover
+                <Bell className={`h-3 w-3 transition-colors ${
+                  isOverdue 
+                    ? "text-destructive animate-pulse" 
+                    : item.dueDate 
+                      ? "text-emerald-500 group-hover/bell:text-primary" 
+                      : "group-hover/bell:text-primary text-muted-foreground"
+                }`} />
               </Button>
-            )}
-            <Button
-              size="sm"
-              className="flex-1 text-[10px] font-bold uppercase"
-              onClick={handleSave}
-              disabled={isPending || !selectedDate}
-            >
-              {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Salvar"}
-            </Button>
+            </PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{item.dueDate ? "Ver lembrete da tarefa" : "Definir lembrete para esta tarefa"}</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <PopoverContent className="w-64 rounded-xl border-none p-4 shadow-2xl" align="end">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-primary" />
+                <span className="text-xs font-black uppercase italic tracking-tighter">
+                  Definir Lembrete
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 text-muted-foreground hover:bg-muted"
+                onClick={() => setIsOpen(false)}
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                Data do Alerta
+              </label>
+              <DatePicker
+                value={selectedDate}
+                onChange={setSelectedDate}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                Horário
+              </label>
+              <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-1">
+                <Clock className="h-3 w-3 text-muted-foreground" />
+                <input
+                  type="time"
+                  className="flex-1 bg-transparent text-xs outline-none"
+                  value={selectedTime}
+                  onChange={(e) => setSelectedTime(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              {item.dueDate && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 flex-1 text-[10px] font-bold uppercase text-destructive hover:bg-destructive/10"
+                  onClick={handleRemove}
+                  disabled={isPending}
+                >
+                  Remover
+                </Button>
+              )}
+              <Button
+                size="sm"
+                className="h-8 flex-1 text-[10px] font-bold uppercase"
+                onClick={handleSave}
+                disabled={isPending || !selectedDate}
+              >
+                {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Salvar"}
+              </Button>
+            </div>
           </div>
-        </div>
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+    </TooltipProvider>
   );
 };

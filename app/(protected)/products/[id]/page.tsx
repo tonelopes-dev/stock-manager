@@ -71,11 +71,12 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
     product.type === "COMBO";
 
   return (
-    <div className="mx-auto w-full max-w-6xl p-8 space-y-8">
-      <div className="flex items-center gap-6">
-        <Button variant="ghost" size="icon" asChild className="h-10 w-10 border shadow-sm hover:bg-muted">
+    <div className="relative min-h-full w-full bg-slate-50/50 p-6 lg:p-10">
+      <div className="mx-auto max-w-6xl space-y-10">
+      <div className="flex items-center gap-6 bg-white/40 backdrop-blur-sm p-6 rounded-[2.5rem] border border-white/60 shadow-sm">
+        <Button variant="ghost" size="icon" asChild className="h-12 w-12 border-none shadow-none bg-slate-100/50 hover:bg-slate-100 rounded-2xl transition-all">
           <Link href="/products">
-            <ArrowLeftIcon size={18} className="text-muted-foreground" />
+            <ArrowLeftIcon size={20} className="text-slate-600" />
           </Link>
         </Button>
         <div className="flex-1">
@@ -93,14 +94,23 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
           {/* Composition / Recipe Section */}
           {isPrepared ? (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BeakerIcon size={18} />
-                  Ficha Técnica
-                </CardTitle>
-                <CardDescription>
-                  Insumos necessários para a produção deste produto
-                </CardDescription>
+              <CardHeader className="flex flex-row items-start justify-between">
+                <div className="space-y-1.5">
+                  <CardTitle className="flex items-center gap-2">
+                    <BeakerIcon size={18} />
+                    Ficha Técnica
+                  </CardTitle>
+                  <CardDescription>
+                    Insumos necessários para a produção deste produto
+                  </CardDescription>
+                </div>
+                <ProduceBatchModal
+                  productId={product.id}
+                  productName={product.name}
+                  productStock={product.stock}
+                  recipeCost={product.recipeCost}
+                  recipes={product.recipes}
+                />
               </CardHeader>
               <CardContent className="space-y-6">
                 <RecipeTable
@@ -123,15 +133,18 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
               </CardContent>
             </Card>
           ) : (
-            <Card className="bg-muted/30 border-dashed border-2">
-              <CardContent className="flex flex-col items-center justify-center py-20 text-center">
-                <PackageIcon className="mb-4 text-muted-foreground/30" size={64} />
-                <CardTitle className="text-xl font-bold">Produto Simples</CardTitle>
-                <CardDescription className="max-w-[400px] text-base mt-2">
-                  Produtos do tipo <strong>Revenda</strong> ou <strong>Insumo</strong> 
-                  não possuem ficha técnica pois não são compostos por outros itens.
+            <Card className="border-none bg-white shadow-sm overflow-hidden rounded-[2.5rem]">
+              <div className="flex flex-col items-center justify-center py-24 text-center px-8 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-slate-100 via-primary/20 to-slate-100 opacity-50" />
+                <div className="mb-6 rounded-3xl bg-slate-50 p-6 text-primary shadow-inner">
+                  <PackageIcon size={48} className="opacity-80" />
+                </div>
+                <CardTitle className="text-2xl font-black tracking-tight text-foreground">Produto para Revenda ou Insumo</CardTitle>
+                <CardDescription className="max-w-[440px] text-base mt-4 font-medium text-muted-foreground/80 leading-relaxed">
+                  Este item é classificado como <strong>simples</strong>. 
+                  Diferente de produtos de <strong>Produção Própria</strong>, ele não requer uma ficha técnica pois não é composto por outros insumos.
                 </CardDescription>
-              </CardContent>
+              </div>
             </Card>
           )}
         </div>
@@ -151,18 +164,8 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
             environments={environments} 
           />
           
-          {isPrepared && (
-            <div className="pt-2">
-              <ProduceBatchModal
-                productId={product.id}
-                productName={product.name}
-                productStock={product.stock}
-                recipeCost={product.recipeCost}
-                recipes={product.recipes}
-              />
-            </div>
-          )}
         </div>
+      </div>
       </div>
     </div>
   );
