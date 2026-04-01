@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const upsertIngredientSchema = z.object({
-  id: z.string().cuid().optional(),
+  id: z.string().min(1).optional(),
   name: z.string().trim().min(1, {
     message: "O nome do insumo é obrigatório.",
   }),
@@ -17,6 +17,7 @@ export const upsertIngredientSchema = z.object({
   minStock: z.coerce.number().min(0).default(0),
   expirationDate: z.coerce.date().nullable().optional(),
   trackExpiration: z.boolean().default(false),
+  expirationReminderDate: z.coerce.date().nullable().optional(),
 });
 
 export type UpsertIngredientSchema = z.infer<typeof upsertIngredientSchema>;

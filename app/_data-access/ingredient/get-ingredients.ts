@@ -1,7 +1,7 @@
 import "server-only";
 
 import { db } from "@/app/_lib/prisma";
-import { Product } from "@prisma/client";
+import { Product, ProductType, UnitType } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
 export type IngredientStatusDto = "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
@@ -14,14 +14,23 @@ const UNIT_LABELS: Record<string, string> = {
   UN: "Un",
 };
 
-export interface IngredientDto extends Omit<Product, "cost" | "stock" | "minStock"> {
+export interface IngredientDto {
+  id: string;
+  name: string;
+  type: ProductType;
+  unit: UnitType;
+  unitLabel: string;
   cost: number;
   stock: number;
   minStock: number;
-  status: IngredientStatusDto;
-  unitLabel: string;
+  isActive: boolean;
+  companyId: string;
+  createdAt: Date;
+  updatedAt: Date;
   expirationDate: Date | null;
   trackExpiration: boolean;
+  expirationReminderDate: Date | null;
+  status: IngredientStatusDto;
 }
 
 export const getIngredients = async (): Promise<IngredientDto[]> => {
@@ -60,6 +69,7 @@ export const getIngredients = async (): Promise<IngredientDto[]> => {
           updatedAt: ingredient.updatedAt,
           expirationDate: ingredient.expirationDate,
           trackExpiration: ingredient.trackExpiration,
+          expirationReminderDate: ingredient.expirationReminderDate,
           status: isOutOfStock
             ? "OUT_OF_STOCK"
             : isLowStock

@@ -41,6 +41,7 @@ import * as React from "react";
 import { Switch } from "@/app/_components/ui/switch";
 import { Label } from "@/app/_components/ui/label";
 import { DatePicker } from "@/app/_components/ui/date-picker";
+import { ExpirationReminder } from "./expiration-reminder";
 
 const MoneyInput = React.forwardRef<HTMLInputElement, NumericFormatProps>(
   (props, ref) => {
@@ -167,6 +168,7 @@ const UpsertIngredientDialogContent = ({
     defaultValues: defaultValues ? {
       ...defaultValues,
       expirationDate: defaultValues.expirationDate ? new Date(defaultValues.expirationDate) : undefined,
+      expirationReminderDate: defaultValues.expirationReminderDate ? new Date(defaultValues.expirationReminderDate) : undefined,
     } : {
       name: "",
       unit: "KG",
@@ -174,6 +176,7 @@ const UpsertIngredientDialogContent = ({
       stock: 0,
       minStock: 0,
       trackExpiration: false,
+      expirationReminderDate: undefined,
     },
   });
 
@@ -321,6 +324,7 @@ const UpsertIngredientDialogContent = ({
                         field.onChange(checked);
                         if (!checked) {
                           form.setValue("expirationDate", undefined);
+                          form.setValue("expirationReminderDate", undefined);
                         }
                       }}
                     />
@@ -336,13 +340,15 @@ const UpsertIngredientDialogContent = ({
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Data de Validade</FormLabel>
-                    <DatePicker
-                      value={field.value || undefined}
-                      onChange={field.onChange}
-                      disabled={(date: Date) =>
-                        date < new Date(new Date().setHours(0, 0, 0, 0))
-                      }
-                    />
+                    <FormControl>
+                      <ExpirationReminder
+                        value={field.value}
+                        onChange={(date) => {
+                          field.onChange(date);
+                          form.setValue("expirationReminderDate", date);
+                        }}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

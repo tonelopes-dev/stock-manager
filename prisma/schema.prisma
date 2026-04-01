@@ -46,6 +46,7 @@ model Product {
   
   expirationDate   DateTime?
   trackExpiration  Boolean           @default(false)
+  expirationReminderDate DateTime?
 
   @@unique([sku, companyId])
 }
