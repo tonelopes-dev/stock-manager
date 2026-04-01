@@ -53,7 +53,9 @@ export default function LoginPage() {
     <Card className="w-full max-w-md border-none shadow-2xl">
       <CardHeader className="space-y-4 pt-10">
         <div className="flex flex-col items-center justify-center gap-4">
-          <KipoLogo />
+          <Link href="/" className="transition-all hover:scale-[1.02]">
+            <KipoLogo />
+          </Link>
         </div>
         <CardDescription className="text-center text-muted-foreground">
           Entre com seu e-mail para gerenciar seu negócio

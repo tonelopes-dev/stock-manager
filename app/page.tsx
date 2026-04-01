@@ -16,8 +16,15 @@ import {
   Smartphone,
   Server,
   Database,
+  Menu,
+  X,
 } from "lucide-react";
 import { KipoLogo } from "@/app/_components/logo";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/app/_components/ui/sheet";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -38,11 +45,13 @@ const LandingPage = () => {
     <div className="flex min-h-screen flex-col bg-background text-foreground selection:bg-primary/10">
       {/* HEADER */}
       <nav className="fixed top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="transition-all hover:scale-[1.02]">
-            <KipoLogo className="origin-left scale-75" />
+            <KipoLogo className="origin-left scale-[0.6] sm:scale-75" />
           </Link>
-          <div className="hidden items-center gap-10 text-sm font-semibold text-muted-foreground md:flex">
+
+          {/* Desktop Navigation */}
+          <div className="hidden items-center gap-10 text-sm font-semibold text-muted-foreground lg:flex">
             <a
               href="#features"
               className="transition-colors hover:text-foreground"
@@ -59,12 +68,77 @@ const LandingPage = () => {
               Investimento
             </a>
           </div>
-          <Button
-            asChild
-            className="rounded-full bg-primary px-6 font-bold shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95"
-          >
-            <Link href="/register">Agendar Demonstração</Link>
-          </Button>
+
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* Desktop Actions */}
+            <div className="hidden items-center gap-4 md:flex">
+              <Button
+                variant="ghost"
+                asChild
+                className="font-bold text-muted-foreground hover:text-primary"
+              >
+                <Link href="/login">Entrar</Link>
+              </Button>
+              <Button
+                asChild
+                className="rounded-full bg-primary px-6 font-bold shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95"
+              >
+                <Link href="/register">Agendar Demonstração</Link>
+              </Button>
+            </div>
+
+            {/* Mobile Menu */}
+            <div className="flex items-center md:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-10 w-10">
+                    <Menu className="h-6 w-6" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                  <div className="flex flex-col gap-8 pt-10">
+                    <KipoLogo className="scale-75" />
+                    <nav className="flex flex-col gap-4">
+                      <a
+                        href="#features"
+                        className="text-lg font-bold text-foreground transition-colors hover:text-primary"
+                      >
+                        Funcionalidades
+                      </a>
+                      <a
+                        href="#hub"
+                        className="text-lg font-bold text-foreground transition-colors hover:text-primary"
+                      >
+                        Integração
+                      </a>
+                      <a
+                        href="#pricing"
+                        className="text-lg font-bold text-foreground transition-colors hover:text-primary"
+                      >
+                        Investimento
+                      </a>
+                    </nav>
+                    <hr className="border-border" />
+                    <div className="flex flex-col gap-4">
+                      <Button
+                        variant="outline"
+                        asChild
+                        className="h-14 w-full rounded-2xl text-lg font-bold"
+                      >
+                        <Link href="/login">Entrar</Link>
+                      </Button>
+                      <Button
+                        asChild
+                        className="h-14 w-full rounded-2xl bg-primary text-lg font-bold shadow-lg shadow-primary/20"
+                      >
+                        <Link href="/register">Agendar Demonstração</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+          </div>
         </div>
       </nav>
 
@@ -78,7 +152,7 @@ const LandingPage = () => {
             <motion.h1
               {...fadeInUp}
               transition={{ delay: 0.2, duration: 0.8 }}
-              className="mb-8 text-5xl font-black leading-[1.1] tracking-tight text-foreground sm:text-7xl md:text-[84px]"
+              className="mb-8 text-4xl font-black leading-[1.1] tracking-tight text-foreground xs:text-5xl sm:text-7xl md:text-[84px]"
             >
               Gestão inteligente para <br className="hidden md:block" />
               <span className="text-gradient">bares e restaurantes.</span>
@@ -87,7 +161,7 @@ const LandingPage = () => {
             <motion.p
               {...fadeInUp}
               transition={{ delay: 0.4, duration: 0.8 }}
-              className="mx-auto mb-12 max-w-2xl text-lg font-medium text-muted-foreground md:text-xl"
+              className="mx-auto mb-12 max-w-2xl px-4 text-base font-medium text-muted-foreground xs:text-lg md:text-xl"
             >
               Do pedido na mesa ao controle do estoque: conecte seu salão,
               cozinha e caixa em um só sistema sem complicação.
@@ -96,10 +170,10 @@ const LandingPage = () => {
             <motion.div
               {...fadeInUp}
               transition={{ delay: 0.6, duration: 0.8 }}
-              className="mb-24 flex flex-col items-center justify-center gap-5 sm:flex-row"
+              className="mb-24 flex flex-col items-center justify-center gap-4 px-4 sm:flex-row sm:gap-5"
             >
               <Button
-                className="h-16 w-full rounded-full bg-primary px-10 text-xl font-bold shadow-xl transition-all hover:scale-105 hover:shadow-primary/20 sm:w-auto"
+                className="h-14 w-full rounded-full bg-primary px-8 text-lg font-bold shadow-xl transition-all hover:scale-105 hover:shadow-primary/20 sm:h-16 sm:px-10 sm:text-xl sm:w-auto"
                 size="lg"
                 asChild
               >
@@ -107,7 +181,7 @@ const LandingPage = () => {
               </Button>
               <Button
                 variant="outline"
-                className="h-16 w-full rounded-full border-border bg-background px-10 text-xl font-bold shadow-sm transition-all hover:bg-slate-50 sm:w-auto"
+                className="h-14 w-full rounded-full border-border bg-background px-8 text-lg font-bold shadow-sm transition-all hover:bg-slate-50 sm:h-16 sm:px-10 sm:text-xl sm:w-auto"
                 size="lg"
               >
                 Fale com um especialista
@@ -128,12 +202,12 @@ const LandingPage = () => {
                   delay: 0.4,
                   ease: [0.22, 1, 0.36, 1],
                 }}
-                className="relative mx-auto mt-24 max-w-6xl overflow-hidden rounded-[2rem] border border-border bg-white px-4 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.1)] lg:px-0"
+                className="relative mx-auto mt-24 max-w-6xl overflow-hidden rounded-2xl border border-border bg-white p-2 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.1)] sm:rounded-[2rem] sm:px-4 lg:px-0"
               >
                 <img
                   src="/prints/painel-vendas-kipo-operacional.png"
                   alt="Kipo Dashboard Preview"
-                  className="h-auto w-full object-cover"
+                  className="h-auto w-full rounded-xl object-cover sm:rounded-[1.5rem]"
                 />
               </motion.div>
             </div>
@@ -148,14 +222,14 @@ const LandingPage = () => {
           <div className="mx-auto max-w-7xl">
             <div className="flex flex-col items-center justify-between gap-24 text-center lg:flex-row lg:text-left">
               <div className="max-w-xl">
-                <span className="mb-6 inline-block rounded-full bg-primary/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-primary">
+                <span className="mb-4 sm:mb-6 inline-block rounded-full bg-primary/10 px-4 py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-primary">
                   Ecossistema Integrado
                 </span>
-                <h2 className="mb-8 text-4xl font-black leading-tight text-foreground sm:text-6xl">
+                <h2 className="mb-6 sm:mb-8 text-3xl font-black leading-tight text-foreground xs:text-4xl sm:text-6xl">
                   O coração da sua <br className="hidden lg:block" /> operação
                   gastronômica.
                 </h2>
-                <p className="text-lg font-medium leading-relaxed text-muted-foreground">
+                <p className="text-base sm:text-lg font-medium leading-relaxed text-muted-foreground">
                   Esqueça os sistemas lentos dos anos 2000. O Kipo integra suas
                   vendas físicas, controle de mesas e baixa de insumos no
                   estoque em tempo real.
@@ -240,15 +314,15 @@ const LandingPage = () => {
               <div className="flex flex-col items-center gap-16 md:flex-row">
                 <div className="flex-1 space-y-8">
                   <div className="h-1.5 w-20 bg-primary" />
-                  <h3 className="text-3xl font-black text-foreground sm:text-5xl">
+                  <h3 className="text-2xl font-black text-foreground sm:text-5xl">
                     Atendimento rápido, cliente feliz.
                   </h3>
-                  <p className="text-lg font-medium leading-relaxed text-muted-foreground">
+                  <p className="text-base font-medium leading-relaxed text-muted-foreground sm:text-lg">
                     Dê adeus à demora. Garçons tiram pedidos direto do celular
                     ou tablet, a cozinha recebe na hora e o fechamento da conta
                     leva segundos.
                   </p>
-                  <ul className="space-y-4">
+                  <ul className="space-y-3 sm:space-y-4">
                     {[
                       "Fim dos erros de comanda",
                       "Controle de gorjetas automático",
@@ -256,7 +330,7 @@ const LandingPage = () => {
                     ].map((item, i) => (
                       <li
                         key={i}
-                        className="flex items-center gap-3 font-semibold text-foreground"
+                        className="flex items-center gap-3 text-sm font-semibold text-foreground sm:text-base"
                       >
                         <CheckCircle2 className="h-5 w-5 text-primary" />
                         {item}
@@ -279,17 +353,17 @@ const LandingPage = () => {
               <div className="flex flex-col items-center gap-16 md:flex-row-reverse">
                 <div className="flex-1 space-y-8">
                   <div className="h-1.5 w-20 bg-orange-500" />
-                  <h3 className="text-3xl font-black text-foreground sm:text-5xl">
+                  <h3 className="text-2xl font-black text-foreground sm:text-5xl">
                     Nunca mais falte cerveja no fim de semana.
                   </h3>
-                  <p className="text-lg font-medium leading-relaxed text-muted-foreground">
+                  <p className="text-base font-medium leading-relaxed text-muted-foreground sm:text-lg">
                     Saiba exatamente o que comprar e quando repor. O estoque é
                     atualizado sozinho a cada venda no caixa, evitando
                     desperdícios e dinheiro parado.
                   </p>
                   <Button
                     variant="outline"
-                    className="rounded-full shadow-sm hover:bg-slate-50"
+                    className="h-12 rounded-full px-6 shadow-sm hover:bg-slate-50 sm:h-auto"
                   >
                     Saber mais sobre IA
                   </Button>
@@ -312,46 +386,46 @@ const LandingPage = () => {
         <section id="pricing" className="bg-slate-50 px-6 py-24 md:py-40">
           <div className="mx-auto max-w-4xl text-center">
             <motion.div {...fadeInUp}>
-              <h2 className="mb-6 text-4xl font-black text-foreground sm:text-6xl">
+              <h2 className="mb-6 text-3xl font-black text-foreground xs:text-4xl sm:text-6xl">
                 Invista na paz de espírito do seu negócio.
               </h2>
-              <p className="mb-20 text-xl font-medium text-muted-foreground">
+              <p className="mb-10 sm:mb-20 text-lg sm:text-xl font-medium text-muted-foreground">
                 Investimento sob medida para empresas em expansão.
               </p>
 
-              <div className="relative mx-auto max-w-[540px] overflow-hidden rounded-[2.5rem] border border-border bg-white p-12 text-left shadow-2xl">
+              <div className="relative mx-auto max-w-[540px] overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] border border-border bg-white p-6 sm:p-12 text-left shadow-2xl">
                 <div className="absolute left-0 top-0 h-1.5 w-full bg-gradient-to-r from-primary to-orange-500" />
 
-                <div className="flex flex-col gap-10">
+                <div className="flex flex-col gap-8 sm:gap-10">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-2xl font-black uppercase tracking-tighter text-foreground">
+                      <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tighter text-foreground">
                         Enterprise
                       </h3>
-                      <p className="text-sm font-bold text-primary">
+                      <p className="text-[10px] sm:text-sm font-bold text-primary">
                         SOLUÇÃO COMPLETA
                       </p>
                     </div>
-                    <div className="rounded-full bg-slate-100 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-slate-500">
-                      Top Rated
+                    <div className="rounded-full bg-primary/10 px-3 sm:px-4 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-primary">
+                      Experiência VIP
                     </div>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <div className="flex items-baseline gap-2">
-                      <span className="text-5xl font-black tracking-tighter text-foreground">
+                      <span className="text-4xl sm:text-5xl font-black tracking-tighter text-foreground">
                         R$ 249
                       </span>
-                      <span className="text-lg font-bold text-muted-foreground">
+                      <span className="text-base sm:text-lg font-bold text-muted-foreground">
                         /mês
                       </span>
                     </div>
-                    <p className="text-sm font-bold text-muted-foreground">
+                    <p className="text-xs sm:text-sm font-bold text-muted-foreground">
                       + R$ 4.500 de Setup de Implementação
                     </p>
                   </div>
 
-                  <ul className="space-y-5">
+                  <ul className="space-y-4 sm:space-y-5">
                     {[
                       "Consultoria Especializada",
                       "Monitoramento Preditivo",
@@ -361,7 +435,7 @@ const LandingPage = () => {
                     ].map((item, i) => (
                       <li
                         key={i}
-                        className="flex items-center gap-4 font-semibold text-slate-600"
+                        className="flex items-center gap-3 sm:gap-4 text-sm sm:text-base font-semibold text-slate-600"
                       >
                         <CheckCircle2 className="h-5 w-5 text-primary" />
                         {item}
@@ -369,7 +443,7 @@ const LandingPage = () => {
                     ))}
                   </ul>
 
-                  <Button className="h-16 w-full rounded-2xl bg-foreground text-lg font-black uppercase tracking-widest text-background transition-all hover:scale-[1.02] active:scale-95">
+                  <Button className="h-14 sm:h-16 w-full rounded-xl sm:rounded-2xl bg-foreground text-sm sm:text-lg font-black uppercase tracking-normal sm:tracking-widest text-background transition-all hover:scale-[1.02] active:scale-95">
                     Falar com especialista
                   </Button>
                 </div>
