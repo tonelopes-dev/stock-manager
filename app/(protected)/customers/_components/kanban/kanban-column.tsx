@@ -100,7 +100,7 @@ export const KanbanColumn = memo(
               rowHeight={getRowHeight}
               rowComponent={KanbanRow as any}
               rowProps={rowData}
-              className="scrollbar-hide"
+              className="scrollbar-premium-hover"
               style={{ height: "100%", width: "100%" }}
             />
           </SortableContext>

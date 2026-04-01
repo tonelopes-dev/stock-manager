@@ -47,6 +47,7 @@ export const getCustomers = async (
   page: number = 1,
   pageSize: number = 10,
   minimal: boolean = false,
+  journey: "all" | "with" | "without" = "all",
 ): Promise<{ data: CustomerDto[]; total: number }> => {
   const companyId = await getCurrentCompanyId();
 
@@ -55,6 +56,8 @@ export const getCustomers = async (
     ...(categoryId && categoryId !== "ALL"
       ? { categories: { some: { id: categoryId } } }
       : {}),
+    ...(journey === "with" ? { checklists: { some: {} } } : {}),
+    ...(journey === "without" ? { checklists: { none: {} } } : {}),
   };
 
   if (search) {
