@@ -191,13 +191,14 @@ export const SaleService = {
               quantity: product.quantity,
               unitPrice: productFromDb.price,
               baseCost: productFromDb.cost,
+              operationalCost: productFromDb.operationalCost,
               totalAmount: new Prisma.Decimal(productFromDb.price).mul(product.quantity),
-              totalCost: new Prisma.Decimal(productFromDb.cost).mul(product.quantity),
+              totalCost: new Prisma.Decimal(productFromDb.cost).add(productFromDb.operationalCost).mul(product.quantity),
             },
           });
 
           totalAmount += Number(productFromDb.price) * product.quantity;
-          totalCost += Number(productFromDb.cost) * product.quantity;
+          totalCost += (Number(productFromDb.cost) + Number(productFromDb.operationalCost)) * product.quantity;
         }
 
         const updatedSale = await trx.sale.update({

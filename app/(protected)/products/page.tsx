@@ -16,6 +16,7 @@ import { getOnboardingStats } from "@/app/_data-access/onboarding/get-onboarding
 import { getCurrentUserRole } from "@/app/_lib/rbac";
 import { UserRole } from "@prisma/client";
 import { getProductCategories } from "@/app/_data-access/product/get-product-categories";
+import { getOverheadSettings } from "@/app/_data-access/company/get-overhead-settings";
 
 interface ProductsPageProps {
   searchParams: Promise<{
@@ -59,11 +60,12 @@ const ProductTableWrapper = async ({
   const productsPromise = getProducts(30, status, environmentId);
   
   // Fetch metadata in parallel
-  const [role, onboardingStats, categories, environments] = await Promise.all([
+  const [role, onboardingStats, categories, environments, overheadSettings] = await Promise.all([
     getCurrentUserRole(),
     getOnboardingStats(),
     getProductCategories(),
     getEnvironments(),
+    getOverheadSettings(),
   ]);
 
   const isManagement = role === UserRole.OWNER || role === UserRole.ADMIN;
@@ -83,6 +85,7 @@ const ProductTableWrapper = async ({
                 hasProducts={onboardingStats?.hasProducts ?? true}
                 categories={categories}
                 environments={environments}
+                overheadSettings={overheadSettings}
               />
             )}
           </div>
@@ -94,6 +97,7 @@ const ProductTableWrapper = async ({
         userRole={role as UserRole}
         categories={categories}
         environments={environments}
+        overheadSettings={overheadSettings}
       />
     </div>
   );

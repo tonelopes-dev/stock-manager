@@ -15,6 +15,12 @@ import {
   DialogTitle,
 } from "@/app/_components/ui/dialog";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/app/_components/ui/tooltip";
+import {
   Dialog,
   DialogContent as SubDialogContent,
   DialogHeader as SubDialogHeader,
@@ -70,6 +76,10 @@ interface UpsertProductDialogContentProps {
   hasProducts?: boolean;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
+  overheadSettings: {
+    enableOverheadInjection: boolean;
+    overheadRate: number;
+  } | null;
 }
 
 const UpsertProductDialogContent = ({
@@ -77,6 +87,7 @@ const UpsertProductDialogContent = ({
   setDialogIsOpen,
   categories,
   environments,
+  overheadSettings,
 }: UpsertProductDialogContentProps) => {
   const { execute: executeUpsertProduct, isPending } = useAction(
     upsertProduct,
@@ -120,6 +131,7 @@ const UpsertProductDialogContent = ({
       unit: UnitType.UN,
       price: 0,
       cost: 0,
+      operationalCost: overheadSettings?.enableOverheadInjection ? overheadSettings.overheadRate : 0,
       sku: "",
       stock: 0,
       minStock: 0,
@@ -309,13 +321,13 @@ const UpsertProductDialogContent = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <FormField
                 control={form.control}
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Preço Venda</FormLabel>
+                    <FormLabel className="flex items-center h-5">Preço Venda</FormLabel>
                     <FormControl>
                       <NumericFormat
                         customInput={Input}
@@ -336,7 +348,7 @@ const UpsertProductDialogContent = ({
                 name="cost"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Custo {isCompositionType && "(Auto)"}</FormLabel>
+                    <FormLabel className="flex items-center h-5">Custo {isCompositionType && "(Auto)"}</FormLabel>
                     <FormControl>
                       <NumericFormat
                         customInput={Input}
@@ -356,10 +368,44 @@ const UpsertProductDialogContent = ({
 
               <FormField
                 control={form.control}
+                name="operationalCost"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center h-5 gap-1.5 overflow-hidden whitespace-nowrap">
+                      Custo Operac.
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon size={12} className="text-muted-foreground flex-shrink-0" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-[200px]">
+                            <p className="text-[10px]">Custo fixo indireto (taxa de rateio) calculado globalmente nas configurações da empresa.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </FormLabel>
+                    <FormControl>
+                      <NumericFormat
+                        customInput={Input}
+                        thousandSeparator="."
+                        decimalSeparator=","
+                        prefix="R$ "
+                        decimalScale={2}
+                        onValueChange={(vals) => field.onChange(vals.floatValue)}
+                        value={field.value}
+                        className="bg-orange-500/5 border-orange-500/20 font-bold"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="stock"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Estoque Inicial</FormLabel>
+                    <FormLabel className="flex items-center h-5">Estoque Inicial</FormLabel>
                     <FormControl>
                       <Input type="number" step="any" {...field} />
                     </FormControl>
@@ -372,7 +418,7 @@ const UpsertProductDialogContent = ({
                 name="sku"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>SKU / Código</FormLabel>
+                    <FormLabel className="flex items-center h-5">SKU / Código</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Opcional"

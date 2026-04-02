@@ -9,7 +9,7 @@ import { assertRole, OWNER_ONLY } from "@/app/_lib/rbac";
 
 export const updateCompany = actionClient
   .schema(updateCompanySchema)
-  .action(async ({ parsedInput: { name, allowNegativeStock } }) => {
+  .action(async ({ parsedInput: { name, allowNegativeStock, estimatedMonthlyVolume, enableOverheadInjection } }) => {
     const companyId = await getCurrentCompanyId();
     
     // Layer 2: Action Guard
@@ -20,6 +20,8 @@ export const updateCompany = actionClient
       data: {
         name,
         allowNegativeStock,
+        estimatedMonthlyVolume,
+        enableOverheadInjection,
       },
     });
 

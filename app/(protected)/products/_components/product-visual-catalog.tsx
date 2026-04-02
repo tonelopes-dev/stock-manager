@@ -39,6 +39,10 @@ interface ProductVisualCatalogProps {
   userRole: UserRole;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
+  overheadSettings: {
+    enableOverheadInjection: boolean;
+    overheadRate: number;
+  } | null;
 }
 
 type SortOption = "latest" | "low-stock" | "price-asc" | "price-desc";
@@ -48,6 +52,7 @@ export const ProductVisualCatalog = ({
   userRole,
   categories,
   environments,
+  overheadSettings,
 }: ProductVisualCatalogProps) => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("latest");
@@ -162,6 +167,7 @@ export const ProductVisualCatalog = ({
           productsPromise={productsPromise}
           categories={categories}
           environments={environments}
+          overheadSettings={overheadSettings}
         />
         <ProductGrid 
           productsPromise={productsPromise}
@@ -182,10 +188,15 @@ const ProductSearchHandler = ({
   productsPromise,
   categories,
   environments,
+  overheadSettings,
 }: {
   productsPromise: Promise<ProductDto[]>;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
+  overheadSettings: {
+    enableOverheadInjection: boolean;
+    overheadRate: number;
+  } | null;
 }) => {
   const productsResult = React.use(productsPromise);
   const searchParams = useSearchParams();
@@ -233,12 +244,14 @@ const ProductSearchHandler = ({
         }}
         categories={categories}
         environments={environments}
+        overheadSettings={overheadSettings}
         defaultValues={{
           id: selectedProduct.id,
           name: selectedProduct.name,
           type: selectedProduct.type,
           price: Number(selectedProduct.price),
           cost: Number(selectedProduct.cost),
+          operationalCost: Number(selectedProduct.operationalCost),
           sku: selectedProduct.sku || "",
           stock: selectedProduct.stock,
           minStock: selectedProduct.minStock,

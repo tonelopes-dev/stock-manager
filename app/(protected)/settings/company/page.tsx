@@ -6,6 +6,7 @@ import Header, {
 import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { CompanyForm } from "./_components/company-form";
+import { OperationalCostsSection } from "./_components/operational-costs-section";
 import {
   Card,
   CardContent,
@@ -30,6 +31,9 @@ export default async function CompanySettingsPage() {
       name: true,
       allowNegativeStock: true,
       subscriptionStatus: true,
+      estimatedMonthlyVolume: true,
+      enableOverheadInjection: true,
+      fixedExpenses: true,
     },
   });
 
@@ -91,10 +95,21 @@ export default async function CompanySettingsPage() {
                 initialData={{
                   name: company.name,
                   allowNegativeStock: company.allowNegativeStock,
+                  estimatedMonthlyVolume: company.estimatedMonthlyVolume,
+                  enableOverheadInjection: company.enableOverheadInjection,
                 }}
               />
             </CardContent>
           </Card>
+
+          {/* Custos Operacionais Globais */}
+          <OperationalCostsSection 
+            fixedExpenses={company.fixedExpenses.map(fe => ({
+              ...fe,
+              value: Number(fe.value)
+            }))}
+            estimatedMonthlyVolume={company.estimatedMonthlyVolume}
+          />
 
           {/* Faturamento */}
           <Card className="border-border shadow-sm">

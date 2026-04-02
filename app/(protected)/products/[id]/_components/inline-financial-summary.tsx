@@ -12,7 +12,10 @@ import {
   DollarSignIcon,
   TrendingUpIcon,
   WalletIcon,
-  PiggyBankIcon
+  PiggyBankIcon,
+  CalculatorIcon,
+  ShoppingBagIcon,
+  CircleDollarSignIcon
 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { upsertProduct } from "@/app/_actions/product/upsert-product";
@@ -28,6 +31,7 @@ interface InlineFinancialSummaryProps {
     type: string;
     price: number;
     cost: number;
+    operationalCost: number;
     [key: string]: any;
   };
 }
@@ -36,6 +40,7 @@ export default function InlineFinancialSummary({ product }: InlineFinancialSumma
   const [isEditing, setIsEditing] = useState(false);
   const [price, setPrice] = useState(product.price);
   const [cost, setCost] = useState(product.cost);
+  const [operationalCost, setOperationalCost] = useState(product.operationalCost);
 
   const { execute: executeUpdate, isPending } = useAction(upsertProduct, {
     onSuccess: () => {
@@ -46,7 +51,8 @@ export default function InlineFinancialSummary({ product }: InlineFinancialSumma
   });
 
   const isPrepared = product.type === "COMBO" || product.type === "PRODUCAO_PROPRIA";
-  const currentMargin = calculateMargin(price, cost);
+  const totalCost = cost + operationalCost;
+  const currentMargin = calculateMargin(price, totalCost);
 
   const handleSave = () => {
     executeUpdate({
@@ -54,6 +60,7 @@ export default function InlineFinancialSummary({ product }: InlineFinancialSumma
       id: product.id,
       price,
       cost,
+      operationalCost,
       // Ensure all fields map correctly
       name: product.name,
       type: product.type as any,
@@ -108,15 +115,15 @@ export default function InlineFinancialSummary({ product }: InlineFinancialSumma
         )}
       </CardHeader>
       <CardContent className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Preço de Venda */}
-          <div className="relative overflow-hidden rounded-3xl bg-slate-50/50 p-6 transition-all hover:bg-slate-50">
+          <div className="relative overflow-hidden rounded-3xl bg-slate-50/50 p-6 transition-all hover:bg-slate-50 border border-slate-100/50">
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
                   <WalletIcon size={16} />
                 </div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 leading-none mt-0.5">Preço de Venda</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 leading-none mt-0.5">Venda</p>
               </div>
               {isEditing ? (
                 <NumericFormat
@@ -130,20 +137,20 @@ export default function InlineFinancialSummary({ product }: InlineFinancialSumma
                   className="h-10 text-2xl font-black bg-white border-slate-200 focus-visible:ring-primary/20 shadow-sm px-3 rounded-xl"
                 />
               ) : (
-                <p className="text-3xl font-black text-slate-900 tracking-tight tabular-nums">{formatCurrency(price)}</p>
+                <p className="text-2xl font-black text-slate-900 tracking-tight tabular-nums">{formatCurrency(price)}</p>
               )}
             </div>
           </div>
 
-          {/* Custo */}
-          <div className="relative overflow-hidden rounded-3xl bg-slate-50/50 p-6 transition-all hover:bg-slate-50">
+          {/* Custo Insumos */}
+          <div className="relative overflow-hidden rounded-3xl bg-slate-50/50 p-6 transition-all hover:bg-slate-50 border border-slate-100/50">
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
-                  <PiggyBankIcon size={16} />
+                  <ShoppingBagIcon size={16} />
                 </div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 leading-none mt-0.5">
-                  {isPrepared ? "Custo (Receita)" : "Custo Fixo"}
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 leading-none mt-0.5 truncate">
+                  {isPrepared ? "Insumos" : "Custo Base"}
                 </p>
               </div>
               {isEditing && !isPrepared ? (
@@ -158,15 +165,54 @@ export default function InlineFinancialSummary({ product }: InlineFinancialSumma
                   className="h-10 text-2xl font-black bg-white border-slate-200 focus-visible:ring-primary/20 shadow-sm px-3 rounded-xl"
                 />
               ) : (
-                <p className="text-3xl font-black text-slate-900 tracking-tight tabular-nums">{formatCurrency(cost)}</p>
+                <p className="text-2xl font-black text-slate-900 tracking-tight tabular-nums">{formatCurrency(cost)}</p>
               )}
+            </div>
+          </div>
+
+          {/* Custo Operacional */}
+          <div className="relative overflow-hidden rounded-3xl bg-slate-50/50 p-6 transition-all hover:bg-slate-50 border border-slate-100/50">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                  <CalculatorIcon size={16} />
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 leading-none mt-0.5">Operacional</p>
+              </div>
+              {isEditing ? (
+                <NumericFormat
+                  customInput={Input}
+                  thousandSeparator="."
+                  decimalSeparator=","
+                  prefix="R$ "
+                  decimalScale={2}
+                  onValueChange={(vals) => setOperationalCost(vals.floatValue || 0)}
+                  value={operationalCost}
+                  className="h-10 text-2xl font-black bg-white border-slate-200 focus-visible:ring-primary/20 shadow-sm px-3 rounded-xl"
+                />
+              ) : (
+                <p className="text-2xl font-black text-slate-900 tracking-tight tabular-nums">{formatCurrency(operationalCost)}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Custo Total */}
+          <div className="relative overflow-hidden rounded-3xl bg-slate-900 p-6 transition-all shadow-lg border border-slate-800">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-800 text-slate-100">
+                  <CircleDollarSignIcon size={16} />
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 leading-none mt-0.5">Custo Total</p>
+              </div>
+              <p className="text-2xl font-black text-white tracking-tight tabular-nums">{formatCurrency(totalCost)}</p>
             </div>
           </div>
 
           {/* Lucro / Margem */}
           <div className={cn(
-            "relative overflow-hidden rounded-3xl p-6 transition-all tabular-nums",
-            currentMargin < 15 ? "bg-amber-50/50 hover:bg-amber-50" : currentMargin < 0 ? "bg-red-50/50 hover:bg-red-50" : "bg-emerald-50/50 hover:bg-emerald-50"
+            "relative overflow-hidden rounded-3xl p-6 transition-all tabular-nums border",
+            currentMargin < 15 ? "bg-amber-50/50 hover:bg-amber-50 border-amber-100" : currentMargin < 0 ? "bg-red-50/50 hover:bg-red-50 border-red-100" : "bg-emerald-50/50 hover:bg-emerald-50 border-emerald-100"
           )}>
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2">
@@ -180,7 +226,7 @@ export default function InlineFinancialSummary({ product }: InlineFinancialSumma
               </div>
               <div className="flex items-baseline gap-2">
                 <p className={cn(
-                  "text-3xl font-black tracking-tight",
+                  "text-2xl font-black tracking-tight",
                   currentMargin < 15 ? "text-amber-600" : currentMargin < 0 ? "text-destructive" : "text-emerald-600"
                 )}>
                   {currentMargin}%

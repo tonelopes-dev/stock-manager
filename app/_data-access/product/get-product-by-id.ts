@@ -36,6 +36,7 @@ export interface ProductDetailDto {
   type: string;
   price: number;
   cost: number;
+  operationalCost: number;
   margin: number;
   sku: string | null;
   stock: number;
@@ -111,6 +112,7 @@ export const getProductById = async (id: string): Promise<ProductDetailDto | nul
 
   const recipeCost = recipes.reduce((sum, r) => sum + r.partialCost, 0);
   const productCost = product.cost.toNumber();
+  const operationalCost = product.operationalCost.toNumber();
   const effectiveCost =
     product.type === "PRODUCAO_PROPRIA" || product.type === "COMBO"
       ? recipeCost
@@ -123,7 +125,8 @@ export const getProductById = async (id: string): Promise<ProductDetailDto | nul
     type: product.type,
     price,
     cost: effectiveCost,
-    margin: calculateMargin(price, effectiveCost),
+    operationalCost,
+    margin: calculateMargin(price, effectiveCost + operationalCost),
     sku: product.sku,
     stock: product.stock.toNumber(),
     minStock: product.minStock.toNumber(),
