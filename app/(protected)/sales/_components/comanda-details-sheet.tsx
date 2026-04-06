@@ -393,12 +393,13 @@ export const ComandaDetailsSheet = ({
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-muted-foreground">R$</span>
                       <Input 
                         type="number"
+                        min={0}
                         placeholder="0,00"
                         className="h-9 pl-8 font-black text-primary"
                         value={adjustmentType === "discount" ? (discountAmount || "") : (extraAmount || "")}
                         onChange={(e) => {
                           const val = parseFloat(e.target.value);
-                          const amount = isNaN(val) ? 0 : val;
+                          const amount = isNaN(val) ? 0 : Math.max(0, val);
                           if (adjustmentType === "discount") {
                             setDiscountAmount(amount);
                           } else {
