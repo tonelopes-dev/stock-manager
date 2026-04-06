@@ -74,6 +74,13 @@ export const saleTableColumns = (
               Débito
             </div>
           );
+        case "OTHER":
+          return (
+            <div className="flex items-center gap-1.5 font-bold text-muted-foreground">
+              <WalletIcon size={14} />
+              Outro
+            </div>
+          );
         default:
           return <span className="font-medium text-muted-foreground">-</span>;
       }

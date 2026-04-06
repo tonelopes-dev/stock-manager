@@ -637,7 +637,7 @@ const UpsertSheetContent = ({
                     >
                       <div className="flex items-center gap-2">
                         <CreditCardIcon size={16} className="text-primary" />
-                        Cartão
+                        Crédito
                       </div>
                     </SelectItem>
                     <SelectItem
@@ -646,7 +646,16 @@ const UpsertSheetContent = ({
                     >
                       <div className="flex items-center gap-2">
                         <WalletIcon size={16} className="text-primary" />
-                        Cartão
+                        Débito
+                      </div>
+                    </SelectItem>
+                    <SelectItem
+                      value="OTHER"
+                      className="font-bold text-foreground"
+                    >
+                      <div className="flex items-center gap-2">
+                        <WalletIcon size={16} className="text-muted-foreground" />
+                        Outro
                       </div>
                     </SelectItem>
                   </SelectContent>
