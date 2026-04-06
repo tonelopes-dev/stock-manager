@@ -81,18 +81,20 @@ export const PeriodFilter = () => {
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  const onSelectRange = (range: DateRange | undefined) => {
-    setDate(range);
-
-    if (range?.from && range?.to) {
+  const handleApply = () => {
+    if (date?.from && date?.to) {
       const params = new URLSearchParams(searchParams.toString());
       params.set("range", "custom");
-      params.set("from", format(range.from, "yyyy-MM-dd"));
-      params.set("to", format(range.to, "yyyy-MM-dd"));
+      params.set("from", format(date.from, "yyyy-MM-dd"));
+      params.set("to", format(date.to, "yyyy-MM-dd"));
       
       router.push(`?${params.toString()}`, { scroll: false });
-      setIsOpen(false); // Close popover after selection
+      setIsOpen(false);
     }
+  };
+
+  const handleClear = () => {
+    setDate(undefined);
   };
 
   return (
@@ -142,13 +144,42 @@ export const PeriodFilter = () => {
             mode="range"
             defaultMonth={date?.from}
             selected={date}
-            onSelect={onSelectRange}
+            onSelect={setDate}
             numberOfMonths={1}
             locale={ptBR}
-            className="rounded-xl border-none"
+            className="rounded-t-xl border-none"
           />
+          <div className="p-3 border-t border-border flex items-center justify-between bg-muted/20">
+            <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleClear}
+                className="text-[11px] font-bold h-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            >
+                Limpar
+            </Button>
+            <div className="flex gap-2">
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setIsOpen(false)}
+                    className="text-[11px] font-bold h-8"
+                >
+                    Cancelar
+                </Button>
+                <Button 
+                    size="sm" 
+                    onClick={handleApply}
+                    disabled={!date?.from || !date?.to}
+                    className="text-[11px] font-bold h-8 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                >
+                    Filtrar
+                </Button>
+            </div>
+          </div>
         </PopoverContent>
       </Popover>
     </div>
   );
 };
+
