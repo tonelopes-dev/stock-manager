@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -11,60 +12,32 @@ import {
   DialogTrigger,
 } from "@/app/_components/ui/dialog";
 import { Button } from "@/app/_components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/app/_components/ui/select";
-import { Badge } from "@/app/_components/ui/badge";
-import { DownloadIcon, FileSpreadsheetIcon, Loader2, PlusIcon, XIcon } from "lucide-react";
+import { DownloadIcon, FileSpreadsheetIcon, Loader2, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/app/_lib/utils";
-
-const months = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-];
-
-const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export const ExportReportModal = () => {
-  const [selectedPeriods, setSelectedPeriods] = useState<{ month: number; year: number }[]>([]);
-  const [currentMonth, setCurrentMonth] = useState<string>("1");
-  const [currentYear, setCurrentYear] = useState<string>(new Date().getFullYear().toString());
+  const searchParams = useSearchParams();
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleAddPeriod = () => {
-    const monthNum = parseInt(currentMonth);
-    const yearNum = parseInt(currentYear);
-    
-    const exists = selectedPeriods.some(p => p.month === monthNum && p.year === yearNum);
-    if (exists) {
-      toast.info("Este período já foi adicionado.");
-      return;
+  const from = searchParams.get("from") || new Date().toISOString().split("T")[0];
+  const to = searchParams.get("to") || new Date().toISOString().split("T")[0];
+
+  const formatDate = (dateStr: string) => {
+    try {
+      return format(parseISO(dateStr), "dd 'de' MMMM", { locale: ptBR });
+    } catch {
+      return dateStr;
     }
-
-    setSelectedPeriods([...selectedPeriods, { month: monthNum, year: yearNum }]);
-  };
-
-  const handleRemovePeriod = (index: number) => {
-    setSelectedPeriods(selectedPeriods.filter((_, i) => i !== index));
   };
 
   const handleExport = async () => {
-    if (selectedPeriods.length === 0) {
-      toast.error("Selecione pelo menos um período.");
-      return;
-    }
-
     setIsGenerating(true);
     try {
       const query = new URLSearchParams();
-      selectedPeriods.forEach(p => {
-        query.append("p", `${p.month}-${p.year}`);
-      });
+      query.set("from", from);
+      query.set("to", to);
 
       const url = `/api/sales/export/xlsx?${query.toString()}`;
       
@@ -79,13 +52,13 @@ export const ExportReportModal = () => {
       
       const link = document.createElement("a");
       link.href = downloadUrl;
-      link.setAttribute("download", `relatorio-vendas-${new Date().getTime()}.xlsx`);
+      link.setAttribute("download", `relatorio-vendas-operacional-${from}-a-${to}.xlsx`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(downloadUrl);
       
-      toast.success("Seu relatório foi gerado com sucesso!");
+      toast.success("Seu relatório operacional foi gerado com sucesso!");
     } catch (error) {
       console.error(error);
       toast.error("Ocorreu um erro ao gerar o relatório.");
@@ -102,7 +75,7 @@ export const ExportReportModal = () => {
           className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100/80 transition-all font-semibold shadow-sm h-9 px-4 gap-2 rounded-lg"
         >
           <FileSpreadsheetIcon size={16} />
-          Relatório XLSX
+          Exportar XLSX
         </Button>
       </DialogTrigger>
       
@@ -112,132 +85,58 @@ export const ExportReportModal = () => {
             <div className="p-1.5 bg-emerald-50 rounded-md">
               <FileSpreadsheetIcon size={18} />
             </div>
-            <span className="text-xs font-bold uppercase tracking-wider">Módulo de Exportação</span>
+            <span className="text-xs font-bold uppercase tracking-wider">Relatório Operacional</span>
           </div>
-          <DialogTitle className="text-xl">Exportação Financeira</DialogTitle>
+          <DialogTitle className="text-xl">Exportação de Resultados</DialogTitle>
           <DialogDescription>
-            Escolha os períodos desejados para compor sua planilha profissional de contabilidade e gestão.
+            Gere uma planilha detalhada com o agrupamento de produtos vendidos no período selecionado.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          <div className="flex flex-col gap-3">
-            <h4 className="text-sm font-medium text-foreground">Adicionar Período</h4>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Select value={currentMonth} onValueChange={setCurrentMonth}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Mês" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {months.map((m, i) => (
-                      <SelectItem key={m} value={(i + 1).toString()}>{m}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex-1">
-                <Select value={currentYear} onValueChange={setCurrentYear}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Ano" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {years.map(y => (
-                      <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button 
-                type="button" 
-                variant="secondary" 
-                size="icon" 
-                onClick={handleAddPeriod}
-                className="shrink-0 bg-muted hover:bg-muted border border-border"
-              >
-                <PlusIcon size={18} />
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium text-foreground">Períodos Selecionados ({selectedPeriods.length})</h4>
-              {selectedPeriods.length > 0 && (
-                <button 
-                  onClick={() => setSelectedPeriods([])}
-                  className="text-xs text-muted-foreground hover:text-muted-foreground transition-colors"
-                >
-                  Limpar tudo
-                </button>
-              )}
-            </div>
-            
-            <div className={cn(
-               "min-h-[100px] border-2 border-dashed rounded-lg p-3 flex flex-wrap gap-2 items-start transition-colors",
-               selectedPeriods.length === 0 ? "bg-muted/50 border-border items-center justify-center font-medium" : "bg-background border-border"
-            )}>
-              {selectedPeriods.length === 0 ? (
-                <span className="text-[11px] text-muted-foreground">Nenhum mês adicionado para exportação</span>
-              ) : (
-                selectedPeriods.map((period, index) => (
-                  <Badge 
-                    key={`${period.month}-${period.year}`} 
-                    variant="secondary" 
-                    className="pl-3 pr-1 py-1 gap-2 flex items-center bg-muted border-border text-foreground text-xs hover:bg-muted transition-all animate-in fade-in zoom-in-95 duration-200"
-                  >
-                    {months[period.month - 1]}/{period.year}
-                    <button 
-                      onClick={() => handleRemovePeriod(index)}
-                      className="hover:bg-muted rounded-full p-0.5 ml-1 transition-colors"
-                    >
-                      <XIcon size={12} />
-                    </button>
-                  </Badge>
-                ))
-              )}
-            </div>
-          </div>
-
-          {selectedPeriods.length > 1 && (
-            <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-1 duration-300">
-              <div className="text-emerald-600 shrink-0 mt-0.5">
-                <FileSpreadsheetIcon size={18} />
+        <div className="py-6">
+          <div className="bg-muted/50 rounded-xl p-4 border border-border flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-background rounded-lg border border-border text-muted-foreground">
+                <CalendarIcon size={18} />
               </div>
               <div>
-                <p className="text-xs text-emerald-800 font-bold mb-0.5">Relatório Inteligente Ativado</p>
-                <p className="text-[11px] text-emerald-700 leading-relaxed">
-                  Detectamos múltiplos períodos. Sua planilha incluirá automaticamente uma aba de **Comparativo Mensal** e **Gráficos de Tendência**.
+                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Período de Extração</p>
+                <p className="text-sm font-bold text-foreground">
+                  {formatDate(from)} até {formatDate(to)}
                 </p>
               </div>
             </div>
-          )}
+          </div>
 
-          {selectedPeriods.length <= 1 && (
-            <div className="bg-primary/50 border border-primary p-4 rounded-xl flex items-start gap-3">
-              <div className="text-primary shrink-0 mt-0.5">
-                <DownloadIcon size={18} />
-              </div>
-              <p className="text-xs text-primary leading-relaxed">
-                <strong>Dica:</strong> Adicione mais de um período para gerar automaticamente a aba de comparativos e gráficos de crescimento.
-              </p>
+          <div className="mt-6 bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-start gap-3">
+            <div className="text-emerald-600 shrink-0 mt-0.5">
+              <DownloadIcon size={18} />
             </div>
-          )}
+            <div>
+              <p className="text-xs text-emerald-800 font-bold mb-0.5">O que levará no arquivo?</p>
+              <ul className="text-[11px] text-emerald-700 space-y-1 list-disc ml-4">
+                <li>Lista de produtos vendidos (Totalizado)</li>
+                <li>Volume de saídas por item</li>
+                <li>Estoque atual no momento da extração</li>
+                <li>Resumo de Faturamento e Gorjetas</li>
+              </ul>
+            </div>
+          </div>
         </div>
 
         <DialogFooter>
           <Button 
             onClick={handleExport} 
-            disabled={isGenerating || selectedPeriods.length === 0}
-            className="w-full bg-foreground hover:bg-foreground text-background gap-2 font-bold h-11 transition-all"
+            disabled={isGenerating}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-bold h-11 transition-all"
           >
             {isGenerating ? (
               <>
                 <Loader2 className="animate-spin mr-2" size={18} />
-                Preparando Arquivo...
+                Gerando Planilha...
               </>
             ) : (
-              "Gerar Relatório XLSX Profissional"
+              "Baixar Relatório XLSX"
             )}
           </Button>
         </DialogFooter>
@@ -245,3 +144,4 @@ export const ExportReportModal = () => {
     </Dialog>
   );
 };
+

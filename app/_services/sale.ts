@@ -11,6 +11,10 @@ interface UpsertSaleParams {
   customerId?: string;
   paymentMethod?: PaymentMethod;
   tipAmount?: number;
+  discountAmount?: number;
+  extraAmount?: number;
+  adjustmentReason?: string;
+  isEmployeeSale?: boolean;
   products: {
     id: string;
     quantity: number;
@@ -71,7 +75,7 @@ async function processDeduction(
 }
 
 export const SaleService = {
-  async upsertSale({ id, date, companyId, userId, customerId, paymentMethod, tipAmount, products }: UpsertSaleParams) {
+  async upsertSale({ id, date, companyId, userId, customerId, paymentMethod, tipAmount, discountAmount = 0, extraAmount = 0, adjustmentReason, isEmployeeSale = false, products }: UpsertSaleParams) {
     try {
       return await db.$transaction(async (trx) => {
         const isUpdate = Boolean(id);
@@ -139,6 +143,10 @@ export const SaleService = {
               customerId: customerId || null,
               paymentMethod: paymentMethod || null,
               tipAmount: tipAmount || 0,
+              discountAmount: discountAmount || 0,
+              extraAmount: extraAmount || 0,
+              adjustmentReason: adjustmentReason || null,
+              isEmployeeSale,
             },
           });
           saleId = newSale.id;
@@ -150,8 +158,12 @@ export const SaleService = {
               date: date || undefined,
               userId,
               customerId: customerId || undefined,
-              paymentMethod: paymentMethod || undefined,
+              paymentMethod: paymentMethod !== undefined ? paymentMethod : undefined,
               tipAmount: tipAmount !== undefined ? tipAmount : undefined,
+              discountAmount: discountAmount !== undefined ? discountAmount : undefined,
+              extraAmount: extraAmount !== undefined ? extraAmount : undefined,
+              adjustmentReason: adjustmentReason !== undefined ? adjustmentReason : undefined,
+              isEmployeeSale: isEmployeeSale !== undefined ? isEmployeeSale : undefined,
             },
           });
         }
@@ -183,27 +195,35 @@ export const SaleService = {
             trx
           );
 
+           const unitPrice = isEmployeeSale
+            ? Number(productFromDb.cost) + Number(productFromDb.operationalCost)
+            : Number(productFromDb.price);
+
           // Create SaleItem with current cost SNAPSHOT
           await trx.saleItem.create({
             data: {
               saleId: saleId!,
               productId: product.id,
               quantity: product.quantity,
-              unitPrice: productFromDb.price,
+              unitPrice,
               baseCost: productFromDb.cost,
-              totalAmount: new Prisma.Decimal(productFromDb.price).mul(product.quantity),
-              totalCost: new Prisma.Decimal(productFromDb.cost).mul(product.quantity),
+              operationalCost: productFromDb.operationalCost,
+              totalAmount: new Prisma.Decimal(unitPrice).mul(product.quantity),
+              totalCost: new Prisma.Decimal(productFromDb.cost).add(productFromDb.operationalCost).mul(product.quantity),
             },
           });
 
-          totalAmount += Number(productFromDb.price) * product.quantity;
-          totalCost += Number(productFromDb.cost) * product.quantity;
+          totalAmount += unitPrice * product.quantity;
+          totalCost += (Number(productFromDb.cost) + Number(productFromDb.operationalCost)) * product.quantity;
         }
+
+        // Apply discount and ensure non-negative total
+        const finalTotalAmount = Math.max(0, totalAmount - discountAmount);
 
         const updatedSale = await trx.sale.update({
           where: { id: saleId },
           data: {
-            totalAmount,
+            totalAmount: finalTotalAmount,
             totalCost,
           },
         });

@@ -1,6 +1,6 @@
 import { auth } from "@/app/_lib/auth";
 import { ExportService } from "@/app/_services/export";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay } from "date-fns";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -13,25 +13,19 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const fromStr = searchParams.get("from");
   const toStr = searchParams.get("to");
-  const pStr = searchParams.getAll("p"); // Expected format: MM-YYYY
 
-  const from = fromStr ? new Date(fromStr) : undefined;
-  const to = toStr ? new Date(toStr) : undefined;
-  
-  const periods = pStr.map((p) => {
-    const [month, year] = p.split("-").map(Number);
-    return { month, year };
-  });
+  // Timezone safe dates for query
+  const from = fromStr ? startOfDay(new Date(fromStr + "T00:00:00")) : startOfDay(new Date());
+  const to = toStr ? endOfDay(new Date(toStr + "T23:59:59")) : endOfDay(new Date());
 
   try {
     const buffer = await ExportService.generateSalesXlsx({
       companyId: session.user.companyId,
       from,
       to,
-      periods,
     });
 
-    const filename = `relatorio-vendas-${format(new Date(), "yyyy-MM-dd-HHmm")}.xlsx`;
+    const filename = `relatorio-vendas-operacional-${format(from, "yyyy-MM-dd")}-a-${format(to, "yyyy-MM-dd")}.xlsx`;
 
     return new NextResponse(buffer, {
       status: 200,

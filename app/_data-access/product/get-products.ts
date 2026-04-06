@@ -8,9 +8,10 @@ import { subDays } from "date-fns";
 
 export type ProductStatusDto = "IN_STOCK" | "OUT_OF_STOCK" | "LOW_STOCK" | "SLOW_MOVING";
 
-export interface ProductDto extends Omit<Product, "price" | "cost" | "category" | "stock" | "minStock"> {
+export interface ProductDto extends Omit<Product, "price" | "cost" | "operationalCost" | "category" | "stock" | "minStock"> {
   price: number;
   cost: number;
+  operationalCost: number;
   margin: number;
   stock: number;
   minStock: number;
@@ -86,6 +87,7 @@ export const getProducts = async (
     const minStock = product.minStock.toNumber();
     const price = product.price.toNumber();
     const cost = product.cost.toNumber();
+    const operationalCost = product.operationalCost.toNumber();
 
     const isOutOfStock = stock <= 0;
     const isLowStock = stock <= minStock;
@@ -111,8 +113,9 @@ export const getProducts = async (
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
       price: price,
-      cost: effectiveCost,
-      margin: calculateMargin(price, effectiveCost),
+      cost: cost,
+      operationalCost: operationalCost,
+      margin: calculateMargin(price, cost + operationalCost),
       status: isOutOfStock
         ? "OUT_OF_STOCK"
         : isLowStock
@@ -127,6 +130,7 @@ export const getProducts = async (
       environment: product.environment,
       expirationDate: product.expirationDate,
       trackExpiration: product.trackExpiration,
+      expirationReminderDate: product.expirationReminderDate,
     };
   });
 };

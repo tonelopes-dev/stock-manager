@@ -17,6 +17,10 @@ interface ProductGridProps {
   userRole: UserRole;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
+  overheadSettings: {
+    enableOverheadInjection: boolean;
+    overheadRate: number;
+  } | null;
 }
 
 export const ProductGrid = ({
@@ -27,6 +31,7 @@ export const ProductGrid = ({
   userRole,
   categories,
   environments,
+  overheadSettings,
 }: ProductGridProps) => {
   const productsResult = use(productsPromise);
 
@@ -90,6 +95,7 @@ export const ProductGrid = ({
                 userRole={userRole}
                 categories={categories}
                 environments={environments}
+                overheadSettings={overheadSettings}
               />
             ))}
           </div>

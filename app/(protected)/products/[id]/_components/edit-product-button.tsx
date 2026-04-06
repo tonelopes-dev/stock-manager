@@ -13,12 +13,17 @@ interface EditProductButtonProps {
   product: ProductDetailDto;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
+  overheadSettings: {
+    enableOverheadInjection: boolean;
+    overheadRate: number;
+  } | null;
 }
 
 export default function EditProductButton({
   product,
   categories,
   environments,
+  overheadSettings,
 }: EditProductButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -28,7 +33,8 @@ export default function EditProductButton({
     name: product.name,
     type: product.type as any,
     price: product.price,
-    cost: product.cost,
+    cost: Number(product.cost),
+    operationalCost: Number(product.operationalCost),
     sku: product.sku,
     stock: product.stock,
     minStock: product.minStock,
@@ -53,6 +59,7 @@ export default function EditProductButton({
         defaultValues={defaultValues as any}
         categories={categories}
         environments={environments}
+        overheadSettings={overheadSettings}
       />
     </Dialog>
   );

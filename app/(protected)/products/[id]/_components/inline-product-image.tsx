@@ -79,15 +79,15 @@ export default function InlineProductImage({ product }: InlineProductImageProps)
 
   return (
     <Card className={cn(
-      "border border-border/40 bg-card rounded-xl shadow-sm transition-all duration-300",
-      isEditing && "ring-1 ring-primary/20 border-primary/30 shadow-md"
+      "border-none bg-white rounded-[2rem] shadow-sm transition-all duration-300",
+      isEditing && "ring-2 ring-primary/10 shadow-xl"
     )}>
       <CardHeader className="flex flex-row items-center justify-between p-6 pb-2">
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
-            <CameraIcon size={16} />
+          <div className="p-2 rounded-xl bg-primary/5 text-primary">
+            <CameraIcon size={18} />
           </div>
-          <CardTitle className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
+          <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 leading-none mt-1">
             Foto do Produto
           </CardTitle>
         </div>
@@ -112,7 +112,7 @@ export default function InlineProductImage({ product }: InlineProductImageProps)
         )}
       </CardHeader>
       <CardContent className="p-6 pt-2">
-        <div className="relative group overflow-hidden rounded-[2.5rem] border-[3px] border-background shadow-xl w-full aspect-square max-w-[240px] mx-auto flex items-center justify-center bg-muted/30 ring-1 ring-border/50 transition-all duration-300 hover:ring-primary/40">
+        <div className="relative group overflow-hidden rounded-[2.5rem] border-none shadow-xl w-full aspect-square max-w-[240px] mx-auto flex items-center justify-center bg-slate-50 transition-all duration-300 ring-4 ring-slate-100/50">
            {imageUrl ? (
               <>
                 <img src={imageUrl} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
@@ -133,9 +133,11 @@ export default function InlineProductImage({ product }: InlineProductImageProps)
                 "flex flex-col items-center gap-3 text-muted-foreground/30 px-6 text-center",
                 isEditing && "cursor-pointer hover:text-primary transition-colors"
               )}>
-                <ImageIcon size={64} strokeWidth={1} />
-                <p className="text-[10px] font-black tracking-widest leading-relaxed uppercase">
-                  {isEditing ? "Selecione uma Imagem" : "Sem Foto Disponível"}
+                <div className="p-5 rounded-full bg-slate-100 text-slate-300">
+                  <ImageIcon size={48} strokeWidth={1.5} />
+                </div>
+                <p className="text-[10px] font-black tracking-[0.2em] leading-relaxed uppercase opacity-40">
+                  {isEditing ? "Upload" : "Sem Foto"}
                 </p>
                 <input type="file" className="hidden" onChange={handleImageUpload} disabled={!isEditing || isUploading} />
                 {isUploading && (

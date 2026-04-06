@@ -24,6 +24,8 @@ export const saleTableColumns = (
   userRole: UserRole,
   customerOptions: ComboboxOption[],
   companyId: string,
+  stages: { id: string; name: string }[],
+  categories: { id: string; name: string }[],
 ): ColumnDef<SaleTableColumn>[] => [
   {
     accessorKey: "customerName",
@@ -74,6 +76,13 @@ export const saleTableColumns = (
               Débito
             </div>
           );
+        case "OTHER":
+          return (
+            <div className="flex items-center gap-1.5 font-bold text-muted-foreground">
+              <WalletIcon size={14} />
+              Outro
+            </div>
+          );
         default:
           return <span className="font-medium text-muted-foreground">-</span>;
       }
@@ -105,6 +114,8 @@ export const saleTableColumns = (
         customerOptions={customerOptions}
         userRole={userRole}
         companyId={companyId}
+        stages={stages}
+        categories={categories}
       />
     ),
   },

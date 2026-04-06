@@ -15,6 +15,7 @@ interface CustomersPageProps {
     view?: "table" | "kanban";
     page?: string;
     pageSize?: string;
+    journey?: "all" | "with" | "without";
   }>;
 }
 
@@ -27,6 +28,7 @@ const CustomersPage = async ({ searchParams }: CustomersPageProps) => {
   const search = resolvedSearchParams?.search || "";
   const page = Number(resolvedSearchParams?.page) || 1;
   const pageSize = Number(resolvedSearchParams?.pageSize) || 10;
+  const journey = resolvedSearchParams?.journey || "all";
 
   // 1. Parallelize metadata fetching (Instant Shell)
   const [categories, stages, role, templates, journeyData] = await Promise.all([
@@ -45,6 +47,7 @@ const CustomersPage = async ({ searchParams }: CustomersPageProps) => {
     isTable ? page : 1,
     isTable ? pageSize : 1000,
     !isTable,
+    journey as any,
   );
 
   return (

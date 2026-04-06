@@ -66,7 +66,7 @@ export async function getFinancialOverview(
   const results = await db.$queryRaw<{ revenue: number; cost: number; tips: number }[]>`
     SELECT 
       COALESCE(SUM(si."unitPrice" * si."quantity"), 0)::float as revenue,
-      COALESCE(SUM(si."baseCost" * si."quantity"), 0)::float as cost,
+      COALESCE(SUM((si."baseCost" + si."operationalCost") * si."quantity"), 0)::float as cost,
       (SELECT COALESCE(SUM("tipAmount"), 0)::float FROM "Sale" WHERE "companyId" = ${companyId} AND "status" = 'ACTIVE' AND "date" >= ${startDate} AND "date" < ${endDate}) as tips
     FROM "SaleProduct" si
     JOIN "Sale" s ON s.id = si."saleId"
@@ -114,7 +114,7 @@ export async function getDailySalesChart(
     SELECT 
       DATE_TRUNC('day', s."date") as day,
       SUM(si."unitPrice" * si."quantity") as revenue,
-      SUM(si."baseCost" * si."quantity") as cogs
+      SUM((si."baseCost" + si."operationalCost") * si."quantity") as cogs
     FROM "SaleProduct" si
     JOIN "Sale" s ON s.id = si."saleId"
     WHERE s."companyId" = ${companyId}
@@ -168,8 +168,8 @@ export async function getTopProfitableProducts(
       si."productId",
       p."name" as "productName",
       SUM(si."unitPrice" * si."quantity") as revenue,
-      SUM(si."baseCost" * si."quantity") as cogs,
-      SUM((si."unitPrice" * si."quantity") - (si."baseCost" * si."quantity")) as profit
+      SUM((si."baseCost" + si."operationalCost") * si."quantity") as cogs,
+      SUM((si."unitPrice" * si."quantity") - ((si."baseCost" + si."operationalCost") * si."quantity")) as profit
     FROM "SaleProduct" si
     JOIN "Sale" s ON s.id = si."saleId"
     JOIN "Product" p ON p.id = si."productId"
@@ -212,11 +212,11 @@ export async function getWorstMarginProducts(
       si."productId",
       p."name" as "productName",
       SUM(si."unitPrice" * si."quantity") as revenue,
-      SUM(si."baseCost" * si."quantity") as cogs,
-      SUM((si."unitPrice" * si."quantity") - (si."baseCost" * si."quantity")) as profit,
+      SUM((si."baseCost" + si."operationalCost") * si."quantity") as cogs,
+      SUM((si."unitPrice" * si."quantity") - ((si."baseCost" + si."operationalCost") * si."quantity")) as profit,
       CASE 
         WHEN SUM(si."unitPrice" * si."quantity") > 0 
-        THEN (SUM((si."unitPrice" * si."quantity") - (si."baseCost" * si."quantity")) / SUM(si."unitPrice" * si."quantity")) * 100 
+        THEN (SUM((si."unitPrice" * si."quantity") - ((si."baseCost" + si."operationalCost") * si."quantity")) / SUM(si."unitPrice" * si."quantity")) * 100 
         ELSE 0 
       END as margin
     FROM "SaleProduct" si

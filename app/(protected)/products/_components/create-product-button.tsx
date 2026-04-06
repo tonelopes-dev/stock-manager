@@ -13,12 +13,17 @@ interface CreateProductButtonProps {
   hasProducts: boolean;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
+  overheadSettings: {
+    enableOverheadInjection: boolean;
+    overheadRate: number;
+  } | null;
 }
 
 const CreateProductButton = ({
   hasProducts,
   categories,
   environments,
+  overheadSettings,
 }: CreateProductButtonProps) => {
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
 
@@ -35,6 +40,7 @@ const CreateProductButton = ({
         hasProducts={hasProducts}
         categories={categories}
         environments={environments}
+        overheadSettings={overheadSettings}
       />
     </Dialog>
   );

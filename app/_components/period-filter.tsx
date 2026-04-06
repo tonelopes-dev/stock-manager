@@ -4,7 +4,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/app/_components/ui/button";
 import { CalendarIcon, ClockIcon } from "lucide-react";
 import { cn } from "@/app/_lib/utils";
-import { format } from "date-fns";
+import { format, parseISO, startOfDay, endOfDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Calendar } from "@/app/_components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/app/_components/ui/popover";
+import { useState, useEffect } from "react";
+import { DateRange } from "react-day-picker";
 
 const filters = [
   { label: "Hoje", value: "today" },
@@ -17,7 +26,31 @@ const filters = [
 export const PeriodFilter = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentRange = searchParams.get("range") || "7d";
+  const currentRange = searchParams.get("range") || "today";
+  const [isOpen, setIsOpen] = useState(false);
+
+  const fromStr = searchParams.get("from");
+  const toStr = searchParams.get("to");
+
+  const [date, setDate] = useState<DateRange | undefined>(() => {
+    if (fromStr && toStr) {
+      return {
+        from: parseISO(fromStr),
+        to: parseISO(toStr),
+      };
+    }
+    return undefined;
+  });
+
+  // Keep internal state in sync with URL
+  useEffect(() => {
+    if (fromStr && toStr) {
+      setDate({
+        from: parseISO(fromStr),
+        to: parseISO(toStr),
+      });
+    }
+  }, [fromStr, toStr]);
 
   const handleRangeChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -26,6 +59,7 @@ export const PeriodFilter = () => {
     // Calculate dates for 'from' and 'to' to keep it consistent across the app
     const now = new Date();
     let fromDate: Date | null = null;
+    let toDate: Date = new Date();
     
     if (value === "today") {
         fromDate = new Date();
@@ -41,10 +75,26 @@ export const PeriodFilter = () => {
 
     if (fromDate) {
         params.set("from", format(fromDate, "yyyy-MM-dd"));
-        params.set("to", format(new Date(), "yyyy-MM-dd"));
+        params.set("to", format(toDate, "yyyy-MM-dd"));
     }
 
     router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  const handleApply = () => {
+    if (date?.from && date?.to) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("range", "custom");
+      params.set("from", format(date.from, "yyyy-MM-dd"));
+      params.set("to", format(date.to, "yyyy-MM-dd"));
+      
+      router.push(`?${params.toString()}`, { scroll: false });
+      setIsOpen(false);
+    }
+  };
+
+  const handleClear = () => {
+    setDate(undefined);
   };
 
   return (
@@ -69,14 +119,67 @@ export const PeriodFilter = () => {
           {filter.label}
         </Button>
       ))}
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="h-7 px-2 text-muted-foreground hover:text-muted-foreground rounded-md"
-        disabled
-      >
-        <CalendarIcon size={14} />
-      </Button>
+
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <Button 
+            variant={currentRange === "custom" ? "secondary" : "ghost"} 
+            size="sm" 
+            className={cn(
+              "h-7 px-2 text-muted-foreground hover:text-foreground rounded-md gap-2",
+              currentRange === "custom" && "bg-muted text-primary"
+            )}
+          >
+            <CalendarIcon size={14} />
+            {currentRange === "custom" && date?.from && (
+              <span className="text-[10px] font-bold">
+                {format(date.from, "dd/MM")} - {date.to ? format(date.to, "dd/MM") : "..."}
+              </span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0 rounded-xl shadow-xl border-border" align="end">
+          <Calendar
+            initialFocus
+            mode="range"
+            defaultMonth={date?.from}
+            selected={date}
+            onSelect={setDate}
+            numberOfMonths={1}
+            locale={ptBR}
+            className="rounded-t-xl border-none"
+          />
+          <div className="p-3 border-t border-border flex items-center justify-between bg-muted/20">
+            <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleClear}
+                className="text-[11px] font-bold h-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            >
+                Limpar
+            </Button>
+            <div className="flex gap-2">
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setIsOpen(false)}
+                    className="text-[11px] font-bold h-8"
+                >
+                    Cancelar
+                </Button>
+                <Button 
+                    size="sm" 
+                    onClick={handleApply}
+                    disabled={!date?.from || !date?.to}
+                    className="text-[11px] font-bold h-8 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                >
+                    Filtrar
+                </Button>
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };
+

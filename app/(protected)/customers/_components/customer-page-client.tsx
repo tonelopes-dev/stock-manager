@@ -12,6 +12,7 @@ import { CustomerCategoryFilter } from "./category-filter";
 import { CustomerViewSwitcher } from "./view-switcher";
 import { CRMConfigModal } from "./crm-config-modal";
 import AddCustomerButton from "./create-customer-button";
+import { CustomerJourneyFilter } from "./journey-filter";
 import { UserRole } from "@prisma/client";
 import { CustomerTableSkeleton } from "./table-skeleton";
 import { cn } from "@/app/_lib/utils";
@@ -60,6 +61,10 @@ export const CustomerPageClient = ({
           </div>
         </HeaderRight>
       </Header>
+
+      <div className="flex border-b border-border/50">
+        <CustomerJourneyFilter startTransition={startTransition} />
+      </div>
 
       <div
         className={cn(

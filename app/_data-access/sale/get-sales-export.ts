@@ -21,6 +21,8 @@ export const getSalesExport = async (params: SalesExportParams = {}) => {
         baseCost: any;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         quantity: any;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        operationalCost: any;
         product: { name: string; sku: string | null };
     }[];
     user?: { name: string | null; email: string | null } | null;
@@ -72,9 +74,10 @@ export const getSalesExport = async (params: SalesExportParams = {}) => {
     items.forEach((sp) => {
       const unitPrice = Number(sp.unitPrice);
       const baseCost = Number(sp.baseCost);
+      const operationalCost = Number(sp.operationalCost || 0);
       const quantity = Number(sp.quantity);
       const revenue = unitPrice * quantity;
-      const totalCost = baseCost * quantity;
+      const totalCost = (baseCost + operationalCost) * quantity;
       const margin = revenue - totalCost;
       const marginPercentage = revenue > 0 ? (margin / revenue) * 100 : 0;
 
@@ -85,7 +88,7 @@ export const getSalesExport = async (params: SalesExportParams = {}) => {
         Quantidade: quantity,
         "Preço Unit.": unitPrice.toFixed(2),
         Receita: revenue.toFixed(2),
-        "Custo Unit.": baseCost.toFixed(2),
+        "Custo Unit.": (baseCost + operationalCost).toFixed(2),
         Lucro: margin.toFixed(2),
         "Margem %": marginPercentage.toFixed(2),
         Responsável: sale.user?.name || sale.user?.email || "N/A",

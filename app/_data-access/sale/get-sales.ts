@@ -2,7 +2,9 @@ import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
 import { SaleStatus, SaleItem, Product, Prisma, PaymentMethod } from "@prisma/client";
 
-export interface SaleItemDto extends SaleItem {
+export interface SaleItemDto extends Omit<SaleItem, "operationalCost" | "baseCost"> {
+  operationalCost: number;
+  baseCost: number;
   product: Pick<Product, "name">;
 }
 
@@ -18,6 +20,10 @@ export interface SaleDto {
   customerId: string | null;
   paymentMethod: PaymentMethod | null;
   tipAmount: number;
+  discountAmount: number;
+  extraAmount: number;
+  adjustmentReason: string | null;
+  isEmployeeSale: boolean;
   saleItems: SaleItemDto[];
 }
 
@@ -97,14 +103,19 @@ export const getSales = async ({
       customerId: sale.customerId,
       paymentMethod: sale.paymentMethod,
       tipAmount: Number(sale.tipAmount),
+      discountAmount: Number(sale.discountAmount || 0),
+      extraAmount: Number((sale as any).extraAmount || 0),
+      adjustmentReason: (sale as any).adjustmentReason || null,
+      isEmployeeSale: (sale as any).isEmployeeSale || false,
       saleItems: sale.saleItems.map((item: any) => ({
         ...item,
         unitPrice: Number(item.unitPrice),
-        baseCost: Number(item.baseCost),
+        baseCost: Number(item.baseCost || 0),
+        operationalCost: Number(item.operationalCost || 0),
         quantity: Number(item.quantity),
-        discountAmount: Number(item.discountAmount),
-        totalAmount: Number(item.totalAmount),
-        totalCost: Number(item.totalCost),
+        discountAmount: Number(item.discountAmount || 0),
+        totalAmount: Number(item.totalAmount || 0),
+        totalCost: Number(item.totalCost || 0),
       })) as SaleItemDto[],
     })),
     total,
@@ -158,14 +169,19 @@ export const getSaleById = async (id: string): Promise<SaleDto | null> => {
     customerId: sale.customerId,
     paymentMethod: sale.paymentMethod,
     tipAmount: Number(sale.tipAmount),
+    discountAmount: Number(sale.discountAmount || 0),
+    extraAmount: Number((sale as any).extraAmount || 0),
+    adjustmentReason: (sale as any).adjustmentReason || null,
+    isEmployeeSale: (sale as any).isEmployeeSale || false,
     saleItems: sale.saleItems.map((item: any) => ({
       ...item,
       unitPrice: Number(item.unitPrice),
-      baseCost: Number(item.baseCost),
+      baseCost: Number(item.baseCost || 0),
+      operationalCost: Number(item.operationalCost || 0),
       quantity: Number(item.quantity),
-      discountAmount: Number(item.discountAmount),
-      totalAmount: Number(item.totalAmount),
-      totalCost: Number(item.totalCost),
+      discountAmount: Number(item.discountAmount || 0),
+      totalAmount: Number(item.totalAmount || 0),
+      totalCost: Number(item.totalCost || 0),
     })) as SaleItemDto[],
   };
 };

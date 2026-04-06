@@ -18,6 +18,8 @@ interface ComandasGridProps {
   companyId: string;
   products: ProductDto[];
   productOptions: ComboboxOption[];
+  stages: { id: string; name: string }[];
+  categories: { id: string; name: string }[];
 }
 
 export const ComandasGrid = ({
@@ -25,6 +27,8 @@ export const ComandasGrid = ({
   companyId,
   products,
   productOptions,
+  stages,
+  categories,
 }: ComandasGridProps) => {
   const [comandas, setComandas] = useState<ComandaDto[]>(initialComandas);
   const [search, setSearch] = useState("");
@@ -178,6 +182,8 @@ export const ComandasGrid = ({
         companyId={companyId}
         products={products}
         productOptions={productOptions}
+        stages={stages}
+        categories={categories}
       />
     </div>
   );

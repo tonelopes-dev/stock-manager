@@ -14,11 +14,16 @@ const createOrderSchema = z.object({
   })),
   tableNumber: z.string().optional(),
   notes: z.string().optional(),
+  hasServiceTax: z.boolean().optional(),
+  discountAmount: z.number().min(0).default(0),
+  extraAmount: z.number().min(0).default(0),
+  adjustmentReason: z.string().optional().nullable(),
+  isEmployeeSale: z.boolean().default(false),
 });
 
 export const createOrderAction = actionClient
   .schema(createOrderSchema)
-  .action(async ({ parsedInput: { companyId, customerId, items, tableNumber, notes } }) => {
+  .action(async ({ parsedInput: { companyId, customerId, items, tableNumber, notes, hasServiceTax, discountAmount, extraAmount, adjustmentReason, isEmployeeSale } }) => {
     try {
       const order = await OrderService.createOrder({
         companyId,
@@ -26,6 +31,11 @@ export const createOrderAction = actionClient
         items,
         tableNumber,
         notes,
+        hasServiceTax,
+        discountAmount,
+        extraAmount,
+        adjustmentReason: adjustmentReason || undefined,
+        isEmployeeSale,
       });
 
       revalidatePath(`/kds`);

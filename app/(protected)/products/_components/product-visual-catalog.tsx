@@ -8,7 +8,13 @@ import * as React from "react";
 import { useState, useMemo, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Input } from "@/app/_components/ui/input";
-import { SearchIcon, ArrowDownWideNarrow, ChevronsUpDown } from "lucide-react";
+import { SearchIcon, ArrowDownWideNarrow, ChevronsUpDown, XIcon, FilterIcon } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/app/_components/ui/tooltip";
 import { Dialog } from "@/app/_components/ui/dialog";
 import UpsertProductDialogContent from "./upsert-dialog-content";
 import { Button } from "@/app/_components/ui/button";
@@ -33,6 +39,10 @@ interface ProductVisualCatalogProps {
   userRole: UserRole;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
+  overheadSettings: {
+    enableOverheadInjection: boolean;
+    overheadRate: number;
+  } | null;
 }
 
 type SortOption = "latest" | "low-stock" | "price-asc" | "price-desc";
@@ -42,6 +52,7 @@ export const ProductVisualCatalog = ({
   userRole,
   categories,
   environments,
+  overheadSettings,
 }: ProductVisualCatalogProps) => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("latest");
@@ -71,35 +82,64 @@ export const ProductVisualCatalog = ({
           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Buscar produto por nome ou SKU..."
-            className="pl-10 bg-background border-none shadow-sm h-11"
+            className="pl-10 pr-10 bg-background border-none shadow-sm h-11"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          {search && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-muted text-muted-foreground transition-colors group"
+                    aria-label="Limpar busca"
+                  >
+                    <XIcon className="w-4 h-4 group-hover:text-destructive transition-colors" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Limpar pesquisa</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
         
         <div className="flex items-center gap-2 w-full md:w-auto">
           <EnvironmentFilter environments={environments} />
 
           {/* Sort Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="h-11 gap-2 bg-background shadow-sm border-none min-w-[200px] justify-between px-4">
-                <div className="flex items-center gap-2">
-                    <ArrowDownWideNarrow className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-foreground whitespace-nowrap">Ordenar: {sortLabels[sortBy]}</span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="h-11 gap-2 bg-background shadow-sm border-none min-w-[200px] justify-between px-4">
+                        <div className="flex items-center gap-2">
+                            <ArrowDownWideNarrow className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-foreground whitespace-nowrap">Ordenar: {sortLabels[sortBy]}</span>
+                        </div>
+                        <ChevronsUpDown className="w-4 h-4 text-muted-foreground opacity-50" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuLabel>Ordenação</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setSortBy("latest")}>Mais recentes</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setSortBy("low-stock")}>Menor estoque</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setSortBy("price-asc")}>Menor preço</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setSortBy("price-desc")}>Maior preço</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
-                <ChevronsUpDown className="w-4 h-4 text-muted-foreground opacity-50" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Ordenação</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setSortBy("latest")}>Mais recentes</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy("low-stock")}>Menor estoque</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy("price-asc")}>Menor preço</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy("price-desc")}>Maior preço</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Alterar ordem da listagem</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
 
@@ -127,6 +167,7 @@ export const ProductVisualCatalog = ({
           productsPromise={productsPromise}
           categories={categories}
           environments={environments}
+          overheadSettings={overheadSettings}
         />
         <ProductGrid 
           productsPromise={productsPromise}
@@ -136,6 +177,7 @@ export const ProductVisualCatalog = ({
           userRole={userRole}
           categories={categories}
           environments={environments}
+          overheadSettings={overheadSettings}
         />
       </Suspense>
     </div>
@@ -147,10 +189,15 @@ const ProductSearchHandler = ({
   productsPromise,
   categories,
   environments,
+  overheadSettings,
 }: {
   productsPromise: Promise<ProductDto[]>;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
+  overheadSettings: {
+    enableOverheadInjection: boolean;
+    overheadRate: number;
+  } | null;
 }) => {
   const productsResult = React.use(productsPromise);
   const searchParams = useSearchParams();
@@ -198,12 +245,14 @@ const ProductSearchHandler = ({
         }}
         categories={categories}
         environments={environments}
+        overheadSettings={overheadSettings}
         defaultValues={{
           id: selectedProduct.id,
           name: selectedProduct.name,
           type: selectedProduct.type,
           price: Number(selectedProduct.price),
           cost: Number(selectedProduct.cost),
+          operationalCost: Number(selectedProduct.operationalCost),
           sku: selectedProduct.sku || "",
           stock: selectedProduct.stock,
           minStock: selectedProduct.minStock,

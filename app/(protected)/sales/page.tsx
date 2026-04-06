@@ -9,6 +9,8 @@ import {
 } from "../../_data-access/product/get-products";
 import { getCustomers } from "../../_data-access/customer/get-customers";
 import { getSales, getSaleById, SaleDto } from "../../_data-access/sale/get-sales";
+import { getCRMStages } from "@/app/_data-access/crm/get-crm-stages";
+import { getCustomerCategories } from "@/app/_data-access/customer/get-customer-categories";
 import UpsertSaleButton from "./_components/create-sale-button";
 import { SalesDataTable } from "./_components/sales-data-table";
 import { Suspense } from "react";
@@ -28,6 +30,10 @@ import { UserRole } from "@prisma/client";
 import { getPendingOrders } from "@/app/_data-access/order/get-pending-orders";
 import { PendingOrdersBanner } from "./_components/pending-orders-banner";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { getAggregatedSales } from "@/app/_data-access/sale/get-aggregated-sales";
+import { ProductSalesChart } from "./_components/product-sales-chart";
+import { AggregatedSalesTable } from "./_components/aggregated-sales-table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
 
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";
@@ -66,12 +72,24 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
   const role = await getCurrentUserRole();
   const onboardingStats = await getOnboardingStats();
 
+  // Standardize filter periods
+  const today = new Date().toISOString().split("T")[0];
+  const from = resolvedSearchParams.from || today;
+  const to = resolvedSearchParams.to || today;
+
   const analytics = await getSalesAnalytics(
-    resolvedSearchParams.from,
-    resolvedSearchParams.to,
+    from,
+    to,
     resolvedSearchParams.monthA,
     resolvedSearchParams.monthB,
   );
+  
+  const aggregatedData = view === "inteligencia" 
+    ? await getAggregatedSales(from, to)
+    : { items: [], totalTips: 0, totalRevenue: 0 };
+
+  const stages = await getCRMStages();
+  const categories = await getCustomerCategories();
 
   const companyId = await getCurrentCompanyId();
   const activeComandas = companyId ? await getActiveComandas() : [];
@@ -87,15 +105,15 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
       <div className="flex flex-col gap-6">
         <div className="space-y-1">
           <HeaderSubtitle>
-            {view === "gestao" ? "Operação de Vendas" : view === "inteligencia" ? "Análise de Resultados" : "Financeiro Staff"}
+            {view === "gestao" ? "Operação de Vendas" : view === "inteligencia" ? "Painel Operacional" : "Financeiro Staff"}
           </HeaderSubtitle>
           <HeaderTitle>Vendas</HeaderTitle>
         </div>
 
         <div className="flex items-center justify-between">
           <SalesViewTabs />
-          {view === "inteligencia" && <MonthComparisonFilter />}
           <div className="flex items-center gap-3">
+            {view === "inteligencia" && <PeriodFilter />}
             {view === "inteligencia" && <ExportReportModal />}
             <UpsertSaleButton
               products={products}
@@ -104,42 +122,46 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
               hasSales={onboardingStats?.hasSales ?? true}
               view={view as "gestao" | "inteligencia"}
               companyId={companyId || ""}
+              stages={stages}
+              categories={categories}
             />
           </div>
         </div>
       </div>
 
       {view === "inteligencia" && (
-        <div className="space-y-8">
-          <SalesComparisonMetrics comparison={analytics.monthlyComparison} />
-          <SalesCharts comparison={analytics.monthlyComparison} />
-
-          <div className="space-y-4">
-            <div className="flex items-end justify-between gap-2">
-              <div className="flex flex-col gap-2">
-                <h3 className="text-sm font-black uppercase italic tracking-tighter text-muted-foreground">
-                  Listagem Técnica de Vendas
-                </h3>
-                <p className="text-[10px] font-medium text-muted-foreground">
-                  Detalhamento individual de cada operação realizada no período
-                </p>
-              </div>
-              <PeriodFilter />
+        <div className="space-y-8 animate-in fade-in duration-500">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="md:col-span-1 lg:col-span-1">
+               <Card className="border-none bg-emerald-500 text-white shadow-lg overflow-hidden h-full">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-[10px] font-black uppercase tracking-widest opacity-80">Gorjetas Totais</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-black italic tracking-tighter">
+                      {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(aggregatedData.totalTips)}
+                    </div>
+                    <p className="text-[10px] font-bold mt-1 opacity-70 uppercase tracking-tight">Período selecionado</p>
+                  </CardContent>
+               </Card>
             </div>
-            <Suspense fallback={<SaleTableSkeleton />}>
-              <SalesTableWrapper
-                customerOptions={customerOptions}
-                productOptions={productOptions}
-                products={products}
-                from={resolvedSearchParams.from}
-                to={resolvedSearchParams.to}
-                page={Number(resolvedSearchParams.page) || 1}
-                pageSize={Number(resolvedSearchParams.pageSize) || 10}
-                userRole={role as UserRole}
-                companyId={companyId || ""}
-                preFetchedSale={preFetchedSale}
-              />
-            </Suspense>
+            <div className="md:col-span-2 lg:col-span-4">
+               <SalesSummary 
+                  totalRevenue={analytics.totalRevenue}
+                  totalProfit={analytics.totalProfit}
+                  averageTicket={analytics.averageTicket}
+                  totalSales={analytics.totalSales}
+               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-1">
+              <ProductSalesChart data={aggregatedData.items} />
+            </div>
+            <div className="lg:col-span-2">
+              <AggregatedSalesTable data={aggregatedData.items} />
+            </div>
           </div>
         </div>
       )}
@@ -151,6 +173,8 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
             companyId={companyId || ""}
             products={products}
             productOptions={productOptions}
+            stages={stages}
+            categories={categories}
           />
         </div>
       )}
@@ -170,8 +194,8 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
           </div>
           <Suspense fallback={<SaleTableSkeleton />}>
             <TipsReportWrapper
-              from={resolvedSearchParams.from}
-              to={resolvedSearchParams.to}
+              from={from}
+              to={to}
             />
           </Suspense>
         </div>
@@ -179,6 +203,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
     </div>
   );
 };
+
 
 const TipsReportWrapper = async ({
   from,
@@ -203,6 +228,8 @@ interface SalesTableWrapperProps {
   userRole: UserRole;
   companyId: string;
   preFetchedSale?: SaleDto | null;
+  stages: { id: string; name: string }[];
+  categories: { id: string; name: string }[];
 }
 
 const SalesTableWrapper = async ({
@@ -216,6 +243,8 @@ const SalesTableWrapper = async ({
   customerOptions,
   companyId,
   preFetchedSale,
+  stages,
+  categories,
 }: SalesTableWrapperProps & { customerOptions: ComboboxOption[] }) => {
   const { data: sales, total } = await getSales({ from, to, page, pageSize });
 
@@ -236,6 +265,8 @@ const SalesTableWrapper = async ({
       customerOptions={customerOptions}
       companyId={companyId}
       preFetchedSale={preFetchedSale}
+      stages={stages}
+      categories={categories}
     />
   );
 };

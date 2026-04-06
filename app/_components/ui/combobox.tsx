@@ -26,6 +26,9 @@ interface ComboboxProps extends Omit<React.ComponentPropsWithoutRef<typeof Butto
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  searchValue?: string;
+  onSearchValueChange?: (value: string) => void;
+  emptyContent?: React.ReactNode;
 }
 
 export const Combobox = ({
@@ -33,6 +36,9 @@ export const Combobox = ({
   options,
   placeholder,
   onChange,
+  searchValue,
+  onSearchValueChange,
+  emptyContent,
   ...props
 }: ComboboxProps) => {
   const [open, setOpen] = React.useState(false);
@@ -53,11 +59,17 @@ export const Combobox = ({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="w-[250px] p-0">
         <Command>
-          <CommandInput placeholder="Buscar..." />
+          <CommandInput 
+            placeholder="Buscar..." 
+            value={searchValue}
+            onValueChange={onSearchValueChange}
+          />
           <CommandList>
-            <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
+            <CommandEmpty>
+              {emptyContent || "Nenhum resultado encontrado."}
+            </CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem

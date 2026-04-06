@@ -5,6 +5,10 @@ export const convertItemsToSaleSchema = z.object({
   companyId: z.string(),
   paymentMethod: z.enum(["CASH", "CREDIT_CARD", "DEBIT_CARD", "PIX", "OTHER"]),
   tipAmount: z.number().min(0).default(0),
+  discountAmount: z.number().min(0).default(0),
+  extraAmount: z.number().min(0).default(0),
+  adjustmentReason: z.string().optional().nullable(),
+  isEmployeeSale: z.boolean().default(false),
 });
 
 export type ConvertItemsToSaleSchema = z.infer<typeof convertItemsToSaleSchema>;

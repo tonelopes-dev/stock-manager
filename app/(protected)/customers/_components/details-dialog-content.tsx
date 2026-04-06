@@ -37,7 +37,14 @@ import {
   Check,
   Loader2,
   Calendar as CalendarIcon,
+  XIcon,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/app/_components/ui/tooltip";
 import { SalesTimeline } from "./sales-timeline";
 import { CustomerChecklist } from "./customer-checklist";
 import { getCustomerAction } from "@/app/_actions/customer/get-customer";
@@ -229,30 +236,54 @@ export const CustomerDetailsDialogContent = ({
             </DialogTitle>
           </DialogHeader>
           <div className="flex items-center gap-2">
-            {!isEditing ? (
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-2 border-border"
-                onClick={() => setIsEditing(true)}
-              >
-                <Pencil className="h-3 w-3" /> Editar
-              </Button>
-            ) : (
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setIsEditing(false)}
-                  disabled={isPending}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-                <Button size="sm" onClick={handleSave} disabled={isPending}>
-                  <Save className="mr-2 h-3 w-3" /> Salvar
-                </Button>
-              </div>
-            )}
+            <TooltipProvider>
+              {!isEditing ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-2 border-border"
+                      onClick={() => setIsEditing(true)}
+                    >
+                      <Pencil className="h-3 w-3" /> Editar
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Editar informações do cliente</p>
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <div className="flex gap-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setIsEditing(false)}
+                        disabled={isPending}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Cancelar edição</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button size="sm" onClick={handleSave} disabled={isPending}>
+                        <Save className="mr-2 h-3 w-3" /> Salvar
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Salvar alterações</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              )}
+            </TooltipProvider>
           </div>
         </div>
 
@@ -414,7 +445,6 @@ export const CustomerDetailsDialogContent = ({
                           birthDate: date ? format(date, "yyyy-MM-dd") : "",
                         })
                       }
-                      showDropdowns={true}
                     />
                   </div>
                 ) : (
@@ -548,14 +578,23 @@ export const CustomerDetailsDialogContent = ({
         <div className="sticky bottom-0 z-10 flex items-center justify-between border-t border-border bg-background/80 px-6 py-4 backdrop-blur-md">
           <div>
             {!isEditing && (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                onClick={() => setShowDeleteConfirm(true)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => setShowDeleteConfirm(true)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Excluir este cliente</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
           <DialogClose asChild>
@@ -641,88 +680,119 @@ const CustomerBirthdayReminder = ({
     customer.birthdayReminderDate && isPast(new Date(customer.birthdayReminderDate));
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          size="sm"
-          variant="ghost"
-          className={`h-6 w-6 p-0 transition-all ${
-            customer.birthdayReminderDate
-              ? "text-primary hover:bg-primary/10"
-              : "text-muted-foreground opacity-30 hover:opacity-100"
-          }`}
-        >
-          <Bell
-            className={`h-3 w-3 ${isOverdue ? "animate-pulse text-destructive" : ""}`}
-          />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-4" align="start">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Lembrete de Aniversário
-            </h4>
-            <DatePicker value={date} onChange={setDate} />
-          </div>
+    <TooltipProvider>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className={`h-6 w-6 p-0 transition-all group/bell ${
+                  customer.birthdayReminderDate
+                    ? "opacity-100 hover:bg-primary/10"
+                    : "text-muted-foreground opacity-30 hover:opacity-100 hover:bg-primary/10"
+                }`}
+              >
+                <Bell
+                  className={`h-3 w-3 transition-colors ${
+                    isOverdue 
+                      ? "animate-pulse text-destructive" 
+                      : customer.birthdayReminderDate 
+                        ? "text-emerald-500 group-hover/bell:text-primary" 
+                        : "group-hover/bell:text-primary"
+                  }`}
+                />
+              </Button>
+            </PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{customer.birthdayReminderDate ? "Ver detalhes do lembrete" : "Agendar lembrete de aniversário"}</p>
+          </TooltipContent>
+        </Tooltip>
 
-          <div className="flex items-center gap-2">
-            <div className="grid flex-1 gap-1">
-              <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                Hora
-              </label>
-              <Input
-                type="number"
-                min="0"
-                max="23"
-                value={hours}
-                onChange={(e) => setHoursState(e.target.value)}
-                className="h-8 text-xs"
-              />
+        <PopoverContent className="w-64 rounded-xl border-none p-4 shadow-2xl" align="start">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-primary" />
+                <span className="text-xs font-black uppercase italic tracking-tighter">
+                  Lembrete de Aniversário
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 text-muted-foreground hover:bg-muted"
+                onClick={() => setIsOpen(false)}
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
             </div>
-            <div className="grid flex-1 gap-1">
-              <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                Min
-              </label>
-              <Input
-                type="number"
-                min="0"
-                max="59"
-                value={minutes}
-                onChange={(e) => setMinutesState(e.target.value)}
-                className="h-8 text-xs"
-              />
-            </div>
-          </div>
 
-          <div className="flex gap-2 pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 flex-1 text-[10px] font-bold uppercase"
-              onClick={() => {
-                setDate(undefined);
-                handleSave();
-              }}
-              disabled={isUpdating}
-            >
-              Remover
-            </Button>
-            <Button
-              size="sm"
-              className="h-8 flex-1 text-[10px] font-bold uppercase"
-              onClick={handleSave}
-              disabled={isUpdating || !date}
-            >
-              {isUpdating ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : (
-                "Salvar"
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                Data do Alerta
+              </label>
+              <DatePicker value={date} onChange={setDate} />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="grid flex-1 gap-1">
+                <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                  Hora
+                </label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="23"
+                  value={hours}
+                  onChange={(e) => setHoursState(e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+              <div className="grid flex-1 gap-1">
+                <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                  Min
+                </label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="59"
+                  value={minutes}
+                  onChange={(e) => setMinutesState(e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              {customer.birthdayReminderDate && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 flex-1 text-[10px] font-bold uppercase text-destructive hover:bg-destructive/10"
+                  onClick={() => {
+                    setDate(undefined);
+                    handleSave();
+                  }}
+                  disabled={isUpdating}
+                >
+                  Remover
+                </Button>
               )}
-            </Button>
+              <Button
+                size="sm"
+                className="h-8 flex-1 text-[10px] font-bold uppercase"
+                onClick={handleSave}
+                disabled={isUpdating || !date}
+              >
+                {isUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : "Salvar"}
+              </Button>
+            </div>
           </div>
-        </div>
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+    </TooltipProvider>
   );
 };

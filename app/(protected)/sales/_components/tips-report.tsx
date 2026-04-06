@@ -6,6 +6,14 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CoinsIcon } from "lucide-react";
 
+const paymentMethodDisplayLabels: Record<string, string> = {
+  CASH: "Dinheiro",
+  PIX: "PIX",
+  CREDIT_CARD: "Crédito",
+  DEBIT_CARD: "Débito",
+  OTHER: "Outro",
+};
+
 interface TipsReportProps {
   sales: any[];
   totalTips: number;
@@ -70,7 +78,7 @@ export function TipsReport({ sales, totalTips }: TipsReportProps) {
                     {sale.customerName || "Venda Avulsa"}
                   </TableCell>
                   <TableCell className="py-4 text-xs font-bold text-muted-foreground">
-                    {sale.paymentMethod}
+                    {paymentMethodDisplayLabels[sale.paymentMethod] || sale.paymentMethod}
                   </TableCell>
                   <TableCell className="py-4 text-right text-xs font-bold text-muted-foreground">
                     {formatCurrencyBR(Number(sale.totalAmount))}

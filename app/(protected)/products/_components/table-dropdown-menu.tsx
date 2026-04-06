@@ -36,6 +36,10 @@ interface ProductTableDropdownMenuProps {
   userRole: UserRole;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
+  overheadSettings: {
+    enableOverheadInjection: boolean;
+    overheadRate: number;
+  } | null;
 }
 
 const ProductTableDropdownMenu = ({
@@ -43,6 +47,7 @@ const ProductTableDropdownMenu = ({
   userRole,
   categories,
   environments,
+  overheadSettings,
 }: ProductTableDropdownMenuProps) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [adjustStockDialogOpen, setAdjustStockDialogOpen] = useState(false);
@@ -147,6 +152,7 @@ const ProductTableDropdownMenu = ({
             type: product.type,
             price: Number(product.price),
             cost: Number(product.cost),
+            operationalCost: Number(product.operationalCost),
             sku: product.sku || "",
             stock: product.stock,
             minStock: product.minStock,
@@ -160,6 +166,7 @@ const ProductTableDropdownMenu = ({
           setDialogIsOpen={setEditDialogOpen}
           categories={categories}
           environments={environments}
+          overheadSettings={overheadSettings}
         />
       </Dialog>
 

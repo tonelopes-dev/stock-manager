@@ -4,7 +4,19 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
 import { Button } from "@/app/_components/ui/button";
 import { Input } from "@/app/_components/ui/input";
-import { EditIcon, CheckIcon, XIcon, Loader2Icon, DollarSignIcon } from "lucide-react";
+import { 
+  EditIcon, 
+  CheckIcon, 
+  XIcon, 
+  Loader2Icon, 
+  DollarSignIcon,
+  TrendingUpIcon,
+  WalletIcon,
+  PiggyBankIcon,
+  CalculatorIcon,
+  ShoppingBagIcon,
+  CircleDollarSignIcon
+} from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { upsertProduct } from "@/app/_actions/product/upsert-product";
 import { toast } from "sonner";
@@ -19,6 +31,7 @@ interface InlineFinancialSummaryProps {
     type: string;
     price: number;
     cost: number;
+    operationalCost: number;
     [key: string]: any;
   };
 }
@@ -27,6 +40,7 @@ export default function InlineFinancialSummary({ product }: InlineFinancialSumma
   const [isEditing, setIsEditing] = useState(false);
   const [price, setPrice] = useState(product.price);
   const [cost, setCost] = useState(product.cost);
+  const [operationalCost, setOperationalCost] = useState(product.operationalCost);
 
   const { execute: executeUpdate, isPending } = useAction(upsertProduct, {
     onSuccess: () => {
@@ -37,7 +51,8 @@ export default function InlineFinancialSummary({ product }: InlineFinancialSumma
   });
 
   const isPrepared = product.type === "COMBO" || product.type === "PRODUCAO_PROPRIA";
-  const currentMargin = calculateMargin(price, cost);
+  const totalCost = cost + operationalCost;
+  const currentMargin = calculateMargin(price, totalCost);
 
   const handleSave = () => {
     executeUpdate({
@@ -45,6 +60,7 @@ export default function InlineFinancialSummary({ product }: InlineFinancialSumma
       id: product.id,
       price,
       cost,
+      operationalCost,
       // Ensure all fields map correctly
       name: product.name,
       type: product.type as any,
@@ -99,53 +115,124 @@ export default function InlineFinancialSummary({ product }: InlineFinancialSumma
         )}
       </CardHeader>
       <CardContent className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="space-y-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-70">Preço de Venda</p>
-            {isEditing ? (
-              <NumericFormat
-                customInput={Input}
-                thousandSeparator="."
-                decimalSeparator=","
-                prefix="R$ "
-                decimalScale={2}
-                onValueChange={(vals) => setPrice(vals.floatValue || 0)}
-                value={price}
-                className="h-12 text-2xl font-black bg-muted/20 border-none focus-visible:ring-1 focus-visible:ring-primary/20 shadow-none px-3"
-              />
-            ) : (
-              <p className="text-3xl font-black text-foreground tracking-tight">{formatCurrency(price)}</p>
-            )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {/* Preço de Venda */}
+          <div className="relative overflow-hidden rounded-3xl bg-slate-50/50 p-6 transition-all hover:bg-slate-50 border border-slate-100/50">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
+                  <WalletIcon size={16} />
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 leading-none mt-0.5">Venda</p>
+              </div>
+              {isEditing ? (
+                <NumericFormat
+                  customInput={Input}
+                  thousandSeparator="."
+                  decimalSeparator=","
+                  prefix="R$ "
+                  decimalScale={2}
+                  onValueChange={(vals) => setPrice(vals.floatValue || 0)}
+                  value={price}
+                  className="h-10 text-2xl font-black bg-white border-slate-200 focus-visible:ring-primary/20 shadow-sm px-3 rounded-xl"
+                />
+              ) : (
+                <p className="text-2xl font-black text-slate-900 tracking-tight tabular-nums">{formatCurrency(price)}</p>
+              )}
+            </div>
           </div>
-          <div className="space-y-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-70">
-              {isPrepared ? "Custo (Receita)" : "Custo Fixo"}
-            </p>
-            {isEditing && !isPrepared ? (
-              <NumericFormat
-                customInput={Input}
-                thousandSeparator="."
-                decimalSeparator=","
-                prefix="R$ "
-                decimalScale={2}
-                onValueChange={(vals) => setCost(vals.floatValue || 0)}
-                value={cost}
-                className="h-12 text-2xl font-black bg-muted/20 border-none focus-visible:ring-1 focus-visible:ring-primary/20 shadow-none px-3"
-              />
-            ) : (
-              <p className="text-3xl font-black text-foreground tracking-tight">{formatCurrency(cost)}</p>
-            )}
+
+          {/* Custo Insumos */}
+          <div className="relative overflow-hidden rounded-3xl bg-slate-50/50 p-6 transition-all hover:bg-slate-50 border border-slate-100/50">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
+                  <ShoppingBagIcon size={16} />
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 leading-none mt-0.5 truncate">
+                  {isPrepared ? "Insumos" : "Custo Base"}
+                </p>
+              </div>
+              {isEditing && !isPrepared ? (
+                <NumericFormat
+                  customInput={Input}
+                  thousandSeparator="."
+                  decimalSeparator=","
+                  prefix="R$ "
+                  decimalScale={2}
+                  onValueChange={(vals) => setCost(vals.floatValue || 0)}
+                  value={cost}
+                  className="h-10 text-2xl font-black bg-white border-slate-200 focus-visible:ring-primary/20 shadow-sm px-3 rounded-xl"
+                />
+              ) : (
+                <p className="text-2xl font-black text-slate-900 tracking-tight tabular-nums">{formatCurrency(cost)}</p>
+              )}
+            </div>
           </div>
-          <div className="space-y-3 border-l md:pl-8 border-border/40">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-70">Lucro Líquido</p>
-            <div className="flex items-baseline gap-2">
-               <p className={cn(
-                 "text-3xl font-black tracking-tight",
-                 currentMargin < 15 ? "text-amber-600" : currentMargin < 0 ? "text-destructive" : "text-emerald-600"
-               )}>
-                {currentMargin}%
-              </p>
-              <span className="text-xs font-bold text-muted-foreground opacity-40 uppercase tracking-tighter">Margem</span>
+
+          {/* Custo Operacional */}
+          <div className="relative overflow-hidden rounded-3xl bg-slate-50/50 p-6 transition-all hover:bg-slate-50 border border-slate-100/50">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                  <CalculatorIcon size={16} />
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 leading-none mt-0.5">Operacional</p>
+              </div>
+              {isEditing ? (
+                <NumericFormat
+                  customInput={Input}
+                  thousandSeparator="."
+                  decimalSeparator=","
+                  prefix="R$ "
+                  decimalScale={2}
+                  onValueChange={(vals) => setOperationalCost(vals.floatValue || 0)}
+                  value={operationalCost}
+                  className="h-10 text-2xl font-black bg-white border-slate-200 focus-visible:ring-primary/20 shadow-sm px-3 rounded-xl"
+                />
+              ) : (
+                <p className="text-2xl font-black text-slate-900 tracking-tight tabular-nums">{formatCurrency(operationalCost)}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Custo Total */}
+          <div className="relative overflow-hidden rounded-3xl bg-slate-900 p-6 transition-all shadow-lg border border-slate-800">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-800 text-slate-100">
+                  <CircleDollarSignIcon size={16} />
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 leading-none mt-0.5">Custo Total</p>
+              </div>
+              <p className="text-2xl font-black text-white tracking-tight tabular-nums">{formatCurrency(totalCost)}</p>
+            </div>
+          </div>
+
+          {/* Lucro / Margem */}
+          <div className={cn(
+            "relative overflow-hidden rounded-3xl p-6 transition-all tabular-nums border",
+            currentMargin < 15 ? "bg-amber-50/50 hover:bg-amber-50 border-amber-100" : currentMargin < 0 ? "bg-red-50/50 hover:bg-red-50 border-red-100" : "bg-emerald-50/50 hover:bg-emerald-50 border-emerald-100"
+          )}>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-2">
+                <div className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-xl",
+                  currentMargin < 15 ? "bg-amber-100 text-amber-600" : currentMargin < 0 ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"
+                )}>
+                  <TrendingUpIcon size={16} />
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 leading-none mt-0.5">Lucro Líquido</p>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <p className={cn(
+                  "text-2xl font-black tracking-tight",
+                  currentMargin < 15 ? "text-amber-600" : currentMargin < 0 ? "text-destructive" : "text-emerald-600"
+                )}>
+                  {currentMargin}%
+                </p>
+                <span className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-widest">Margem</span>
+              </div>
             </div>
           </div>
         </div>

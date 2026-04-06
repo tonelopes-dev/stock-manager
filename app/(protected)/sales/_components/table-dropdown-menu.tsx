@@ -40,13 +40,15 @@ import { UserRole } from "@prisma/client";
 interface SalesTableDropdownMenuProps {
   sale: Pick<
     SaleDto,
-    "id" | "saleItems" | "date" | "customerId" | "paymentMethod" | "tipAmount"
+    "id" | "saleItems" | "date" | "customerId" | "paymentMethod" | "tipAmount" | "discountAmount" | "extraAmount" | "adjustmentReason" | "isEmployeeSale"
   >;
   productOptions: ComboboxOption[];
   customerOptions: ComboboxOption[];
   products: ProductDto[];
   userRole: UserRole;
   companyId: string;
+  stages: { id: string; name: string }[];
+  categories: { id: string; name: string }[];
 }
 
 const SalesTableDropdownMenu = ({
@@ -56,6 +58,8 @@ const SalesTableDropdownMenu = ({
   customerOptions,
   userRole,
   companyId,
+  stages,
+  categories,
 }: SalesTableDropdownMenuProps) => {
   const [upsertSheetIsOpen, setUpsertSheetIsOpen] = useState(false);
   const { execute } = useAction(deleteSale, {
@@ -127,17 +131,23 @@ const SalesTableDropdownMenu = ({
       </AlertDialog>
 
       <UpsertSheetContent
+        setSheetIsOpen={setUpsertSheetIsOpen}
+        isOpen={upsertSheetIsOpen}
         saleId={sale.id}
         saleDate={sale.date}
         customerId={sale.customerId}
         paymentMethod={sale.paymentMethod}
         tipAmount={Number(sale.tipAmount)}
-        isOpen={upsertSheetIsOpen}
+        products={products}
         productOptions={productOptions}
         customerOptions={customerOptions}
-        products={products}
-        setSheetIsOpen={setUpsertSheetIsOpen}
+        defaultDiscountAmount={Number(sale.discountAmount || 0)}
+        defaultExtraAmount={Number(sale.extraAmount || 0)}
+        defaultAdjustmentReason={sale.adjustmentReason || ""}
+        defaultIsEmployeeSale={sale.isEmployeeSale || false}
         companyId={companyId}
+        stages={stages}
+        categories={categories}
         defaultSelectedProducts={sale.saleItems.map((item) => {
           const product = products.find((p) => p.id === item.productId);
           return {
@@ -145,6 +155,8 @@ const SalesTableDropdownMenu = ({
             quantity: Number(item.quantity),
             name: item.product.name,
             price: Number(item.unitPrice),
+            cost: Number(item.baseCost || 0),
+            operationalCost: Number(item.operationalCost || 0),
             stock: product?.stock ?? 0,
           };
         })}
