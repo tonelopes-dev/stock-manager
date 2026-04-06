@@ -8,7 +8,8 @@ export const upsertSaleSchema = z.object({
   paymentMethod: z.nativeEnum(PaymentMethod).optional(),
   tipAmount: z.number().min(0).default(0),
   discountAmount: z.number().min(0).default(0),
-  discountReason: z.string().optional().nullable(),
+  extraAmount: z.number().min(0).default(0),
+  adjustmentReason: z.string().optional().nullable(),
   isEmployeeSale: z.boolean().default(false),
   products: z.array(
     z.object({

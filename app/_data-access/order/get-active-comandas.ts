@@ -12,7 +12,8 @@ export interface ComandaDto {
   firstOrderAt: Date;
   lastOrderAt: Date;
   discountAmount: number;
-  discountReason?: string | null;
+  extraAmount: number;
+  adjustmentReason?: string | null;
   isEmployeeSale: boolean;
   items: {
     id: string;
@@ -80,7 +81,8 @@ export const getActiveComandas = async (): Promise<ComandaDto[]> => {
         firstOrderAt: order.createdAt,
         lastOrderAt: order.createdAt,
         discountAmount: 0,
-        discountReason: (order as any).discountReason,
+        extraAmount: 0,
+        adjustmentReason: (order as any).adjustmentReason,
         isEmployeeSale: (order as any).isEmployeeSale,
         items: [],
         orders: [],
@@ -90,6 +92,7 @@ export const getActiveComandas = async (): Promise<ComandaDto[]> => {
     const group = groups[customerId];
     group.totalAmount += Number(order.totalAmount);
     group.discountAmount += Number((order as any).discountAmount || 0);
+    group.extraAmount += Number((order as any).extraAmount || 0);
     group.orderCount++;
     group.lastOrderAt = order.createdAt;
     

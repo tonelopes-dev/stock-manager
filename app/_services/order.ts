@@ -11,7 +11,8 @@ interface CreateOrderParams {
   notes?: string;
   hasServiceTax?: boolean;
   discountAmount?: number;
-  discountReason?: string;
+  extraAmount?: number;
+  adjustmentReason?: string;
   isEmployeeSale?: boolean;
   items: {
     productId: string;
@@ -20,7 +21,7 @@ interface CreateOrderParams {
 }
 
 export const OrderService = {
-  async createOrder({ companyId, customerId, tableNumber, notes, hasServiceTax, discountAmount = 0, discountReason, isEmployeeSale = false, items }: CreateOrderParams) {
+  async createOrder({ companyId, customerId, tableNumber, notes, hasServiceTax, discountAmount = 0, extraAmount = 0, adjustmentReason, isEmployeeSale = false, items }: CreateOrderParams) {
     try {
       return await db.$transaction(async (trx) => {
         // 1. Validate items and stock
@@ -66,7 +67,7 @@ export const OrderService = {
           ? Math.round(subtotal * 0.1 * 100) / 100 
           : 0;
 
-        const totalAmount = Math.max(0, subtotal + serviceTax - discountAmount);
+        const totalAmount = Math.max(0, subtotal + serviceTax - discountAmount + extraAmount);
 
         // 2. Create the Order
         const order = await trx.order.create({
@@ -76,10 +77,11 @@ export const OrderService = {
             tableNumber,
             notes,
             totalAmount,
-            discountAmount,
-            discountReason,
-            isEmployeeSale,
-            hasServiceTax: hasServiceTax ?? true,
+            discountAmount: discountAmount || 0,
+            extraAmount: extraAmount || 0,
+            adjustmentReason: adjustmentReason || null,
+            isEmployeeSale: isEmployeeSale || false,
+            hasServiceTax: hasServiceTax !== undefined ? hasServiceTax : true,
             status: OrderStatus.PENDING,
             orderItems: {
               create: itemsWithPrices.map((item) => ({
@@ -179,7 +181,8 @@ export const OrderService = {
     paymentMethod: any,
     tipAmount: number = 0,
     discountAmount: number = 0,
-    discountReason?: string,
+    extraAmount: number = 0,
+    adjustmentReason?: string,
     isEmployeeSale: boolean = false
   ) {
     try {
@@ -200,7 +203,7 @@ export const OrderService = {
           return acc + price * Number(item.quantity);
         }, 0);
 
-        const totalWithTip = Math.max(0, subtotal + tipAmount - discountAmount);
+        const totalWithTip = Math.max(0, subtotal + tipAmount - discountAmount + extraAmount);
 
         // 1. Create the Sale
         const sale = await trx.sale.create({
@@ -212,7 +215,8 @@ export const OrderService = {
             paymentMethod,
             totalAmount: totalWithTip,
             discountAmount,
-            discountReason,
+            extraAmount,
+            adjustmentReason,
             isEmployeeSale,
             tipAmount,
             date: new Date(),
@@ -264,7 +268,8 @@ export const OrderService = {
     paymentMethod: any,
     tipAmount: number = 0,
     discountAmount: number = 0,
-    discountReason?: string,
+    extraAmount: number = 0,
+    adjustmentReason?: string,
     isEmployeeSale: boolean = false
   ) {
     try {
@@ -284,7 +289,7 @@ export const OrderService = {
           return acc + price * Number(item.quantity);
         }, 0);
 
-        const totalAmount = Math.max(0, subtotal + tipAmount - discountAmount);
+        const totalAmount = Math.max(0, subtotal + tipAmount - discountAmount + extraAmount);
         const originalOrderIds = Array.from(new Set(items.map((i) => i.orderId)));
 
         // 2. Create the Sale
@@ -297,7 +302,8 @@ export const OrderService = {
             totalAmount,
             tipAmount,
             discountAmount,
-            discountReason,
+            extraAmount,
+            adjustmentReason,
             isEmployeeSale,
             date: new Date(),
             status: "ACTIVE",

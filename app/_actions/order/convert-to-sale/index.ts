@@ -12,13 +12,14 @@ const convertOrderToSaleSchema = z.object({
   paymentMethod: z.enum(["CASH", "CREDIT_CARD", "DEBIT_CARD", "PIX", "OTHER"]),
   tipAmount: z.number().min(0).default(0),
   discountAmount: z.number().min(0).default(0),
-  discountReason: z.string().optional().nullable(),
+  extraAmount: z.number().min(0).default(0),
+  adjustmentReason: z.string().optional().nullable(),
   isEmployeeSale: z.boolean().default(false),
 });
 
 export const convertOrderToSaleAction = actionClient
   .schema(convertOrderToSaleSchema)
-  .action(async ({ parsedInput: { orderId, companyId, paymentMethod, tipAmount, discountAmount, discountReason, isEmployeeSale } }) => {
+  .action(async ({ parsedInput: { orderId, companyId, paymentMethod, tipAmount, discountAmount, extraAmount, adjustmentReason, isEmployeeSale } }) => {
     const session = await auth();
     if (!session?.user?.id) throw new Error("Não autorizado");
 
@@ -30,7 +31,8 @@ export const convertOrderToSaleAction = actionClient
         paymentMethod,
         tipAmount,
         discountAmount,
-        discountReason || undefined,
+        extraAmount,
+        adjustmentReason || undefined,
         isEmployeeSale,
       );
 

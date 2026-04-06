@@ -12,7 +12,8 @@ interface UpsertSaleParams {
   paymentMethod?: PaymentMethod;
   tipAmount?: number;
   discountAmount?: number;
-  discountReason?: string;
+  extraAmount?: number;
+  adjustmentReason?: string;
   isEmployeeSale?: boolean;
   products: {
     id: string;
@@ -74,7 +75,7 @@ async function processDeduction(
 }
 
 export const SaleService = {
-  async upsertSale({ id, date, companyId, userId, customerId, paymentMethod, tipAmount, discountAmount = 0, discountReason, isEmployeeSale = false, products }: UpsertSaleParams) {
+  async upsertSale({ id, date, companyId, userId, customerId, paymentMethod, tipAmount, discountAmount = 0, extraAmount = 0, adjustmentReason, isEmployeeSale = false, products }: UpsertSaleParams) {
     try {
       return await db.$transaction(async (trx) => {
         const isUpdate = Boolean(id);
@@ -143,7 +144,8 @@ export const SaleService = {
               paymentMethod: paymentMethod || null,
               tipAmount: tipAmount || 0,
               discountAmount: discountAmount || 0,
-              discountReason: discountReason || null,
+              extraAmount: extraAmount || 0,
+              adjustmentReason: adjustmentReason || null,
               isEmployeeSale,
             },
           });
@@ -156,10 +158,11 @@ export const SaleService = {
               date: date || undefined,
               userId,
               customerId: customerId || undefined,
-              paymentMethod: paymentMethod || undefined,
+              paymentMethod: paymentMethod !== undefined ? paymentMethod : undefined,
               tipAmount: tipAmount !== undefined ? tipAmount : undefined,
               discountAmount: discountAmount !== undefined ? discountAmount : undefined,
-              discountReason: discountReason !== undefined ? discountReason : undefined,
+              extraAmount: extraAmount !== undefined ? extraAmount : undefined,
+              adjustmentReason: adjustmentReason !== undefined ? adjustmentReason : undefined,
               isEmployeeSale: isEmployeeSale !== undefined ? isEmployeeSale : undefined,
             },
           });

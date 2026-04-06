@@ -21,7 +21,8 @@ export interface SaleDto {
   paymentMethod: PaymentMethod | null;
   tipAmount: number;
   discountAmount: number;
-  discountReason: string | null;
+  extraAmount: number;
+  adjustmentReason: string | null;
   isEmployeeSale: boolean;
   saleItems: SaleItemDto[];
 }
@@ -103,8 +104,9 @@ export const getSales = async ({
       paymentMethod: sale.paymentMethod,
       tipAmount: Number(sale.tipAmount),
       discountAmount: Number(sale.discountAmount || 0),
-      discountReason: sale.discountReason || null,
-      isEmployeeSale: sale.isEmployeeSale || false,
+      extraAmount: Number((sale as any).extraAmount || 0),
+      adjustmentReason: (sale as any).adjustmentReason || null,
+      isEmployeeSale: (sale as any).isEmployeeSale || false,
       saleItems: sale.saleItems.map((item: any) => ({
         ...item,
         unitPrice: Number(item.unitPrice),
@@ -168,7 +170,8 @@ export const getSaleById = async (id: string): Promise<SaleDto | null> => {
     paymentMethod: sale.paymentMethod,
     tipAmount: Number(sale.tipAmount),
     discountAmount: Number(sale.discountAmount || 0),
-    discountReason: (sale as any).discountReason || null,
+    extraAmount: Number((sale as any).extraAmount || 0),
+    adjustmentReason: (sale as any).adjustmentReason || null,
     isEmployeeSale: (sale as any).isEmployeeSale || false,
     saleItems: sale.saleItems.map((item: any) => ({
       ...item,

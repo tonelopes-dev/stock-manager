@@ -10,7 +10,8 @@ export const upsertOrderSchema = z.object({
   tableNumber: z.string().optional(),
   notes: z.string().optional(),
   discountAmount: z.number().min(0).default(0),
-  discountReason: z.string().optional().nullable(),
+  extraAmount: z.number().min(0).default(0),
+  adjustmentReason: z.string().optional().nullable(),
   isEmployeeSale: z.boolean().default(false),
 });
 

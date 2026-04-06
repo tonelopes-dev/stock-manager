@@ -40,7 +40,7 @@ import { UserRole } from "@prisma/client";
 interface SalesTableDropdownMenuProps {
   sale: Pick<
     SaleDto,
-    "id" | "saleItems" | "date" | "customerId" | "paymentMethod" | "tipAmount" | "discountAmount" | "discountReason" | "isEmployeeSale"
+    "id" | "saleItems" | "date" | "customerId" | "paymentMethod" | "tipAmount" | "discountAmount" | "extraAmount" | "adjustmentReason" | "isEmployeeSale"
   >;
   productOptions: ComboboxOption[];
   customerOptions: ComboboxOption[];
@@ -127,6 +127,7 @@ const SalesTableDropdownMenu = ({
       </AlertDialog>
 
       <UpsertSheetContent
+        setSheetIsOpen={setUpsertSheetIsOpen}
         isOpen={upsertSheetIsOpen}
         saleId={sale.id}
         saleDate={sale.date}
@@ -136,9 +137,9 @@ const SalesTableDropdownMenu = ({
         products={products}
         productOptions={productOptions}
         customerOptions={customerOptions}
-        setSheetIsOpen={setUpsertSheetIsOpen}
         defaultDiscountAmount={Number(sale.discountAmount || 0)}
-        defaultDiscountReason={sale.discountReason || ""}
+        defaultExtraAmount={Number(sale.extraAmount || 0)}
+        defaultAdjustmentReason={sale.adjustmentReason || ""}
         defaultIsEmployeeSale={sale.isEmployeeSale || false}
         companyId={companyId}
         defaultSelectedProducts={sale.saleItems.map((item) => {

@@ -45,6 +45,7 @@ import { cn } from "@/app/_lib/utils";
 import { Label } from "@/app/_components/ui/label";
 import { Input } from "@/app/_components/ui/input";
 import { Switch } from "@/app/_components/ui/switch";
+import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
@@ -84,7 +85,9 @@ export const ComandaDetailsSheet = ({
   const [paymentMethod, setPaymentMethod] = useState<string>("PIX");
   const [applyServiceCharge, setApplyServiceCharge] = useState<boolean>(true);
   const [discountAmount, setDiscountAmount] = useState<number>(0);
-  const [discountReason, setDiscountReason] = useState<string>("");
+  const [extraAmount, setExtraAmount] = useState<number>(0);
+  const [adjustmentReason, setAdjustmentReason] = useState<string>("");
+  const [adjustmentType, setAdjustmentType] = useState<"discount" | "extra">("discount");
   const [isEmployeeSale, setIsEmployeeSale] = useState<boolean>(false);
   const [now, setNow] = useState(new Date());
 
@@ -107,7 +110,9 @@ export const ComandaDetailsSheet = ({
       setSelectedQuantity(1);
       setApplyServiceCharge(comanda.hasServiceTax);
       setDiscountAmount(comanda.discountAmount || 0);
-      setDiscountReason(comanda.discountReason || "");
+      setExtraAmount(comanda.extraAmount || 0);
+      setAdjustmentReason(comanda.adjustmentReason || "");
+      setAdjustmentType((comanda.extraAmount || 0) > 0 ? "extra" : "discount");
       setIsEmployeeSale(comanda.isEmployeeSale || false);
     }
   }, [isOpen, comanda]);
@@ -139,7 +144,7 @@ export const ComandaDetailsSheet = ({
     
     // Boundary check
     const effectiveDiscount = Math.min(discountAmount, totalBeforeDiscount);
-    const totalWithTip = Math.max(0, Math.round((totalBeforeDiscount - effectiveDiscount) * 100) / 100);
+    const totalWithTip = Math.max(0, Math.round((totalBeforeDiscount - effectiveDiscount + extraAmount) * 100) / 100);
 
     return { 
       fullSubtotal, 
@@ -148,9 +153,10 @@ export const ComandaDetailsSheet = ({
       itenCount, 
       serviceChargeAmount, 
       totalWithTip, 
-      effectiveDiscount 
+      effectiveDiscount,
+      extraAmount
     };
-  }, [comanda, selectedItemIds, applyServiceCharge, isEmployeeSale, discountAmount]);
+  }, [comanda, selectedItemIds, applyServiceCharge, isEmployeeSale, discountAmount, extraAmount]);
 
   const currentProduct = useMemo(
     () => products.find((p) => p.id === selectedProductId),
@@ -183,7 +189,8 @@ export const ComandaDetailsSheet = ({
               paymentMethod: paymentMethod as any,
               tipAmount: i === 0 ? totals.serviceChargeAmount : 0, 
               discountAmount: i === 0 ? totals.effectiveDiscount : 0,
-              discountReason: i === 0 && discountReason ? discountReason : undefined,
+              extraAmount: i === 0 ? totals.extraAmount : 0,
+              adjustmentReason: i === 0 && adjustmentReason ? adjustmentReason : undefined,
               isEmployeeSale: isEmployeeSale,
             });
             if (result?.serverError) throw new Error(result.serverError);
@@ -196,7 +203,8 @@ export const ComandaDetailsSheet = ({
             paymentMethod: paymentMethod as any,
             tipAmount: totals.serviceChargeAmount,
             discountAmount: totals.effectiveDiscount,
-            discountReason: discountReason || undefined,
+            extraAmount: totals.extraAmount,
+            adjustmentReason: adjustmentReason || undefined,
             isEmployeeSale,
           });
 
@@ -224,7 +232,8 @@ export const ComandaDetailsSheet = ({
           customerId: comanda.customerId,
           items: [{ productId: selectedProductId, quantity: selectedQuantity }],
           discountAmount: totals.effectiveDiscount,
-          discountReason: discountReason || undefined,
+          extraAmount: totals.extraAmount,
+          adjustmentReason: adjustmentReason || undefined,
           isEmployeeSale,
         });
 
@@ -341,43 +350,76 @@ export const ComandaDetailsSheet = ({
                 </div>
               </div>
 
-              {/* Discount Section */}
+              {/* Adjustment Section */}
               <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <span className="text-xs font-black">%</span>
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <span className="text-xs font-black">⚙️</span>
+                      </div>
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Ajuste Manual</Label>
                     </div>
-                    <div className="space-y-0.5">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Desconto Manual</Label>
-                      <p className="text-[9px] font-medium text-muted-foreground italic">Máx: {formatCurrency(totals.relevantSubtotal + totals.serviceChargeAmount)}</p>
-                    </div>
+
+                    <Tabs 
+                      value={adjustmentType} 
+                      onValueChange={(val) => {
+                        const type = val as "discount" | "extra";
+                        setAdjustmentType(type);
+                        if (type === "discount") setExtraAmount(0);
+                        else setDiscountAmount(0);
+                      }} 
+                      className="h-8"
+                    >
+                      <TabsList className="h-8 bg-muted/50 p-1">
+                        <TabsTrigger value="discount" className="h-6 text-[10px] font-bold uppercase">Desconto</TabsTrigger>
+                        <TabsTrigger value="extra" className="h-6 text-[10px] font-bold uppercase">Acréscimo</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
                   </div>
-                  <div className="relative w-32">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-muted-foreground">R$</span>
-                    <Input 
-                      type="number"
-                      placeholder="0,00"
-                      className="h-9 pl-8 font-black text-primary"
-                      value={discountAmount || ""}
-                      onChange={(e) => {
-                        const val = parseFloat(e.target.value);
-                        setDiscountAmount(isNaN(val) ? 0 : val);
-                      }}
-                    />
+
+                  <div className="flex items-center justify-between border-t border-border/50 pt-4">
+                    <div className="space-y-0.5">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        {adjustmentType === "discount" ? "Valor do Desconto" : "Valor do Acréscimo"}
+                      </Label>
+                      {adjustmentType === "discount" && (
+                        <p className="text-[9px] font-medium text-muted-foreground italic">
+                          Máx: {formatCurrency(totals.relevantSubtotal + totals.serviceChargeAmount)}
+                        </p>
+                      )}
+                    </div>
+                    <div className="relative w-32">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-muted-foreground">R$</span>
+                      <Input 
+                        type="number"
+                        placeholder="0,00"
+                        className="h-9 pl-8 font-black text-primary"
+                        value={adjustmentType === "discount" ? (discountAmount || "") : (extraAmount || "")}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          const amount = isNaN(val) ? 0 : val;
+                          if (adjustmentType === "discount") {
+                            setDiscountAmount(amount);
+                          } else {
+                            setExtraAmount(amount);
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                {discountAmount > 0 && (
+                {(discountAmount > 0 || extraAmount > 0) && (
                   <div className="space-y-1.5 border-t border-border pt-3">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                      <DollarSign size={12} className="text-primary" /> Justificativa do Desconto
+                      <CheckCircle2 size={12} className="text-primary" /> Justificativa do Ajuste
                     </Label>
                     <Input 
-                      placeholder="Ex: Cliente VIP, Cortesia, Erro no pedido..."
+                      placeholder="Ex: Cliente VIP, Troco retido, Cortesia..."
                       className="h-8 text-xs italic"
-                      value={discountReason}
-                      onChange={(e) => setDiscountReason(e.target.value)}
+                      value={adjustmentReason}
+                      onChange={(e) => setAdjustmentReason(e.target.value)}
                     />
                   </div>
                 )}
