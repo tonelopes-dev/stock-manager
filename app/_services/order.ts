@@ -9,6 +9,7 @@ interface CreateOrderParams {
   customerId?: string;
   tableNumber?: string;
   notes?: string;
+  hasServiceTax?: boolean;
   items: {
     productId: string;
     quantity: number;
@@ -16,7 +17,7 @@ interface CreateOrderParams {
 }
 
 export const OrderService = {
-  async createOrder({ companyId, customerId, tableNumber, notes, items }: CreateOrderParams) {
+  async createOrder({ companyId, customerId, tableNumber, notes, hasServiceTax, items }: CreateOrderParams) {
     try {
       return await db.$transaction(async (trx) => {
         // 1. Validate items and stock
@@ -61,6 +62,7 @@ export const OrderService = {
             tableNumber,
             notes,
             totalAmount,
+            hasServiceTax: hasServiceTax ?? true,
             status: OrderStatus.PENDING,
             orderItems: {
               create: itemsWithPrices.map((item) => ({

@@ -279,6 +279,7 @@ const UpsertSheetContent = ({
           quantity: p.quantity,
         })),
         notes: "Criado via Painel de Gestão",
+        hasServiceTax: applyServiceCharge,
       });
     } else {
       // Regular Sale Flow

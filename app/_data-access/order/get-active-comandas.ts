@@ -8,6 +8,7 @@ export interface ComandaDto {
   customerPhone?: string | null;
   totalAmount: number;
   orderCount: number;
+  hasServiceTax: boolean;
   firstOrderAt: Date;
   lastOrderAt: Date;
   items: {
@@ -66,6 +67,7 @@ export const getActiveComandas = async (): Promise<ComandaDto[]> => {
         customerPhone: order.customer?.phone,
         totalAmount: 0,
         orderCount: 0,
+        hasServiceTax: order.hasServiceTax,
         firstOrderAt: order.createdAt,
         lastOrderAt: order.createdAt,
         items: [],

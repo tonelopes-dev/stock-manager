@@ -398,6 +398,7 @@ model Order {
   tableNumber   String?
   notes         String?         @db.Text
   totalAmount   Decimal         @default(0) @db.Decimal(10, 2)
+  hasServiceTax Boolean         @default(true)
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   company       Company         @relation(fields: [companyId], references: [id])

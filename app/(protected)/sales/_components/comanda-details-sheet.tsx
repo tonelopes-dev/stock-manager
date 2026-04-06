@@ -44,6 +44,7 @@ import {
 import { cn } from "@/app/_lib/utils";
 import { Label } from "@/app/_components/ui/label";
 import { Input } from "@/app/_components/ui/input";
+import { Switch } from "@/app/_components/ui/switch";
 
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
@@ -81,7 +82,7 @@ export const ComandaDetailsSheet = ({
 }: ComandaDetailsSheetProps) => {
   const [isPending, startTransition] = useTransition();
   const [paymentMethod, setPaymentMethod] = useState<string>("PIX");
-  const [tipAmount, setTipAmount] = useState<number>(0);
+  const [applyServiceCharge, setApplyServiceCharge] = useState<boolean>(true);
   const [now, setNow] = useState(new Date());
 
   // Add Item State
@@ -97,13 +98,13 @@ export const ComandaDetailsSheet = ({
 
   // Reset state when sheet opens/closes or comanda changes
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && comanda) {
       setSelectedItemIds(new Set());
       setSelectedProductId("");
       setSelectedQuantity(1);
-      setTipAmount(0);
+      setApplyServiceCharge(comanda.hasServiceTax);
     }
-  }, [isOpen, comanda?.customerId]);
+  }, [isOpen, comanda]);
 
   const partialTotal = useMemo(() => {
     if (!comanda) return 0;
@@ -111,6 +112,12 @@ export const ComandaDetailsSheet = ({
       .filter((item) => selectedItemIds.has(item.id))
       .reduce((sum, item) => sum + item.price * item.quantity, 0);
   }, [comanda, selectedItemIds]);
+
+  // Dynamic service charge: 10% of the relevant amount
+  const serviceChargeBase = selectedItemIds.size > 0 ? partialTotal : (comanda?.totalAmount ?? 0);
+  const serviceChargeAmount = applyServiceCharge
+    ? Math.round(serviceChargeBase * 0.1 * 100) / 100
+    : 0;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -136,7 +143,7 @@ export const ComandaDetailsSheet = ({
               orderId: order.id,
               companyId,
               paymentMethod: paymentMethod as any,
-              tipAmount: i === 0 ? tipAmount : 0, // Apply the full tip to the first order only
+              tipAmount: i === 0 ? serviceChargeAmount : 0, // Apply the full tip to the first order only
             });
             if (result?.serverError) throw new Error(result.serverError);
           }
@@ -146,7 +153,7 @@ export const ComandaDetailsSheet = ({
             itemIds: Array.from(selectedItemIds),
             companyId,
             paymentMethod: paymentMethod as any,
-            tipAmount: tipAmount,
+            tipAmount: serviceChargeAmount,
           });
 
           if (result?.serverError) throw new Error(result.serverError);
@@ -155,7 +162,6 @@ export const ComandaDetailsSheet = ({
         toast.success(
           `Comanda de ${comanda.customerName} finalizada com sucesso!`,
         );
-        setTipAmount(0);
         router.refresh();
         onClose();
       } catch (err: any) {
@@ -262,7 +268,7 @@ export const ComandaDetailsSheet = ({
                 Total Acumulado
               </span>
               <p className="text-xl font-black tracking-tighter text-primary">
-                {formatCurrency(comanda.totalAmount)}
+                {formatCurrency(comanda.totalAmount + serviceChargeAmount)}
               </p>
             </div>
           </div>
@@ -373,21 +379,25 @@ export const ComandaDetailsSheet = ({
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
-                      Gorjeta / Taxa
+                      Taxa de Serviço (10%)
                     </Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">
-                        R$
+                    <div className="flex h-12 items-center justify-between rounded-xl border border-border bg-muted/50 px-4">
+                      <div className="flex items-center gap-3">
+                        <Switch
+                          checked={applyServiceCharge}
+                          onCheckedChange={setApplyServiceCharge}
+                          id="comanda-service-charge"
+                        />
+                        <Label htmlFor="comanda-service-charge" className="text-xs font-bold leading-none">
+                          {applyServiceCharge ? "Ativada" : "Desativada"}
+                        </Label>
+                      </div>
+                      <span className={cn(
+                        "text-sm font-black transition-colors",
+                        applyServiceCharge ? "text-primary" : "text-muted-foreground/50"
+                      )}>
+                        {formatCurrency(serviceChargeAmount)}
                       </span>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="0,00"
-                        value={tipAmount || ""}
-                        onChange={(e) => setTipAmount(Number(e.target.value))}
-                        className="h-12 border-border pl-8 font-bold text-foreground focus-visible:ring-primary/20"
-                      />
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -443,7 +453,7 @@ export const ComandaDetailsSheet = ({
                     {isPartial ? "Pagar Selecionados" : "Finalizar Comanda"} •{" "}
                     {formatCurrency(
                       (isPartial ? partialTotal : comanda.totalAmount) +
-                        (tipAmount || 0),
+                        serviceChargeAmount,
                     )}
                   </>
                 )}
