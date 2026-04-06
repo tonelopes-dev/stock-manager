@@ -66,6 +66,7 @@ import { parseISO } from "date-fns";
 import { Switch } from "@/app/_components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/app/_components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/app/_components/ui/tooltip";
 import UpsertCustomerDialogContent from "../../customers/_components/upsert-dialog-content";
 
 const formSchema = z.object({
@@ -384,7 +385,8 @@ const UpsertSheetContent = ({
   };
 
   return (
-    <SheetContent className="flex h-full !max-w-full lg:!max-w-5xl flex-col border-none p-0">
+    <TooltipProvider>
+      <SheetContent className="flex h-full !max-w-full lg:!max-w-5xl flex-col border-none p-0">
       <div className="flex h-full flex-col">
         {/* Header Section */}
         <div className="sticky top-0 z-10 border-b border-border bg-background p-6">
@@ -409,18 +411,38 @@ const UpsertSheetContent = ({
             <div className="flex-1 space-y-8 overflow-y-auto p-6 scrollbar-hide">
               {/* Sale Metadata Section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-2xl border border-border bg-background p-6 shadow-sm">
-                <div className="space-y-1">
-                  <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-muted-foreground">
-                    <CalendarIcon size={12} />
-                    Data da Venda
-                  </Label>
-                  <DatePicker
-                    value={date ? parseISO(date) : undefined}
-                    onChange={(newDate) =>
-                      setDate(newDate ? format(newDate, "yyyy-MM-dd") : "")
-                    }
-                    className="h-10 w-full border-border text-xs font-bold"
-                  />
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-muted-foreground">
+                      <CalendarIcon size={12} />
+                      Data da Venda
+                    </Label>
+                    <DatePicker
+                      value={date ? parseISO(date) : undefined}
+                      onChange={(newDate) =>
+                        setDate(newDate ? format(newDate, "yyyy-MM-dd") : "")
+                      }
+                      className="h-10 w-full border-border text-xs font-bold"
+                    />
+                  </div>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        type="button"
+                        onClick={() => setCustomerDialogOpen(true)}
+                        className="h-8 px-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted transition-all flex items-center gap-2"
+                      >
+                        <PlusIcon size={14} />
+                        Novo Cliente
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-[10px] font-bold uppercase">
+                      Cadastrar novo cliente rapidamente
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
 
                 <div className="space-y-4">
@@ -452,26 +474,33 @@ const UpsertSheetContent = ({
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      type="button"
-                      onClick={() => setCustomerId(undefined)}
-                      className={cn(
-                        "h-8 px-3 text-[10px] font-black uppercase tracking-widest transition-all",
-                        !customerId
-                          ? "border-emerald-500 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-                          : "text-muted-foreground hover:bg-muted",
-                      )}
-                    >
-                      {!customerId ? (
-                        <span className="flex items-center gap-1.5">
-                          <CheckIcon size={12} /> Venda Avulsa Ativada
-                        </span>
-                      ) : (
-                        "Ativar Venda Avulsa"
-                      )}
-                    </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        type="button"
+                        onClick={() => setCustomerId(undefined)}
+                        className={cn(
+                          "h-8 px-3 text-[10px] font-black uppercase tracking-widest transition-all",
+                          !customerId
+                            ? "border-emerald-500 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                            : "text-muted-foreground hover:bg-muted",
+                        )}
+                      >
+                        {!customerId ? (
+                          <span className="flex items-center gap-1.5">
+                            <CheckIcon size={12} /> Venda Avulsa Ativada
+                          </span>
+                        ) : (
+                          "Ativar Venda Avulsa"
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-[10px] font-bold uppercase">
+                      Permite finalizar a venda sem vincular a um cliente específico
+                    </TooltipContent>
+                  </Tooltip>
 
                     {customerId && (
                        <p className="text-[9px] font-bold uppercase text-muted-foreground italic">
@@ -508,45 +537,59 @@ const UpsertSheetContent = ({
                   <Label className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
                     Taxa de Serviço (10%)
                   </Label>
-                  <div className="flex h-12 items-center justify-between rounded-xl border border-border bg-muted/50 px-4">
-                     <div className="flex items-center gap-3">
-                        <Switch 
-                          checked={applyServiceCharge}
-                          onCheckedChange={setApplyServiceCharge}
-                          id="service-charge"
-                        />
-                        <Label htmlFor="service-charge" className="text-xs font-bold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                           {applyServiceCharge ? "Ativada" : "Desativada"}
-                        </Label>
-                     </div>
-                     <span className={cn(
-                        "text-sm font-black transition-colors",
-                        applyServiceCharge ? "text-primary" : "text-muted-foreground/50"
-                     )}>
-                        {formatCurrency(totals.serviceChargeAmount)}
-                     </span>
-                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex h-12 items-center justify-between rounded-xl border border-border bg-muted/50 px-4">
+                        <div className="flex items-center gap-3">
+                            <Switch 
+                              checked={applyServiceCharge}
+                              onCheckedChange={setApplyServiceCharge}
+                              id="service-charge"
+                            />
+                            <Label htmlFor="service-charge" className="text-xs font-bold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                              {applyServiceCharge ? "Ativada" : "Desactivada"}
+                            </Label>
+                        </div>
+                        <span className={cn(
+                            "text-sm font-black transition-colors",
+                            applyServiceCharge ? "text-primary" : "text-muted-foreground/50"
+                        )}>
+                            {formatCurrency(totals.serviceChargeAmount)}
+                        </span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-[10px] font-bold uppercase">
+                      Adiciona 10% de taxa de serviço sobre o subtotal
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
 
                 <div className="space-y-4">
                   <Label className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
                     Modo Funcionário
                   </Label>
-                  <div className="flex h-12 items-center justify-between rounded-xl border border-border bg-muted/50 px-4">
-                    <div className="flex items-center gap-3">
-                      <Switch
-                        checked={isEmployeeSale}
-                        onCheckedChange={setIsEmployeeSale}
-                        id="employee-sale"
-                      />
-                      <Label
-                        htmlFor="employee-sale"
-                        className="text-xs font-bold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {isEmployeeSale ? "Preço de Custo" : "Preço de Venda"}
-                      </Label>
-                    </div>
-                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex h-12 items-center justify-between rounded-xl border border-border bg-muted/50 px-4">
+                        <div className="flex items-center gap-3">
+                          <Switch
+                            checked={isEmployeeSale}
+                            onCheckedChange={setIsEmployeeSale}
+                            id="employee-sale"
+                          />
+                          <Label
+                            htmlFor="employee-sale"
+                            className="text-xs font-bold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {isEmployeeSale ? "Preço de Custo" : "Preço de Venda"}
+                          </Label>
+                        </div>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-[10px] font-bold uppercase">
+                      Ativa preço de custo (Base + Op) para vendas a funcionários
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               </div>
 
@@ -561,22 +604,29 @@ const UpsertSheetContent = ({
                         <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Ajuste Manual</Label>
                       </div>
 
-                      <Tabs 
-                        value={adjustmentType} 
-                        onValueChange={(val) => {
-                          const type = val as "discount" | "extra";
-                          setAdjustmentType(type);
-                          // Reset the other value when switching
-                          if (type === "discount") setExtraAmount(0);
-                          else setDiscountAmount(0);
-                        }} 
-                        className="h-8"
-                      >
-                        <TabsList className="h-8 bg-muted/50 p-1">
-                          <TabsTrigger value="discount" className="h-6 text-[10px] font-bold uppercase">Desconto</TabsTrigger>
-                          <TabsTrigger value="extra" className="h-6 text-[10px] font-bold uppercase">Acréscimo</TabsTrigger>
-                        </TabsList>
-                      </Tabs>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Tabs 
+                            value={adjustmentType} 
+                            onValueChange={(val) => {
+                              const type = val as "discount" | "extra";
+                              setAdjustmentType(type);
+                              // Reset the other value when switching
+                              if (type === "discount") setExtraAmount(0);
+                              else setDiscountAmount(0);
+                            }} 
+                            className="h-8"
+                          >
+                            <TabsList className="h-8 bg-muted/50 p-1">
+                              <TabsTrigger value="discount" className="h-6 text-[10px] font-bold uppercase">Desconto</TabsTrigger>
+                              <TabsTrigger value="extra" className="h-6 text-[10px] font-bold uppercase">Acréscimo</TabsTrigger>
+                            </TabsList>
+                          </Tabs>
+                        </TooltipTrigger>
+                        <TooltipContent side="left" className="text-[10px] font-bold uppercase">
+                          Alterne entre conceder desconto ou adicionar um valor extra
+                        </TooltipContent>
+                      </Tooltip>
                    </div>
 
                    <div className="flex items-center justify-between border-t border-border/50 pt-4">
@@ -705,25 +755,32 @@ const UpsertSheetContent = ({
                   </Button>
                 )}
 
-                <Button
-                  variant={paymentMethod ? "outline" : "default"}
-                  className={cn(
-                    "h-12 w-full gap-2 text-sm font-black uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-50",
-                    !paymentMethod && "shadow-lg shadow-primary/20",
-                  )}
-                  data-testid="open-order-button"
-                  disabled={selectedProducts.length === 0 || isPending}
-                  onClick={handleOpenOrder}
-                >
-                  {isOrderPending ? (
-                    <span className="animate-pulse">Salvando...</span>
-                  ) : (
-                    <>
-                      <PlusIcon size={18} />
-                      {saleId ? "Salvar Alterações" : "Abrir Comanda"}
-                    </>
-                  )}
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={paymentMethod ? "outline" : "default"}
+                      className={cn(
+                        "h-12 w-full gap-2 text-sm font-black uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-50",
+                        !paymentMethod && "shadow-lg shadow-primary/20",
+                      )}
+                      data-testid="open-order-button"
+                      disabled={selectedProducts.length === 0 || isPending}
+                      onClick={handleOpenOrder}
+                    >
+                      {isOrderPending ? (
+                        <span className="animate-pulse">Salvando...</span>
+                      ) : (
+                        <>
+                          <PlusIcon size={18} />
+                          {saleId ? "Salvar Alterações" : "Abrir Comanda"}
+                        </>
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-[10px] font-bold uppercase">
+                    Salva o pedido sem processar o pagamento agora
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </div>
           </div>
@@ -923,6 +980,7 @@ const UpsertSheetContent = ({
         </Dialog>
       </div>
     </SheetContent>
+    </TooltipProvider>
   );
 };
 
