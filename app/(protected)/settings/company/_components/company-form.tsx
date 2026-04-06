@@ -134,7 +134,7 @@ export const CompanyForm = ({ initialData }: CompanyFormProps) => {
                   variant="ghost" 
                   size="sm" 
                   className="h-8 px-2 mt-2 gap-2 text-primary hover:text-primary hover:bg-primary/10 font-bold transition-all"
-                  onClick={() => calculateRealVolume({})}
+                  onClick={() => calculateRealVolume()}
                   disabled={isCalculating}
                 >
                   {isCalculating ? (

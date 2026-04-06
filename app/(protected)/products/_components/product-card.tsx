@@ -18,6 +18,10 @@ interface ProductCardProps {
   userRole: UserRole;
   categories: ProductCategoryOption[];
   environments: EnvironmentOption[];
+  overheadSettings: {
+    enableOverheadInjection: boolean;
+    overheadRate: number;
+  } | null;
 }
 
 const PRODUCT_TYPE_LABELS: Record<
@@ -30,7 +34,7 @@ const PRODUCT_TYPE_LABELS: Record<
   INSUMO: { label: "Insumo", variant: "outline" as any },
 };
 
-export const ProductCard = ({ product, userRole, categories, environments }: ProductCardProps) => {
+export const ProductCard = ({ product, userRole, categories, environments, overheadSettings }: ProductCardProps) => {
   const router = useRouter();
   const [hasError, setHasError] = React.useState(false);
   
@@ -95,6 +99,7 @@ export const ProductCard = ({ product, userRole, categories, environments }: Pro
                 userRole={userRole} 
                 categories={categories}
                 environments={environments}
+                overheadSettings={overheadSettings}
             />
         </div>
       </div>

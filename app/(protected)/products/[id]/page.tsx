@@ -31,6 +31,7 @@ import InlineProductImage from "./_components/inline-product-image";
 import { getIngredients } from "@/app/_data-access/ingredient/get-ingredients";
 import { getProductCategories } from "@/app/_data-access/product/get-product-categories";
 import { getEnvironments } from "@/app/_data-access/product/get-environments";
+import { getOverheadSettings } from "@/app/_data-access/company/get-overhead-settings";
 
 const formatCurrency = (value: number) =>
   Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -53,11 +54,12 @@ interface ProductDetailsPageProps {
 
 const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
   const { id } = await params;
-  const [product, ingredients, categories, environments] = await Promise.all([
+  const [product, ingredients, categories, environments, overheadSettings] = await Promise.all([
     getProductById(id),
     getIngredients(),
     getProductCategories(),
     getEnvironments(),
+    getOverheadSettings(),
   ]);
 
   if (!product) {

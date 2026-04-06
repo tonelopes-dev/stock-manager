@@ -177,6 +177,7 @@ export const ProductVisualCatalog = ({
           userRole={userRole}
           categories={categories}
           environments={environments}
+          overheadSettings={overheadSettings}
         />
       </Suspense>
     </div>
