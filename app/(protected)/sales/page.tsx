@@ -9,6 +9,8 @@ import {
 } from "../../_data-access/product/get-products";
 import { getCustomers } from "../../_data-access/customer/get-customers";
 import { getSales, getSaleById, SaleDto } from "../../_data-access/sale/get-sales";
+import { getCRMStages } from "@/app/_data-access/crm/get-crm-stages";
+import { getCustomerCategories } from "@/app/_data-access/customer/get-customer-categories";
 import UpsertSaleButton from "./_components/create-sale-button";
 import { SalesDataTable } from "./_components/sales-data-table";
 import { Suspense } from "react";
@@ -72,6 +74,9 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
     resolvedSearchParams.monthA,
     resolvedSearchParams.monthB,
   );
+  
+  const stages = await getCRMStages();
+  const categories = await getCustomerCategories();
 
   const companyId = await getCurrentCompanyId();
   const activeComandas = companyId ? await getActiveComandas() : [];
@@ -104,6 +109,8 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
               hasSales={onboardingStats?.hasSales ?? true}
               view={view as "gestao" | "inteligencia"}
               companyId={companyId || ""}
+              stages={stages}
+              categories={categories}
             />
           </div>
         </div>
@@ -138,6 +145,8 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
                 userRole={role as UserRole}
                 companyId={companyId || ""}
                 preFetchedSale={preFetchedSale}
+                stages={stages}
+                categories={categories}
               />
             </Suspense>
           </div>
@@ -151,6 +160,8 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
             companyId={companyId || ""}
             products={products}
             productOptions={productOptions}
+            stages={stages}
+            categories={categories}
           />
         </div>
       )}
@@ -203,6 +214,8 @@ interface SalesTableWrapperProps {
   userRole: UserRole;
   companyId: string;
   preFetchedSale?: SaleDto | null;
+  stages: { id: string; name: string }[];
+  categories: { id: string; name: string }[];
 }
 
 const SalesTableWrapper = async ({
@@ -216,6 +229,8 @@ const SalesTableWrapper = async ({
   customerOptions,
   companyId,
   preFetchedSale,
+  stages,
+  categories,
 }: SalesTableWrapperProps & { customerOptions: ComboboxOption[] }) => {
   const { data: sales, total } = await getSales({ from, to, page, pageSize });
 
@@ -236,6 +251,8 @@ const SalesTableWrapper = async ({
       customerOptions={customerOptions}
       companyId={companyId}
       preFetchedSale={preFetchedSale}
+      stages={stages}
+      categories={categories}
     />
   );
 };

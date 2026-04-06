@@ -65,6 +65,8 @@ import { DatePicker } from "@/app/_components/ui/date-picker";
 import { parseISO } from "date-fns";
 import { Switch } from "@/app/_components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/app/_components/ui/dialog";
+import UpsertCustomerDialogContent from "../../customers/_components/upsert-dialog-content";
 
 const formSchema = z.object({
   productId: z.string().uuid({
@@ -103,6 +105,8 @@ interface UpsertSheetContentProps {
   defaultIsEmployeeSale?: boolean;
   hasSales?: boolean;
   companyId: string;
+  stages: { id: string; name: string }[];
+  categories: { id: string; name: string }[];
 }
 
 const UpsertSheetContent = ({
@@ -122,6 +126,8 @@ const UpsertSheetContent = ({
   defaultAdjustmentReason = "",
   defaultIsEmployeeSale = false,
   companyId,
+  stages,
+  categories,
 }: UpsertSheetContentProps) => {
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>(
     defaultSelectedProducts ?? [],
@@ -145,6 +151,16 @@ const UpsertSheetContent = ({
     defaultExtraAmount > 0 ? "extra" : "discount"
   );
   const [isEmployeeSale, setIsEmployeeSale] = useState<boolean>(defaultIsEmployeeSale);
+  
+  // Quick Customer State
+  const [customerSearchValue, setCustomerSearchValue] = useState("");
+  const [localCustomerOptions, setLocalCustomerOptions] = useState<ComboboxOption[]>(customerOptions);
+  const [customerDialogOpen, setCustomerDialogOpen] = useState(false);
+
+  // Sync local options with parent options
+  useEffect(() => {
+    setLocalCustomerOptions(customerOptions);
+  }, [customerOptions]);
 
   const { execute: executeUpsertSale, isPending: isUpsertPending, reset: resetUpsertSale } = useAction(
     upsertSale,
@@ -347,6 +363,26 @@ const UpsertSheetContent = ({
       })),
     });
   };
+
+  const handleCustomerSuccess = (customer: any) => {
+    const newOption = {
+      label: `${customer.name} ${customer.phoneNumber ? `(${customer.phoneNumber})` : ""}`,
+      value: customer.id,
+    };
+    setLocalCustomerOptions((prev) => [...prev, newOption]);
+    setCustomerId(customer.id);
+    setCustomerDialogOpen(false);
+    setCustomerSearchValue("");
+  };
+
+  const getCustomerDefaultValues = () => {
+    const digitsOnly = customerSearchValue.replace(/\D/g, "");
+    if (digitsOnly.length >= 8) {
+      return { phoneNumber: digitsOnly, name: "" };
+    }
+    return { name: customerSearchValue, phoneNumber: "" };
+  };
+
   return (
     <SheetContent className="flex h-full !max-w-full lg:!max-w-5xl flex-col border-none p-0">
       <div className="flex h-full flex-col">
@@ -394,10 +430,24 @@ const UpsertSheetContent = ({
                       Cliente
                     </Label>
                     <Combobox
-                      options={customerOptions}
+                      options={localCustomerOptions}
                       value={customerId || ""}
                       onChange={(val) => setCustomerId(val || undefined)}
                       placeholder="Selecione o Cliente..."
+                      searchValue={customerSearchValue}
+                      onSearchValueChange={setCustomerSearchValue}
+                      emptyContent={
+                        <div className="p-2">
+                          <Button
+                            variant="secondary"
+                            className="w-full gap-2 text-xs font-bold uppercase tracking-tight"
+                            onClick={() => setCustomerDialogOpen(true)}
+                          >
+                            <PlusIcon size={14} />
+                            Criar "{customerSearchValue}"
+                          </Button>
+                        </div>
+                      }
                     />
                   </div>
 
@@ -860,6 +910,17 @@ const UpsertSheetContent = ({
             </div>
           </div>
         </div>
+
+        {/* Quick Customer Dialog */}
+        <Dialog open={customerDialogOpen} onOpenChange={setCustomerDialogOpen}>
+          <UpsertCustomerDialogContent
+            setDialogIsOpen={setCustomerDialogOpen}
+            categories={categories}
+            stages={stages}
+            onSuccess={handleCustomerSuccess}
+            defaultValues={getCustomerDefaultValues() as any}
+          />
+        </Dialog>
       </div>
     </SheetContent>
   );

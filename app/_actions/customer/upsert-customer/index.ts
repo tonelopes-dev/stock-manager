@@ -86,15 +86,19 @@ export const upsertCustomer = actionClient
         });
         const nextPosition = (lastPosition._max.position ?? -1) + 1;
 
-        await db.customer.update({
+        const updated = await db.customer.update({
           where: { id, companyId },
           data: { ...customerData, position: nextPosition },
         });
+        revalidatePath("/customers", "page");
+        return updated;
       } else {
-        await db.customer.update({
+        const updated = await db.customer.update({
           where: { id, companyId },
           data: customerData,
         });
+        revalidatePath("/customers", "page");
+        return updated;
       }
     } else {
       // New customer: calculate next position
@@ -104,14 +108,14 @@ export const upsertCustomer = actionClient
       });
       const nextPosition = (lastPosition._max.position ?? -1) + 1;
 
-      await db.customer.create({
+      const customer = await db.customer.create({
         data: {
           ...customerData,
           position: nextPosition,
           companyId,
         },
       });
+      revalidatePath("/customers", "page");
+      return customer;
     }
-
-    revalidatePath("/customers", "page");
   });

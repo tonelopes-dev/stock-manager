@@ -47,6 +47,8 @@ interface SalesTableDropdownMenuProps {
   products: ProductDto[];
   userRole: UserRole;
   companyId: string;
+  stages: { id: string; name: string }[];
+  categories: { id: string; name: string }[];
 }
 
 const SalesTableDropdownMenu = ({
@@ -56,6 +58,8 @@ const SalesTableDropdownMenu = ({
   customerOptions,
   userRole,
   companyId,
+  stages,
+  categories,
 }: SalesTableDropdownMenuProps) => {
   const [upsertSheetIsOpen, setUpsertSheetIsOpen] = useState(false);
   const { execute } = useAction(deleteSale, {
@@ -142,6 +146,8 @@ const SalesTableDropdownMenu = ({
         defaultAdjustmentReason={sale.adjustmentReason || ""}
         defaultIsEmployeeSale={sale.isEmployeeSale || false}
         companyId={companyId}
+        stages={stages}
+        categories={categories}
         defaultSelectedProducts={sale.saleItems.map((item) => {
           const product = products.find((p) => p.id === item.productId);
           return {

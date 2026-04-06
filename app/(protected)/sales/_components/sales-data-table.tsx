@@ -27,6 +27,8 @@ interface SalesDataTableProps {
   customerOptions: ComboboxOption[];
   companyId: string;
   preFetchedSale?: SaleDto | null;
+  stages: { id: string; name: string }[];
+  categories: { id: string; name: string }[];
 }
 
 export const SalesDataTable = ({
@@ -38,6 +40,8 @@ export const SalesDataTable = ({
   customerOptions,
   companyId,
   preFetchedSale,
+  stages,
+  categories,
 }: SalesDataTableProps) => {
   return (
     <Suspense fallback={null}>
@@ -46,9 +50,11 @@ export const SalesDataTable = ({
         customerOptions={customerOptions}
         companyId={companyId}
         preFetchedSale={preFetchedSale}
+        stages={stages}
+        categories={categories}
       />
       <DataTable
-        columns={saleTableColumns(userRole, customerOptions, companyId)}
+        columns={saleTableColumns(userRole, customerOptions, companyId, stages, categories)}
         data={sales}
         pagination={{
           total,
@@ -73,11 +79,15 @@ const SalesSearchHandler = ({
   customerOptions,
   companyId,
   preFetchedSale,
+  stages,
+  categories,
 }: {
   sales: SaleTableColumn[];
   customerOptions: ComboboxOption[];
   companyId: string;
   preFetchedSale?: SaleDto | null;
+  stages: { id: string; name: string }[];
+  categories: { id: string; name: string }[];
 }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -160,6 +170,8 @@ const SalesSearchHandler = ({
         products={selectedSale.products}
         setSheetIsOpen={setIsOpen}
         companyId={companyId}
+        stages={stages}
+        categories={categories}
         defaultSelectedProducts={selectedSale.saleItems.map((item) => {
           const product = selectedSale.products.find((p) => p.id === item.productId);
           return {

@@ -15,6 +15,8 @@ interface UpsertSaleButtonProps {
   hasSales?: boolean;
   view?: "gestao" | "inteligencia";
   companyId: string;
+  stages: { id: string; name: string }[];
+  categories: { id: string; name: string }[];
 }
 
 const UpsertSaleButton = ({
@@ -24,6 +26,8 @@ const UpsertSaleButton = ({
   hasSales,
   view,
   companyId,
+  stages,
+  categories,
 }: UpsertSaleButtonProps) => {
   const [sheetIsOpen, setSheetIsOpen] = useState(false);
 
@@ -43,6 +47,8 @@ const UpsertSaleButton = ({
         customerOptions={customerOptions}
         hasSales={hasSales}
         companyId={companyId}
+        stages={stages}
+        categories={categories}
       />
     </Sheet>
   );

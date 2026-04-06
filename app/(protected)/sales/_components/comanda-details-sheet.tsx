@@ -57,6 +57,8 @@ interface ComandaDetailsSheetProps {
   companyId: string;
   products: ProductDto[];
   productOptions: ComboboxOption[];
+  stages: { id: string; name: string }[];
+  categories: { id: string; name: string }[];
 }
 
 const paymentMethodLabels: Record<
@@ -80,6 +82,8 @@ export const ComandaDetailsSheet = ({
   companyId,
   products,
   productOptions,
+  stages,
+  categories,
 }: ComandaDetailsSheetProps) => {
   const [isPending, startTransition] = useTransition();
   const [paymentMethod, setPaymentMethod] = useState<string>("PIX");

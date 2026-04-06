@@ -46,6 +46,7 @@ interface UpsertCustomerDialogContentProps {
   setDialogIsOpen: Dispatch<SetStateAction<boolean>>;
   categories: { id: string; name: string }[];
   stages: { id: string; name: string }[];
+  onSuccess?: (customer: any) => void;
 }
 
 const UpsertCustomerDialogContent = ({
@@ -53,15 +54,19 @@ const UpsertCustomerDialogContent = ({
   setDialogIsOpen,
   categories = [],
   stages = [],
+  onSuccess,
 }: UpsertCustomerDialogContentProps) => {
   const { execute: executeUpsertCustomer, isPending } = useAction(
     upsertCustomer,
     {
-      onSuccess: () => {
+      onSuccess: ({ data }) => {
         const isCreate = !defaultValues;
         toast.success(
           `Cliente ${isCreate ? "criado" : "atualizado"} com sucesso.`,
         );
+        if (onSuccess && data) {
+          onSuccess(data);
+        }
         setDialogIsOpen(false);
       },
       onError: ({ error: { serverError, validationErrors } }) => {
