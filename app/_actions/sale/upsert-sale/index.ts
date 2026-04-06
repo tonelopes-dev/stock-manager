@@ -15,7 +15,7 @@ import { AuditEventType } from "@prisma/client";
 
 export const upsertSale = actionClient
   .schema(upsertSaleSchema)
-  .action(async ({ parsedInput: { products, id, date, customerId, paymentMethod, tipAmount } }) => {
+  .action(async ({ parsedInput: { products, id, date, customerId, paymentMethod, tipAmount, discountAmount, discountReason, isEmployeeSale } }) => {
     const companyId = await getCurrentCompanyId();
     const isUpdate = Boolean(id);
     
@@ -33,6 +33,9 @@ export const upsertSale = actionClient
         customerId: customerId || undefined,
         paymentMethod,
         tipAmount,
+        discountAmount,
+        discountReason: discountReason || undefined,
+        isEmployeeSale,
         products,
       });
 

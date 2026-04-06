@@ -83,6 +83,9 @@ export const ComandaDetailsSheet = ({
   const [isPending, startTransition] = useTransition();
   const [paymentMethod, setPaymentMethod] = useState<string>("PIX");
   const [applyServiceCharge, setApplyServiceCharge] = useState<boolean>(true);
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
+  const [discountReason, setDiscountReason] = useState<string>("");
+  const [isEmployeeSale, setIsEmployeeSale] = useState<boolean>(false);
   const [now, setNow] = useState(new Date());
 
   // Add Item State
@@ -103,26 +106,56 @@ export const ComandaDetailsSheet = ({
       setSelectedProductId("");
       setSelectedQuantity(1);
       setApplyServiceCharge(comanda.hasServiceTax);
+      setDiscountAmount(comanda.discountAmount || 0);
+      setDiscountReason(comanda.discountReason || "");
+      setIsEmployeeSale(comanda.isEmployeeSale || false);
     }
   }, [isOpen, comanda]);
 
-  const partialTotal = useMemo(() => {
-    if (!comanda) return 0;
-    return comanda.items
-      .filter((item) => selectedItemIds.has(item.id))
-      .reduce((sum, item) => sum + item.price * item.quantity, 0);
-  }, [comanda, selectedItemIds]);
+  const totals = useMemo(() => {
+    if (!comanda) return { subtotal: 0, partialTotal: 0, itenCount: 0, serviceChargeAmount: 0, totalWithTip: 0, effectiveDiscount: 0, relevantSubtotal: 0 };
+    
+    const calculateSubtotal = (items: typeof comanda.items) => {
+      return items.reduce((acc, p) => {
+        const unitPrice = isEmployeeSale 
+          ? (Number(p.cost || 0) + Number(p.operationalCost || 0))
+          : Number(p.price);
+        return acc + unitPrice * p.quantity;
+      }, 0);
+    };
+
+    const fullSubtotal = calculateSubtotal(comanda.items);
+    const selectedItemsList = comanda.items.filter((i) => selectedItemIds.has(i.id));
+    const currentPartialSubtotal = calculateSubtotal(selectedItemsList);
+    
+    const relevantSubtotal = selectedItemIds.size > 0 ? currentPartialSubtotal : fullSubtotal;
+    const itenCount = selectedItemIds.size > 0 ? selectedItemsList.reduce((acc, p) => acc + p.quantity, 0) : comanda.items.reduce((acc, p) => acc + p.quantity, 0);
+
+    const serviceChargeAmount = applyServiceCharge
+      ? Math.round(relevantSubtotal * 0.1 * 100) / 100
+      : 0;
+
+    const totalBeforeDiscount = relevantSubtotal + serviceChargeAmount;
+    
+    // Boundary check
+    const effectiveDiscount = Math.min(discountAmount, totalBeforeDiscount);
+    const totalWithTip = Math.max(0, Math.round((totalBeforeDiscount - effectiveDiscount) * 100) / 100);
+
+    return { 
+      fullSubtotal, 
+      partialTotal: currentPartialSubtotal, 
+      relevantSubtotal,
+      itenCount, 
+      serviceChargeAmount, 
+      totalWithTip, 
+      effectiveDiscount 
+    };
+  }, [comanda, selectedItemIds, applyServiceCharge, isEmployeeSale, discountAmount]);
 
   const currentProduct = useMemo(
     () => products.find((p) => p.id === selectedProductId),
     [products, selectedProductId],
   );
-
-  // Dynamic service charge: 10% of the relevant amount
-  const serviceChargeBase = selectedItemIds.size > 0 ? partialTotal : (comanda?.totalAmount ?? 0);
-  const serviceChargeAmount = applyServiceCharge
-    ? Math.round(serviceChargeBase * 0.1 * 100) / 100
-    : 0;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -148,7 +181,10 @@ export const ComandaDetailsSheet = ({
               orderId: order.id,
               companyId,
               paymentMethod: paymentMethod as any,
-              tipAmount: i === 0 ? serviceChargeAmount : 0, // Apply the full tip to the first order only
+              tipAmount: i === 0 ? totals.serviceChargeAmount : 0, 
+              discountAmount: i === 0 ? totals.effectiveDiscount : 0,
+              discountReason: i === 0 && discountReason ? discountReason : undefined,
+              isEmployeeSale: isEmployeeSale,
             });
             if (result?.serverError) throw new Error(result.serverError);
           }
@@ -158,7 +194,10 @@ export const ComandaDetailsSheet = ({
             itemIds: Array.from(selectedItemIds),
             companyId,
             paymentMethod: paymentMethod as any,
-            tipAmount: serviceChargeAmount,
+            tipAmount: totals.serviceChargeAmount,
+            discountAmount: totals.effectiveDiscount,
+            discountReason: discountReason || undefined,
+            isEmployeeSale,
           });
 
           if (result?.serverError) throw new Error(result.serverError);
@@ -184,6 +223,9 @@ export const ComandaDetailsSheet = ({
           companyId,
           customerId: comanda.customerId,
           items: [{ productId: selectedProductId, quantity: selectedQuantity }],
+          discountAmount: totals.effectiveDiscount,
+          discountReason: discountReason || undefined,
+          isEmployeeSale,
         });
 
         if (result?.serverError) throw new Error(result.serverError);
@@ -276,9 +318,69 @@ export const ComandaDetailsSheet = ({
                     Total Acumulado
                   </span>
                   <p className="text-xl font-black tracking-tighter text-primary">
-                    {formatCurrency(comanda.totalAmount + serviceChargeAmount)}
+                    {formatCurrency(totals.totalWithTip)}
                   </p>
                 </div>
+              </div>
+
+              {/* Employee Mode Toggle */}
+              <div className="rounded-2xl border border-border bg-background p-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                      Modo Funcionário
+                    </Label>
+                    <p className="text-[9px] font-medium text-muted-foreground italic">
+                      {isEmployeeSale ? "Preço de Custo + Operacional" : "Preço de Venda Normal"}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={isEmployeeSale}
+                    onCheckedChange={setIsEmployeeSale}
+                  />
+                </div>
+              </div>
+
+              {/* Discount Section */}
+              <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <span className="text-xs font-black">%</span>
+                    </div>
+                    <div className="space-y-0.5">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Desconto Manual</Label>
+                      <p className="text-[9px] font-medium text-muted-foreground italic">Máx: {formatCurrency(totals.relevantSubtotal + totals.serviceChargeAmount)}</p>
+                    </div>
+                  </div>
+                  <div className="relative w-32">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-muted-foreground">R$</span>
+                    <Input 
+                      type="number"
+                      placeholder="0,00"
+                      className="h-9 pl-8 font-black text-primary"
+                      value={discountAmount || ""}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        setDiscountAmount(isNaN(val) ? 0 : val);
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {discountAmount > 0 && (
+                  <div className="space-y-1.5 border-t border-border pt-3">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                      <DollarSign size={12} className="text-primary" /> Justificativa do Desconto
+                    </Label>
+                    <Input 
+                      placeholder="Ex: Cliente VIP, Cortesia, Erro no pedido..."
+                      className="h-8 text-xs italic"
+                      value={discountReason}
+                      onChange={(e) => setDiscountReason(e.target.value)}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Partial selection info */}
@@ -322,7 +424,7 @@ export const ComandaDetailsSheet = ({
                             : "text-muted-foreground/50",
                         )}
                       >
-                        {formatCurrency(serviceChargeAmount)}
+                        {formatCurrency(totals.serviceChargeAmount)}
                       </span>
                     </div>
                   </div>
@@ -376,10 +478,7 @@ export const ComandaDetailsSheet = ({
                   ) : (
                     <>
                       {isPartial ? "Pagar Selecionados" : "Finalizar Comanda"} •{" "}
-                      {formatCurrency(
-                        (isPartial ? partialTotal : comanda.totalAmount) +
-                          serviceChargeAmount,
-                      )}
+                      {formatCurrency(totals.totalWithTip)}
                     </>
                   )}
                 </Button>

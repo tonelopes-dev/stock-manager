@@ -78,6 +78,8 @@ interface SelectedProduct {
   id: string;
   name: string;
   price: number;
+  cost: number;
+  operationalCost: number;
   quantity: number;
   stock: number;
 }
@@ -94,6 +96,9 @@ interface UpsertSheetContentProps {
   customerId?: string | null;
   paymentMethod?: PaymentMethod | null;
   tipAmount?: number | null;
+  defaultDiscountAmount?: number;
+  defaultDiscountReason?: string;
+  defaultIsEmployeeSale?: boolean;
   hasSales?: boolean;
   companyId: string;
 }
@@ -110,15 +115,13 @@ const UpsertSheetContent = ({
   defaultSelectedProducts,
   paymentMethod: defaultPaymentMethod,
   tipAmount: defaultTipAmount,
+  defaultDiscountAmount = 0,
+  defaultDiscountReason = "",
+  defaultIsEmployeeSale = false,
   companyId,
 }: UpsertSheetContentProps) => {
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>(
     defaultSelectedProducts ?? [],
-  );
-  const [date, setDate] = useState<string>(
-    saleDate
-      ? format(new Date(saleDate), "yyyy-MM-dd")
-      : format(new Date(), "yyyy-MM-dd"),
   );
   const [customerId, setCustomerId] = useState<string | undefined>(
     defaultCustomerId || undefined,
@@ -126,7 +129,15 @@ const UpsertSheetContent = ({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | undefined>(
     (defaultPaymentMethod as PaymentMethod) || undefined,
   );
+  const [date, setDate] = useState<string>(
+    saleDate
+      ? format(new Date(saleDate), "yyyy-MM-dd")
+      : format(new Date(), "yyyy-MM-dd"),
+  );
   const [applyServiceCharge, setApplyServiceCharge] = useState<boolean>(true);
+  const [discountAmount, setDiscountAmount] = useState<number>(defaultDiscountAmount);
+  const [discountReason, setDiscountReason] = useState<string>(defaultDiscountReason);
+  const [isEmployeeSale, setIsEmployeeSale] = useState<boolean>(defaultIsEmployeeSale);
 
   const { execute: executeUpsertSale, isPending: isUpsertPending, reset: resetUpsertSale } = useAction(
     upsertSale,
@@ -183,12 +194,18 @@ const UpsertSheetContent = ({
       setCustomerId(defaultCustomerId || undefined);
       setPaymentMethod((defaultPaymentMethod as PaymentMethod) || undefined);
       setApplyServiceCharge(defaultTipAmount === undefined ? true : Number(defaultTipAmount) > 0);
+      setDiscountAmount(defaultDiscountAmount);
+      setDiscountReason(defaultDiscountReason);
+      setIsEmployeeSale(defaultIsEmployeeSale);
     } else {
       form.reset();
       setSelectedProducts([]);
       setCustomerId(undefined);
       setPaymentMethod(undefined);
       setApplyServiceCharge(true);
+      setDiscountAmount(0);
+      setDiscountReason("");
+      setIsEmployeeSale(false);
       resetUpsertSale();
       resetCreateOrder();
     }
@@ -200,6 +217,9 @@ const UpsertSheetContent = ({
     defaultCustomerId,
     defaultPaymentMethod,
     defaultTipAmount,
+    defaultDiscountAmount,
+    defaultDiscountReason,
+    defaultIsEmployeeSale,
   ]);
 
   const onSubmit = (data: FormSchema) => {
@@ -221,6 +241,7 @@ const UpsertSheetContent = ({
           ...product,
           price: Number(product.price),
           cost: Number(product.cost),
+          operationalCost: Number(product.operationalCost),
           stock: Number(product.stock),
           quantity: data.quantity,
         },
@@ -245,10 +266,13 @@ const UpsertSheetContent = ({
   };
 
   const totals = useMemo(() => {
-    const subtotal = selectedProducts.reduce(
-      (acc, p) => acc + p.price * p.quantity,
-      0,
-    );
+    const subtotal = selectedProducts.reduce((acc, p) => {
+      const unitPrice = isEmployeeSale 
+        ? (Number(p.cost || 0) + Number(p.operationalCost || 0))
+        : Number(p.price);
+      return acc + unitPrice * p.quantity;
+    }, 0);
+    
     const itenCount = selectedProducts.reduce((acc, p) => acc + p.quantity, 0);
     
     // Calculate 10% with 2 decimal precision
@@ -256,10 +280,14 @@ const UpsertSheetContent = ({
       ? Math.round(subtotal * 0.1 * 100) / 100 
       : 0;
 
-    const totalWithTip = Math.round((subtotal + serviceChargeAmount) * 100) / 100;
+    const totalBeforeDiscount = subtotal + serviceChargeAmount;
     
-    return { subtotal, itenCount, serviceChargeAmount, totalWithTip };
-  }, [selectedProducts, applyServiceCharge]);
+    // Boundary check: Discount cannot exceed the total before discount
+    const effectiveDiscount = Math.min(discountAmount, totalBeforeDiscount);
+    const totalWithTip = Math.max(0, Math.round((totalBeforeDiscount - effectiveDiscount) * 100) / 100);
+    
+    return { subtotal, itenCount, serviceChargeAmount, totalWithTip, effectiveDiscount };
+  }, [selectedProducts, applyServiceCharge, isEmployeeSale, discountAmount]);
 
   const handleOpenOrder = () => {
     if (selectedProducts.length === 0) return;
@@ -280,6 +308,9 @@ const UpsertSheetContent = ({
       })),
       notes: "Criado via Painel de Gestão",
       hasServiceTax: applyServiceCharge,
+      discountAmount: totals.effectiveDiscount,
+      discountReason: discountReason || undefined,
+      isEmployeeSale,
     });
   };
 
@@ -297,6 +328,9 @@ const UpsertSheetContent = ({
       customerId,
       paymentMethod,
       tipAmount: totals.serviceChargeAmount,
+      discountAmount: totals.effectiveDiscount,
+      discountReason: discountReason || undefined,
+      isEmployeeSale,
       products: selectedProducts.map((p) => ({
         id: p.id,
         quantity: p.quantity,
@@ -384,8 +418,7 @@ const UpsertSheetContent = ({
                           Cliente selecionado
                        </p>
                     )}
-                  </div>
-                </div>
+                              </div>
               </div>
             </div>
 
@@ -434,7 +467,72 @@ const UpsertSheetContent = ({
                      </span>
                   </div>
                 </div>
-                <div className="space-y-2">
+
+                <div className="space-y-4">
+                  <Label className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
+                    Modo Funcionário
+                  </Label>
+                  <div className="flex h-12 items-center justify-between rounded-xl border border-border bg-muted/50 px-4">
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={isEmployeeSale}
+                        onCheckedChange={setIsEmployeeSale}
+                        id="employee-sale"
+                      />
+                      <Label
+                        htmlFor="employee-sale"
+                        className="text-xs font-bold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {isEmployeeSale ? "Preço de Custo" : "Preço de Venda"}
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Discount Section */}
+              <div className="mt-4 grid grid-cols-1 gap-4 rounded-2xl border border-dashed border-border bg-muted/20 p-4">
+                <div className="flex items-center justify-between">
+                   <div className="flex items-center gap-2">
+                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <span className="text-xs font-black">%</span>
+                     </div>
+                     <div className="space-y-0.5">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Desconto Manual</Label>
+                        <p className="text-[9px] font-medium text-muted-foreground italic">Máx: {formatCurrency(totals.subtotal + totals.serviceChargeAmount)}</p>
+                     </div>
+                   </div>
+                   <div className="relative w-32">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-muted-foreground">R$</span>
+                      <Input 
+                        type="number"
+                        placeholder="0,00"
+                        className="h-9 pl-8 font-black text-primary"
+                        value={discountAmount || ""}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          setDiscountAmount(isNaN(val) ? 0 : val);
+                        }}
+                      />
+                   </div>
+                </div>
+
+                {discountAmount > 0 && (
+                  <div className="space-y-1.5 border-t border-border pt-3">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                      <CheckIcon size={12} className="text-primary" /> Justificativa do Desconto
+                    </Label>
+                    <Input 
+                      placeholder="Ex: Cliente VIP, Cortesia, Erro no pedido..."
+                      className="h-8 text-xs italic"
+                      value={discountReason}
+                      onChange={(e) => setDiscountReason(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 space-y-2">
                   <Label className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
                     Forma de Pagamento
                   </Label>
@@ -492,7 +590,6 @@ const UpsertSheetContent = ({
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
 
               <div className="mt-6 flex flex-col gap-3">
                 {paymentMethod && (
@@ -535,6 +632,7 @@ const UpsertSheetContent = ({
               </div>
             </div>
           </div>
+        </div>
 
           {/* Right Column: Added Products Table */}
           <div className="flex flex-col bg-background p-6">

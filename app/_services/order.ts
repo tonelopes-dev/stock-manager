@@ -10,6 +10,9 @@ interface CreateOrderParams {
   tableNumber?: string;
   notes?: string;
   hasServiceTax?: boolean;
+  discountAmount?: number;
+  discountReason?: string;
+  isEmployeeSale?: boolean;
   items: {
     productId: string;
     quantity: number;
@@ -17,7 +20,7 @@ interface CreateOrderParams {
 }
 
 export const OrderService = {
-  async createOrder({ companyId, customerId, tableNumber, notes, hasServiceTax, items }: CreateOrderParams) {
+  async createOrder({ companyId, customerId, tableNumber, notes, hasServiceTax, discountAmount = 0, discountReason, isEmployeeSale = false, items }: CreateOrderParams) {
     try {
       return await db.$transaction(async (trx) => {
         // 1. Validate items and stock
@@ -25,7 +28,7 @@ export const OrderService = {
           items.map(async (item) => {
             const product = await trx.product.findUnique({
               where: { id: item.productId, companyId },
-              select: { id: true, name: true, price: true, stock: true, isActive: true },
+              select: { id: true, name: true, price: true, cost: true, operationalCost: true, stock: true, isActive: true },
             });
 
             if (!product) {
@@ -41,18 +44,29 @@ export const OrderService = {
               throw new BusinessError(`Estoque insuficiente para ${product.name}.`);
             }
 
+            const unitPrice = isEmployeeSale 
+              ? Number(product.cost) + Number(product.operationalCost)
+              : Number(product.price);
+
             return {
               ...item,
-              unitPrice: product.price,
+              unitPrice,
               name: product.name,
             };
           })
         );
 
-        const totalAmount = itemsWithPrices.reduce(
-          (sum, item) => sum + Number(item.unitPrice) * item.quantity,
+        const subtotal = itemsWithPrices.reduce(
+          (sum, item) => sum + item.unitPrice * item.quantity,
           0
         );
+
+        // Apply service tax if active
+        const serviceTax = hasServiceTax ?? true 
+          ? Math.round(subtotal * 0.1 * 100) / 100 
+          : 0;
+
+        const totalAmount = Math.max(0, subtotal + serviceTax - discountAmount);
 
         // 2. Create the Order
         const order = await trx.order.create({
@@ -62,6 +76,9 @@ export const OrderService = {
             tableNumber,
             notes,
             totalAmount,
+            discountAmount,
+            discountReason,
+            isEmployeeSale,
             hasServiceTax: hasServiceTax ?? true,
             status: OrderStatus.PENDING,
             orderItems: {
@@ -155,7 +172,16 @@ export const OrderService = {
     }
   },
 
-  async convertToSale(orderId: string, companyId: string, userId: string, paymentMethod: any, tipAmount: number = 0) {
+  async convertToSale(
+    orderId: string,
+    companyId: string,
+    userId: string,
+    paymentMethod: any,
+    tipAmount: number = 0,
+    discountAmount: number = 0,
+    discountReason?: string,
+    isEmployeeSale: boolean = false
+  ) {
     try {
       return await db.$transaction(async (trx) => {
         const order = await trx.order.findUnique({
@@ -166,9 +192,17 @@ export const OrderService = {
         if (!order) throw new BusinessError("Pedido não encontrado.");
         if (order.status === OrderStatus.PAID) throw new BusinessError("Este pedido já foi pago.");
 
+        // Calculate final amounts based on current toggles/discounts
+        const subtotal = order.orderItems.reduce((acc, item) => {
+          const price = isEmployeeSale 
+            ? (Number(item.product.cost || 0) + Number(item.product.operationalCost || 0))
+            : Number(item.unitPrice);
+          return acc + price * Number(item.quantity);
+        }, 0);
+
+        const totalWithTip = Math.max(0, subtotal + tipAmount - discountAmount);
+
         // 1. Create the Sale
-        // Note: Stock was already deducted in createOrder (RESERVATION).
-        // We link the sale to the order.
         const sale = await trx.sale.create({
           data: {
             companyId,
@@ -176,22 +210,29 @@ export const OrderService = {
             customerId: order.customerId,
             orderId: order.id,
             paymentMethod,
-            totalAmount: order.totalAmount,
+            totalAmount: totalWithTip,
+            discountAmount,
+            discountReason,
+            isEmployeeSale,
             tipAmount,
             date: new Date(),
             status: "ACTIVE",
           },
         });
 
-        // 2. Create SaleItems using historical order prices
+        // 2. Create SaleItems using historical order prices OR cost depending on mode
         for (const item of order.orderItems) {
+          const unitPrice = isEmployeeSale
+            ? (Number(item.product.cost || 0) + Number(item.product.operationalCost || 0))
+            : Number(item.unitPrice);
+
           await trx.saleItem.create({
             data: {
               saleId: sale.id,
               productId: item.productId,
               quantity: item.quantity,
-              unitPrice: item.unitPrice,
-              baseCost: item.product.cost, // Use current cost for the sale record
+              unitPrice: unitPrice,
+              baseCost: item.product.cost, 
             },
           });
           
@@ -216,18 +257,34 @@ export const OrderService = {
       throw new Error("Erro ao processar pagamento do pedido.");
     }
   },
-  async convertItemsToSale(itemIds: string[], companyId: string, userId: string, paymentMethod: any, tipAmount: number = 0) {
+   async convertItemsToSale(
+    itemIds: string[],
+    companyId: string,
+    userId: string,
+    paymentMethod: any,
+    tipAmount: number = 0,
+    discountAmount: number = 0,
+    discountReason?: string,
+    isEmployeeSale: boolean = false
+  ) {
     try {
       return await db.$transaction(async (trx) => {
         // 1. Fetch the items and their orders
         const items = await trx.orderItem.findMany({
           where: { id: { in: itemIds }, order: { companyId } },
-          include: { order: true, product: { select: { cost: true } } },
+          include: { order: true, product: { select: { cost: true, operationalCost: true } } },
         });
 
         if (items.length === 0) throw new BusinessError("Nenhum item encontrado.");
 
-        const totalAmount = items.reduce((sum, item) => sum + Number(item.unitPrice) * Number(item.quantity), 0);
+        const subtotal = items.reduce((acc, item) => {
+          const price = isEmployeeSale 
+            ? (Number(item.product.cost || 0) + Number(item.product.operationalCost || 0))
+            : Number(item.unitPrice);
+          return acc + price * Number(item.quantity);
+        }, 0);
+
+        const totalAmount = Math.max(0, subtotal + tipAmount - discountAmount);
         const originalOrderIds = Array.from(new Set(items.map((i) => i.orderId)));
 
         // 2. Create the Sale
@@ -239,6 +296,9 @@ export const OrderService = {
             paymentMethod,
             totalAmount,
             tipAmount,
+            discountAmount,
+            discountReason,
+            isEmployeeSale,
             date: new Date(),
             status: "ACTIVE",
           },
@@ -246,12 +306,16 @@ export const OrderService = {
 
         // 3. Create SaleItems and link stock movement
         for (const item of items) {
+          const unitPrice = isEmployeeSale
+            ? (Number(item.product.cost || 0) + Number(item.product.operationalCost || 0))
+            : Number(item.unitPrice);
+
           await trx.saleItem.create({
             data: {
               saleId: sale.id,
               productId: item.productId,
               quantity: item.quantity,
-              unitPrice: item.unitPrice,
+              unitPrice: unitPrice,
               baseCost: item.product.cost,
             },
           });

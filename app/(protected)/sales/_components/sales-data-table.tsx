@@ -150,6 +150,9 @@ const SalesSearchHandler = ({
         customerId={selectedSale.customerId}
         paymentMethod={selectedSale.paymentMethod}
         tipAmount={Number(selectedSale.tipAmount)}
+        defaultDiscountAmount={Number(selectedSale.discountAmount || 0)}
+        defaultDiscountReason={selectedSale.discountReason || ""}
+        defaultIsEmployeeSale={selectedSale.isEmployeeSale || false}
         isOpen={isOpen}
         productOptions={selectedSale.productOptions}
         customerOptions={customerOptions}
@@ -163,6 +166,8 @@ const SalesSearchHandler = ({
             quantity: Number(item.quantity),
             name: item.product.name,
             price: Number(item.unitPrice),
+            cost: Number(item.baseCost || 0),
+            operationalCost: Number(item.operationalCost || 0),
             stock: product?.stock ?? 0,
           };
         })}

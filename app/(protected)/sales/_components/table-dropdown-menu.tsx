@@ -40,7 +40,7 @@ import { UserRole } from "@prisma/client";
 interface SalesTableDropdownMenuProps {
   sale: Pick<
     SaleDto,
-    "id" | "saleItems" | "date" | "customerId" | "paymentMethod" | "tipAmount"
+    "id" | "saleItems" | "date" | "customerId" | "paymentMethod" | "tipAmount" | "discountAmount" | "discountReason" | "isEmployeeSale"
   >;
   productOptions: ComboboxOption[];
   customerOptions: ComboboxOption[];
@@ -127,16 +127,19 @@ const SalesTableDropdownMenu = ({
       </AlertDialog>
 
       <UpsertSheetContent
+        isOpen={upsertSheetIsOpen}
         saleId={sale.id}
         saleDate={sale.date}
         customerId={sale.customerId}
         paymentMethod={sale.paymentMethod}
         tipAmount={Number(sale.tipAmount)}
-        isOpen={upsertSheetIsOpen}
+        products={products}
         productOptions={productOptions}
         customerOptions={customerOptions}
-        products={products}
         setSheetIsOpen={setUpsertSheetIsOpen}
+        defaultDiscountAmount={Number(sale.discountAmount || 0)}
+        defaultDiscountReason={sale.discountReason || ""}
+        defaultIsEmployeeSale={sale.isEmployeeSale || false}
         companyId={companyId}
         defaultSelectedProducts={sale.saleItems.map((item) => {
           const product = products.find((p) => p.id === item.productId);
@@ -145,6 +148,8 @@ const SalesTableDropdownMenu = ({
             quantity: Number(item.quantity),
             name: item.product.name,
             price: Number(item.unitPrice),
+            cost: Number(item.baseCost || 0),
+            operationalCost: Number(item.operationalCost || 0),
             stock: product?.stock ?? 0,
           };
         })}
