@@ -67,7 +67,7 @@ export const getActiveComandas = async (): Promise<ComandaDto[]> => {
         customerPhone: order.customer?.phone,
         totalAmount: 0,
         orderCount: 0,
-        hasServiceTax: order.hasServiceTax,
+        hasServiceTax: (order as any).hasServiceTax,
         firstOrderAt: order.createdAt,
         lastOrderAt: order.createdAt,
         items: [],

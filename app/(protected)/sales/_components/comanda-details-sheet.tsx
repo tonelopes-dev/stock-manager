@@ -113,6 +113,11 @@ export const ComandaDetailsSheet = ({
       .reduce((sum, item) => sum + item.price * item.quantity, 0);
   }, [comanda, selectedItemIds]);
 
+  const currentProduct = useMemo(
+    () => products.find((p) => p.id === selectedProductId),
+    [products, selectedProductId],
+  );
+
   // Dynamic service charge: 10% of the relevant amount
   const serviceChargeBase = selectedItemIds.size > 0 ? partialTotal : (comanda?.totalAmount ?? 0);
   const serviceChargeAmount = applyServiceCharge
@@ -225,7 +230,7 @@ export const ComandaDetailsSheet = ({
 
   return (
     <UISheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <UISheetContent className="flex h-full w-full flex-col border-l border-border bg-background p-0 shadow-2xl sm:max-w-md">
+      <UISheetContent className="flex h-full !max-w-full lg:!max-w-5xl flex-col border-none bg-background p-0 shadow-2xl">
         <UISheetHeader className="border-b border-border p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -250,132 +255,46 @@ export const ComandaDetailsSheet = ({
           </div>
         </UISheetHeader>
 
-        {/* Fixed Metrics Section */}
-        <div className="space-y-4 border-b border-border px-6 py-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-2xl border border-border bg-muted/50 p-4">
-              <span className="mb-1 flex items-center gap-1.5 text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
-                <Clock size={12} />
-                Aberta há
-              </span>
-              <p className="text-sm font-bold capitalize text-foreground">
-                {formatDistanceToNow(comanda.firstOrderAt, { locale: ptBR })}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-primary/10 bg-primary/5 p-4 text-right">
-              <span className="mb-1 flex items-center justify-end gap-1.5 text-[10px] font-black uppercase italic tracking-tighter text-primary/60">
-                <CheckCircle2 size={12} />
-                Total Acumulado
-              </span>
-              <p className="text-xl font-black tracking-tighter text-primary">
-                {formatCurrency(comanda.totalAmount + serviceChargeAmount)}
-              </p>
-            </div>
-          </div>
-          <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-            Itens Consumidos
-          </h4>
-        </div>
-
-        {/* Scrollable Items List */}
-        <div className="scrollbar-hide flex-1 overflow-y-auto px-6 py-4">
-          <div className="space-y-2">
-            {comanda.items.map((item, idx) => (
-              <div
-                key={idx}
-                className={cn(
-                  "flex items-center justify-between rounded-xl border p-3 shadow-sm transition-all",
-                  selectedItemIds.has(item.id)
-                    ? "border-primary/30 bg-primary/[0.02]"
-                    : "border-border bg-background hover:border-border",
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <Checkbox
-                    checked={selectedItemIds.has(item.id)}
-                    onCheckedChange={() => toggleItemSelection(item.id)}
-                    className="h-5 w-5 rounded-md border-border"
-                  />
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-[10px] font-black text-muted-foreground">
-                    {item.quantity}x
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-foreground">
-                      {item.name}
-                    </span>
-                    <span className="text-[10px] font-medium text-muted-foreground">
-                      Pedido realizado às {format(item.createdAt, "HH:mm")}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-bold text-foreground">
-                    {formatCurrency(item.price * item.quantity)}
+        <div className="grid flex-1 grid-cols-1 overflow-hidden lg:grid-cols-2">
+          {/* Left Column: Metrics & Controls */}
+          <div className="flex flex-col border-r border-border bg-muted/30">
+            <div className="flex-1 space-y-6 overflow-y-auto p-6 scrollbar-hide">
+              {/* Metrics Section */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-2xl border border-border bg-background p-4 shadow-sm">
+                  <span className="mb-1 flex items-center gap-1.5 text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
+                    <Clock size={12} />
+                    Aberta há
                   </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteItem(item.id)}
-                    disabled={isPending}
-                    className="h-8 w-8 rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                  >
-                    <Trash2 size={14} />
-                  </Button>
+                  <p className="text-sm font-bold capitalize text-foreground">
+                    {formatDistanceToNow(comanda.firstOrderAt, { locale: ptBR })}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-primary/10 bg-primary/5 p-4 text-right shadow-sm">
+                  <span className="mb-1 flex items-center justify-end gap-1.5 text-[10px] font-black uppercase italic tracking-tighter text-primary/60">
+                    <CheckCircle2 size={12} />
+                    Total Acumulado
+                  </span>
+                  <p className="text-xl font-black tracking-tighter text-primary">
+                    {formatCurrency(comanda.totalAmount + serviceChargeAmount)}
+                  </p>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Fixed Footer Actions Section */}
-        <div className="border-t border-border bg-muted/30 p-6">
-          <div className="space-y-6">
-            {/* Add Items Section */}
-            <div className="space-y-4">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                + Adicionar Itens
-              </h4>
-              <div className="flex flex-col gap-3">
-                <Combobox
-                  options={productOptions}
-                  value={selectedProductId}
-                  onChange={setSelectedProductId}
-                  placeholder="Buscar produto..."
-                />
-                <div className="flex items-center gap-3">
-                  <QuantityStepper
-                    value={selectedQuantity}
-                    onChange={setSelectedQuantity}
-                    min={1}
-                    className="h-10 w-32"
-                  />
-                  <Button
-                    onClick={handleAddItem}
-                    disabled={!selectedProductId || isPending}
-                    className="h-10 flex-1 rounded-xl bg-foreground text-xs font-bold uppercase italic transition-all active:scale-95"
-                  >
-                    {isPending ? (
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                    ) : (
-                      "Adicionar"
-                    )}
-                  </Button>
+              {/* Partial selection info */}
+              {isPartial && (
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50/30 p-4 text-center animate-in fade-in slide-in-from-top-2">
+                  <p className="text-[10px] font-bold text-emerald-600">
+                    {selectedItemIds.size} item(s) selecionado(s) para pagamento
+                    parcial.
+                  </p>
                 </div>
-              </div>
+              )}
             </div>
 
-            {/* Partial selection info */}
-            {isPartial && (
-              <div className="rounded-xl border border-emerald-100 bg-emerald-50/30 p-4 text-center">
-                <p className="text-[10px] font-bold text-emerald-600">
-                  {selectedItemIds.size} item(s) selecionado(s) para pagamento
-                  parcial.
-                </p>
-              </div>
-            )}
-
-            <div className="w-full space-y-4">
-              <div className="flex flex-col gap-4">
+            {/* Bottom Actions Area */}
+            <div className="border-t border-border bg-background p-6 shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
+              <div className="w-full space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
@@ -388,14 +307,21 @@ export const ComandaDetailsSheet = ({
                           onCheckedChange={setApplyServiceCharge}
                           id="comanda-service-charge"
                         />
-                        <Label htmlFor="comanda-service-charge" className="text-xs font-bold leading-none">
+                        <Label
+                          htmlFor="comanda-service-charge"
+                          className="text-xs font-bold leading-none"
+                        >
                           {applyServiceCharge ? "Ativada" : "Desativada"}
                         </Label>
                       </div>
-                      <span className={cn(
-                        "text-sm font-black transition-colors",
-                        applyServiceCharge ? "text-primary" : "text-muted-foreground/50"
-                      )}>
+                      <span
+                        className={cn(
+                          "text-sm font-black transition-colors",
+                          applyServiceCharge
+                            ? "text-primary"
+                            : "text-muted-foreground/50",
+                        )}
+                      >
                         {formatCurrency(serviceChargeAmount)}
                       </span>
                     </div>
@@ -434,30 +360,125 @@ export const ComandaDetailsSheet = ({
                     </Select>
                   </div>
                 </div>
-              </div>
 
-              <Button
-                className={cn(
-                  "h-14 w-full rounded-2xl text-lg font-black uppercase italic tracking-wider ring-offset-2 transition-all active:scale-95 disabled:opacity-50",
-                  isPartial
-                    ? "bg-primary text-background shadow-lg shadow-primary/20 hover:bg-primary/90"
-                    : "bg-emerald-600 text-background shadow-lg shadow-emerald-100 hover:bg-emerald-700",
-                )}
-                disabled={isPending}
-                onClick={handlePay}
-              >
-                {isPending ? (
-                  <div className="h-6 w-6 animate-spin rounded-full border-4 border-white/30 border-t-white" />
-                ) : (
-                  <>
-                    {isPartial ? "Pagar Selecionados" : "Finalizar Comanda"} •{" "}
-                    {formatCurrency(
-                      (isPartial ? partialTotal : comanda.totalAmount) +
-                        serviceChargeAmount,
+                <Button
+                  className={cn(
+                    "h-14 w-full rounded-2xl text-lg font-black uppercase italic tracking-wider ring-offset-2 transition-all active:scale-95 disabled:opacity-50",
+                    isPartial
+                      ? "bg-primary text-background shadow-lg shadow-primary/20 hover:bg-primary/90"
+                      : "bg-emerald-600 text-background shadow-lg shadow-emerald-100 hover:bg-emerald-700",
+                  )}
+                  disabled={isPending}
+                  onClick={handlePay}
+                >
+                  {isPending ? (
+                    <div className="h-6 w-6 animate-spin rounded-full border-4 border-white/30 border-t-white" />
+                  ) : (
+                    <>
+                      {isPartial ? "Pagar Selecionados" : "Finalizar Comanda"} •{" "}
+                      {formatCurrency(
+                        (isPartial ? partialTotal : comanda.totalAmount) +
+                          serviceChargeAmount,
+                      )}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: consumed items list */}
+          <div className="flex flex-col bg-background p-6">
+            <h4 className="mb-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              Itens Consumidos
+            </h4>
+            <div className="scrollbar-hide flex-1 overflow-y-auto pr-2 space-y-8">
+              {/* Add Items Section (Moved here) */}
+              <div className="space-y-4 rounded-xl border border-border bg-muted/20 p-4 shadow-sm">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                  + Adicionar Itens
+                </h4>
+                <div className="flex flex-col gap-3">
+                  <Combobox
+                    options={productOptions}
+                    value={selectedProductId}
+                    onChange={setSelectedProductId}
+                    placeholder="Buscar produto..."
+                  />
+                  <div className="flex items-center gap-3">
+                    <div className="flex flex-col gap-2">
+                       <QuantityStepper
+                         value={selectedQuantity}
+                         onChange={setSelectedQuantity}
+                         min={1}
+                         className="h-10 w-32"
+                       />
+                       {currentProduct && (
+                         <p className="text-[10px] font-bold text-muted-foreground animate-in fade-in slide-in-from-top-1">
+                           Estoque: <span className="text-foreground">{Number(currentProduct.stock)} unid.</span>
+                         </p>
+                       )}
+                    </div>
+                     <Button
+                       onClick={handleAddItem}
+                       disabled={!selectedProductId || isPending}
+                       className="h-10 flex-1 rounded-xl bg-foreground text-xs font-bold uppercase italic transition-all active:scale-95"
+                     >
+                       {isPending ? (
+                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                       ) : (
+                         "Adicionar"
+                       )}
+                     </Button>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {comanda.items.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className={cn(
+                      "flex items-center justify-between rounded-xl border p-3 shadow-sm transition-all",
+                      selectedItemIds.has(item.id)
+                        ? "border-primary/30 bg-primary/[0.02]"
+                        : "border-border bg-background hover:border-border",
                     )}
-                  </>
-                )}
-              </Button>
+                  >
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        checked={selectedItemIds.has(item.id)}
+                        onCheckedChange={() => toggleItemSelection(item.id)}
+                        className="h-5 w-5 rounded-md border-border"
+                      />
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-[10px] font-black text-muted-foreground">
+                        {item.quantity}x
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-foreground">
+                          {item.name}
+                        </span>
+                        <span className="text-[10px] font-medium text-muted-foreground">
+                          Pedido realizado às {format(item.createdAt, "HH:mm")}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm font-bold text-foreground">
+                        {formatCurrency(item.price * item.quantity)}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteItem(item.id)}
+                        disabled={isPending}
+                        className="h-8 w-8 rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

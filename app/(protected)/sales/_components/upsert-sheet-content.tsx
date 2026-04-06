@@ -304,7 +304,7 @@ const UpsertSheetContent = ({
     });
   };
   return (
-    <SheetContent className="flex h-full !max-w-[700px] flex-col border-none p-0">
+    <SheetContent className="flex h-full !max-w-full lg:!max-w-5xl flex-col border-none p-0">
       <div className="flex h-full flex-col">
         {/* Header Section */}
         <div className="sticky top-0 z-10 border-b border-border bg-background p-6">
@@ -323,173 +323,222 @@ const UpsertSheetContent = ({
           </SheetHeader>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 space-y-8 overflow-y-auto bg-muted/30 p-6">
-          {/* Sale Metadata Section */}
-          <div className="grid grid-cols-2 gap-4 rounded-2xl border border-border bg-background p-6 shadow-sm">
-            <div className="space-y-1">
-              <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-muted-foreground">
-                <CalendarIcon size={12} />
-                Data da Venda
-              </Label>
-              <DatePicker
-                value={date ? parseISO(date) : undefined}
-                onChange={(newDate) =>
-                  setDate(newDate ? format(newDate, "yyyy-MM-dd") : "")
-                }
-                className="h-10 w-full border-border text-xs font-bold"
-              />
-            </div>
-
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-muted-foreground">
-                  <UsersIcon size={12} className="text-secondary" />
-                  Cliente
-                </Label>
-                <Combobox
-                  options={customerOptions}
-                  value={customerId || ""}
-                  onChange={(val) => setCustomerId(val || undefined)}
-                  placeholder="Selecione o Cliente..."
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  type="button"
-                  onClick={() => setCustomerId(undefined)}
-                  className={cn(
-                    "h-8 px-3 text-[10px] font-black uppercase tracking-widest transition-all",
-                    !customerId
-                      ? "border-emerald-500 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-                      : "text-muted-foreground hover:bg-muted",
-                  )}
-                >
-                  {!customerId ? (
-                    <span className="flex items-center gap-1.5">
-                      <CheckIcon size={12} /> Venda Avulsa Ativada
-                    </span>
-                  ) : (
-                    "Ativar Venda Avulsa"
-                  )}
-                </Button>
-
-                {customerId && (
-                   <p className="text-[9px] font-bold uppercase text-muted-foreground italic">
-                      Cliente selecionado
-                   </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Product Composition Area */}
-          <div className="space-y-6 rounded-2xl border border-border bg-background p-6 shadow-sm">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <div className="space-y-0.5">
-                <h4 className="text-sm font-bold text-foreground">
-                  Compor Carrinho
-                </h4>
-                <p className="text-[10px] font-medium uppercase text-muted-foreground">
-                  Adicione produtos e quantidades
-                </p>
-              </div>
-            </div>
-
-            <Form {...form}>
-              <form
-                className="space-y-6"
-                onSubmit={form.handleSubmit(onSubmit)}
-              >
-                <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-12">
-                  <FormField
-                    control={form.control}
-                    name="productId"
-                    render={({ field }) => (
-                      <FormItem className="md:col-span-7">
-                        <FormLabel className="text-[10px] font-black uppercase text-muted-foreground">
-                          Produto
-                        </FormLabel>
-                        <FormControl>
-                          <Combobox
-                            placeholder="Buscar produto..."
-                            options={productOptions}
-                            data-testid="product-search-combobox"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage className="text-[10px]" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="quantity"
-                    render={({ field }) => (
-                      <FormItem className="md:col-span-5">
-                        <FormLabel className="text-[10px] font-black uppercase text-muted-foreground">
-                          Quantidade
-                        </FormLabel>
-                        <FormControl>
-                          <QuantityStepper
-                            value={field.value}
-                            onChange={field.onChange}
-                            className="h-10 justify-start"
-                          />
-                        </FormControl>
-                        {currentProduct && (
-                          <p className="mt-1.5 text-[10px] font-bold text-muted-foreground">
-                            Estoque:{" "}
-                            <span className="text-foreground">
-                              {Number(currentProduct.stock)} unid.
-                            </span>
-                          </p>
-                        )}
-                        <FormMessage className="text-[10px]" />
-                      </FormItem>
-                    )}
+        <div className="grid flex-1 grid-cols-1 overflow-hidden lg:grid-cols-2">
+          {/* Left Column: Form Controls & Resumo */}
+          <div className="flex flex-col border-r border-border bg-muted/30">
+            <div className="flex-1 space-y-8 overflow-y-auto p-6 scrollbar-hide">
+              {/* Sale Metadata Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-2xl border border-border bg-background p-6 shadow-sm">
+                <div className="space-y-1">
+                  <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-muted-foreground">
+                    <CalendarIcon size={12} />
+                    Data da Venda
+                  </Label>
+                  <DatePicker
+                    value={date ? parseISO(date) : undefined}
+                    onChange={(newDate) =>
+                      setDate(newDate ? format(newDate, "yyyy-MM-dd") : "")
+                    }
+                    className="h-10 w-full border-border text-xs font-bold"
                   />
                 </div>
 
-                {currentProduct && (
-                  <div className="flex flex-col justify-between gap-4 rounded-xl border border-border bg-muted p-4 transition-all animate-in fade-in slide-in-from-top-2 md:flex-row md:items-center">
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground">
-                        Resumo Parcial
-                      </p>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-lg font-black text-foreground">
-                          {formatCurrency(
-                            Number(currentProduct.price) * selectedQuantity,
-                          )}
-                        </span>
-                        <span className="text-[10px] font-bold text-muted-foreground">
-                          ({selectedQuantity}x{" "}
-                          {formatCurrency(Number(currentProduct.price))})
-                        </span>
-                      </div>
-                    </div>
-                    <Button
-                      type="submit"
-                      className="h-10 gap-2 font-bold"
-                      variant="default"
-                    >
-                      <PlusIcon size={18} />
-                      Adicionar à Lista
-                    </Button>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase text-muted-foreground">
+                      <UsersIcon size={12} className="text-secondary" />
+                      Cliente
+                    </Label>
+                    <Combobox
+                      options={customerOptions}
+                      value={customerId || ""}
+                      onChange={(val) => setCustomerId(val || undefined)}
+                      placeholder="Selecione o Cliente..."
+                    />
                   </div>
+
+                  <div className="flex items-center justify-between">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      type="button"
+                      onClick={() => setCustomerId(undefined)}
+                      className={cn(
+                        "h-8 px-3 text-[10px] font-black uppercase tracking-widest transition-all",
+                        !customerId
+                          ? "border-emerald-500 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                          : "text-muted-foreground hover:bg-muted",
+                      )}
+                    >
+                      {!customerId ? (
+                        <span className="flex items-center gap-1.5">
+                          <CheckIcon size={12} /> Venda Avulsa Ativada
+                        </span>
+                      ) : (
+                        "Ativar Venda Avulsa"
+                      )}
+                    </Button>
+
+                    {customerId && (
+                       <p className="text-[9px] font-bold uppercase text-muted-foreground italic">
+                          Cliente selecionado
+                       </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Column Action Area */}
+            <div className="border-t border-border bg-background p-6 shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
+              <div className="mb-6 flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
+                    Resumo Financeiro
+                  </p>
+                  <p className="text-xs font-bold uppercase tracking-tighter text-foreground">
+                    {totals.itenCount} itens no total
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
+                    Total Geral
+                  </p>
+                  <h2 className="text-3xl font-black leading-none tracking-tighter text-primary">
+                    {formatCurrency(totals.totalWithTip)}
+                  </h2>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <Label className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
+                    Taxa de Serviço (10%)
+                  </Label>
+                  <div className="flex h-12 items-center justify-between rounded-xl border border-border bg-muted/50 px-4">
+                     <div className="flex items-center gap-3">
+                        <Switch 
+                          checked={applyServiceCharge}
+                          onCheckedChange={setApplyServiceCharge}
+                          id="service-charge"
+                        />
+                        <Label htmlFor="service-charge" className="text-xs font-bold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                           {applyServiceCharge ? "Ativada" : "Desativada"}
+                        </Label>
+                     </div>
+                     <span className={cn(
+                        "text-sm font-black transition-colors",
+                        applyServiceCharge ? "text-primary" : "text-muted-foreground/50"
+                     )}>
+                        {formatCurrency(totals.serviceChargeAmount)}
+                     </span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
+                    Forma de Pagamento
+                  </Label>
+                  <Select
+                    value={paymentMethod}
+                    onValueChange={(val) => setPaymentMethod(val as PaymentMethod)}
+                  >
+                    <SelectTrigger 
+                      className="h-12 border-border font-bold focus:ring-primary/20"
+                      aria-label="Forma de Pagamento"
+                      data-testid="payment-method-select"
+                    >
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent className="border-border">
+                      <SelectItem value="CASH" className="font-bold text-foreground">
+                        <div className="flex items-center gap-2">
+                          <BanknoteIcon size={16} className="text-emerald-500" />
+                          Dinheiro
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="PIX" className="font-bold text-foreground">
+                        <div className="flex items-center gap-2">
+                          <SmartphoneIcon size={16} className="text-cyan-500" />
+                          PIX
+                        </div>
+                      </SelectItem>
+                      <SelectItem
+                        value="CREDIT_CARD"
+                        className="font-bold text-foreground"
+                      >
+                        <div className="flex items-center gap-2">
+                          <CreditCardIcon size={16} className="text-primary" />
+                          Crédito
+                        </div>
+                      </SelectItem>
+                      <SelectItem
+                        value="DEBIT_CARD"
+                        className="font-bold text-foreground"
+                      >
+                        <div className="flex items-center gap-2">
+                          <WalletIcon size={16} className="text-primary" />
+                          Débito
+                        </div>
+                      </SelectItem>
+                      <SelectItem
+                        value="OTHER"
+                        className="font-bold text-foreground"
+                      >
+                        <div className="flex items-center gap-2">
+                          <WalletIcon size={16} className="text-muted-foreground" />
+                          Outro
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-col gap-3">
+                {paymentMethod && (
+                  <Button
+                    className="h-12 w-full gap-2 bg-emerald-600 text-sm font-black uppercase tracking-widest text-background shadow-lg shadow-emerald-100 transition-all hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-50"
+                    data-testid="finalize-sale-button"
+                    disabled={selectedProducts.length === 0 || isPending}
+                    onClick={handleFinalizeSale}
+                  >
+                    {isUpsertPending ? (
+                      <span className="animate-pulse">Finalizando...</span>
+                    ) : (
+                      <>
+                        <CheckIcon size={18} />
+                        Finalizar Venda
+                      </>
+                    )}
+                  </Button>
                 )}
-              </form>
-            </Form>
+
+                <Button
+                  variant={paymentMethod ? "outline" : "default"}
+                  className={cn(
+                    "h-12 w-full gap-2 text-sm font-black uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-50",
+                    !paymentMethod && "shadow-lg shadow-primary/20",
+                  )}
+                  data-testid="open-order-button"
+                  disabled={selectedProducts.length === 0 || isPending}
+                  onClick={handleOpenOrder}
+                >
+                  {isOrderPending ? (
+                    <span className="animate-pulse">Salvando...</span>
+                  ) : (
+                    <>
+                      <PlusIcon size={18} />
+                      {saleId ? "Salvar Alterações" : "Abrir Comanda"}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
           </div>
 
-          {/* Added Products Table */}
-          <div className="space-y-4 pb-32">
-            <div className="flex items-center justify-between">
+          {/* Right Column: Added Products Table */}
+          <div className="flex flex-col bg-background p-6">
+            <div className="mb-6 flex items-center justify-between">
               <h4 className="text-sm font-bold uppercase italic tracking-tighter text-foreground">
                 Itens da Venda
               </h4>
@@ -498,217 +547,174 @@ const UpsertSheetContent = ({
               </p>
             </div>
 
-            {selectedProducts.length === 0 ? (
-              <div className="flex h-32 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-background/50 text-muted-foreground">
-                <ShoppingCartIcon size={24} className="mb-2 opacity-20" />
-                <p className="text-xs font-bold uppercase tracking-widest opacity-50">
-                  Carrinho Vazio
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
-                <Table>
-                  <TableHeader className="bg-muted/50">
-                    <TableRow className="border-border hover:bg-transparent">
-                      <TableHead className="h-10 text-[10px] font-black uppercase text-muted-foreground">
-                        Produto
-                      </TableHead>
-                      <TableHead className="h-10 text-[10px] font-black uppercase text-muted-foreground">
-                        Qtd
-                      </TableHead>
-                      <TableHead className="h-10 text-right text-[10px] font-black uppercase text-muted-foreground">
-                        Unitário
-                      </TableHead>
-                      <TableHead className="h-10 text-right text-[10px] font-black uppercase text-muted-foreground">
-                        Total
-                      </TableHead>
-                      <TableHead className="h-10 w-10 text-center text-[10px] font-black uppercase text-muted-foreground"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {selectedProducts.map((p) => (
-                      <TableRow key={p.id} className="group border-border">
-                        <TableCell className="py-4">
-                          <p className="text-sm font-bold text-foreground">
-                            {p.name}
-                          </p>
-                        </TableCell>
-                        <TableCell className="py-4">
-                          <QuantityStepper
-                            value={p.quantity}
-                            onChange={(val) => updateQuantity(p.id, val)}
-                            max={p.stock}
-                            className="h-8"
-                          />
-                        </TableCell>
-                        <TableCell className="py-4 text-right font-medium text-muted-foreground">
-                          {formatCurrency(p.price)}
-                        </TableCell>
-                        <TableCell className="py-4 text-right font-black text-foreground">
-                          {formatCurrency(p.price * p.quantity)}
-                        </TableCell>
-                        <TableCell className="py-4 text-center">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onDelete(p.id)}
-                            className="h-8 w-8 rounded-lg text-rose-500 opacity-0 transition-opacity hover:bg-rose-50 hover:text-rose-600 group-hover:opacity-100"
-                          >
-                            <TrashIcon size={16} />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Sticky Summary Footer */}
-        <div className="sticky bottom-0 z-10 border-t border-border bg-background p-6 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] transition-all">
-          <div className="mb-6 flex items-center justify-between">
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
-                Resumo Financeiro
-              </p>
-              <p className="text-xs font-bold uppercase tracking-tighter text-foreground">
-                {totals.itenCount} itens no total
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
-                Total Geral
-              </p>
-              <h2 className="text-3xl font-black leading-none tracking-tighter text-primary">
-                {formatCurrency(totals.totalWithTip)}
-              </h2>
-            </div>
-          </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
-                  Taxa de Serviço (10%)
-                </Label>
-                <div className="flex h-12 items-center justify-between rounded-xl border border-border bg-muted/50 px-4">
-                   <div className="flex items-center gap-3">
-                      <Switch 
-                        checked={applyServiceCharge}
-                        onCheckedChange={setApplyServiceCharge}
-                        id="service-charge"
-                      />
-                      <Label htmlFor="service-charge" className="text-xs font-bold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                         {applyServiceCharge ? "Ativada" : "Desativada"}
-                      </Label>
-                   </div>
-                   <span className={cn(
-                      "text-sm font-black transition-colors",
-                      applyServiceCharge ? "text-primary" : "text-muted-foreground/50"
-                   )}>
-                      {formatCurrency(totals.serviceChargeAmount)}
-                   </span>
+            <div className="flex-1 overflow-y-auto pr-2 scrollbar-hide space-y-6">
+              {/* Product Composition Area (Moved here) */}
+              <div className="space-y-6 rounded-2xl border border-border bg-muted/20 p-6 shadow-sm">
+                <div className="flex items-center justify-between border-b border-border pb-4">
+                  <div className="space-y-0.5">
+                    <h4 className="text-sm font-bold text-foreground">
+                      Compor Carrinho
+                    </h4>
+                    <p className="text-[10px] font-medium uppercase text-muted-foreground">
+                      Adicione produtos e quantidades
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
-                  Forma de Pagamento
-                </Label>
-                <Select
-                  value={paymentMethod}
-                  onValueChange={(val) => setPaymentMethod(val as PaymentMethod)}
-                >
-                  <SelectTrigger 
-                    className="h-12 border-border font-bold focus:ring-primary/20"
-                    aria-label="Forma de Pagamento"
-                    data-testid="payment-method-select"
+
+                <Form {...form}>
+                  <form
+                    className="space-y-6"
+                    onSubmit={form.handleSubmit(onSubmit)}
                   >
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent className="border-border">
-                    <SelectItem value="CASH" className="font-bold text-foreground">
-                      <div className="flex items-center gap-2">
-                        <BanknoteIcon size={16} className="text-emerald-500" />
-                        Dinheiro
+                    <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-12">
+                      <FormField
+                        control={form.control}
+                        name="productId"
+                        render={({ field }) => (
+                          <FormItem className="md:col-span-7">
+                            <FormLabel className="text-[10px] font-black uppercase text-muted-foreground">
+                              Produto
+                            </FormLabel>
+                            <FormControl>
+                              <Combobox
+                                placeholder="Buscar produto..."
+                                options={productOptions}
+                                data-testid="product-search-combobox"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage className="text-[10px]" />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="quantity"
+                        render={({ field }) => (
+                          <FormItem className="md:col-span-5">
+                            <FormLabel className="text-[10px] font-black uppercase text-muted-foreground">
+                              Quantidade
+                            </FormLabel>
+                            <FormControl>
+                              <QuantityStepper
+                                value={field.value}
+                                onChange={field.onChange}
+                                className="h-10 justify-start"
+                              />
+                            </FormControl>
+                            {currentProduct && (
+                              <p className="mt-1.5 text-[10px] font-bold text-muted-foreground">
+                                Estoque:{" "}
+                                <span className="text-foreground">
+                                  {Number(currentProduct.stock)} unid.
+                                </span>
+                              </p>
+                            )}
+                            <FormMessage className="text-[10px]" />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {currentProduct && (
+                      <div className="flex flex-col justify-between gap-4 rounded-xl border border-border bg-muted p-4 animate-in fade-in slide-in-from-top-2 md:flex-row md:items-center">
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground">
+                            Resumo Parcial
+                          </p>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-lg font-black text-foreground">
+                              {formatCurrency(
+                                Number(currentProduct.price) * selectedQuantity,
+                              )}
+                            </span>
+                            <span className="text-[10px] font-bold text-muted-foreground">
+                              ({selectedQuantity}x{" "}
+                              {formatCurrency(Number(currentProduct.price))})
+                            </span>
+                          </div>
+                        </div>
+                        <Button
+                          type="submit"
+                          className="h-10 gap-2 font-bold"
+                          variant="default"
+                        >
+                          <PlusIcon size={18} />
+                          Adicionar à Lista
+                        </Button>
                       </div>
-                    </SelectItem>
-                    <SelectItem value="PIX" className="font-bold text-foreground">
-                      <div className="flex items-center gap-2">
-                        <SmartphoneIcon size={16} className="text-cyan-500" />
-                        PIX
-                      </div>
-                    </SelectItem>
-                    <SelectItem
-                      value="CREDIT_CARD"
-                      className="font-bold text-foreground"
-                    >
-                      <div className="flex items-center gap-2">
-                        <CreditCardIcon size={16} className="text-primary" />
-                        Crédito
-                      </div>
-                    </SelectItem>
-                    <SelectItem
-                      value="DEBIT_CARD"
-                      className="font-bold text-foreground"
-                    >
-                      <div className="flex items-center gap-2">
-                        <WalletIcon size={16} className="text-primary" />
-                        Débito
-                      </div>
-                    </SelectItem>
-                    <SelectItem
-                      value="OTHER"
-                      className="font-bold text-foreground"
-                    >
-                      <div className="flex items-center gap-2">
-                        <WalletIcon size={16} className="text-muted-foreground" />
-                        Outro
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                    )}
+                  </form>
+                </Form>
               </div>
-            </div>
 
-          <div className="mt-6 flex flex-col gap-3">
-            {paymentMethod && (
-              <Button
-                className="h-12 w-full gap-2 bg-emerald-600 text-sm font-black uppercase tracking-widest text-background shadow-lg shadow-emerald-100 transition-all hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-50"
-                data-testid="finalize-sale-button"
-                disabled={selectedProducts.length === 0 || isPending}
-                onClick={handleFinalizeSale}
-              >
-                {isUpsertPending ? (
-                  <span className="animate-pulse">Finalizando...</span>
-                ) : (
-                  <>
-                    <CheckIcon size={18} />
-                    Finalizar Venda
-                  </>
-                )}
-              </Button>
-            )}
-
-            <Button
-              variant={paymentMethod ? "outline" : "default"}
-              className={cn(
-                "h-12 w-full gap-2 text-sm font-black uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-50",
-                !paymentMethod && "shadow-lg shadow-primary/20",
-              )}
-              data-testid="open-order-button"
-              disabled={selectedProducts.length === 0 || isPending}
-              onClick={handleOpenOrder}
-            >
-              {isOrderPending ? (
-                <span className="animate-pulse">Salvando...</span>
+              {selectedProducts.length === 0 ? (
+                <div className="flex h-64 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-muted/10 text-muted-foreground">
+                  <ShoppingCartIcon size={32} className="mb-3 opacity-20" />
+                  <p className="text-sm font-bold uppercase tracking-widest opacity-50">
+                    Carrinho Vazio
+                  </p>
+                </div>
               ) : (
-                <>
-                  <PlusIcon size={18} />
-                  {saleId ? "Salvar Alterações" : "Abrir Comanda"}
-                </>
+                <div className="rounded-2xl border border-border bg-background shadow-sm">
+                  <Table>
+                    <TableHeader className="bg-muted/50">
+                      <TableRow className="border-border hover:bg-transparent">
+                        <TableHead className="h-10 text-[10px] font-black uppercase text-muted-foreground">
+                          Produto
+                        </TableHead>
+                        <TableHead className="h-10 text-[10px] font-black uppercase text-muted-foreground">
+                          Qtd
+                        </TableHead>
+                        <TableHead className="h-10 text-right text-[10px] font-black uppercase text-muted-foreground">
+                          Unitário
+                        </TableHead>
+                        <TableHead className="h-10 text-right text-[10px] font-black uppercase text-muted-foreground">
+                          Total
+                        </TableHead>
+                        <TableHead className="h-10 w-10 text-center text-[10px] font-black uppercase text-muted-foreground"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedProducts.map((p) => (
+                        <TableRow key={p.id} className="group border-border">
+                          <TableCell className="py-4">
+                            <p className="text-sm font-bold text-foreground">
+                              {p.name}
+                            </p>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <QuantityStepper
+                              value={p.quantity}
+                              onChange={(val) => updateQuantity(p.id, val)}
+                              max={p.stock}
+                              className="h-8"
+                            />
+                          </TableCell>
+                          <TableCell className="py-4 text-right font-medium text-muted-foreground">
+                            {formatCurrency(p.price)}
+                          </TableCell>
+                          <TableCell className="py-4 text-right font-black text-foreground">
+                            {formatCurrency(p.price * p.quantity)}
+                          </TableCell>
+                          <TableCell className="py-4 text-center">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => onDelete(p.id)}
+                              className="h-8 w-8 rounded-lg text-rose-500 opacity-0 transition-opacity hover:bg-rose-50 hover:text-rose-600 group-hover:opacity-100"
+                            >
+                              <TrashIcon size={16} />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
-            </Button>
+            </div>
           </div>
         </div>
       </div>
