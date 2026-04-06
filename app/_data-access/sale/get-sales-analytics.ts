@@ -183,7 +183,7 @@ async function fetchSalesMetrics(companyId: string, start: Date, end: Date) {
     const totals = await db.$queryRaw<{ revenue: number; cost: number; tips: number; salesCount: number }[]>`
         SELECT 
             COALESCE(SUM("unitPrice" * "quantity"), 0)::float as revenue,
-            COALESCE(SUM("baseCost" * "quantity"), 0)::float as cost,
+            COALESCE(SUM(("baseCost" + "operationalCost") * "quantity"), 0)::float as cost,
             (SELECT COALESCE(SUM("tipAmount"), 0)::float FROM "Sale" WHERE "companyId" = ${companyId} AND "status" = 'ACTIVE' AND "date" >= ${start} AND "date" < ${end}) as tips,
             COUNT(DISTINCT "saleId")::int as "salesCount"
         FROM "SaleProduct"

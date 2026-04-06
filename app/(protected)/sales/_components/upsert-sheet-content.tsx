@@ -128,7 +128,7 @@ const UpsertSheetContent = ({
   );
   const [applyServiceCharge, setApplyServiceCharge] = useState<boolean>(true);
 
-  const { execute: executeUpsertSale, isPending: isUpsertPending } = useAction(
+  const { execute: executeUpsertSale, isPending: isUpsertPending, reset: resetUpsertSale } = useAction(
     upsertSale,
     {
       onError: ({ error: { validationErrors, serverError } }) => {
@@ -142,7 +142,7 @@ const UpsertSheetContent = ({
     },
   );
 
-  const { execute: executeCreateOrder, isPending: isOrderPending } = useAction(
+  const { execute: executeCreateOrder, isPending: isOrderPending, reset: resetCreateOrder } = useAction(
     createOrderAction,
     {
       onError: ({ error: { serverError } }) => {
@@ -189,6 +189,8 @@ const UpsertSheetContent = ({
       setCustomerId(undefined);
       setPaymentMethod(undefined);
       setApplyServiceCharge(true);
+      resetUpsertSale();
+      resetCreateOrder();
     }
   }, [
     form,
@@ -259,42 +261,47 @@ const UpsertSheetContent = ({
     return { subtotal, itenCount, serviceChargeAmount, totalWithTip };
   }, [selectedProducts, applyServiceCharge]);
 
-  const onSubmitSale = () => {
+  const handleOpenOrder = () => {
+    if (selectedProducts.length === 0) return;
+
+    if (!customerId) {
+      toast.error(
+        "Para abrir uma comanda (sem pagamento imediato), você deve selecionar um cliente.",
+      );
+      return;
+    }
+
+    executeCreateOrder({
+      companyId,
+      customerId,
+      items: selectedProducts.map((p) => ({
+        productId: p.id,
+        quantity: p.quantity,
+      })),
+      notes: "Criado via Painel de Gestão",
+      hasServiceTax: applyServiceCharge,
+    });
+  };
+
+  const handleFinalizeSale = () => {
     if (selectedProducts.length === 0) return;
 
     if (!paymentMethod) {
-      // Automatic Comanda Flow
-      if (!customerId) {
-        toast.error(
-          "Para abrir uma comanda (sem pagamento imediato), você deve selecionar um cliente.",
-        );
-        return;
-      }
-
-      executeCreateOrder({
-        companyId,
-        customerId,
-        items: selectedProducts.map((p) => ({
-          productId: p.id,
-          quantity: p.quantity,
-        })),
-        notes: "Criado via Painel de Gestão",
-        hasServiceTax: applyServiceCharge,
-      });
-    } else {
-      // Regular Sale Flow
-      executeUpsertSale({
-        id: saleId,
-        date: date ? new Date(date + "T12:00:00") : undefined,
-        customerId,
-        paymentMethod,
-        tipAmount: totals.serviceChargeAmount,
-        products: selectedProducts.map((p) => ({
-          id: p.id,
-          quantity: p.quantity,
-        })),
-      });
+      toast.error("Selecione uma forma de pagamento para finalizar a venda.");
+      return;
     }
+
+    executeUpsertSale({
+      id: saleId,
+      date: date ? new Date(date + "T12:00:00") : undefined,
+      customerId,
+      paymentMethod,
+      tipAmount: totals.serviceChargeAmount,
+      products: selectedProducts.map((p) => ({
+        id: p.id,
+        quantity: p.quantity,
+      })),
+    });
   };
   return (
     <SheetContent className="flex h-full !max-w-[700px] flex-col border-none p-0">
@@ -664,25 +671,45 @@ const UpsertSheetContent = ({
               </div>
             </div>
 
-          <Button
-            className="mt-6 h-12 w-full gap-2 text-sm font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
-            data-testid="finalize-sale-button"
-            disabled={selectedProducts.length === 0 || isPending}
-            onClick={onSubmitSale}
-          >
-            {isPending ? (
-              <span className="animate-pulse">Processando...</span>
-            ) : (
-              <>
-                <CheckIcon size={18} />
-                {!paymentMethod
-                  ? "Abrir Comanda"
-                  : saleId
-                    ? "Salvar Alterações"
-                    : "Finalizar Venda"}
-              </>
+          <div className="mt-6 flex flex-col gap-3">
+            {paymentMethod && (
+              <Button
+                className="h-12 w-full gap-2 bg-emerald-600 text-sm font-black uppercase tracking-widest text-background shadow-lg shadow-emerald-100 transition-all hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-50"
+                data-testid="finalize-sale-button"
+                disabled={selectedProducts.length === 0 || isPending}
+                onClick={handleFinalizeSale}
+              >
+                {isUpsertPending ? (
+                  <span className="animate-pulse">Finalizando...</span>
+                ) : (
+                  <>
+                    <CheckIcon size={18} />
+                    Finalizar Venda
+                  </>
+                )}
+              </Button>
             )}
-          </Button>
+
+            <Button
+              variant={paymentMethod ? "outline" : "default"}
+              className={cn(
+                "h-12 w-full gap-2 text-sm font-black uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-50",
+                !paymentMethod && "shadow-lg shadow-primary/20",
+              )}
+              data-testid="open-order-button"
+              disabled={selectedProducts.length === 0 || isPending}
+              onClick={handleOpenOrder}
+            >
+              {isOrderPending ? (
+                <span className="animate-pulse">Salvando...</span>
+              ) : (
+                <>
+                  <PlusIcon size={18} />
+                  {saleId ? "Salvar Alterações" : "Abrir Comanda"}
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </SheetContent>

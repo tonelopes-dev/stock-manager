@@ -2,7 +2,8 @@ import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
 import { SaleStatus, SaleItem, Product, Prisma, PaymentMethod } from "@prisma/client";
 
-export interface SaleItemDto extends SaleItem {
+export interface SaleItemDto extends Omit<SaleItem, "operationalCost"> {
+  operationalCost: number;
   product: Pick<Product, "name">;
 }
 
@@ -101,6 +102,7 @@ export const getSales = async ({
         ...item,
         unitPrice: Number(item.unitPrice),
         baseCost: Number(item.baseCost),
+        operationalCost: Number(item.operationalCost),
         quantity: Number(item.quantity),
         discountAmount: Number(item.discountAmount),
         totalAmount: Number(item.totalAmount),
@@ -162,6 +164,7 @@ export const getSaleById = async (id: string): Promise<SaleDto | null> => {
       ...item,
       unitPrice: Number(item.unitPrice),
       baseCost: Number(item.baseCost),
+      operationalCost: Number(item.operationalCost),
       quantity: Number(item.quantity),
       discountAmount: Number(item.discountAmount),
       totalAmount: Number(item.totalAmount),
