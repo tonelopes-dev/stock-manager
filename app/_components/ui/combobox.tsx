@@ -60,7 +60,7 @@ export const Combobox = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[250px] p-0">
-        <Command>
+        <Command onWheel={(e) => e.stopPropagation()}>
           <CommandInput 
             placeholder="Buscar..." 
             value={searchValue}

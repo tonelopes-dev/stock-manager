@@ -70,9 +70,6 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
     };
 
     fetchCRMAlerts();
-    const interval = setInterval(fetchCRMAlerts, 60000); // 60s polling
-
-    return () => clearInterval(interval);
   }, []);
 
   // SSE listener

@@ -175,7 +175,7 @@ const SalesSearchHandler = ({
         defaultSelectedProducts={selectedSale.saleItems.map((item) => {
           const product = selectedSale.products.find((p) => p.id === item.productId);
           return {
-            id: item.productId,
+            productId: item.productId,
             quantity: Number(item.quantity),
             name: item.product.name,
             price: Number(item.unitPrice),

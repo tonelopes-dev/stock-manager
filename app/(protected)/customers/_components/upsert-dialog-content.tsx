@@ -121,42 +121,23 @@ const UpsertCustomerDialogContent = ({
   const isEditing = !!defaultValues;
 
   return (
-    <DialogContent>
+    <DialogContent className="max-w-2xl sm:max-w-3xl">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <DialogHeader>
-            <DialogTitle>{isEditing ? "Editar" : "Criar"} cliente</DialogTitle>
-            <DialogDescription>Insira as informações abaixo</DialogDescription>
+            <DialogTitle className="text-xl font-bold italic tracking-tighter uppercase">{isEditing ? "Editar" : "Criar Novo"} Cliente</DialogTitle>
+            <DialogDescription className="text-xs font-semibold uppercase tracking-tight text-muted-foreground">Insira os dados cadastrais abaixo</DialogDescription>
           </DialogHeader>
 
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nome</FormLabel>
-                <FormControl>
-                  <Input placeholder="Digite o nome do cliente" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
-              name="email"
+              name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>E-mail</FormLabel>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-primary/80">Nome Completo</FormLabel>
                   <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="email@exemplo.com"
-                      {...field}
-                      value={field.value || ""}
-                    />
+                    <Input placeholder="Digite o nome do cliente" className="h-10 text-xs font-bold" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -165,13 +146,15 @@ const UpsertCustomerDialogContent = ({
 
             <FormField
               control={form.control}
-              name="phoneNumber"
+              name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Telefone</FormLabel>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-primary/80">E-mail</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="(00) 00000-0000"
+                      type="email"
+                      placeholder="email@exemplo.com"
+                      className="h-10 text-xs font-bold"
                       {...field}
                       value={field.value || ""}
                     />
@@ -182,13 +165,54 @@ const UpsertCustomerDialogContent = ({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="phoneNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-primary/80">Telefone</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="(00) 00000-0000"
+                      className="h-10 text-xs font-bold"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="birthDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-primary/80">Data de Aniversário</FormLabel>
+                  <FormControl>
+                    <DatePicker
+                      value={field.value ? parseISO(field.value) : undefined}
+                      onChange={(date) =>
+                        field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                      }
+                      showDropdowns={true}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="categoryIds"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Categorias</FormLabel>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-primary/80">Categorias</FormLabel>
                   <FormControl>
                     <MultiSelect
                       options={categories}
@@ -207,20 +231,20 @@ const UpsertCustomerDialogContent = ({
               name="stageId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Estágio CRM</FormLabel>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-primary/80">Estágio CRM</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value || undefined}
                     value={field.value || ""}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-10 text-xs font-bold">
                         <SelectValue placeholder="Selecione o estágio" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {stages.map((stage) => (
-                        <SelectItem key={stage.id} value={stage.id}>
+                        <SelectItem key={stage.id} value={stage.id} className="text-xs font-bold">
                           {stage.name}
                         </SelectItem>
                       ))}
@@ -234,32 +258,14 @@ const UpsertCustomerDialogContent = ({
 
           <FormField
             control={form.control}
-            name="birthDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data de Aniversário</FormLabel>
-                <FormControl>
-            <DatePicker
-              value={field.value ? parseISO(field.value) : undefined}
-              onChange={(date) =>
-                field.onChange(date ? format(date, "yyyy-MM-dd") : "")
-              }
-              showDropdowns={true}
-            />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
             name="notes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Observações</FormLabel>
+                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-primary/80">Observações</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Adicione observações sobre o cliente"
+                    className="min-h-[80px] text-xs font-bold"
                     {...field}
                     value={field.value || ""}
                   />
