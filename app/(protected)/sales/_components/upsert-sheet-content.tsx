@@ -40,9 +40,10 @@ import {
 import UpsertCustomerDialogContent from "../../customers/_components/upsert-dialog-content";
 import { PlusIcon } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
+import { useFieldArray } from "react-hook-form";
 
 const itemSchema = z.object({
-  id: z.string().uuid(),
+  productId: z.string().uuid(),
   name: z.string(),
   price: z.coerce.number(),
   cost: z.coerce.number(),
@@ -66,7 +67,7 @@ const formSchema = z.object({
 type FormSchema = z.infer<typeof formSchema>;
 
 interface SelectedProduct {
-  id: string;
+  productId: string;
   name: string;
   price: number;
   cost: number;
@@ -135,6 +136,11 @@ const UpsertSheetContent = ({
     },
   });
 
+  const { fields, append, remove, update } = useFieldArray({
+    control: form.control,
+    name: "items",
+  });
+
   const {
     execute: executeUpsertSale,
     isPending: isUpsertPending,
@@ -190,7 +196,7 @@ const UpsertSheetContent = ({
       companyId,
       customerId: values.customerId,
       items: values.items.map((p) => ({
-        productId: p.id,
+        productId: p.productId,
         quantity: p.quantity,
       })),
       notes: "Painel de Gestão",
@@ -222,7 +228,7 @@ const UpsertSheetContent = ({
       adjustmentReason: values.adjustmentReason || undefined,
       isEmployeeSale: values.isEmployeeSale,
       products: values.items.map((p) => ({
-        id: p.id,
+        id: p.productId,
         quantity: p.quantity,
       })),
     });
@@ -312,8 +318,17 @@ const UpsertSheetContent = ({
                 </div>
 
                 <div className="scrollbar-hide hover:scrollbar-default flex-1 overflow-y-auto pr-1 transition-all">
-                  <CartComposer products={products} productOptions={productOptions} />
-                  <CartTable />
+                  <CartComposer 
+                    products={products} 
+                    productOptions={productOptions} 
+                    fields={fields}
+                    append={append}
+                  />
+                  <CartTable 
+                    fields={fields}
+                    remove={remove}
+                    update={update}
+                  />
                 </div>
               </div>
             </div>

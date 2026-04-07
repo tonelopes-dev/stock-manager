@@ -1,8 +1,6 @@
 "use client";
 
-import { useFormContext, useFieldArray } from "react-hook-form";
 import { TrashIcon, ShoppingCartIcon } from "lucide-react";
-
 import { Button } from "@/app/_components/ui/button";
 import {
   Table,
@@ -15,15 +13,15 @@ import {
 import { QuantityStepper } from "@/app/_components/ui/quantity-stepper";
 import { formatCurrency } from "@/app/_helpers/currency";
 
-export const CartTable = () => {
-  const { control } = useFormContext();
-  const { fields, remove, update } = useFieldArray({
-    control,
-    name: "items",
-  });
+interface CartTableProps {
+  fields: any[];
+  remove: (index: number) => void;
+  update: (index: number, item: any) => void;
+}
 
+export const CartTable = ({ fields, remove, update }: CartTableProps) => {
   const handleUpdateQuantity = (index: number, quantity: number) => {
-    const item = fields[index] as any;
+    const item = fields[index];
     update(index, { ...item, quantity });
   };
 
@@ -59,26 +57,26 @@ export const CartTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {fields.map((item: any, index) => (
-            <TableRow key={item.id} className="group border-border">
+          {fields.map((field, index) => (
+            <TableRow key={field.id} className="group border-border">
               <TableCell className="px-2 py-2">
                 <p className="max-w-[120px] truncate text-xs font-bold text-foreground">
-                  {item.name}
+                  {field.name}
                 </p>
               </TableCell>
               <TableCell className="px-2 py-2">
                 <QuantityStepper
-                  value={item.quantity}
+                  value={field.quantity}
                   onChange={(val) => handleUpdateQuantity(index, val)}
-                  max={item.stock}
+                  max={field.stock}
                   className="h-7 w-20"
                 />
               </TableCell>
               <TableCell className="px-2 py-2 text-right text-[11px] font-medium text-muted-foreground">
-                {formatCurrency(item.price)}
+                {formatCurrency(field.price)}
               </TableCell>
               <TableCell className="px-2 py-2 text-right text-[11px] font-black text-foreground">
-                {formatCurrency(item.price * item.quantity)}
+                {formatCurrency(field.price * field.quantity)}
               </TableCell>
               <TableCell className="px-2 py-2 text-center">
                 <Button

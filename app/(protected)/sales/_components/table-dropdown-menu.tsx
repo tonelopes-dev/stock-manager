@@ -151,7 +151,7 @@ const SalesTableDropdownMenu = ({
         defaultSelectedProducts={sale.saleItems.map((item) => {
           const product = products.find((p) => p.id === item.productId);
           return {
-            id: item.productId,
+            productId: item.productId,
             quantity: Number(item.quantity),
             name: item.product.name,
             price: Number(item.unitPrice),

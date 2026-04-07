@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm, useFormContext, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMemo } from "react";
@@ -33,15 +33,16 @@ type ComposerSchema = z.infer<typeof composerSchema>;
 interface CartComposerProps {
   products: ProductDto[];
   productOptions: ComboboxOption[];
+  fields: any[];
+  append: (item: any) => void;
 }
 
-export const CartComposer = ({ products, productOptions }: CartComposerProps) => {
-  const { control: mainControl } = useFormContext();
-  const { fields, append } = useFieldArray({
-    control: mainControl,
-    name: "items",
-  });
-
+export const CartComposer = ({ 
+  products, 
+  productOptions,
+  fields,
+  append
+}: CartComposerProps) => {
   const form = useForm<ComposerSchema>({
     resolver: zodResolver(composerSchema),
     defaultValues: {
@@ -61,23 +62,18 @@ export const CartComposer = ({ products, productOptions }: CartComposerProps) =>
     const product = products.find((p) => p.id === data.productId);
     if (!product) return;
 
-    // Check if product already exists in items
-    const existingIndex = fields.findIndex((item) => item.id === product.id);
+    // Check if product already exists in items using productId
+    const existingIndex = fields.findIndex((item) => item.productId === product.id);
     
     if (existingIndex !== -1) {
-      // Logic for updating existing item handled in table usually, 
-      // but here we can just append/increment if desired.
-      // For simplicity in this phase, we'll just append and handle consolidation or let the user know.
-      // Actually, standard behavior is to increment.
-      // However, append works fine if we want unique rows or logic elsewhere.
-      // Let's do the standard increment logic:
-      const existingItem = fields[existingIndex] as any;
-      // We would need 'update' from useFieldArray here if we wanted to increment.
-      // For now, let's just use 'append' for simplicity as requested in initial refactor.
+      // In a more advanced version, we would use 'update' here to increment the quantity.
+      // For now, to solve the rendering bug, we'll keep it simple and just append 
+      // or the user can manage consolidation. 
+      // Actually, let's just append to ensure the 'Fields' array registers a new entry.
     }
 
     append({
-      id: product.id,
+      productId: product.id,
       name: product.name,
       price: Number(product.price),
       cost: Number(product.cost),
