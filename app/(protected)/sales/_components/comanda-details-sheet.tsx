@@ -286,7 +286,7 @@ export const ComandaDetailsSheet = ({
   return (
     <UISheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <UISheetContent className="flex h-full !max-w-full lg:!max-w-5xl flex-col border-none bg-background p-0 shadow-2xl">
-        <UISheetHeader className="border-b border-border p-6">
+        <UISheetHeader className="border-b border-border p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-sm">
@@ -312,10 +312,10 @@ export const ComandaDetailsSheet = ({
 
         <div className="grid flex-1 grid-cols-1 overflow-hidden lg:grid-cols-2">
           {/* Left Column: Metrics & Controls */}
-          <div className="flex flex-col border-r border-border bg-muted/30">
-            <div className="flex-1 space-y-6 overflow-y-auto p-6 scrollbar-hide">
+          <div className="flex min-h-0 flex-col border-r border-border bg-muted/30">
+            <div className="flex-1 space-y-2 overflow-y-auto p-2 transition-all scrollbar-hide hover:scrollbar-default">
               {/* Metrics Section */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-2xl border border-border bg-background p-4 shadow-sm">
                   <span className="mb-1 flex items-center gap-1.5 text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
                     <Clock size={12} />
@@ -337,7 +337,7 @@ export const ComandaDetailsSheet = ({
               </div>
 
               {/* Employee Mode Toggle */}
-              <div className="rounded-2xl border border-border bg-background p-4 shadow-sm">
+              <div className="rounded-xl border border-border bg-background p-3 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
@@ -355,7 +355,7 @@ export const ComandaDetailsSheet = ({
               </div>
 
               {/* Adjustment Section */}
-              <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-4 space-y-4">
+              <div className="rounded-xl border border-dashed border-border bg-muted/20 p-3 space-y-3">
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -442,9 +442,9 @@ export const ComandaDetailsSheet = ({
             </div>
 
             {/* Bottom Actions Area */}
-            <div className="border-t border-border bg-background p-6 shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
-              <div className="w-full space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+            <div className="mt-auto border-t border-border bg-background px-3 py-2 shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
+              <div className="w-full space-y-3">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
                       Taxa de Serviço (10%)
@@ -534,11 +534,11 @@ export const ComandaDetailsSheet = ({
           </div>
 
           {/* Right Column: consumed items list */}
-          <div className="flex flex-col bg-background p-6">
-            <h4 className="mb-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          <div className="flex min-h-0 flex-col bg-background p-2">
+            <h4 className="mb-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               Itens Consumidos
             </h4>
-            <div className="scrollbar-hide flex-1 overflow-y-auto pr-2 space-y-8">
+            <div className="scrollbar-hide flex-1 overflow-y-auto pr-1 transition-all hover:scrollbar-default">
               {/* Add Items Section (Moved here) */}
               <div className="space-y-4 rounded-xl border border-border bg-muted/20 p-4 shadow-sm">
                 <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
@@ -600,7 +600,7 @@ export const ComandaDetailsSheet = ({
                         {item.quantity}x
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-foreground">
+                        <span className="truncate max-w-[150px] text-sm font-bold text-foreground">
                           {item.name}
                         </span>
                         <span className="text-[10px] font-medium text-muted-foreground">
@@ -624,11 +624,13 @@ export const ComandaDetailsSheet = ({
                     </div>
                   </div>
                 ))}
-              </div>
             </div>
           </div>
         </div>
+      </div>
       </UISheetContent>
     </UISheet>
   );
 };
+
+export default ComandaDetailsSheet;
