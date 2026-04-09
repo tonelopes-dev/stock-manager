@@ -4,7 +4,7 @@ import Header, {
   HeaderRight,
   HeaderTitle,
 } from "@/app/_components/header";
-import { getGoals } from "@/app/_data-access/goal/get-goals";
+import { getGoals, GoalDto } from "@/app/_data-access/goal/get-goals";
 import { GoalCard } from "./_components/goal-card";
 import { CreateGoalButton } from "./_components/create-goal-button";
 import { getProducts } from "@/app/_data-access/product/get-products";
@@ -56,7 +56,7 @@ const GoalsList = async ({
   products: { id: string; name: string }[];
 }) => {
   const rawGoals = await getGoals();
-  const goals = JSON.parse(JSON.stringify(rawGoals));
+  const goals: GoalDto[] = JSON.parse(JSON.stringify(rawGoals));
 
   if (goals.length === 0) {
     return (

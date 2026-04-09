@@ -152,7 +152,7 @@ export const PeriodFilter = ({
             )} />
             <span className={cn(
                 "whitespace-nowrap",
-                hidePresets ? "text-xs uppercase tracking-tight font-black italic italic tracking-tighter" : "text-[10px] font-bold"
+                hidePresets ? "text-xs uppercase font-black italic tracking-tighter" : "text-[10px] font-bold"
             )}>
               {date?.from ? (
                 <span className="flex items-center gap-1.5">

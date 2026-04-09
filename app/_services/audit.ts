@@ -6,7 +6,7 @@ interface LogEventParams {
   type: AuditEventType;
   severity?: AuditSeverity;
   companyId?: string;
-  entityType?: "USER" | "COMPANY" | "PRODUCT" | "SALE" | "TEAM_MEMBER" | "BILLING" | "CUSTOMER" | "CHECKLIST";
+  entityType?: "USER" | "COMPANY" | "PRODUCT" | "SALE" | "TEAM_MEMBER" | "BILLING" | "CUSTOMER" | "CHECKLIST" | "STOCK_ENTRY" | "SUPPLIER" | "GOAL" | "FIXED_EXPENSE";
   entityId?: string;
   metadata?: Prisma.JsonValue;
   metadataVersion?: number;

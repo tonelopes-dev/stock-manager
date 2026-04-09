@@ -30,7 +30,7 @@ import { Supplier } from "@prisma/client";
 
 interface UpsertSupplierDialogContentProps {
   setDialogIsOpen: (isOpen: boolean) => void;
-  defaultValues?: Supplier;
+  defaultValues?: UpsertSupplierSchema;
 }
 
 const UpsertSupplierDialogContent = ({
