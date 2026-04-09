@@ -33,21 +33,77 @@ export interface IngredientDto {
   status: IngredientStatusDto;
 }
 
-export const getIngredients = async (): Promise<IngredientDto[]> => {
+export interface GetIngredientsParams {
+  search?: string;
+  supplierId?: string;
+  status?: "LOW_STOCK" | "OUT_OF_STOCK" | "EXPIRING" | "OK";
+  page?: number;
+  pageSize?: number;
+}
+
+export interface GetIngredientsResponse {
+  data: IngredientDto[];
+  total: number;
+}
+
+export const getIngredients = async (
+  params: GetIngredientsParams = {}
+): Promise<GetIngredientsResponse> => {
   const companyId = await getCurrentCompanyId();
+  const { search, supplierId, status, page = 1, pageSize = 10 } = params;
+  const skip = (page - 1) * pageSize;
 
-  const ingredients = (await db.product.findMany({
-    where: {
-      companyId,
-      type: { in: ["INSUMO", "REVENDA", "PRODUCAO_PROPRIA"] },
-      isActive: true,
-    },
-    orderBy: { name: "asc" },
-  })) as any[];
+  // Build where clause
+  const where: any = {
+    companyId,
+    type: { in: ["INSUMO", "REVENDA"] },
+    isActive: true,
+  };
 
-  return JSON.parse(
+  if (search) {
+    where.name = { contains: search, mode: "insensitive" };
+  }
+
+  if (supplierId) {
+    where.suppliers = { some: { supplierId } };
+  }
+
+  // Handle complex status filters
+  if (status === "LOW_STOCK") {
+    where.OR = [
+      { stock: { lte: 0 } },
+      { stock: { lte: db.product.fields.minStock } }
+    ];
+  } else if (status === "OUT_OF_STOCK") {
+    where.stock = { lte: 0 };
+  } else if (status === "EXPIRING") {
+    // Items with at least one batch expiring in the next 3 days
+    const threeDaysFromNow = new Date();
+    threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+    
+    where.stockEntries = {
+      some: {
+        expirationDate: {
+          lte: threeDaysFromNow,
+          gte: new Date(), // Filter out already expired if we only want "expiring soon"
+        }
+      }
+    };
+  }
+
+  const [ingredients, total] = await Promise.all([
+    db.product.findMany({
+      where,
+      orderBy: { name: "asc" },
+      skip,
+      take: pageSize,
+    }),
+    db.product.count({ where }),
+  ]);
+
+  const mappedData = JSON.parse(
     JSON.stringify(
-      ingredients.map((ingredient) => {
+      (ingredients as any[]).map((ingredient) => {
         const stock = Number(ingredient.stock);
         const minStock = Number(ingredient.minStock);
 
@@ -79,4 +135,6 @@ export const getIngredients = async (): Promise<IngredientDto[]> => {
       }),
     ),
   );
+
+  return { data: mappedData, total };
 };

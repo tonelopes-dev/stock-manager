@@ -180,9 +180,8 @@ export const upsertProduct = actionClient
       return productId;
     });
 
-    revalidatePath("/", "layout");
-    revalidatePath("/products");
-    revalidatePath("/dashboard");
+    revalidatePath("/cardapio");
+    revalidatePath("/estoque");
     
     return result;
   });

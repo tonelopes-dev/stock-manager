@@ -71,6 +71,7 @@ export const upsertIngredient = actionClient
       });
     });
 
-    revalidatePath("/ingredients", "page");
+    revalidatePath("/estoque");
+    revalidatePath("/cardapio");
     revalidatePath("/");
   });

@@ -74,24 +74,22 @@ export const getProductById = async (id: string): Promise<ProductDetailDto | nul
     let partialCost = 0;
     let consumptionPerUnit = 0;
 
-    const childCost = recipe.child.cost.toNumber();
-    const recipeQuantity = recipe.quantity.toNumber();
+    const childCost = recipe.child.cost?.toNumber() ?? 0;
+    const recipeQuantity = recipe.quantity?.toNumber() ?? 0;
 
     try {
       partialCost = Number(
         calculateRealCost(
           recipeQuantity,
           recipe.child.unit as UnitType,
-          recipe.child.unit as UnitType, // Note: child is the ingredient, so the recipe unit is missing from ProductComposition now? The query needs to use child.unit. Wait, old ProductRecipe had a `unit`. ProductComposition does not have a unit. We assume quantity is in child's unit.
+          recipe.child.unit as UnitType, 
           childCost
         )
       );
 
-      // Since ProductComposition doesn't have a unit, consumption per unit is just quantity
       consumptionPerUnit = recipeQuantity;
     } catch (e) {
       console.error(`Error calculating recipe values for ${recipe.id}:`, e);
-      // Incompatible units, keep values at 0
     }
 
     return {
@@ -104,20 +102,20 @@ export const getProductById = async (id: string): Promise<ProductDetailDto | nul
       ingredientCost: childCost,
       ingredientUnit: recipe.child.unit,
       ingredientUnitLabel: UNIT_LABELS[recipe.child.unit] || recipe.child.unit,
-      ingredientStock: recipe.child.stock.toNumber(),
-      partialCost: recipeQuantity * childCost, // simplification since units are the same now
+      ingredientStock: recipe.child.stock?.toNumber() ?? 0,
+      partialCost: recipeQuantity * childCost, 
       consumptionPerUnit,
     };
   });
 
   const recipeCost = recipes.reduce((sum, r) => sum + r.partialCost, 0);
-  const productCost = product.cost.toNumber();
-  const operationalCost = product.operationalCost.toNumber();
+  const productCost = product.cost?.toNumber() ?? 0;
+  const operationalCost = product.operationalCost?.toNumber() ?? 0;
   const effectiveCost =
     product.type === "PRODUCAO_PROPRIA" || product.type === "COMBO"
       ? recipeCost
       : productCost;
-  const price = product.price.toNumber();
+  const price = product.price?.toNumber() ?? 0;
 
   return {
     id: product.id,
@@ -128,8 +126,8 @@ export const getProductById = async (id: string): Promise<ProductDetailDto | nul
     operationalCost,
     margin: calculateMargin(price, effectiveCost + operationalCost),
     sku: product.sku,
-    stock: product.stock.toNumber(),
-    minStock: product.minStock.toNumber(),
+    stock: product.stock?.toNumber() ?? 0,
+    minStock: product.minStock?.toNumber() ?? 0,
     unit: product.unit,
     categoryId: product.categoryId,
     environmentId: product.environmentId,

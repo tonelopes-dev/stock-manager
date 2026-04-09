@@ -30,6 +30,7 @@ export interface SaleDto {
 interface GetSalesParams {
   from?: string;
   to?: string;
+  query?: string;
   page: number;
   pageSize: number;
 }
@@ -37,6 +38,7 @@ interface GetSalesParams {
 export const getSales = async ({
   from,
   to,
+  query,
   page,
   pageSize,
 }: GetSalesParams): Promise<{ data: SaleDto[]; total: number }> => {
@@ -46,11 +48,31 @@ export const getSales = async ({
     companyId,
     status: SaleStatus.ACTIVE,
   };
+
+  if (query) {
+    where.OR = [
+      {
+        customer: {
+          name: { contains: query, mode: "insensitive" },
+        },
+      },
+      {
+        customer: {
+          email: { contains: query, mode: "insensitive" },
+        },
+      },
+      {
+        customer: {
+          phone: { contains: query, mode: "insensitive" },
+        },
+      },
+    ];
+  }
     
-  if (from && to) {
+  if (from || to) {
     where.date = {
-      gte: new Date(from),
-      lte: new Date(to + "T23:59:59.999Z"),
+      ...(from && { gte: new Date(from) }),
+      ...(to && { lte: new Date(to + "T23:59:59.999Z") }),
     };
   }
 

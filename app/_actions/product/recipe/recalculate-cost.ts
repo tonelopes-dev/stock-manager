@@ -20,18 +20,27 @@ export async function recalculateProductCostRecursive(
 
   // If it has a composition, calculate sum of children
   if (compositions.length > 0) {
+    const toNum = (val: any) => 
+      typeof val?.toNumber === "function" ? val.toNumber() : Number(val ?? 0);
+
     let totalCost = 0;
     for (const comp of compositions) {
       try {
+        const qty = toNum(comp.quantity);
+        const childCost = toNum(comp.child?.cost);
+        
         const partialCost = Number(
           calculateRealCost(
-            comp.quantity.toNumber(),
+            qty,
             comp.child.unit as UnitType,
             comp.child.unit as UnitType,
-            comp.child.cost.toNumber()
+            childCost
           )
         );
-        totalCost += partialCost;
+        
+        if (!isNaN(partialCost) && isFinite(partialCost)) {
+          totalCost += partialCost;
+        }
       } catch (error) {
         console.error(`Error calculating cost for composition item ${comp.id}:`, error);
       }

@@ -30,7 +30,7 @@ export const deleteRecipeIngredient = actionClient
     // Recalculate cost recursively up the tree
     await recalculateProductCostRecursive(parentId);
 
-    revalidatePath(`/products/${parentId}`, "page");
-    revalidatePath("/products", "page");
+    revalidatePath(`/cardapio/${parentId}`, "page");
+    revalidatePath("/cardapio", "page");
     revalidatePath("/");
   });
