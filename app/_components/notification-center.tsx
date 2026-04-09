@@ -88,7 +88,9 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
         isFirstRender.current = false;
 
         // Return combination of latest alerts + persistent KDS state
-        return [...allNewAlerts, ...persistentNotifications].slice(0, 50);
+        return [...allNewAlerts, ...persistentNotifications]
+          .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+          .slice(0, 50);
       });
     };
 

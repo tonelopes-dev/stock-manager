@@ -45,7 +45,7 @@ export const produceProduct = actionClient
 
     revalidatePath(`/products/${productId}`, "page");
     revalidatePath("/products", "page");
-    revalidatePath("/ingredients", "page");
+    revalidatePath("/estoque", "page");
     revalidatePath("/");
 
     return {

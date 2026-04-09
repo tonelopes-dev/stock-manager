@@ -99,7 +99,7 @@ export const getInventoryAlerts = actionClient
           message: `PRODUTO VENCIDO: ${entry.product.name} (Lote: ${entry.batchNumber || "N/A"})`,
           timestamp: now,
           read: false,
-          href: "/ingredients",
+          href: "/estoque",
         });
         processedProducts.add(entry.productId);
       } else if (isExpiringSoon) {
@@ -109,7 +109,7 @@ export const getInventoryAlerts = actionClient
           message: `Vence em breve: ${entry.product.name} (${entry.expirationDate.toLocaleDateString("pt-BR")})`,
           timestamp: now,
           read: false,
-          href: "/ingredients",
+          href: "/estoque",
         });
         processedProducts.add(entry.productId);
       }

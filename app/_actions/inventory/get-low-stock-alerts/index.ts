@@ -39,6 +39,6 @@ export const getLowStockAlerts = actionClient
       message: `Estoque Baixo: ${p.name} (${Number(p.stock)} ${p.unit})`,
       timestamp: new Date(), // Como é derivado, usamos a data da consulta
       read: false,
-      href: "/ingredients", // Redirecionar para a tela de insumos para ajustar/comprar
+      href: "/estoque", // Redirecionar para a tela de estoque para ajustar/comprar
     }));
   });

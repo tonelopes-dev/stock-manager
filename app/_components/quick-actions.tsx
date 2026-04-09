@@ -38,7 +38,7 @@ const actions = [
   {
     label: "Entrada de Insumo",
     icon: <BeakerIcon className="h-4 w-4" />,
-    href: "/ingredients",
+    href: "/estoque",
     color: "text-orange-500 bg-orange-500/10",
   },
 ];

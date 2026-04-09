@@ -120,9 +120,9 @@ export const createStockEntry = actionClient
     });
 
     // Revalidação de caminhos afetados
-    revalidatePath("/inventory");
+    revalidatePath("/estoque");
     revalidatePath("/products");
-    revalidatePath("/ingredients");
+    revalidatePath("/estoque");
     revalidatePath("/dashboard");
     revalidatePath("/reports");
 
