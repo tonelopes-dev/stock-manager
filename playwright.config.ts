@@ -10,7 +10,7 @@ import { defineConfig, devices } from "@playwright/test";
  *  - Auth state is saved to e2e/.auth/ to avoid re-login per test
  */
 export default defineConfig({
-  testDir: "./e2e",
+  testDir: "./tests/verified",
   fullyParallel: false, // Sequential for reliable E2E
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -41,7 +41,7 @@ export default defineConfig({
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
-        storageState: "e2e/.auth/user.json",
+        storageState: "tests/verified/.auth/user.json",
       },
       dependencies: ["setup"],
     },

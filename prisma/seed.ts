@@ -2,6 +2,7 @@ import { PrismaClient, UserRole, SaleStatus, StockMovementType, ProductType, Uni
 import { hash } from "bcryptjs";
 import { subDays, startOfDay, addHours, isWeekend, addDays } from "date-fns";
 import { fakerPT_BR as faker } from "@faker-js/faker";
+import { seedERPData } from "./seeds/erp-seed";
 
 const prisma = new PrismaClient();
 
@@ -692,12 +693,17 @@ async function main() {
       });
       totalAmount += unitPrice * qty;
     }
-
     await prisma.order.update({
       where: { id: order.id },
       data: { totalAmount },
     });
   }
+
+  // =============================================
+  // 15. ERP Specific Scenarios (Multi-Tenant, Analytical History)
+  // =============================================
+  console.log("🚀 Seeding Enterprise Multi-Tenant Scenarios...");
+  await seedERPData(prisma, users["Everton"].id);
 
   console.log("✅ Seed finished successfully! Product hierarchy:");
   console.log("   📦 INSUMO: Farinha, Carne, Queijo, Batata, etc.");
