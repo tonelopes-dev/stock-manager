@@ -17,9 +17,15 @@ interface CartTableProps {
   fields: any[];
   remove: (index: number) => void;
   update: (index: number, item: any) => void;
+  isReadOnly?: boolean;
 }
 
-export const CartTable = ({ fields, remove, update }: CartTableProps) => {
+export const CartTable = ({ 
+  fields, 
+  remove, 
+  update,
+  isReadOnly = false,
+}: CartTableProps) => {
   const handleUpdateQuantity = (index: number, quantity: number) => {
     const item = fields[index];
     update(index, { ...item, quantity });
@@ -53,7 +59,7 @@ export const CartTable = ({ fields, remove, update }: CartTableProps) => {
             <TableHead className="h-8 px-2 text-right text-[9px] font-black uppercase text-muted-foreground">
               Total
             </TableHead>
-            <TableHead className="h-8 w-8 text-center text-[9px] font-black uppercase text-muted-foreground"></TableHead>
+            {!isReadOnly && <TableHead className="h-8 w-8 text-center text-[9px] font-black uppercase text-muted-foreground"></TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -70,6 +76,7 @@ export const CartTable = ({ fields, remove, update }: CartTableProps) => {
                   onChange={(val) => handleUpdateQuantity(index, val)}
                   max={field.stock}
                   className="h-7 w-20"
+                  disabled={isReadOnly}
                 />
               </TableCell>
               <TableCell className="px-2 py-2 text-right text-[11px] font-medium text-muted-foreground">
@@ -78,17 +85,19 @@ export const CartTable = ({ fields, remove, update }: CartTableProps) => {
               <TableCell className="px-2 py-2 text-right text-[11px] font-black text-foreground">
                 {formatCurrency(field.price * field.quantity)}
               </TableCell>
-              <TableCell className="px-2 py-2 text-center">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  type="button"
-                  onClick={() => remove(index)}
-                  className="h-8 w-8 rounded-lg text-rose-500 opacity-0 transition-opacity hover:bg-rose-50 hover:text-rose-600 group-hover:opacity-100"
-                >
-                  <TrashIcon size={16} />
-                </Button>
-              </TableCell>
+              {!isReadOnly && (
+                <TableCell className="px-2 py-2 text-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    type="button"
+                    onClick={() => remove(index)}
+                    className="h-8 w-8 rounded-lg text-rose-500 opacity-0 transition-opacity hover:bg-rose-50 hover:text-rose-600 group-hover:opacity-100"
+                  >
+                    <TrashIcon size={16} />
+                  </Button>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

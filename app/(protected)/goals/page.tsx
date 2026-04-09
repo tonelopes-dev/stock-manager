@@ -55,7 +55,8 @@ const GoalsList = async ({
   isAdmin: boolean;
   products: { id: string; name: string }[];
 }) => {
-  const goals = await getGoals();
+  const rawGoals = await getGoals();
+  const goals = JSON.parse(JSON.stringify(rawGoals));
 
   if (goals.length === 0) {
     return (

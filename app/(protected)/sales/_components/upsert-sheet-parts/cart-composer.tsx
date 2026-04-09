@@ -35,13 +35,15 @@ interface CartComposerProps {
   productOptions: ComboboxOption[];
   fields: any[];
   append: (item: any) => void;
+  isReadOnly?: boolean;
 }
 
 export const CartComposer = ({ 
   products, 
   productOptions,
   fields,
-  append
+  append,
+  isReadOnly = false,
 }: CartComposerProps) => {
   const form = useForm<ComposerSchema>({
     resolver: zodResolver(composerSchema),
@@ -50,6 +52,8 @@ export const CartComposer = ({
       quantity: 1,
     },
   });
+
+  if (isReadOnly) return null;
 
   const selectedProductId = form.watch("productId");
   const selectedQuantity = form.watch("quantity");
@@ -111,8 +115,8 @@ export const CartComposer = ({
                     <Combobox
                       placeholder="Buscar produto..."
                       options={productOptions}
-                      data-testid="product-search-combobox"
                       {...field}
+                      data-testid="product-search-combobox"
                     />
                   </FormControl>
                   <FormMessage className="text-[10px]" />

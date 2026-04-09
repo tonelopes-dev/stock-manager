@@ -10,6 +10,7 @@ interface QuantityStepperProps {
   max?: number;
   min?: number;
   className?: string;
+  disabled?: boolean;
 }
 
 export function QuantityStepper({ 
@@ -17,7 +18,8 @@ export function QuantityStepper({
   onChange, 
   max, 
   min = 1,
-  className 
+  className,
+  disabled = false,
 }: QuantityStepperProps) {
   const handleDecrement = () => {
     if (value > min) {
@@ -39,7 +41,7 @@ export function QuantityStepper({
         type="button"
         className="h-8 w-8 rounded-lg border-border"
         onClick={handleDecrement}
-        disabled={value <= min}
+        disabled={disabled || value <= min}
       >
         <MinusIcon size={14} className="text-muted-foreground" />
       </Button>
@@ -52,7 +54,7 @@ export function QuantityStepper({
         type="button"
         className="h-8 w-8 rounded-lg border-border"
         onClick={handleIncrement}
-        disabled={max !== undefined && value >= max}
+        disabled={disabled || (max !== undefined && value >= max)}
       >
         <PlusIcon size={14} className="text-muted-foreground" />
       </Button>

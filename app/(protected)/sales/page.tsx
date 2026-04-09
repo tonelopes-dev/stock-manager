@@ -1,5 +1,6 @@
 import { getActiveComandas } from "@/app/_data-access/order/get-active-comandas";
 import { ComandasGrid } from "./_components/comandas-grid";
+import { GestaoTabs } from "./_components/gestao-tabs";
 import { Plus } from "lucide-react";
 import { HeaderSubtitle, HeaderTitle } from "../../_components/header";
 import { ComboboxOption } from "../../_components/ui/combobox";
@@ -71,21 +72,28 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
   const view = resolvedSearchParams.view || "gestao";
   const role = await getCurrentUserRole();
   const onboardingStats = await getOnboardingStats();
+  const currentPage = Number(resolvedSearchParams.page) || 1;
+  const pageSize = Number(resolvedSearchParams.pageSize) || 12; // User requested 12 items as default
 
   // Standardize filter periods
+  // If no date range is provided, we don't force 'today' for the Gestao view history query
+  const from = resolvedSearchParams.from;
+  const to = resolvedSearchParams.to;
+  
+  // But for analytics and inteligência, we still need a default range to avoid performance issues
   const today = new Date().toISOString().split("T")[0];
-  const from = resolvedSearchParams.from || today;
-  const to = resolvedSearchParams.to || today;
+  const analyticsFrom = from || today;
+  const analyticsTo = to || today;
 
   const analytics = await getSalesAnalytics(
-    from,
-    to,
+    analyticsFrom,
+    analyticsTo,
     resolvedSearchParams.monthA,
     resolvedSearchParams.monthB,
   );
   
   const aggregatedData = view === "inteligencia" 
-    ? await getAggregatedSales(from, to)
+    ? await getAggregatedSales(analyticsFrom, analyticsTo)
     : { items: [], totalTips: 0, totalRevenue: 0 };
 
   const stages = await getCRMStages();
@@ -93,6 +101,15 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
 
   const companyId = await getCurrentCompanyId();
   const activeComandas = companyId ? await getActiveComandas() : [];
+  
+  // Fetch closed sales with PAGINATION and OPTIONAL date filters
+  const { data: closedSales, total: totalClosedSales } = await getSales({
+    from: from || undefined,
+    to: to || undefined,
+    query: undefined,
+    page: currentPage,
+    pageSize: pageSize,
+  });
 
   // Server-side pre-fetching for deep-linked sale
   let preFetchedSale: SaleDto | null = null;
@@ -168,11 +185,16 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
 
       {view === "gestao" && (
         <div className="space-y-8">
-          <ComandasGrid
+          <GestaoTabs
             initialComandas={activeComandas}
+            initialClosedSales={closedSales}
+            totalClosedSales={totalClosedSales}
+            currentClosedPage={currentPage}
+            currentClosedPageSize={pageSize}
             companyId={companyId || ""}
             products={products}
             productOptions={productOptions}
+            customerOptions={customerOptions}
             stages={stages}
             categories={categories}
           />
@@ -194,8 +216,8 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
           </div>
           <Suspense fallback={<SaleTableSkeleton />}>
             <TipsReportWrapper
-              from={from}
-              to={to}
+              from={analyticsFrom}
+              to={analyticsTo}
             />
           </Suspense>
         </div>

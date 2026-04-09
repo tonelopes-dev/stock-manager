@@ -23,10 +23,18 @@ const filters = [
   { label: "Este Mês", value: "month" },
 ];
 
-export const PeriodFilter = () => {
+interface PeriodFilterProps {
+  defaultRange?: string;
+  hidePresets?: boolean;
+}
+
+export const PeriodFilter = ({ 
+  defaultRange = "today",
+  hidePresets = false 
+}: PeriodFilterProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentRange = searchParams.get("range") || "today";
+  const currentRange = searchParams.get("range") || defaultRange;
   const [isOpen, setIsOpen] = useState(false);
 
   const fromStr = searchParams.get("from");
@@ -98,44 +106,65 @@ export const PeriodFilter = () => {
   };
 
   return (
-    <div className="flex items-center gap-1 p-1 bg-background rounded-lg border border-border shadow-sm w-fit">
-      <div className="flex items-center gap-1.5 px-3 border-r border-border mr-1">
-          <ClockIcon size={14} className="text-muted-foreground" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Ver</span>
-      </div>
-      {filters.map((filter) => (
-        <Button
-          key={filter.value}
-          variant={currentRange === filter.value ? "secondary" : "ghost"}
-          size="sm"
-          className={cn(
-            "h-7 px-3 font-bold text-[11px] rounded-md transition-all",
-            currentRange === filter.value 
-              ? "bg-muted text-primary" 
-              : "text-muted-foreground hover:text-foreground"
-          )}
-          onClick={() => handleRangeChange(filter.value)}
-        >
-          {filter.label}
-        </Button>
-      ))}
+    <div className={cn(
+      "flex items-center gap-1 p-1 bg-background rounded-lg border border-border shadow-sm w-fit",
+      hidePresets && "border-none shadow-none p-0"
+    )}>
+      {!hidePresets && (
+        <>
+          <div className="flex items-center gap-1.5 px-3 border-r border-border mr-1">
+              <ClockIcon size={14} className="text-muted-foreground" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Ver</span>
+          </div>
+          {filters.map((filter) => (
+            <Button
+              key={filter.value}
+              variant={currentRange === filter.value ? "secondary" : "ghost"}
+              size="sm"
+              className={cn(
+                "h-7 px-3 font-bold text-[11px] rounded-md transition-all",
+                currentRange === filter.value 
+                  ? "bg-muted text-primary" 
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              onClick={() => handleRangeChange(filter.value)}
+            >
+              {filter.label}
+            </Button>
+          ))}
+        </>
+      )}
 
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button 
-            variant={currentRange === "custom" ? "secondary" : "ghost"} 
+            variant="ghost" 
             size="sm" 
             className={cn(
-              "h-7 px-2 text-muted-foreground hover:text-foreground rounded-md gap-2",
-              currentRange === "custom" && "bg-muted text-primary"
+              "h-7 px-2 text-muted-foreground hover:text-foreground rounded-md gap-2 transition-all duration-200",
+              (currentRange === "custom" || fromStr) && "bg-muted text-primary font-bold",
+              hidePresets && "h-12 px-6 rounded-2xl bg-muted/50 border border-border hover:bg-muted font-bold text-sm text-foreground shadow-sm hover:shadow-md"
             )}
           >
-            <CalendarIcon size={14} />
-            {currentRange === "custom" && date?.from && (
-              <span className="text-[10px] font-bold">
-                {format(date.from, "dd/MM")} - {date.to ? format(date.to, "dd/MM") : "..."}
-              </span>
-            )}
+            <CalendarIcon size={hidePresets ? 18 : 14} className={cn(
+               "text-muted-foreground",
+               (currentRange === "custom" || fromStr) && "text-primary"
+            )} />
+            <span className={cn(
+                "whitespace-nowrap",
+                hidePresets ? "text-xs uppercase tracking-tight font-black italic italic tracking-tighter" : "text-[10px] font-bold"
+            )}>
+              {date?.from ? (
+                <span className="flex items-center gap-1.5">
+                  {!hidePresets && <span className="opacity-70">Período:</span>}
+                  {format(date.from, "dd/MM", { locale: ptBR })} 
+                  <span className="opacity-40">-</span> 
+                  {date.to ? format(date.to, "dd/MM", { locale: ptBR }) : "..."}
+                </span>
+              ) : (
+                hidePresets ? "Filtrar por Período" : "Selecione uma Data"
+              )}
+            </span>
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0 rounded-xl shadow-xl border-border" align="end">

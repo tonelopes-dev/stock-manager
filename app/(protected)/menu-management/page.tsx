@@ -75,7 +75,7 @@ const MenuManagementPage = async () => {
         <div className="rounded-xl border border-dashed border-border py-16 text-center">
           <p className="text-sm text-muted-foreground">
             Nenhum produto cadastrado. Crie produtos e categorias na página de{" "}
-            <a href="/products" className="font-bold text-primary underline">
+            <a href="/cardapio" className="font-bold text-primary underline">
               Produtos
             </a>{" "}
             para começar!

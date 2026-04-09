@@ -96,6 +96,7 @@ interface UpsertSheetContentProps {
   companyId: string;
   stages: { id: string; name: string }[];
   categories: { id: string; name: string }[];
+  isReadOnly?: boolean;
 }
 
 const UpsertSheetContent = ({
@@ -117,6 +118,7 @@ const UpsertSheetContent = ({
   companyId,
   stages,
   categories,
+  isReadOnly = false,
 }: UpsertSheetContentProps) => {
   const [customerDialogOpen, setCustomerDialogOpen] = useState(false);
   const [customerSearchValue, setCustomerSearchValue] = useState("");
@@ -135,6 +137,14 @@ const UpsertSheetContent = ({
       adjustmentReason: defaultAdjustmentReason,
     },
   });
+
+  const [isReady, setIsReady] = useState(false);
+  
+  useEffect(() => {
+    // Small delay to ensure Radix/Next hydration is settled
+    const timer = setTimeout(() => setIsReady(true), 150); // Slightly longer for complex sales sheet
+    return () => clearTimeout(timer);
+  }, []);
 
   const { fields, append, remove, update } = useFieldArray({
     control: form.control,
@@ -243,7 +253,7 @@ const UpsertSheetContent = ({
   return (
     <TooltipProvider>
       <FormProvider {...form}>
-        <SheetContent className="flex h-full !max-w-full flex-col border-none p-0 lg:!max-w-5xl">
+        <SheetContent data-testid="upsert-sale-sheet" data-ready={isReady} className="flex h-full !max-w-full flex-col border-none p-0 lg:!max-w-5xl">
           <div className="flex h-full flex-col">
             <div className="sticky top-0 z-10 border-b border-border bg-background p-3">
               <div className="flex items-center justify-between gap-4">
@@ -253,33 +263,35 @@ const UpsertSheetContent = ({
                       <ShoppingCartIcon size={18} />
                     </div>
                     <SheetTitle className="whitespace-nowrap text-lg font-black uppercase italic tracking-tighter">
-                      {saleId ? "Editar Venda" : "Nova Venda"}
+                      {isReadOnly ? "Visualizar Venda" : saleId ? "Editar Venda" : "Nova Venda"}
                     </SheetTitle>
                   </div>
                   <SheetDescription className="text-[10px] font-semibold uppercase tracking-tight text-muted-foreground">
-                    Processamento em tempo real
+                    {isReadOnly ? "Venda finalizada (Somente Leitura)" : "Processamento em tempo real"}
                   </SheetDescription>
                 </SheetHeader>
 
-                <div className="flex items-center gap-2">
-                  <DatePicker
-                    value={form.watch("date") ? parseISO(form.watch("date")) : undefined}
-                    onChange={(newDate) =>
-                      form.setValue("date", newDate ? format(newDate, "yyyy-MM-dd") : "")
-                    }
-                    className="h-9 w-[130px] border-border text-[10px] font-bold"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    type="button"
-                    onClick={() => setCustomerDialogOpen(true)}
-                    className="h-9 gap-1.5 px-3 text-[10px] font-black uppercase tracking-tight text-muted-foreground transition-all hover:bg-muted"
-                  >
-                    <PlusIcon size={14} />
-                    Novo Cliente
-                  </Button>
-                </div>
+                {!isReadOnly && (
+                  <div className="flex items-center gap-2">
+                    <DatePicker
+                      value={form.watch("date") ? parseISO(form.watch("date")) : undefined}
+                      onChange={(newDate) =>
+                        form.setValue("date", newDate ? format(newDate, "yyyy-MM-dd") : "")
+                      }
+                      className="h-9 w-[130px] border-border text-[10px] font-bold"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      type="button"
+                      onClick={() => setCustomerDialogOpen(true)}
+                      className="h-9 gap-1.5 px-3 text-[10px] font-black uppercase tracking-tight text-muted-foreground transition-all hover:bg-muted"
+                    >
+                      <PlusIcon size={14} />
+                      Novo Cliente
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -290,12 +302,13 @@ const UpsertSheetContent = ({
                     customerOptions={customerOptions}
                     categories={categories}
                     stages={stages}
+                    isReadOnly={isReadOnly}
                   />
                 </div>
 
                 <div className="mt-auto border-t border-border bg-background px-3 py-2">
-                  <FinancialSummary />
-                  <PaymentSelector />
+                  <FinancialSummary isReadOnly={isReadOnly} />
+                  <PaymentSelector isReadOnly={isReadOnly} />
                   <ActionFooter
                     onSaveOrder={handleOpenOrder}
                     onFinalizeSale={handleFinalizeSale}
@@ -303,6 +316,7 @@ const UpsertSheetContent = ({
                     isOrderPending={isOrderPending}
                     isUpsertPending={isUpsertPending}
                     saleId={saleId}
+                    isReadOnly={isReadOnly}
                   />
                 </div>
               </div>
@@ -323,11 +337,13 @@ const UpsertSheetContent = ({
                     productOptions={productOptions} 
                     fields={fields}
                     append={append}
+                    isReadOnly={isReadOnly}
                   />
                   <CartTable 
                     fields={fields}
                     remove={remove}
                     update={update}
+                    isReadOnly={isReadOnly}
                   />
                 </div>
               </div>

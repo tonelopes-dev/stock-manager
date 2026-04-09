@@ -20,7 +20,7 @@ const LowStockAlerts = async () => {
             <CardTitle className="text-destructive">Alertas de Estoque</CardTitle>
         </div>
         <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive" asChild>
-            <Link href="/products">
+            <Link href="/estoque">
                 Ver todos
                 <ArrowRightIcon className="ml-2 h-4 w-4" />
             </Link>
