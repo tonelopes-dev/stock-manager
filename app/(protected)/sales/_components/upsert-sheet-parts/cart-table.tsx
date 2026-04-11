@@ -43,7 +43,7 @@ export const CartTable = ({
   }
 
   return (
-    <div className="mt-2 rounded-2xl border border-border bg-background shadow-sm">
+    <div className="mt-4 rounded-2xl border border-border bg-background shadow-sm overflow-hidden">
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow className="border-border hover:bg-transparent">
@@ -64,7 +64,7 @@ export const CartTable = ({
         </TableHeader>
         <TableBody>
           {fields.map((field, index) => (
-            <TableRow key={field.id} className="group border-border">
+            <TableRow key={field.id || field.productId} className="group border-border">
               <TableCell className="px-2 py-2">
                 <p className="max-w-[120px] truncate text-xs font-bold text-foreground">
                   {field.name}

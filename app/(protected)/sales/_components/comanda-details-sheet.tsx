@@ -13,8 +13,22 @@ import {
   CheckCircle2,
   ShoppingCart,
   Trash2,
+  ListIcon,
+  LayoutGridIcon,
 } from "lucide-react";
-import { useState, useTransition, useEffect, useMemo, type ReactNode } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/app/_components/ui/tooltip";
+import {
+  useState,
+  useTransition,
+  useEffect,
+  useMemo,
+  type ReactNode,
+} from "react";
 import { toast } from "sonner";
 import { convertOrderToSaleAction } from "@/app/_actions/order/convert-to-sale";
 import { upsertOrderAction } from "@/app/_actions/order/upsert-order";
@@ -91,7 +105,9 @@ export const ComandaDetailsSheet = ({
   const [discountAmount, setDiscountAmount] = useState<number>(0);
   const [extraAmount, setExtraAmount] = useState<number>(0);
   const [adjustmentReason, setAdjustmentReason] = useState<string>("");
-  const [adjustmentType, setAdjustmentType] = useState<"discount" | "extra">("discount");
+  const [adjustmentType, setAdjustmentType] = useState<"discount" | "extra">(
+    "discount",
+  );
   const [isEmployeeSale, setIsEmployeeSale] = useState<boolean>(false);
   const [now, setNow] = useState(new Date());
 
@@ -103,6 +119,7 @@ export const ComandaDetailsSheet = ({
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(
     new Set(),
   );
+  const [isGrouped, setIsGrouped] = useState<boolean>(false);
 
   const router = useRouter();
 
@@ -122,45 +139,95 @@ export const ComandaDetailsSheet = ({
   }, [isOpen, comanda]);
 
   const totals = useMemo(() => {
-    if (!comanda) return { subtotal: 0, partialTotal: 0, itenCount: 0, serviceChargeAmount: 0, totalWithTip: 0, effectiveDiscount: 0, relevantSubtotal: 0 };
-    
+    if (!comanda)
+      return {
+        subtotal: 0,
+        partialTotal: 0,
+        itenCount: 0,
+        serviceChargeAmount: 0,
+        totalWithTip: 0,
+        effectiveDiscount: 0,
+        relevantSubtotal: 0,
+      };
+
     const calculateSubtotal = (items: typeof comanda.items) => {
       return items.reduce((acc, p) => {
-        const unitPrice = isEmployeeSale 
-          ? (Number(p.cost || 0) + Number(p.operationalCost || 0))
+        const unitPrice = isEmployeeSale
+          ? Number(p.cost || 0) + Number(p.operationalCost || 0)
           : Number(p.price);
         return acc + unitPrice * p.quantity;
       }, 0);
     };
 
     const fullSubtotal = calculateSubtotal(comanda.items);
-    const selectedItemsList = comanda.items.filter((i) => selectedItemIds.has(i.id));
+    const selectedItemsList = comanda.items.filter((i) =>
+      selectedItemIds.has(i.id),
+    );
     const currentPartialSubtotal = calculateSubtotal(selectedItemsList);
-    
-    const relevantSubtotal = selectedItemIds.size > 0 ? currentPartialSubtotal : fullSubtotal;
-    const itenCount = selectedItemIds.size > 0 ? selectedItemsList.reduce((acc, p) => acc + p.quantity, 0) : comanda.items.reduce((acc, p) => acc + p.quantity, 0);
+
+    const relevantSubtotal =
+      selectedItemIds.size > 0 ? currentPartialSubtotal : fullSubtotal;
+    const itenCount =
+      selectedItemIds.size > 0
+        ? selectedItemsList.reduce((acc, p) => acc + p.quantity, 0)
+        : comanda.items.reduce((acc, p) => acc + p.quantity, 0);
 
     const serviceChargeAmount = applyServiceCharge
       ? Math.round(relevantSubtotal * 0.1 * 100) / 100
       : 0;
 
     const totalBeforeDiscount = relevantSubtotal + serviceChargeAmount;
-    
+
     // Boundary check
     const effectiveDiscount = Math.min(discountAmount, totalBeforeDiscount);
-    const totalWithTip = Math.max(0, Math.round((totalBeforeDiscount - effectiveDiscount + extraAmount) * 100) / 100);
+    const totalWithTip = Math.max(
+      0,
+      Math.round(
+        (totalBeforeDiscount - effectiveDiscount + extraAmount) * 100,
+      ) / 100,
+    );
 
-    return { 
-      fullSubtotal, 
-      partialTotal: currentPartialSubtotal, 
+    return {
+      fullSubtotal,
+      partialTotal: currentPartialSubtotal,
       relevantSubtotal,
-      itenCount, 
-      serviceChargeAmount, 
-      totalWithTip, 
+      itenCount,
+      serviceChargeAmount,
+      totalWithTip,
       effectiveDiscount,
-      extraAmount
+      extraAmount,
     };
-  }, [comanda, selectedItemIds, applyServiceCharge, isEmployeeSale, discountAmount, extraAmount]);
+  }, [
+    comanda,
+    selectedItemIds,
+    applyServiceCharge,
+    isEmployeeSale,
+    discountAmount,
+    extraAmount,
+  ]);
+
+  const groupedItems = useMemo(() => {
+    if (!comanda) return [];
+    if (!isGrouped) return comanda.items;
+
+    const group = comanda.items.reduce((acc: any[], item: any) => {
+      const existing = acc.find((i) => i.productId === item.productId);
+      if (existing) {
+        existing.quantity += item.quantity;
+        // Total price for the group is not used for selection, but we can store it
+        existing.totalPrice =
+          (existing.totalPrice || 0) + Number(item.price) * item.quantity;
+      } else {
+        acc.push({
+          ...item,
+          totalPrice: Number(item.price) * item.quantity,
+        });
+      }
+      return acc;
+    }, []);
+
+    return group;
+  }, [comanda, isGrouped]);
 
   const currentProduct = useMemo(
     () => products.find((p) => p.id === selectedProductId),
@@ -191,10 +258,11 @@ export const ComandaDetailsSheet = ({
               orderId: order.id,
               companyId,
               paymentMethod: paymentMethod as any,
-              tipAmount: i === 0 ? totals.serviceChargeAmount : 0, 
+              tipAmount: i === 0 ? totals.serviceChargeAmount : 0,
               discountAmount: i === 0 ? totals.effectiveDiscount : 0,
               extraAmount: i === 0 ? totals.extraAmount : 0,
-              adjustmentReason: i === 0 && adjustmentReason ? adjustmentReason : undefined,
+              adjustmentReason:
+                i === 0 && adjustmentReason ? adjustmentReason : undefined,
               isEmployeeSale: isEmployeeSale,
             });
             if (result?.serverError) throw new Error(result.serverError);
@@ -285,349 +353,450 @@ export const ComandaDetailsSheet = ({
 
   return (
     <UISheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <UISheetContent className="flex h-full !max-w-full lg:!max-w-5xl flex-col border-none bg-background p-0 shadow-2xl">
-        <UISheetHeader className="border-b border-border p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-sm">
-                <ShoppingCart size={24} />
+      <UISheetContent className="flex h-full !max-w-full flex-col border-none bg-background p-0 shadow-2xl lg:!max-w-5xl">
+        <TooltipProvider delayDuration={0}>
+          <UISheetHeader className="border-b border-border p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-sm">
+                  <ShoppingCart size={24} />
+                </div>
+                <div className="flex flex-col text-left">
+                  <UISheetTitle className="text-xl font-black uppercase italic leading-tight tracking-tighter text-foreground">
+                    {comanda.customerName}
+                  </UISheetTitle>
+                  <UISheetDescription className="text-xs font-bold text-muted-foreground">
+                    {comanda.customerPhone || "Sem telefone"}
+                  </UISheetDescription>
+                </div>
               </div>
-              <div className="flex flex-col text-left">
-                <UISheetTitle className="text-xl font-black uppercase italic leading-tight tracking-tighter text-foreground">
-                  {comanda.customerName}
-                </UISheetTitle>
-                <UISheetDescription className="text-xs font-bold text-muted-foreground">
-                  {comanda.customerPhone || "Sem telefone"}
-                </UISheetDescription>
-              </div>
+              <Badge
+                variant="secondary"
+                className="shrink-0 border-none bg-emerald-50 text-[10px] font-black uppercase text-emerald-600"
+              >
+                Ativa
+              </Badge>
             </div>
-            <Badge
-              variant="secondary"
-              className="shrink-0 border-none bg-emerald-50 text-[10px] font-black uppercase text-emerald-600"
-            >
-              Ativa
-            </Badge>
-          </div>
-        </UISheetHeader>
+          </UISheetHeader>
 
-        <div className="grid flex-1 grid-cols-1 overflow-hidden lg:grid-cols-2">
-          {/* Left Column: Metrics & Controls */}
-          <div className="flex min-h-0 flex-col border-r border-border bg-muted/30">
-            <div className="flex-1 space-y-2 overflow-y-auto p-2 transition-all scrollbar-hide hover:scrollbar-default">
-              {/* Metrics Section */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-border bg-background p-4 shadow-sm">
-                  <span className="mb-1 flex items-center gap-1.5 text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
-                    <Clock size={12} />
-                    Aberta há
-                  </span>
-                  <p className="text-sm font-bold capitalize text-foreground">
-                    {formatDistanceToNow(comanda.firstOrderAt, { locale: ptBR })}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-primary/10 bg-primary/5 p-4 text-right shadow-sm">
-                  <span className="mb-1 flex items-center justify-end gap-1.5 text-[10px] font-black uppercase italic tracking-tighter text-primary/60">
-                    <CheckCircle2 size={12} />
-                    Total Acumulado
-                  </span>
-                  <p className="text-xl font-black tracking-tighter text-primary">
-                    {formatCurrency(totals.totalWithTip)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Employee Mode Toggle */}
-              <div className="rounded-xl border border-border bg-background p-3 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                      Modo Funcionário
-                    </Label>
-                    <p className="text-[9px] font-medium text-muted-foreground italic">
-                      {isEmployeeSale ? "Preço de Custo + Operacional" : "Preço de Venda Normal"}
+          <div className="grid flex-1 grid-cols-1 overflow-hidden lg:grid-cols-2">
+            {/* Left Column: Metrics & Controls */}
+            <div className="flex min-h-0 flex-col border-r border-border bg-muted/30">
+              <div className="scrollbar-hide hover:scrollbar-default flex-1 space-y-2 overflow-y-auto p-2 transition-all">
+                {/* Metrics Section */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl border border-border bg-background p-4 shadow-sm">
+                    <span className="mb-1 flex items-center gap-1.5 text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
+                      <Clock size={12} />
+                      Aberta há
+                    </span>
+                    <p className="text-sm font-bold capitalize text-foreground">
+                      {formatDistanceToNow(comanda.firstOrderAt, {
+                        locale: ptBR,
+                      })}
                     </p>
                   </div>
-                  <Switch
-                    checked={isEmployeeSale}
-                    onCheckedChange={setIsEmployeeSale}
-                  />
-                </div>
-              </div>
-
-              {/* Adjustment Section */}
-              <div className="rounded-xl border border-dashed border-border bg-muted/20 p-3 space-y-3">
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <span className="text-xs font-black">⚙️</span>
-                      </div>
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Ajuste Manual</Label>
-                    </div>
-
-                    <Tabs 
-                      value={adjustmentType} 
-                      onValueChange={(val) => {
-                        const type = val as "discount" | "extra";
-                        setAdjustmentType(type);
-                        if (type === "discount") setExtraAmount(0);
-                        else setDiscountAmount(0);
-                      }} 
-                      className="h-8"
-                    >
-                      <TabsList className="h-8 bg-muted/50 p-1">
-                        <TabsTrigger value="discount" className="h-6 text-[10px] font-bold uppercase">Desconto</TabsTrigger>
-                        <TabsTrigger value="extra" className="h-6 text-[10px] font-bold uppercase">Acréscimo</TabsTrigger>
-                      </TabsList>
-                    </Tabs>
+                  <div className="rounded-2xl border border-primary/10 bg-primary/5 p-4 text-right shadow-sm">
+                    <span className="mb-1 flex items-center justify-end gap-1.5 text-[10px] font-black uppercase italic tracking-tighter text-primary/60">
+                      <CheckCircle2 size={12} />
+                      Total Acumulado
+                    </span>
+                    <p className="text-xl font-black tracking-tighter text-primary">
+                      {formatCurrency(totals.totalWithTip)}
+                    </p>
                   </div>
+                </div>
 
-                  <div className="flex items-center justify-between border-t border-border/50 pt-4">
+                {/* Employee Mode Toggle */}
+                <div className="rounded-xl border border-border bg-background p-3 shadow-sm">
+                  <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                        {adjustmentType === "discount" ? "Valor do Desconto" : "Valor do Acréscimo"}
+                        Modo Funcionário
                       </Label>
-                      {adjustmentType === "discount" && (
-                        <p className="text-[9px] font-medium text-muted-foreground italic">
-                          Máx: {formatCurrency(totals.relevantSubtotal + totals.serviceChargeAmount)}
-                        </p>
-                      )}
+                      <p className="text-[9px] font-medium italic text-muted-foreground">
+                        {isEmployeeSale
+                          ? "Preço de Custo + Operacional"
+                          : "Preço de Venda Normal"}
+                      </p>
                     </div>
-                    <div className="relative w-32">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-muted-foreground">R$</span>
-                      <Input 
-                        type="number"
-                        min={0}
-                        placeholder="0,00"
-                        className="h-9 pl-8 font-black text-primary"
-                        value={adjustmentType === "discount" ? (discountAmount || "") : (extraAmount || "")}
-                        onChange={(e) => {
-                          const val = parseFloat(e.target.value);
-                          const amount = isNaN(val) ? 0 : Math.max(0, val);
-                          if (adjustmentType === "discount") {
-                            setDiscountAmount(amount);
-                          } else {
-                            setExtraAmount(amount);
-                          }
-                        }}
-                      />
-                    </div>
+                    <Switch
+                      checked={isEmployeeSale}
+                      onCheckedChange={setIsEmployeeSale}
+                    />
                   </div>
                 </div>
 
-                {(discountAmount > 0 || extraAmount > 0) && (
-                  <div className="space-y-1.5 border-t border-border pt-3">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                      <CheckCircle2 size={12} className="text-primary" /> Justificativa do Ajuste
-                    </Label>
-                    <Input 
-                      placeholder="Ex: Cliente VIP, Troco retido, Cortesia..."
-                      className="h-8 text-xs italic"
-                      value={adjustmentReason}
-                      onChange={(e) => setAdjustmentReason(e.target.value)}
-                    />
+                {/* Adjustment Section */}
+                <div className="space-y-3 rounded-xl border border-dashed border-border bg-muted/20 p-3">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <span className="text-xs font-black">⚙️</span>
+                        </div>
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          Ajuste Manual
+                        </Label>
+                      </div>
+
+                      <Tabs
+                        value={adjustmentType}
+                        onValueChange={(val) => {
+                          const type = val as "discount" | "extra";
+                          setAdjustmentType(type);
+                          if (type === "discount") setExtraAmount(0);
+                          else setDiscountAmount(0);
+                        }}
+                        className="h-8"
+                      >
+                        <TabsList className="h-8 bg-muted/50 p-1">
+                          <TabsTrigger
+                            value="discount"
+                            className="h-6 text-[10px] font-bold uppercase"
+                          >
+                            Desconto
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="extra"
+                            className="h-6 text-[10px] font-bold uppercase"
+                          >
+                            Acréscimo
+                          </TabsTrigger>
+                        </TabsList>
+                      </Tabs>
+                    </div>
+
+                    <div className="flex items-center justify-between border-t border-border/50 pt-4">
+                      <div className="space-y-0.5">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          {adjustmentType === "discount"
+                            ? "Valor do Desconto"
+                            : "Valor do Acréscimo"}
+                        </Label>
+                        {adjustmentType === "discount" && (
+                          <p className="text-[9px] font-medium italic text-muted-foreground">
+                            Máx:{" "}
+                            {formatCurrency(
+                              totals.relevantSubtotal +
+                                totals.serviceChargeAmount,
+                            )}
+                          </p>
+                        )}
+                      </div>
+                      <div className="relative w-32">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-muted-foreground">
+                          R$
+                        </span>
+                        <Input
+                          type="number"
+                          min={0}
+                          placeholder="0,00"
+                          className="h-9 pl-8 font-black text-primary"
+                          value={
+                            adjustmentType === "discount"
+                              ? discountAmount || ""
+                              : extraAmount || ""
+                          }
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            const amount = isNaN(val) ? 0 : Math.max(0, val);
+                            if (adjustmentType === "discount") {
+                              setDiscountAmount(amount);
+                            } else {
+                              setExtraAmount(amount);
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {(discountAmount > 0 || extraAmount > 0) && (
+                    <div className="space-y-1.5 border-t border-border pt-3">
+                      <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        <CheckCircle2 size={12} className="text-primary" />{" "}
+                        Justificativa do Ajuste
+                      </Label>
+                      <Input
+                        placeholder="Ex: Cliente VIP, Troco retido, Cortesia..."
+                        className="h-8 text-xs italic"
+                        value={adjustmentReason}
+                        onChange={(e) => setAdjustmentReason(e.target.value)}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Partial selection info */}
+                {isPartial && (
+                  <div className="rounded-xl border border-emerald-100 bg-emerald-50/30 p-4 text-center animate-in fade-in slide-in-from-top-2">
+                    <p className="text-[10px] font-bold text-emerald-600">
+                      {selectedItemIds.size} item(s) selecionado(s) para
+                      pagamento parcial.
+                    </p>
                   </div>
                 )}
               </div>
 
-              {/* Partial selection info */}
-              {isPartial && (
-                <div className="rounded-xl border border-emerald-100 bg-emerald-50/30 p-4 text-center animate-in fade-in slide-in-from-top-2">
-                  <p className="text-[10px] font-bold text-emerald-600">
-                    {selectedItemIds.size} item(s) selecionado(s) para pagamento
-                    parcial.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Bottom Actions Area */}
-            <div className="mt-auto border-t border-border bg-background px-3 py-2 shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
-              <div className="w-full space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
-                      Taxa de Serviço (10%)
-                    </Label>
-                    <div className="flex h-12 items-center justify-between rounded-xl border border-border bg-muted/50 px-4">
-                      <div className="flex items-center gap-3">
-                        <Switch
-                          checked={applyServiceCharge}
-                          onCheckedChange={setApplyServiceCharge}
-                          id="comanda-service-charge"
-                        />
-                        <Label
-                          htmlFor="comanda-service-charge"
-                          className="text-xs font-bold leading-none"
+              {/* Bottom Actions Area */}
+              <div className="mt-auto border-t border-border bg-background px-3 py-2 shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
+                <div className="w-full space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
+                        Taxa de Serviço (10%)
+                      </Label>
+                      <div className="flex h-12 items-center justify-between rounded-xl border border-border bg-muted/50 px-4">
+                        <div className="flex items-center gap-3">
+                          <Switch
+                            checked={applyServiceCharge}
+                            onCheckedChange={setApplyServiceCharge}
+                            id="comanda-service-charge"
+                          />
+                          <Label
+                            htmlFor="comanda-service-charge"
+                            className="text-xs font-bold leading-none"
+                          >
+                            {applyServiceCharge ? "Ativada" : "Desativada"}
+                          </Label>
+                        </div>
+                        <span
+                          className={cn(
+                            "text-sm font-black transition-colors",
+                            applyServiceCharge
+                              ? "text-primary"
+                              : "text-muted-foreground/50",
+                          )}
                         >
-                          {applyServiceCharge ? "Ativada" : "Desativada"}
-                        </Label>
+                          {formatCurrency(totals.serviceChargeAmount)}
+                        </span>
                       </div>
-                      <span
-                        className={cn(
-                          "text-sm font-black transition-colors",
-                          applyServiceCharge
-                            ? "text-primary"
-                            : "text-muted-foreground/50",
-                        )}
-                      >
-                        {formatCurrency(totals.serviceChargeAmount)}
+                    </div>
+                    <div className="space-y-2">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        Pagamento
                       </span>
+                      <Select
+                        value={paymentMethod}
+                        onValueChange={setPaymentMethod}
+                      >
+                        <SelectTrigger className="h-12 rounded-2xl border-border bg-background font-bold shadow-sm focus:ring-primary/20">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent
+                          position="popper"
+                          sideOffset={5}
+                          className="w-[var(--radix-select-trigger-width)]"
+                        >
+                          {Object.entries(paymentMethodLabels).map(
+                            ([key, { label, icon }]) => (
+                              <SelectItem
+                                key={key}
+                                value={key}
+                                className="my-1 rounded-lg"
+                              >
+                                <div className="flex items-center gap-2">
+                                  {icon}
+                                  <span className="font-bold">{label}</span>
+                                </div>
+                              </SelectItem>
+                            ),
+                          )}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                      Pagamento
-                    </span>
-                    <Select
-                      value={paymentMethod}
-                      onValueChange={setPaymentMethod}
-                    >
-                      <SelectTrigger className="h-12 rounded-2xl border-border bg-background font-bold shadow-sm focus:ring-primary/20">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent
-                        position="popper"
-                        sideOffset={5}
-                        className="w-[var(--radix-select-trigger-width)]"
-                      >
-                        {Object.entries(paymentMethodLabels).map(
-                          ([key, { label, icon }]) => (
-                            <SelectItem
-                              key={key}
-                              value={key}
-                              className="my-1 rounded-lg"
-                            >
-                              <div className="flex items-center gap-2">
-                                {icon}
-                                <span className="font-bold">{label}</span>
-                              </div>
-                            </SelectItem>
-                          ),
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
 
-                <Button
-                  className={cn(
-                    "h-14 w-full rounded-2xl text-lg font-black uppercase italic tracking-wider ring-offset-2 transition-all active:scale-95 disabled:opacity-50",
-                    isPartial
-                      ? "bg-primary text-background shadow-lg shadow-primary/20 hover:bg-primary/90"
-                      : "bg-emerald-600 text-background shadow-lg shadow-emerald-100 hover:bg-emerald-700",
-                  )}
-                  disabled={isPending}
-                  onClick={handlePay}
-                >
-                  {isPending ? (
-                    <div className="h-6 w-6 animate-spin rounded-full border-4 border-white/30 border-t-white" />
-                  ) : (
-                    <>
-                      {isPartial ? "Pagar Selecionados" : "Finalizar Comanda"} •{" "}
-                      {formatCurrency(totals.totalWithTip)}
-                    </>
-                  )}
-                </Button>
+                  <Button
+                    className={cn(
+                      "h-14 w-full rounded-2xl text-lg font-black uppercase italic tracking-wider ring-offset-2 transition-all active:scale-95 disabled:opacity-50",
+                      isPartial
+                        ? "bg-primary text-background shadow-lg shadow-primary/20 hover:bg-primary/90"
+                        : "bg-emerald-600 text-background shadow-lg shadow-emerald-100 hover:bg-emerald-700",
+                    )}
+                    disabled={isPending}
+                    onClick={handlePay}
+                  >
+                    {isPending ? (
+                      <div className="h-6 w-6 animate-spin rounded-full border-4 border-white/30 border-t-white" />
+                    ) : (
+                      <>
+                        {isPartial ? "Pagar Selecionados" : "Finalizar Comanda"}{" "}
+                        • {formatCurrency(totals.totalWithTip)}
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Right Column: consumed items list */}
-          <div className="flex min-h-0 flex-col bg-background p-2">
-            <h4 className="mb-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Itens Consumidos
-            </h4>
-            <div className="scrollbar-hide flex-1 overflow-y-auto pr-1 transition-all hover:scrollbar-default">
-              {/* Add Items Section (Moved here) */}
-              <div className="space-y-4 rounded-xl border border-border bg-muted/20 p-4 shadow-sm">
+            {/* Right Column: consumed items list */}
+            <div className="flex min-h-0 flex-col bg-background p-2">
+              <div className="mb-4 flex items-center justify-between px-1">
                 <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  + Adicionar Itens
+                  Itens Consumidos
                 </h4>
-                <div className="flex flex-col gap-3">
-                  <Combobox
-                    options={productOptions}
-                    value={selectedProductId}
-                    onChange={setSelectedProductId}
-                    placeholder="Buscar produto..."
-                  />
-                  <div className="flex items-center gap-3">
-                    <div className="flex flex-col gap-2">
-                       <QuantityStepper
-                         value={selectedQuantity}
-                         onChange={setSelectedQuantity}
-                         min={1}
-                         className="h-10 w-32"
-                       />
-                       {currentProduct && (
-                         <p className="text-[10px] font-bold text-muted-foreground animate-in fade-in slide-in-from-top-1">
-                           Estoque: <span className="text-foreground">{Number(currentProduct.stock)} unid.</span>
-                         </p>
-                       )}
-                    </div>
-                     <Button
-                       onClick={handleAddItem}
-                       disabled={!selectedProductId || isPending}
-                       className="h-10 flex-1 rounded-xl bg-foreground text-xs font-bold uppercase italic transition-all active:scale-95"
-                     >
-                       {isPending ? (
-                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                       ) : (
-                         "Adicionar"
-                       )}
-                     </Button>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-2">
-                {comanda.items.map((item, idx) => (
-                  <div
-                    key={idx}
+                <div className="flex gap-1 rounded-xl bg-muted/40 p-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsGrouped(true)}
                     className={cn(
-                      "flex items-center justify-between rounded-xl border p-3 shadow-sm transition-all",
-                      selectedItemIds.has(item.id)
-                        ? "border-primary/30 bg-primary/[0.02]"
-                        : "border-border bg-background hover:border-border",
+                      "h-7 gap-1.5 rounded-lg px-3 text-[9px] font-black uppercase tracking-tight transition-all",
+                      isGrouped
+                        ? "bg-white text-primary shadow-sm"
+                        : "text-muted-foreground hover:bg-white/50",
                     )}
                   >
+                    <LayoutGridIcon size={12} />
+                    Agrupar
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsGrouped(false)}
+                    className={cn(
+                      "h-7 gap-1.5 rounded-lg px-3 text-[9px] font-black uppercase tracking-tight transition-all",
+                      !isGrouped
+                        ? "bg-white text-primary shadow-sm"
+                        : "text-muted-foreground hover:bg-white/50",
+                    )}
+                  >
+                    <ListIcon size={12} />
+                    Detalhado
+                  </Button>
+                </div>
+              </div>
+              <div className="scrollbar-hide hover:scrollbar-default flex-1 overflow-y-auto pr-1 transition-all">
+                {/* Add Items Section (Moved here) */}
+                <div className="space-y-4 rounded-xl border border-border bg-muted/20 p-4 shadow-sm">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    + Adicionar Itens
+                  </h4>
+                  <div className="flex flex-col gap-3">
+                    <Combobox
+                      options={productOptions}
+                      value={selectedProductId}
+                      onChange={setSelectedProductId}
+                      placeholder="Buscar produto..."
+                    />
                     <div className="flex items-center gap-3">
-                      <Checkbox
-                        checked={selectedItemIds.has(item.id)}
-                        onCheckedChange={() => toggleItemSelection(item.id)}
-                        className="h-5 w-5 rounded-md border-border"
-                      />
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-[10px] font-black text-muted-foreground">
-                        {item.quantity}x
+                      <div className="flex flex-col gap-2">
+                        <QuantityStepper
+                          value={selectedQuantity}
+                          onChange={setSelectedQuantity}
+                          min={1}
+                          className="h-10 w-32"
+                        />
+                        {currentProduct && (
+                          <p className="text-[10px] font-bold text-muted-foreground animate-in fade-in slide-in-from-top-1">
+                            Estoque:{" "}
+                            <span className="text-foreground">
+                              {Number(currentProduct.stock)} unid.
+                            </span>
+                          </p>
+                        )}
                       </div>
-                      <div className="flex flex-col">
-                        <span className="truncate max-w-[150px] text-sm font-bold text-foreground">
-                          {item.name}
-                        </span>
-                        <span className="text-[10px] font-medium text-muted-foreground">
-                          Pedido realizado às {format(item.createdAt, "HH:mm")}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm font-bold text-foreground">
-                        {formatCurrency(item.price * item.quantity)}
-                      </span>
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteItem(item.id)}
-                        disabled={isPending}
-                        className="h-8 w-8 rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                        onClick={handleAddItem}
+                        disabled={!selectedProductId || isPending}
+                        className="h-10 flex-1 rounded-xl bg-foreground text-xs font-bold uppercase italic transition-all active:scale-95"
                       >
-                        <Trash2 size={14} />
+                        {isPending ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                        ) : (
+                          "Adicionar"
+                        )}
                       </Button>
                     </div>
                   </div>
-                ))}
+                </div>
+                <div className="mt-2 space-y-2">
+                  {groupedItems.map((item, idx) => (
+                    <div
+                      key={isGrouped ? `group-${item.productId}` : item.id}
+                      className={cn(
+                        "flex items-center justify-between rounded-xl border p-3 shadow-sm transition-all",
+                        !isGrouped && selectedItemIds.has(item.id)
+                          ? "border-primary/30 bg-primary/[0.02]"
+                          : "border-border bg-background hover:border-border",
+                        isGrouped && "opacity-95",
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        {isGrouped ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="cursor-not-allowed opacity-20">
+                                <Checkbox
+                                  checked={false}
+                                  disabled
+                                  className="h-5 w-5 rounded-md border-border"
+                                />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="text-[10px] font-bold uppercase">
+                              Desagrupe para selecionar itens individuais
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : (
+                          <Checkbox
+                            checked={selectedItemIds.has(item.id)}
+                            onCheckedChange={() => toggleItemSelection(item.id)}
+                            className="h-5 w-5 rounded-md border-border"
+                          />
+                        )}
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-[10px] font-black text-muted-foreground">
+                          {item.quantity}x
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-foreground">
+                            {item.productName || item.name}
+                          </span>
+                          {!isGrouped && (
+                            <span className="text-[10px] italic text-muted-foreground">
+                              Pedido há{" "}
+                              {formatDistanceToNow(new Date(item.createdAt), {
+                                locale: ptBR,
+                              })}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <p className="text-sm font-black text-primary">
+                          {formatCurrency(Number(item.price) * item.quantity)}
+                        </p>
+                        {isGrouped ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="cursor-not-allowed opacity-20">
+                                <Trash2 className="h-5 w-5 text-rose-500" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="text-[10px] font-bold uppercase">
+                              Desagrupe para cancelar itens individuais
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteItem(item.id)}
+                            className="h-8 w-8 rounded-lg text-rose-500 hover:bg-rose-50 hover:text-rose-600"
+                          >
+                            <Trash2 size={18} />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </TooltipProvider>
       </UISheetContent>
     </UISheet>
   );

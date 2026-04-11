@@ -17,6 +17,7 @@ export interface ComandaDto {
   isEmployeeSale: boolean;
   items: {
     id: string;
+    productId: string;
     name: string;
     quantity: number;
     price: number;
@@ -107,6 +108,7 @@ export const getActiveComandas = async (): Promise<ComandaDto[]> => {
     for (const item of order.orderItems) {
       group.items.push({
         id: item.id,
+        productId: item.productId,
         name: item.product.name,
         quantity: Number(item.quantity),
         price: Number(item.unitPrice),
