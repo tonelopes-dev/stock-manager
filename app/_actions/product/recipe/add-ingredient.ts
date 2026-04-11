@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { addRecipeIngredientSchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { isUnitCompatible } from "@/app/_lib/units";
+import { isUnitCompatible, calculateStockDeduction } from "@/app/_lib/units";
 import { recalculateProductCostRecursive } from "./recalculate-cost";
 import { ProductType, UnitType } from "@prisma/client";
 
@@ -67,11 +67,15 @@ export const addRecipeIngredient = actionClient
       throw new Error("Este item já está na composição. Edite a quantidade existente.");
     }
 
+    // Normalize quantity to the child's base unit before saving
+    // Example: If user sends 100g and child is in KG, we save 0.1
+    const normalizedQuantity = calculateStockDeduction(quantity, unit as UnitType, child.unit);
+
     await db.productComposition.create({
       data: {
         parentId: productId,
         childId: ingredientId,
-        quantity,
+        quantity: normalizedQuantity,
       },
     });
 

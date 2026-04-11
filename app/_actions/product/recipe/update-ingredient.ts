@@ -30,9 +30,13 @@ export const updateRecipeIngredient = actionClient
       );
     }
 
+    // Normalize quantity to the child's base unit before saving
+    // Example: If user sends 100g and child is in KG, we save 0.1
+    const normalizedQuantity = calculateStockDeduction(quantity, unit as UnitType, composition.child.unit);
+
     await db.productComposition.update({
       where: { id },
-      data: { quantity },
+      data: { quantity: normalizedQuantity },
     });
 
     // Recalculate cost recursively up the tree

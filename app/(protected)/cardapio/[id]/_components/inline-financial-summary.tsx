@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
 import { Button } from "@/app/_components/ui/button";
 import { Input } from "@/app/_components/ui/input";
@@ -41,6 +41,13 @@ export default function InlineFinancialSummary({ product }: InlineFinancialSumma
   const [price, setPrice] = useState(product.price ?? 0);
   const [cost, setCost] = useState(product.cost ?? 0);
   const [operationalCost, setOperationalCost] = useState(product.operationalCost ?? 0);
+
+  // Sync state with props when they change (e.g. after adding an ingredient in another component)
+  useEffect(() => {
+    setPrice(product.price ?? 0);
+    setCost(product.cost ?? 0);
+    setOperationalCost(product.operationalCost ?? 0);
+  }, [product.price, product.cost, product.operationalCost]);
 
   const { execute: executeUpdate, isPending } = useAction(upsertProduct, {
     onSuccess: () => {
