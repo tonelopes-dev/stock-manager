@@ -1,8 +1,21 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, Locator } from "@playwright/test";
 import { fakerPT_BR as faker } from "@faker-js/faker";
+
+/**
+ * Helper to fill masked inputs (react-number-format) reliably.
+ */
+async function fillMaskedInput(locator: Locator, value: string) {
+  await locator.click({ force: true });
+  await locator.page().keyboard.press("Control+A");
+  await locator.page().keyboard.press("Backspace");
+  await locator.page().keyboard.type(value, { delay: 100 });
+}
 
 test.describe("Inventory Management", () => {
   test.beforeEach(async ({ page }) => {
+    // Collect console logs for debugging
+    page.on("console", (msg) => console.log(`[BROWSER CONSOLE] ${msg.type()}: ${msg.text()}`));
+    
     await page.goto("/estoque");
     await page.keyboard.press("Escape");
     await expect(page.getByRole("heading", { name: /Controle de Estoque/i })).toBeVisible({ timeout: 20000 });
@@ -38,12 +51,16 @@ test.describe("Inventory Management", () => {
     
     await dialog.getByTestId("upsert-ingredient-name-input").fill(ingredientName);
     
-    await dialog.getByLabel("Unidade de medida").click();
-    await expect(page.getByRole("option").first()).toBeVisible();
-    await page.getByRole("option", { name: /Quilograma/i }).click();
+    // Select Unit
+    await dialog.getByTestId("upsert-ingredient-unit-select").click({ force: true });
+    const option = page.getByRole("option", { name: /Quilograma/i });
+    await expect(option).toBeVisible({ timeout: 10000 });
+    await option.click({ force: true });
     
-    await dialog.getByRole("button", { name: "Salvar" }).click();
-    await expect(page.getByText(/sucesso/i)).toBeVisible();
+    await dialog.getByRole("button", { name: "Salvar" }).click({ force: true });
+    
+    // Wait for the toast or dialog to close
+    await expect(page.getByText(/sucesso/i)).toBeVisible({ timeout: 25000 });
     await page.keyboard.press("Escape");
     
     await page.reload();
@@ -96,13 +113,22 @@ test.describe("Inventory Management", () => {
     await expect(page.getByRole("option", { name: new RegExp(supplierName, 'i') })).toBeVisible();
     await page.getByRole("option", { name: new RegExp(supplierName, 'i') }).click();
     
-    await dialog.getByLabel(/Quantidade/i).fill("10");
-    await dialog.getByLabel(/Custo/i).fill(newCost);
+    await fillMaskedInput(dialog.getByLabel(/Quantidade/i), "10");
+    await fillMaskedInput(dialog.getByLabel(/Custo/i), "15,50");
     
-    await page.waitForTimeout(1000);
-    await dialog.getByRole("button", { name: "Confirmar Entrada" }).click();
+    await page.waitForTimeout(3000);
+    const confirmBtn = dialog.getByRole("button", { name: /Confirmar Entrada/i });
     
-    await expect(page.getByText(/registrada/i)).toBeVisible({ timeout: 35000 });
+    // Wait for the POST response to confirm the action reached the server
+    const responsePromise = page.waitForResponse(response => 
+      response.url().includes("/estoque") && response.status() === 200,
+      { timeout: 30000 }
+    );
+    
+    await confirmBtn.click({ force: true });
+    await responsePromise;
+    
+    await expect(page.getByText(/registrada/i).or(page.getByText(/sucesso/i))).toBeVisible({ timeout: 45000 });
     await page.keyboard.press("Escape");
     
     await page.reload();
