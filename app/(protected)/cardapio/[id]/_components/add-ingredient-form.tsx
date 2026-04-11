@@ -45,10 +45,6 @@ export default function AddIngredientForm({
     setIsMounted(true);
   }, []);
 
-  if (!isMounted) {
-    return <div className="h-20 flex items-center justify-center border-t mt-4 text-xs text-muted-foreground animate-pulse">Carregando formulário...</div>;
-  }
-
   const selectedIngredient = (ingredientOptions || []).find(
     (opt) => opt.value === ingredientId,
   );
@@ -83,6 +79,10 @@ export default function AddIngredientForm({
       toast.error(firstError || "Erro ao adicionar insumo.");
     },
   });
+
+  if (!isMounted) {
+    return <div className="h-20 flex items-center justify-center border-t mt-4 text-xs text-muted-foreground animate-pulse">Carregando formulário...</div>;
+  }
 
   const handleSubmit = () => {
     if (!ingredientId || !quantity || !unit) {

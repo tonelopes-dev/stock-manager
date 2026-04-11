@@ -35,7 +35,7 @@ import { Loader2Icon, CalendarIcon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
-import { NumericFormat, NumericFormatProps } from "react-number-format";
+import { NumericFormat, NumericFormatProps, NumberFormatValues } from "react-number-format";
 import { toast } from "sonner";
 import * as React from "react";
 import { Switch } from "@/app/_components/ui/switch";
@@ -114,27 +114,29 @@ const UnitSelectorField = ({
     <FormItem>
       <FormLabel htmlFor={testId}>{label}</FormLabel>
       <div className="flex gap-2">
-            <Input
-              id={testId}
-              name={field.name}
-              aria-label={label}
-              type="number"
-              step="any"
-              value={displayValue}
-              data-testid={`field-${field.name}`}
-              disabled={disabled}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                field.onChange(isNaN(val) ? 0 : val * multiplier);
-              }}
-              className="flex-1"
-            />
+        <NumericFormat
+          id={testId}
+          aria-label={label}
+          thousandSeparator="."
+          decimalSeparator=","
+          decimalScale={3}
+          fixedDecimalScale={false}
+          allowNegative={false}
+          value={displayValue}
+          onValueChange={(values: NumberFormatValues) => {
+            const val = values.floatValue ?? 0;
+            field.onChange(val * multiplier);
+          }}
+          customInput={Input}
+          disabled={disabled}
+          className="flex-1 h-10 rounded-xl"
+        />
         <Select
           value={displayUnit}
           onValueChange={setDisplayUnit}
           disabled={disabled}
         >
-          <SelectTrigger className="w-[80px]" data-testid={`unit-select-${field.name}`}>
+          <SelectTrigger className="w-[80px] h-10 rounded-xl" data-testid={`unit-select-${field.name}`}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -183,10 +185,12 @@ const UpsertIngredientDialogContent = ({
       expirationReminderDate: defaultValues.expirationReminderDate ? new Date(defaultValues.expirationReminderDate) : undefined,
     } : {
       name: "",
+      sku: "",
       unit: "KG",
       cost: 0,
       stock: 0,
       minStock: 0,
+      description: "",
       trackExpiration: false,
       expirationReminderDate: undefined,
     },
@@ -225,39 +229,58 @@ const UpsertIngredientDialogContent = ({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="unit"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Unidade de medida</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  disabled={isEditing}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a unidade" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {UNIT_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {isEditing && (
-                  <p className="text-[10px] text-muted-foreground">
-                    A unidade não pode ser alterada após a criação.
-                  </p>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="sku"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel htmlFor="ingredient-sku-input">SKU / Código</FormLabel>
+                  <Input 
+                    id="ingredient-sku-input"
+                    data-testid="upsert-ingredient-sku-input"
+                    placeholder="Ex: INS-001" 
+                    {...field} 
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="unit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Unidade de medida</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={isEditing}
+                  >
+                    <FormControl>
+                      <SelectTrigger data-testid="upsert-ingredient-unit-select">
+                        <SelectValue placeholder="Selecione a unidade" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {UNIT_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {isEditing && (
+                    <p className="text-[10px] text-muted-foreground">
+                      A unidade não pode ser alterada após a criação.
+                    </p>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <FormField
@@ -326,6 +349,24 @@ const UpsertIngredientDialogContent = ({
                   </p>
                 )}
               </>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="ingredient-description-input">Descrição / Notas</FormLabel>
+                <FormControl>
+                  <Input 
+                    id="ingredient-description-input"
+                    placeholder="Ex: Utilizado principalmente para a produção de hambúrgueres..." 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
 
