@@ -88,7 +88,11 @@ const PlansPage = async () => {
                   </p>
                   <p className="text-sm font-semibold">
                     {expiresAt
-                      ? `Até ${new Date(expiresAt).toLocaleDateString()}`
+                      ? `Até ${new Date(expiresAt).toLocaleDateString("pt-BR", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}`
                       : "Sem período ativo"}
                   </p>
                 </div>
@@ -131,6 +135,7 @@ const PlansPage = async () => {
               isPro={subscriptionStatus === "ACTIVE"}
               isCurrent={subscriptionStatus === "ACTIVE"}
               actionLabel={uiState.primaryCTA.label}
+              allowRenewal={uiState.allowRenewal}
               externalLink={isBoletoPending ? null : null} // Placeholder for any MP specific pending links if needed
               externalLabel="Visualizar Pagamento"
             />
