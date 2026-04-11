@@ -64,6 +64,7 @@ export const recordStockMovement = async (
           userId: params.userId,
           type: params.type,
           saleId: params.saleId,
+          orderId: params.orderId,
           reason: params.reason,
           stockBefore,
           stockAfter,
@@ -91,3 +92,55 @@ export const recordStockMovement = async (
     throw error;
   }
 };
+
+/**
+ * Recursively processes stock movements for a product and its ingredients (Ficha Técnica).
+ */
+export async function processRecursiveStockMovement(
+  params: RecordStockMovementParams,
+  trx: Prisma.TransactionClient
+) {
+  const visited = new Set<string>();
+  const { productId, quantity, companyId, userId, type, saleId, orderId, forceAllowNegative } = params;
+
+  const recursive = async (pid: string, qty: Prisma.Decimal) => {
+    if (visited.has(pid)) return;
+    visited.add(pid);
+
+    // Fetch product with its composition
+    const product = await trx.product.findUnique({
+      where: { id: pid },
+      include: { parentCompositions: true },
+    });
+
+    if (!product) return;
+
+    // 1. Record movement for the product itself
+    await recordStockMovement(
+      {
+        productId: pid,
+        companyId,
+        userId,
+        type,
+        quantity: qty,
+        saleId,
+        orderId,
+        forceAllowNegative: forceAllowNegative ?? true,
+      },
+      trx
+    );
+
+    // 2. If it has children (Ficha Técnica / Composition), recurse
+    if (product.parentCompositions && product.parentCompositions.length > 0) {
+      for (const comp of product.parentCompositions) {
+        // The quantity of the child is: (quantity sold/moved) * (quantity in composition)
+        const childQty = qty.mul(new Prisma.Decimal(comp.quantity.toString()));
+        await recursive(comp.childId, childQty);
+      }
+    }
+
+    visited.delete(pid);
+  };
+
+  await recursive(productId, new Prisma.Decimal(quantity.toString()));
+}

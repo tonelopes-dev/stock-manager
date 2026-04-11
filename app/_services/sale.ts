@@ -1,5 +1,5 @@
 import { db } from "@/app/_lib/prisma";
-import { recordStockMovement } from "@/app/_lib/stock";
+import { recordStockMovement, processRecursiveStockMovement } from "@/app/_lib/stock";
 import { BusinessError } from "@/app/_lib/errors";
 import { PaymentMethod, Prisma } from "@prisma/client";
 
@@ -19,59 +19,6 @@ interface UpsertSaleParams {
     id: string;
     quantity: number;
   }[];
-}
-
-/**
- * Recursively deducts stock for a product and its components.
- */
-async function processDeduction(
-  productId: string,
-  quantity: number | Prisma.Decimal,
-  companyId: string,
-  userId: string,
-  saleId: string,
-  trx: Prisma.TransactionClient
-) {
-  // Use a map to prevent infinite loops should the UI validation fail
-  const visited = new Set<string>();
-  
-  const recursive = async (pid: string, qty: Prisma.Decimal) => {
-    if (visited.has(pid)) return;
-    visited.add(pid);
-
-    // Fetch product with its composition (child items)
-    const product = await trx.product.findUnique({
-      where: { id: pid },
-      include: { parentCompositions: true },
-    });
-
-    if (!product) return;
-
-    // Record movement for the product itself (Always deduct)
-    await recordStockMovement(
-      {
-        productId: pid,
-        companyId,
-        userId,
-        type: "SALE",
-        quantity: qty.negated(),
-        saleId,
-        forceAllowNegative: true, // PDV recursive deduction never blocks
-      },
-      trx
-    );
-
-    // If it has children (COMBO or PRODUCAO_PROPRIA), recurse for each
-    if (product.parentCompositions && product.parentCompositions.length > 0) {
-      for (const comp of product.parentCompositions) {
-        await recursive(comp.childId, qty.mul(comp.quantity));
-      }
-    }
-    
-    visited.delete(pid);
-  };
-
-  await recursive(productId, new Prisma.Decimal(quantity.toString()));
 }
 
 export const SaleService = {
@@ -102,7 +49,7 @@ export const SaleService = {
 
           for (const movement of movements) {
             if (movement.productId) {
-              await recordStockMovement(
+              await processRecursiveStockMovement(
                 {
                   productId: movement.productId,
                   companyId,
@@ -186,12 +133,16 @@ export const SaleService = {
           }
 
           // Recursive Stock Deduction
-          await processDeduction(
-            product.id,
-            product.quantity,
-            companyId,
-            userId,
-            saleId!,
+          await processRecursiveStockMovement(
+            {
+              productId: product.id,
+              quantity: new Prisma.Decimal(product.quantity.toString()).negated(),
+              companyId,
+              userId,
+              type: "SALE",
+              saleId: saleId!,
+              forceAllowNegative: true,
+            },
             trx
           );
 

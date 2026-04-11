@@ -1,5 +1,5 @@
 import { db } from "@/app/_lib/prisma";
-import { recordStockMovement } from "@/app/_lib/stock";
+import { recordStockMovement, processRecursiveStockMovement } from "@/app/_lib/stock";
 import { BusinessError } from "@/app/_lib/errors";
 import { OrderStatus, Prisma } from "@prisma/client";
 import { notifyKDS } from "@/app/api/kds/events/route";
@@ -96,13 +96,13 @@ export const OrderService = {
         // 3. Reserve Stock (Immediate deduction upon PENDING as per design decision)
         // This ensures items are committed to the kitchen and prevents over-ordering.
         for (const item of itemsWithPrices) {
-          await recordStockMovement(
+          await processRecursiveStockMovement(
             {
               productId: item.productId,
               companyId,
               userId: null, // Public menu orders have no authenticated user
               type: "ORDER",
-              quantity: -item.quantity,
+              quantity: new Prisma.Decimal(item.quantity.toString()).negated(),
               orderId: order.id,
             },
             trx
@@ -138,13 +138,13 @@ export const OrderService = {
         // If canceling, return Reserved Stock
         if (status === OrderStatus.CANCELED && order.status !== OrderStatus.CANCELED) {
           for (const item of order.orderItems) {
-            await recordStockMovement(
+            await processRecursiveStockMovement(
               {
                 productId: item.productId,
                 companyId,
                 userId,
                 type: "CANCEL",
-                quantity: Number(item.quantity),
+                quantity: new Prisma.Decimal(item.quantity.toString()),
                 orderId: order.id,
               },
               trx
@@ -373,13 +373,13 @@ export const OrderService = {
         if (!item) throw new BusinessError("Item não encontrado.");
 
         // 1. Return stock
-        await recordStockMovement(
+        await processRecursiveStockMovement(
           {
             productId: item.productId,
             companyId,
             userId,
             type: "CANCEL",
-            quantity: Number(item.quantity),
+            quantity: new Prisma.Decimal(item.quantity.toString()),
             orderId: item.orderId,
             reason: "Cancelamento manual de item",
           },
