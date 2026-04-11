@@ -14,6 +14,7 @@ import {
 } from "@/app/_components/ui/form";
 import { Input } from "@/app/_components/ui/input";
 import { Button } from "@/app/_components/ui/button";
+import { PatternFormat, NumberFormatValues } from "react-number-format";
 import {
   DialogClose,
   DialogContent,
@@ -118,7 +119,14 @@ const UpsertSupplierDialogContent = ({
                 <FormItem>
                   <FormLabel>Telefone</FormLabel>
                   <FormControl>
-                    <Input placeholder="(11) 99999-9999" {...field} />
+                    <PatternFormat
+                      format="(##) #####-####"
+                      mask="_"
+                      customInput={Input}
+                      placeholder="(11) 99999-9999"
+                      value={field.value}
+                      onValueChange={(values: NumberFormatValues) => field.onChange(values.value)}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -131,7 +139,13 @@ const UpsertSupplierDialogContent = ({
                 <FormItem>
                   <FormLabel>CNPJ / CPF</FormLabel>
                   <FormControl>
-                    <Input placeholder="00.000.000/0000-00" {...field} />
+                    <PatternFormat
+                      format={(field.value ?? "").length <= 11 ? "###.###.###-##" : "##.###.###/####-##"}
+                      customInput={Input}
+                      placeholder="00.000.000/0000-00"
+                      value={field.value}
+                      onValueChange={(values: NumberFormatValues) => field.onChange(values.value)}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
