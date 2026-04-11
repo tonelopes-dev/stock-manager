@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
 import { Button } from "@/app/_components/ui/button";
 import { Input } from "@/app/_components/ui/input";
@@ -24,6 +24,12 @@ export default function InlineStockStatus({ product }: InlineStockStatusProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [stock, setStock] = useState(product.stock ?? 0);
   const [minStock, setMinStock] = useState(product.minStock ?? 0);
+  
+  // Sync state with props when they change (e.g. after producing a batch)
+  useEffect(() => {
+    setStock(product.stock ?? 0);
+    setMinStock(product.minStock ?? 0);
+  }, [product.stock, product.minStock]);
 
   const { execute: executeUpdate, isPending } = useAction(upsertProduct, {
     onSuccess: () => {
