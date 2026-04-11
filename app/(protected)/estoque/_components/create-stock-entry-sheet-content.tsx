@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { NumericFormat, NumberFormatValues } from "react-number-format";
 import {
   Form,
   FormControl,
@@ -84,6 +85,9 @@ const CreateStockEntryDialogContent = ({
     label: p.name,
   }));
 
+  const selectedProduct = products.find((p) => p.id === form.watch("productId"));
+  const unitLabel = selectedProduct?.unit || "";
+
   return (
     <DialogContent data-testid="upsert-stock-entry-dialog" data-ready={isReady} className="sm:max-w-[700px] rounded-3xl">
       <DialogHeader>
@@ -143,16 +147,28 @@ const CreateStockEntryDialogContent = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel htmlFor="stock-entry-quantity-input" className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground mr-1">Quantidade</FormLabel>
-                  <Input 
-                    id="stock-entry-quantity-input"
-                    aria-label="Quantidade da Compra"
-                    type="number" 
-                    step="0.001" 
-                    placeholder="0.00" 
-                    className="h-10 rounded-xl"
-                    {...field} 
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
+                  <FormControl>
+                    <div className="relative">
+                      <NumericFormat
+                        id="stock-entry-quantity-input"
+                        aria-label="Quantidade da Compra"
+                        className="h-10 rounded-xl pr-12"
+                        customInput={Input}
+                        thousandSeparator="."
+                        decimalSeparator=","
+                        decimalScale={3}
+                        fixedDecimalScale={false}
+                        value={field.value === 0 ? "" : field.value}
+                        onValueChange={(values: NumberFormatValues) => field.onChange(values.floatValue ?? 0)}
+                        placeholder="0,000"
+                      />
+                      {unitLabel && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded-md border border-border">
+                          {unitLabel}
+                        </div>
+                      )}
+                    </div>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -164,16 +180,22 @@ const CreateStockEntryDialogContent = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel htmlFor="stock-entry-cost-input" className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground mr-1">Custo Unitário (R$)</FormLabel>
-                  <Input 
-                    id="stock-entry-cost-input"
-                    aria-label="Custo da Compra"
-                    type="number" 
-                    step="0.01" 
-                    placeholder="0.00" 
-                    className="h-10 rounded-xl"
-                    {...field} 
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
+                  <FormControl>
+                    <NumericFormat
+                      id="stock-entry-cost-input"
+                      aria-label="Custo Unitário"
+                      className="h-10 rounded-xl"
+                      customInput={Input}
+                      thousandSeparator="."
+                      decimalSeparator=","
+                      decimalScale={2}
+                      fixedDecimalScale={true}
+                      prefix="R$ "
+                      value={field.value === 0 ? "" : field.value}
+                      onValueChange={(values: NumberFormatValues) => field.onChange(values.floatValue ?? 0)}
+                      placeholder="R$ 0,00"
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

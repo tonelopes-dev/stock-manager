@@ -106,7 +106,7 @@ export const createStockEntry = actionClient
       await AuditService.logWithTransaction(trx, {
         type: AuditEventType.STOCK_ADJUSTED, // Mapear para um novo tipo se necessário
         companyId,
-        entityType: "STOCK_ENTRY",
+        entityType: "PRODUCT",
         entityId: stockEntry.id,
         metadata: {
           productId: data.productId,
