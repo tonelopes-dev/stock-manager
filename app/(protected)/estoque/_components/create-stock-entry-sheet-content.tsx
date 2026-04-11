@@ -156,11 +156,11 @@ const CreateStockEntryDialogContent = ({
                         customInput={Input}
                         thousandSeparator="."
                         decimalSeparator=","
-                        decimalScale={3}
+                        decimalScale={unitLabel === "UN" ? 0 : 3}
                         fixedDecimalScale={false}
                         value={field.value === 0 ? "" : field.value}
                         onValueChange={(values: NumberFormatValues) => field.onChange(values.floatValue ?? 0)}
-                        placeholder="0,000"
+                        placeholder={unitLabel === "UN" ? "0" : "0,000"}
                       />
                       {unitLabel && (
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded-md border border-border">

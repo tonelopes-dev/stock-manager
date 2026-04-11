@@ -110,6 +110,8 @@ const UnitSelectorField = ({
   // Use a ref to avoid infinite loops if needed, but field.value is the source of truth
   const displayValue = field.value !== undefined ? field.value / multiplier : "";
 
+  const isUnitBase = baseUnit === "UN";
+
   return (
     <FormItem>
       <FormLabel htmlFor={testId}>{label}</FormLabel>
@@ -119,7 +121,7 @@ const UnitSelectorField = ({
           aria-label={label}
           thousandSeparator="."
           decimalSeparator=","
-          decimalScale={3}
+          decimalScale={isUnitBase ? 0 : 3}
           fixedDecimalScale={false}
           allowNegative={false}
           value={displayValue}
@@ -203,50 +205,56 @@ const UpsertIngredientDialogContent = ({
   const isEditing = !!defaultValues;
 
   return (
-    <DialogContent data-testid="upsert-ingredient-dialog" data-ready={isReady}>
+    <DialogContent data-testid="upsert-ingredient-dialog" data-ready={isReady} className="sm:max-w-[600px] rounded-3xl">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <DialogHeader>
             <DialogTitle>{isEditing ? "Editar" : "Novo"} insumo</DialogTitle>
             <DialogDescription>Insira as informações do insumo</DialogDescription>
           </DialogHeader>
 
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel htmlFor="ingredient-name-input">Nome</FormLabel>
-                <Input 
-                  id="ingredient-name-input"
-                  data-testid="upsert-ingredient-name-input"
-                  aria-label="Nome do Insumo"
-                  placeholder="Ex: Carne bovina, Cachaça, Limão..." 
-                  {...field} 
-                />
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div className="md:col-span-8">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor="ingredient-name-input">Nome</FormLabel>
+                    <Input 
+                      id="ingredient-name-input"
+                      data-testid="upsert-ingredient-name-input"
+                      aria-label="Nome do Insumo"
+                      placeholder="Ex: Carne bovina, Cachaça, Limão..." 
+                      {...field} 
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="sku"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="ingredient-sku-input">SKU / Código</FormLabel>
-                  <Input 
-                    id="ingredient-sku-input"
-                    data-testid="upsert-ingredient-sku-input"
-                    placeholder="Ex: INS-001" 
-                    {...field} 
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="md:col-span-4">
+              <FormField
+                control={form.control}
+                name="sku"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor="ingredient-sku-input">SKU / Código</FormLabel>
+                    <Input 
+                      id="ingredient-sku-input"
+                      data-testid="upsert-ingredient-sku-input"
+                      placeholder="Ex: INS-001" 
+                      {...field} 
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="unit"
@@ -280,9 +288,7 @@ const UpsertIngredientDialogContent = ({
                 </FormItem>
               )}
             />
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="cost"
@@ -309,11 +315,34 @@ const UpsertIngredientDialogContent = ({
                   />
                   {isEditing && (
                     <p className="mt-1 text-[10px] text-muted-foreground">
-                      O custo unitário é atualizado automaticamente por Compras.
+                      O custo unitário é atualizado por Compras.
                     </p>
                   )}
                   <FormMessage />
                 </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="stock"
+              render={({ field }) => (
+                <div className="flex flex-col">
+                  <UnitSelectorField
+                    label="Estoque Atual"
+                    field={field}
+                    baseUnit={form.watch("unit")}
+                    disabled={isEditing}
+                    testId="ingredient-stock-input"
+                  />
+                  {isEditing && (
+                    <p className="mt-1 text-[10px] text-muted-foreground">
+                      Atualizado por Compras ou Produção.
+                    </p>
+                  )}
+                </div>
               )}
             />
 
@@ -330,27 +359,6 @@ const UpsertIngredientDialogContent = ({
               )}
             />
           </div>
-
-          <FormField
-            control={form.control}
-            name="stock"
-            render={({ field }) => (
-              <>
-                <UnitSelectorField
-                  label="Estoque Atual"
-                  field={field}
-                  baseUnit={form.watch("unit")}
-                  disabled={isEditing}
-                  testId="ingredient-stock-input"
-                />
-                {isEditing && (
-                  <p className="mt-1 text-[10px] text-muted-foreground">
-                    O estoque é atualizado por Compras, Produção ou Ajustes Manuais.
-                  </p>
-                )}
-              </>
-            )}
-          />
 
           <FormField
             control={form.control}

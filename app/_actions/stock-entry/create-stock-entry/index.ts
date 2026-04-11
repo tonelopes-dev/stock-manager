@@ -62,6 +62,16 @@ export const createStockEntry = actionClient
     const { userId } = await assertRole(ADMIN_AND_OWNER);
 
     const result = await db.$transaction(async (trx) => {
+      // 0. Buscar a unidade do produto para validação
+      const product = await trx.product.findUnique({
+        where: { id: data.productId },
+        select: { unit: true }
+      });
+
+      if (product?.unit === "UN" && !Number.isInteger(data.quantity)) {
+        throw new Error("Produtos por unidade não aceitam frações (casas decimais).");
+      }
+
       // 1. Criar o registro de Entrada de Mercadoria
       const stockEntry = await trx.stockEntry.create({
         data: {
@@ -104,7 +114,7 @@ export const createStockEntry = actionClient
 
       // 5. Auditoria
       await AuditService.logWithTransaction(trx, {
-        type: AuditEventType.STOCK_ADJUSTED, // Mapear para um novo tipo se necessário
+        type: AuditEventType.STOCK_ADJUSTED, 
         companyId,
         entityType: "PRODUCT",
         entityId: stockEntry.id,
@@ -121,10 +131,10 @@ export const createStockEntry = actionClient
 
     // Revalidação de caminhos afetados
     revalidatePath("/estoque");
-    revalidatePath("/products");
-    revalidatePath("/estoque");
+    revalidatePath("/cardapio");
     revalidatePath("/dashboard");
     revalidatePath("/reports");
 
-    return result;
+    // Fix Serialization: Convert Decimal objects from Prisma to plain numbers
+    return JSON.parse(JSON.stringify(result));
   });

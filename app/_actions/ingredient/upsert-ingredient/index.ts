@@ -44,6 +44,11 @@ export const upsertIngredient = actionClient
 
         // Set initial stock via movement for auditability
         if (stock && stock > 0) {
+          // Validation: Units cannot have decimals
+          if (data.unit === "UN" && !Number.isInteger(stock)) {
+            throw new Error("Estoque inicial de produtos por unidade deve ser um número inteiro.");
+          }
+
           await IngredientService.adjustStock(
             {
               ingredientId: ingredient.id,
