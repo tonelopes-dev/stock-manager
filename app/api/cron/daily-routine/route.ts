@@ -167,11 +167,27 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // --- 7. Subscription Status Consistency ---
+    const expiredUpdateResult = await db.company.updateMany({
+      where: {
+        expiresAt: {
+          lt: today,
+        },
+        subscriptionStatus: {
+          in: ["ACTIVE", "TRIALING"],
+        },
+      },
+      data: {
+        subscriptionStatus: "PAST_DUE",
+      },
+    });
+
     return NextResponse.json({
       success: true,
       scanned: items.length,
       created: createdCount,
       emailsSent: emailsSent,
+      expiredUpdated: expiredUpdateResult.count,
     });
   } catch (error) {
     console.error("[CRON ERROR]:", error);

@@ -14,6 +14,7 @@
     "db:sync": "node scripts/sync-db.ts",
     "test:emails": "npx tsx scripts/test-personal-email.ts",
     "test:all-emails": "npx tsx scripts/send-all-templates.ts",
+    "test:billing-emails": "npx tsx scripts/test-billing-emails.ts",
     "test": "dotenv -e .env.test -- vitest run",
     "test:watch": "dotenv -e .env.test -- vitest",
     "test:integration": "dotenv -e .env.test -- vitest run tests/integration",

@@ -4,3 +4,4 @@ export * from "./invitation";
 export * from "./password-reset";
 export * from "./subscription-reminder";
 export * from "./subscription-activated";
+export * from "./payment-failed";

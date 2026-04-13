@@ -9,6 +9,7 @@ interface SubscriptionContextType {
   toggleBanner: () => void;
   subscriptionLevel: SubscriptionLevel;
   daysRemaining: number;
+  expiresAt: Date | null;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(
@@ -19,10 +20,12 @@ export const SubscriptionProvider = ({
   children,
   subscriptionLevel,
   daysRemaining,
+  expiresAt,
 }: {
   children: React.ReactNode;
   subscriptionLevel: SubscriptionLevel;
   daysRemaining: number;
+  expiresAt: Date | null;
 }) => {
   const [isBannerVisible, setIsBannerVisible] = useState(false);
 
@@ -36,6 +39,7 @@ export const SubscriptionProvider = ({
         toggleBanner,
         subscriptionLevel,
         daysRemaining,
+        expiresAt,
       }}
     >
       {children}

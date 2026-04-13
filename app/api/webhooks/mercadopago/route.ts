@@ -1,11 +1,11 @@
 import { mpClient } from "@/app/_lib/mercadopago";
 import { sendEmail } from "@/app/_services/email.service";
-import { subscriptionActivatedTemplate } from "@/app/_services/email/templates";
+import { subscriptionActivatedTemplate, paymentFailedTemplate } from "@/app/_services/email/templates";
 import { Payment } from "mercadopago";
 import { db } from "@/app/_lib/prisma";
 import { NextResponse } from "next/server";
 import { SubscriptionStatus } from "@prisma/client";
-import { format } from "date-fns";
+import { format, addMonths, isAfter } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export const runtime = "nodejs";
@@ -52,9 +52,11 @@ export async function POST(req: Request) {
       console.log(`Expira em: ${companyBefore?.expiresAt?.toLocaleString() || "N/A"}`);
       console.log("============================================================\n");
 
-      // Set expiration to 30 days from now
-      const thirtyDaysFromNow = new Date();
-      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+      // Set expiration to 1 month from now (cumulative)
+      const currentExpiresAt = companyBefore?.expiresAt;
+      const now = new Date();
+      const baseDate = (currentExpiresAt && isAfter(currentExpiresAt, now)) ? currentExpiresAt : now;
+      const newExpiresAt = addMonths(baseDate, 1);
 
       // Resolve company owner for AuditEvent (actorId is mandatory)
       const owner = await db.userCompany.findFirst({
@@ -70,7 +72,7 @@ export async function POST(req: Request) {
         where: { id: companyId },
         data: {
           subscriptionStatus: SubscriptionStatus.ACTIVE,
-          expiresAt: thirtyDaysFromNow,
+          expiresAt: newExpiresAt,
           plan: "PRO",
           isBoletoPending: false,
         },
@@ -92,7 +94,7 @@ export async function POST(req: Request) {
             html: subscriptionActivatedTemplate({
               name: owner.user.name || "parceiro",
               companyName: companyBefore?.name || "sua empresa",
-              expiryDateFormatted: format(thirtyDaysFromNow, "dd/MM/yyyy", { locale: ptBR }),
+              expiryDateFormatted: format(newExpiresAt, "dd/MM/yyyy", { locale: ptBR }),
             }),
           });
           console.log(`[MercadoPago Webhook] Activation email sent to ${owner.user.email}`);
@@ -131,7 +133,37 @@ export async function POST(req: Request) {
       }
 
     } else if (status === "rejected" || status === "cancelled") {
-        console.warn(`[MercadoPago Webhook] ⚠️ Payment ${paymentId} was ${status}`);
+        console.warn(`[MercadoPago Webhook] ⚠️ Payment ${paymentId} was ${status} for company ${companyId}`);
+        
+        // Resolve company owner to notify about failure
+        const owner = await db.userCompany.findFirst({
+          where: { 
+              companyId: companyId,
+              role: "OWNER"
+          },
+          include: { user: { select: { email: true, name: true } } }
+        });
+
+        const company = await db.company.findUnique({
+          where: { id: companyId },
+          select: { name: true }
+        });
+
+        if (owner?.user?.email) {
+          try {
+            await sendEmail({
+              to: owner.user.email,
+              subject: "Problema com seu pagamento ⚠️",
+              html: paymentFailedTemplate({
+                name: owner.user.name || "parceiro",
+                companyName: company?.name || "sua empresa",
+              }),
+            });
+            console.log(`[MercadoPago Webhook] Payment failure email sent to ${owner.user.email}`);
+          } catch (err) {
+            console.error("[MercadoPago Webhook] Failed to send payment failure email:", err);
+          }
+        }
     }
 
     return new NextResponse("OK", { status: 200 });

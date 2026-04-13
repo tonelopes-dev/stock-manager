@@ -1,5 +1,7 @@
 import { SubscriptionStatus as DBStatus } from "@prisma/client";
 import { getSubscriptionStatus } from "@/lib/subscription";
+import { addMonths, format, isAfter } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export interface SubscriptionUIState {
   statusLabel: string;
@@ -16,6 +18,7 @@ export interface SubscriptionUIState {
   severity: "info" | "warning" | "danger" | "success" | "neutral";
   daysRemaining?: number;
   allowRenewal: boolean;
+  renewalDatePreview?: string | null;
 }
 
 export function getSubscriptionUIState(
@@ -26,6 +29,11 @@ export function getSubscriptionUIState(
   const daysRemaining = subStatus.daysRemaining;
   const level = subStatus.level;
 
+  const now = new Date();
+  const baseDate = (periodEnd && isAfter(periodEnd, now)) ? periodEnd : now;
+  const nextPeriodEnd = addMonths(baseDate, 1);
+  const renewalDatePreview = format(nextPeriodEnd, "dd/MM/yyyy", { locale: ptBR });
+
   // 1. TRIALING
   if (status === DBStatus.TRIALING || (!status && daysRemaining > 0)) {
     return {
@@ -33,6 +41,7 @@ export function getSubscriptionUIState(
       description: `${daysRemaining} ${daysRemaining === 1 ? "dia restante" : "dias restantes"}`,
       severity: level === "expired" ? "danger" : level === "urgent" ? "danger" : level === "warning" ? "warning" : "info",
       allowRenewal: true,
+      renewalDatePreview,
       primaryCTA: {
         label: "Ativar plano agora",
         href: "/plans",
@@ -52,9 +61,10 @@ export function getSubscriptionUIState(
         ? `Expira em ${daysRemaining} ${daysRemaining === 1 ? "dia" : "dias"}`
         : "Assinatura ativa",
       severity: level === "urgent" || level === "expired" ? "danger" : level === "warning" ? "warning" : "success",
-      allowRenewal: isExpiringSoon,
+      allowRenewal: true,
+      renewalDatePreview,
       primaryCTA: {
-        label: isExpiringSoon ? "Renovar Assinatura" : "Plano Ativo",
+        label: isExpiringSoon ? "Renovar Assinatura" : "Adicionar +1 Mês",
         href: "/plans",
         variant: isExpiringSoon ? "default" : "outline",
       },
@@ -69,6 +79,7 @@ export function getSubscriptionUIState(
       description: "Regularize para continuar",
       severity: "danger",
       allowRenewal: true,
+      renewalDatePreview,
       primaryCTA: {
         label: "Regularizar",
         href: "/billing-required",
@@ -83,6 +94,7 @@ export function getSubscriptionUIState(
     description: "Inicie seu teste grátis",
     severity: "neutral",
     allowRenewal: true,
+    renewalDatePreview,
     primaryCTA: {
       label: "Explorar Planos",
       href: "/plans",

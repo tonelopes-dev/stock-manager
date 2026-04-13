@@ -17,6 +17,7 @@ interface PlanActionsProps {
   externalProcessing?: boolean;
   externalLink?: string | null;
   externalLabel?: string;
+  renewalDatePreview?: string | null;
 }
 
 const PlanActions = ({
@@ -28,6 +29,7 @@ const PlanActions = ({
   externalProcessing,
   externalLink,
   externalLabel,
+  renewalDatePreview,
 }: PlanActionsProps) => {
   const searchParams = useSearchParams();
   const isRedirectingSuccess = searchParams.get("success") === "true";
@@ -89,6 +91,14 @@ const PlanActions = ({
         {isLoading && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
         {isRedirectingSuccess ? "Processando..." : actionLabel}
       </Button>
+
+      {renewalDatePreview && (
+        <p className="px-1 text-center text-xs text-muted-foreground">
+          Renovando agora, seu plano será estendido em 1 mês (vencimento em{" "}
+          <span className="font-bold text-foreground">{renewalDatePreview}</span>
+          ).
+        </p>
+      )}
     </div>
   );
 };

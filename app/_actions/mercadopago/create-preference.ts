@@ -64,6 +64,7 @@ export const createMercadoPagoPreference = actionClient.action(async () => {
           installments: 1,
         },
         date_of_expiration: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        notification_url: `${baseUrl}/api/webhooks/mercadopago`,
         back_urls: {
           success: successUrl,
           failure: failureUrl,

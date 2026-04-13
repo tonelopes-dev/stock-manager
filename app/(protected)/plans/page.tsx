@@ -136,6 +136,7 @@ const PlansPage = async () => {
               isCurrent={subscriptionStatus === "ACTIVE"}
               actionLabel={uiState.primaryCTA.label}
               allowRenewal={uiState.allowRenewal}
+              renewalDatePreview={uiState.renewalDatePreview}
               externalLink={isBoletoPending ? null : null} // Placeholder for any MP specific pending links if needed
               externalLabel="Visualizar Pagamento"
             />
