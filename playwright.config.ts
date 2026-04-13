@@ -47,7 +47,8 @@ export default defineConfig({
     },
   ],
 
-  // Auto-start the dev server
+  // Auto-start the dev server (Disabled for manual stabilization)
+  /*
   webServer: {
     command: "npm run dev",
     url: "http://localhost:3000",
@@ -56,4 +57,5 @@ export default defineConfig({
     stdout: "pipe",
     stderr: "pipe",
   },
+  */
 });
