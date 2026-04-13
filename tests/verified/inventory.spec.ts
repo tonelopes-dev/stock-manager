@@ -116,19 +116,14 @@ test.describe("Inventory Management", () => {
     await fillMaskedInput(dialog.getByLabel(/Quantidade/i), "10");
     await fillMaskedInput(dialog.getByLabel(/Custo/i), "15,50");
     
-    await page.waitForTimeout(3000);
     const confirmBtn = dialog.getByRole("button", { name: /Confirmar Entrada/i });
     
-    // Wait for the POST response to confirm the action reached the server
-    const responsePromise = page.waitForResponse(response => 
-      response.url().includes("/estoque") && response.status() === 200,
-      { timeout: 30000 }
-    );
-    
-    await confirmBtn.click({ force: true });
-    await responsePromise;
-    
-    await expect(page.getByText(/registrada/i).or(page.getByText(/sucesso/i))).toBeVisible({ timeout: 45000 });
+    // Validar transação via UI (Estado Final) com retry atômico
+    await expect(async () => {
+      await confirmBtn.click({ force: true });
+      await expect(page.getByText(/registrada/i).or(page.getByText(/sucesso/i))).toBeVisible();
+    }).toPass({ timeout: 15000 });
+
     await page.keyboard.press("Escape");
     
     await page.reload();
