@@ -31,7 +31,7 @@ export const PaymentSelector = ({ isReadOnly = false }: PaymentSelectorProps) =>
         Forma de Pagamento
       </Label>
       <Select
-        value={paymentMethod || undefined}
+        value={paymentMethod || ""}
         onValueChange={(val) => setValue("paymentMethod", val as PaymentMethod)}
       >
         <SelectTrigger

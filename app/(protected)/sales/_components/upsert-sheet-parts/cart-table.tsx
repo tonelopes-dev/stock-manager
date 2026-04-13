@@ -91,6 +91,7 @@ export const CartTable = ({
                     variant="ghost"
                     size="icon"
                     type="button"
+                    data-testid="remove-item-button"
                     onClick={() => remove(index)}
                     className="h-8 w-8 rounded-lg text-rose-500 opacity-0 transition-opacity hover:bg-rose-50 hover:text-rose-600 group-hover:opacity-100"
                   >

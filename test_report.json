@@ -1,0 +1,367 @@
+{
+  "config": {
+    "configFile": "C:\\Projetos\\stock-manager\\playwright.config.ts",
+    "rootDir": "C:/Projetos/stock-manager/tests/verified",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Projetos/stock-manager/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "setup",
+        "name": "setup",
+        "testDir": "C:/Projetos/stock-manager/tests/verified",
+        "testIgnore": [],
+        "testMatch": [
+          "/global-setup\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Projetos/stock-manager/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Projetos/stock-manager/tests/verified",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "global-setup.ts",
+      "file": "global-setup.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "authenticate as Matheus (Owner)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "setup",
+              "projectName": "setup",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2813,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "Navigating to /login...\n"
+                    },
+                    {
+                      "text": "Filling credentials...\n"
+                    },
+                    {
+                      "text": "Submitting login form...\n"
+                    },
+                    {
+                      "text": "Waiting for redirect...\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-04-12T19:13:55.661Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "13722ad43cd6b8b1aa42-c2cedf77ba6115ef25d8",
+          "file": "global-setup.ts",
+          "line": 13,
+          "column": 6
+        }
+      ]
+    },
+    {
+      "title": "dashboard-filters.spec.ts",
+      "file": "dashboard-filters.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Dashboard Analytics & Filters",
+          "file": "dashboard-filters.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Cenário A: Navegação entre Visões (Tabs)",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 11958,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/view=inteligencia/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:3000/sales\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"http://localhost:3000/sales\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/view=inteligencia/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:3000/sales\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"http://localhost:3000/sales\"\u001b[22m\n\n    at C:\\Projetos\\stock-manager\\tests\\verified\\dashboard-filters.spec.ts:19:24",
+                        "location": {
+                          "file": "C:\\Projetos\\stock-manager\\tests\\verified\\dashboard-filters.spec.ts",
+                          "column": 24,
+                          "line": 19
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 17 |\u001b[39m     \u001b[90m// 2. Mudar para Inteligência\u001b[39m\n \u001b[90m 18 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m\"tab\"\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/Inteligência/i\u001b[39m })\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 19 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveURL(\u001b[35m/view=inteligencia/\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 20 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[35m/Painel Operacional/i\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 21 |\u001b[39m\n \u001b[90m 22 |\u001b[39m     \u001b[90m// 3. Mudar para Gorjetas\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Projetos\\stock-manager\\tests\\verified\\dashboard-filters.spec.ts",
+                            "column": 24,
+                            "line": 19
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/view=inteligencia/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:3000/sales\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"http://localhost:3000/sales\"\u001b[22m\n\n\n  17 |     // 2. Mudar para Inteligência\n  18 |     await page.getByRole(\"tab\", { name: /Inteligência/i }).click();\n> 19 |     await expect(page).toHaveURL(/view=inteligencia/);\n     |                        ^\n  20 |     await expect(page.getByText(/Painel Operacional/i)).toBeVisible();\n  21 |\n  22 |     // 3. Mudar para Gorjetas\n    at C:\\Projetos\\stock-manager\\tests\\verified\\dashboard-filters.spec.ts:19:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-12T19:14:00.319Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Projetos\\stock-manager\\test-results\\dashboard-filters-Dashboar-0034a-avegação-entre-Visões-Tabs--chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Projetos\\stock-manager\\test-results\\dashboard-filters-Dashboar-0034a-avegação-entre-Visões-Tabs--chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Projetos\\stock-manager\\test-results\\dashboard-filters-Dashboar-0034a-avegação-entre-Visões-Tabs--chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Projetos\\stock-manager\\tests\\verified\\dashboard-filters.spec.ts",
+                        "column": 24,
+                        "line": 19
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "312a33d0f253530f3ed7-1d5aff4d11e225df6b62",
+              "file": "dashboard-filters.spec.ts",
+              "line": 11,
+              "column": 7
+            },
+            {
+              "title": "Cenário B: Filtros Temporais Rápidos (Presets)",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 4057,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('div.grid:has-text(\\'Faturamento\\')').last().locator('.text-2xl')\nExpected: visible\nError: strict mode violation: locator('div.grid:has-text(\\'Faturamento\\')').last().locator('.text-2xl') resolved to 4 elements:\n    1) <div class=\"text-2xl font-black text-foreground\">R$ 2.482,00</div> aka getByText('R$ 2.482,00')\n    2) <div class=\"text-2xl font-black text-foreground\">34</div> aka getByText('34')\n    3) <div class=\"text-2xl font-black text-foreground\">R$ 73,00</div> aka getByText('R$ 73,00')\n    4) <div class=\"text-2xl font-black text-foreground\">R$ 1.489,60</div> aka getByText('R$ 1.489,60')\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('div.grid:has-text(\\'Faturamento\\')').last().locator('.text-2xl')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('div.grid:has-text(\\'Faturamento\\')').last().locator('.text-2xl')\nExpected: visible\nError: strict mode violation: locator('div.grid:has-text(\\'Faturamento\\')').last().locator('.text-2xl') resolved to 4 elements:\n    1) <div class=\"text-2xl font-black text-foreground\">R$ 2.482,00</div> aka getByText('R$ 2.482,00')\n    2) <div class=\"text-2xl font-black text-foreground\">34</div> aka getByText('34')\n    3) <div class=\"text-2xl font-black text-foreground\">R$ 73,00</div> aka getByText('R$ 73,00')\n    4) <div class=\"text-2xl font-black text-foreground\">R$ 1.489,60</div> aka getByText('R$ 1.489,60')\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('div.grid:has-text(\\'Faturamento\\')').last().locator('.text-2xl')\u001b[22m\n\n    at C:\\Projetos\\stock-manager\\tests\\verified\\dashboard-filters.spec.ts:37:36",
+                        "location": {
+                          "file": "C:\\Projetos\\stock-manager\\tests\\verified\\dashboard-filters.spec.ts",
+                          "column": 36,
+                          "line": 37
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 35 |\u001b[39m     \n \u001b[90m 36 |\u001b[39m     \u001b[90m// Esperar os dados carregarem (estratégia de URL já validada no beforeEach/Cenário A)\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 37 |\u001b[39m     \u001b[36mawait\u001b[39m expect(faturamentoValue)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 38 |\u001b[39m     \u001b[36mconst\u001b[39m initialValue \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m faturamentoValue\u001b[33m.\u001b[39minnerText()\u001b[33m;\u001b[39m\n \u001b[90m 39 |\u001b[39m\n \u001b[90m 40 |\u001b[39m     \u001b[90m// 1. Filtrar \"30 Dias\"\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Projetos\\stock-manager\\tests\\verified\\dashboard-filters.spec.ts",
+                            "column": 36,
+                            "line": 37
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('div.grid:has-text(\\'Faturamento\\')').last().locator('.text-2xl')\nExpected: visible\nError: strict mode violation: locator('div.grid:has-text(\\'Faturamento\\')').last().locator('.text-2xl') resolved to 4 elements:\n    1) <div class=\"text-2xl font-black text-foreground\">R$ 2.482,00</div> aka getByText('R$ 2.482,00')\n    2) <div class=\"text-2xl font-black text-foreground\">34</div> aka getByText('34')\n    3) <div class=\"text-2xl font-black text-foreground\">R$ 73,00</div> aka getByText('R$ 73,00')\n    4) <div class=\"text-2xl font-black text-foreground\">R$ 1.489,60</div> aka getByText('R$ 1.489,60')\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('div.grid:has-text(\\'Faturamento\\')').last().locator('.text-2xl')\u001b[22m\n\n\n  35 |     \n  36 |     // Esperar os dados carregarem (estratégia de URL já validada no beforeEach/Cenário A)\n> 37 |     await expect(faturamentoValue).toBeVisible();\n     |                                    ^\n  38 |     const initialValue = await faturamentoValue.innerText();\n  39 |\n  40 |     // 1. Filtrar \"30 Dias\"\n    at C:\\Projetos\\stock-manager\\tests\\verified\\dashboard-filters.spec.ts:37:36"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-12T19:14:14.339Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Projetos\\stock-manager\\test-results\\dashboard-filters-Dashboar-163ff--Temporais-Rápidos-Presets--chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Projetos\\stock-manager\\test-results\\dashboard-filters-Dashboar-163ff--Temporais-Rápidos-Presets--chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Projetos\\stock-manager\\test-results\\dashboard-filters-Dashboar-163ff--Temporais-Rápidos-Presets--chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Projetos\\stock-manager\\tests\\verified\\dashboard-filters.spec.ts",
+                        "column": 36,
+                        "line": 37
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "312a33d0f253530f3ed7-35af299ed6434f59c775",
+              "file": "dashboard-filters.spec.ts",
+              "line": 28,
+              "column": 7
+            },
+            {
+              "title": "Cenário C: Filtro Customizado (Calendário Radix)",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 63499,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "C:\\Projetos\\stock-manager\\tests\\verified\\dashboard-filters.spec.ts",
+                            "column": 78,
+                            "line": 72
+                          },
+                          "message": "Error: locator.click: Test timeout of 60000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('dialog').getByRole('gridcell', { name: '1', exact: true }).first()\u001b[22m\n\n\n  70 |     // 2. Selecionar Range (Dias fixos no mês atual)\n  71 |     // Usar getByRole(\"gridcell\") que é mais estável no react-day-picker/Radix\n> 72 |     await calendar.getByRole(\"gridcell\", { name: \"1\", exact: true }).first().click();\n     |                                                                              ^\n  73 |     await calendar.getByRole(\"gridcell\", { name: \"10\", exact: true }).first().click();\n  74 |\n  75 |     // 3. Aplicar\n    at C:\\Projetos\\stock-manager\\tests\\verified\\dashboard-filters.spec.ts:72:78"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-12T19:14:20.109Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Projetos\\stock-manager\\test-results\\dashboard-filters-Dashboar-83016-stomizado-Calendário-Radix--chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Projetos\\stock-manager\\test-results\\dashboard-filters-Dashboar-83016-stomizado-Calendário-Radix--chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Projetos\\stock-manager\\test-results\\dashboard-filters-Dashboar-83016-stomizado-Calendário-Radix--chromium\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "312a33d0f253530f3ed7-5feee374e35bb0c9be88",
+              "file": "dashboard-filters.spec.ts",
+              "line": 61,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-04-12T19:13:00.212Z",
+    "duration": 143642.087,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 3,
+    "flaky": 0
+  }
+}

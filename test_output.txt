@@ -1,0 +1,46 @@
+
+Running 2 tests using 1 worker
+
+Navigating to /login...
+Filling credentials...
+Submitting login form...
+Waiting for redirect...
+  ok 1 [setup] › tests\verified\global-setup.ts:13:6 › authenticate as Matheus (Owner) (3.7s)
+  x  2 [chromium] › tests\verified\dashboard-filters.spec.ts:9:7 › Dashboard Analytics - Consertando a Estabilidade › Fluxo Completo: Vistas e Filtros (12.1s)
+
+
+  1) [chromium] › tests\verified\dashboard-filters.spec.ts:9:7 › Dashboard Analytics - Consertando a Estabilidade › Fluxo Completo: Vistas e Filtros 
+
+    Error: [2mexpect([22m[31mpage[39m[2m).[22mtoHaveURL[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Expected pattern: [32m/view=gestao/[39m
+    Received string:  [31m"http://localhost:3000/sales?view=inteligencia"[39m
+    Timeout: 10000ms
+
+    Call log:
+    [2m  - Expect "toHaveURL" with timeout 10000ms[22m
+    [2m    13 × unexpected value "http://localhost:3000/sales?view=inteligencia"[22m
+
+
+      17 |     // --- ETAPA A: TABS ---
+      18 |     await page.getByRole("tab", { name: /Gest.o/i }).click();
+    > 19 |     await expect(page).toHaveURL(/view=gestao/);
+         |                        ^
+      20 |     
+      21 |     await page.getByRole("tab", { name: /Intelig.ncia/i }).click();
+      22 |     await expect(page).toHaveURL(/view=inteligencia/);
+        at C:\Projetos\stock-manager\tests\verified\dashboard-filters.spec.ts:19:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\dashboard-filters-Dashboar-a04e2-o-Completo-Vistas-e-Filtros-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\dashboard-filters-Dashboar-a04e2-o-Completo-Vistas-e-Filtros-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\dashboard-filters-Dashboar-a04e2-o-Completo-Vistas-e-Filtros-chromium\error-context.md
+
+  1 failed
+    [chromium] › tests\verified\dashboard-filters.spec.ts:9:7 › Dashboard Analytics - Consertando a Estabilidade › Fluxo Completo: Vistas e Filtros 
+  1 passed (18.9s)

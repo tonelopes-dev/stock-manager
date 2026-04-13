@@ -46,6 +46,7 @@ export default function InlineProductHeader({ product }: InlineProductHeaderProp
   const [name, setName] = useState(product.name || "");
   const [type, setType] = useState(product.type || "REVENDA");
   const [unit, setUnit] = useState<UnitType>(product.unit || UnitType.UN);
+  const [isMadeToOrder, setIsMadeToOrder] = useState(product.isMadeToOrder ?? true);
 
   const { execute: executeUpdate, isPending } = useAction(upsertProduct, {
     onSuccess: () => {
@@ -62,6 +63,7 @@ export default function InlineProductHeader({ product }: InlineProductHeaderProp
       name: name || "Sem nome",
       type: type as any,
       unit,
+      isMadeToOrder,
       // Map other fields to ensure schema validity
       price: product.price || 0,
       cost: product.cost || 0,
@@ -92,7 +94,7 @@ export default function InlineProductHeader({ product }: InlineProductHeaderProp
                   placeholder="Nome do produto"
                   autoFocus
                 />
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <div className="space-y-1">
                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Tipo</p>
                     <Select onValueChange={setType} value={type}>
@@ -122,6 +124,23 @@ export default function InlineProductHeader({ product }: InlineProductHeaderProp
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="space-y-1 border-l pl-4 border-slate-200">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Baixa de Estoque</p>
+                    <div 
+                      onClick={() => setIsMadeToOrder(!isMadeToOrder)}
+                      className={cn(
+                        "h-9 px-3 flex items-center gap-2 rounded-xl cursor-pointer transition-all border border-transparent shadow-sm",
+                        isMadeToOrder ? "bg-primary/10 text-primary border-primary/20" : "bg-orange-50 text-orange-700 border-orange-200"
+                      )}
+                    >
+                      <div className={cn("h-4 w-4 rounded-full border-2 border-current flex items-center justify-center")}>
+                        {isMadeToOrder && <div className="h-2 w-2 rounded-full bg-current" />}
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-tight">
+                        {isMadeToOrder ? "Feito na Hora" : "Por Lote"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -129,6 +148,9 @@ export default function InlineProductHeader({ product }: InlineProductHeaderProp
                 <div className="flex items-center gap-3">
                   <Badge className={cn("px-3 py-0.5 rounded-xl text-[9px] font-black uppercase tracking-[0.1em] border-none shadow-sm", typeConfig.className)}>
                     {typeConfig.label}
+                  </Badge>
+                  <Badge variant="outline" className={cn("px-3 py-0.5 rounded-xl text-[9px] font-black uppercase tracking-[0.1em] border-none shadow-sm", isMadeToOrder ? "bg-primary/10 text-primary" : "bg-orange-50 text-orange-700")}>
+                    {isMadeToOrder ? "Feito na Hora" : "Por Lote"}
                   </Badge>
                   <div className="h-1 w-1 rounded-full bg-slate-300" />
                   <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">

@@ -10,6 +10,12 @@ import {
   DropdownMenuTrigger,
 } from "@/app/_components/ui/dropdown-menu";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/app/_components/ui/tooltip";
+import {
   MoreHorizontalIcon,
   EditIcon,
   TrashIcon,
@@ -103,13 +109,35 @@ const ProductTableDropdownMenu = ({
                 Editar
               </DropdownMenuItem>
 
-              <DropdownMenuItem
-                className="gap-1.5"
-                onClick={() => setAdjustStockDialogOpen(true)}
-              >
-                <PackagePlusIcon size={16} />
-                Ajustar Estoque
-              </DropdownMenuItem>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span 
+                      className="w-full" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                      }}
+                    >
+                      <DropdownMenuItem
+                        className="gap-1.5 w-full"
+                        onClick={() => setAdjustStockDialogOpen(true)}
+                        disabled={product.isMadeToOrder}
+                      >
+                        <PackagePlusIcon size={16} />
+                        Ajustar Estoque
+                      </DropdownMenuItem>
+                    </span>
+                  </TooltipTrigger>
+                  {product.isMadeToOrder && (
+                    <TooltipContent side="left" className="max-w-[300px] bg-primary text-primary-foreground border-none">
+                      <p className="text-xs">
+                        O estoque deste produto é calculado automaticamente através da sua Ficha Técnica (Feito na Hora).
+                      </p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
 
               <DropdownMenuItem
                 className="gap-1.5"
@@ -162,6 +190,7 @@ const ProductTableDropdownMenu = ({
             expirationDate: product.expirationDate ? new Date(product.expirationDate) : undefined,
             trackExpiration: product.trackExpiration,
             imageUrl: product.imageUrl || "",
+            isMadeToOrder: product.isMadeToOrder,
           }}
           setDialogIsOpen={setEditDialogOpen}
           categories={categories}

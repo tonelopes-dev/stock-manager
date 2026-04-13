@@ -117,13 +117,15 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
                     Insumos necessários para a produção deste produto
                   </CardDescription>
                 </div>
-                <ProduceBatchModal
-                  productId={serializedProduct.id}
-                  productName={serializedProduct.name}
-                  productStock={serializedProduct.stock}
-                  recipeCost={serializedProduct.recipeCost}
-                  recipes={serializedProduct.recipes}
-                />
+                {!serializedProduct.isMadeToOrder && (
+                  <ProduceBatchModal
+                    productId={serializedProduct.id}
+                    productName={serializedProduct.name}
+                    productStock={serializedProduct.stock}
+                    recipeCost={serializedProduct.recipeCost}
+                    recipes={serializedProduct.recipes}
+                  />
+                )}
               </CardHeader>
               <CardContent className="space-y-6">
                 <RecipeTable
@@ -174,7 +176,9 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
           <InlineProductImage product={serializedProduct as any} />
 
           {/* Stock Status Block (Inline Editable) */}
-          <InlineStockStatus product={serializedProduct as any} />
+          {!serializedProduct.isMadeToOrder && (
+            <InlineStockStatus product={serializedProduct as any} />
+          )}
 
           {/* Additional Info Block (Inline Editable) */}
           <InlineAdditionalInfo 

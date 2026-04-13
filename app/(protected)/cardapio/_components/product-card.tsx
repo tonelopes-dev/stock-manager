@@ -58,6 +58,7 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
     <Card 
       className="overflow-hidden cursor-pointer hover:shadow-lg transition-all border-none bg-muted/50"
       onClick={handleClick}
+      data-testid="product-card"
     >
       <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
         {product.imageUrl && !hasError ? (
@@ -138,15 +139,17 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
-            <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-tight">Estoque</span>
-                <p className="text-sm font-semibold text-foreground">
-                    {product.stock} {product.unit}
-                </p>
-            </div>
-            <ProductStatusBadge status={product.status} />
-        </div>
+        {!product.isMadeToOrder && (
+          <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-tight">Estoque</span>
+                  <p className="text-sm font-semibold text-foreground">
+                      {product.stock} {product.unit}
+                  </p>
+              </div>
+              <ProductStatusBadge status={product.status} />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
