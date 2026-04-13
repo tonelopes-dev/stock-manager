@@ -18,22 +18,31 @@ export async function recalculateProductCostRecursive(
     include: { child: true },
   });
 
-  // If it has a composition, calculate sum of children
-  if (compositions.length > 0) {
     let totalCost = 0;
-    for (const comp of compositions) {
-      try {
-        const partialCost = Number(
-          calculateRealCost(
-            comp.quantity.toNumber(),
-            comp.child.unit as UnitType,
-            comp.child.unit as UnitType,
-            comp.child.cost.toNumber()
-          )
-        );
-        totalCost += partialCost;
-      } catch (error) {
-        console.error(`Error calculating cost for composition item ${comp.id}:`, error);
+    if (compositions.length > 0) {
+      const toNum = (val: any) => 
+        typeof val?.toNumber === "function" ? val.toNumber() : Number(val ?? 0);
+
+      for (const comp of compositions) {
+        try {
+          const qty = toNum(comp.quantity);
+          const childCost = toNum(comp.child?.cost);
+          
+          const partialCost = Number(
+            calculateRealCost(
+              qty,
+              comp.child.unit as UnitType,
+              comp.child.unit as UnitType,
+              childCost
+            )
+          );
+          
+          if (!isNaN(partialCost) && isFinite(partialCost)) {
+            totalCost += partialCost;
+          }
+        } catch (error) {
+          console.error(`Error calculating cost for composition item ${comp.id}:`, error);
+        }
       }
     }
 
@@ -41,7 +50,6 @@ export async function recalculateProductCostRecursive(
       where: { id: productId },
       data: { cost: totalCost },
     });
-  }
 
   // 2. Recursively update all parent products that use this product as a component
   const parentCompositions = await client.productComposition.findMany({

@@ -1,4 +1,7 @@
-import { SubscriptionStatus } from "@prisma/client";
+import { SubscriptionStatus as DBStatus } from "@prisma/client";
+import { getSubscriptionStatus } from "@/lib/subscription";
+import { addMonths, format, isAfter } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export interface SubscriptionUIState {
   statusLabel: string;
@@ -14,23 +17,31 @@ export interface SubscriptionUIState {
   };
   severity: "info" | "warning" | "danger" | "success" | "neutral";
   daysRemaining?: number;
+  allowRenewal: boolean;
+  renewalDatePreview?: string | null;
 }
 
 export function getSubscriptionUIState(
-  status: SubscriptionStatus | null,
+  status: DBStatus | null,
   periodEnd: Date | null
 ): SubscriptionUIState {
+  const subStatus = getSubscriptionStatus(periodEnd);
+  const daysRemaining = subStatus.daysRemaining;
+  const level = subStatus.level;
+
   const now = new Date();
-  const end = periodEnd ? new Date(periodEnd) : null;
-  const diffMs = end ? end.getTime() - now.getTime() : 0;
-  const daysRemaining = end ? Math.ceil(diffMs / (1000 * 60 * 60 * 24)) : 0;
+  const baseDate = (periodEnd && isAfter(periodEnd, now)) ? periodEnd : now;
+  const nextPeriodEnd = addMonths(baseDate, 1);
+  const renewalDatePreview = format(nextPeriodEnd, "dd/MM/yyyy", { locale: ptBR });
 
   // 1. TRIALING
-  if (status === SubscriptionStatus.TRIALING || (!status && daysRemaining > 0)) {
+  if (status === DBStatus.TRIALING || (!status && daysRemaining > 0)) {
     return {
       statusLabel: "Teste Gratuito",
       description: `${daysRemaining} ${daysRemaining === 1 ? "dia restante" : "dias restantes"}`,
-      severity: daysRemaining <= 1 ? "danger" : daysRemaining <= 2 ? "warning" : "info",
+      severity: level === "expired" ? "danger" : level === "urgent" ? "danger" : level === "warning" ? "warning" : "info",
+      allowRenewal: true,
+      renewalDatePreview,
       primaryCTA: {
         label: "Ativar plano agora",
         href: "/plans",
@@ -41,16 +52,23 @@ export function getSubscriptionUIState(
   }
 
   // 2. ACTIVE
-  if (status === SubscriptionStatus.ACTIVE) {
+  if (status === DBStatus.ACTIVE) {
+    const isExpiringSoon = level === "warning" || level === "urgent" || level === "expired";
+    
     return {
       statusLabel: "Plano Pro",
-      description: "Assinatura ativa",
-      severity: "success",
+      description: isExpiringSoon 
+        ? `Expira em ${daysRemaining} ${daysRemaining === 1 ? "dia" : "dias"}`
+        : "Assinatura ativa",
+      severity: level === "urgent" || level === "expired" ? "danger" : level === "warning" ? "warning" : "success",
+      allowRenewal: true,
+      renewalDatePreview,
       primaryCTA: {
-        label: "Plano Ativo",
+        label: isExpiringSoon ? "Renovar Assinatura" : "Adicionar +1 Mês",
         href: "/plans",
-        variant: "outline",
+        variant: isExpiringSoon ? "default" : "outline",
       },
+      daysRemaining,
     };
   }
 
@@ -60,6 +78,8 @@ export function getSubscriptionUIState(
       statusLabel: "Assinatura Inativa",
       description: "Regularize para continuar",
       severity: "danger",
+      allowRenewal: true,
+      renewalDatePreview,
       primaryCTA: {
         label: "Regularizar",
         href: "/billing-required",
@@ -73,6 +93,8 @@ export function getSubscriptionUIState(
     statusLabel: "Sem Assinatura",
     description: "Inicie seu teste grátis",
     severity: "neutral",
+    allowRenewal: true,
+    renewalDatePreview,
     primaryCTA: {
       label: "Explorar Planos",
       href: "/plans",

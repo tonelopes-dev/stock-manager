@@ -56,6 +56,7 @@ export default async function ProtectedLayout({
     <SubscriptionProvider
       subscriptionLevel={subscriptionStatus.level}
       daysRemaining={subscriptionStatus.daysRemaining}
+      expiresAt={expiresAt}
     >
       <AppModeProvider>
         <div className="fixed inset-0 flex flex-col overflow-hidden">

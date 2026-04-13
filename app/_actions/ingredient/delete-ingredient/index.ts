@@ -48,6 +48,6 @@ export const deleteIngredient = actionClient
       });
     });
 
-    revalidatePath("/ingredients", "page");
+    revalidatePath("/estoque", "page");
     revalidatePath("/");
   });

@@ -1,7 +1,7 @@
 import "server-only";
 
 import { db } from "@/app/_lib/prisma";
-import { Product, Prisma } from "@prisma/client";
+import { Product, Prisma, ProductType } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { calculateMargin } from "@/app/_lib/pricing";
 import { subDays } from "date-fns";
@@ -32,7 +32,8 @@ export interface ProductDto extends Omit<Product, "price" | "cost" | "operationa
 export const getProducts = async (
   slowMovingDays = 30, 
   status: "ACTIVE" | "INACTIVE" | "ALL" = "ACTIVE",
-  environmentId?: string
+  environmentId?: string,
+  types?: ProductType[]
 ): Promise<ProductDto[]> => {
   const companyId = await getCurrentCompanyId();
   const slowMovingThreshold = subDays(new Date(), slowMovingDays);
@@ -47,6 +48,10 @@ export const getProducts = async (
 
   if (environmentId && environmentId !== "all") {
     where.environmentId = environmentId;
+  }
+
+  if (types && types.length > 0) {
+    where.type = { in: types };
   }
 
   const products = await db.product.findMany({
@@ -131,6 +136,7 @@ export const getProducts = async (
       expirationDate: product.expirationDate,
       trackExpiration: product.trackExpiration,
       expirationReminderDate: product.expirationReminderDate,
+      isMadeToOrder: product.isMadeToOrder,
     };
   });
 };

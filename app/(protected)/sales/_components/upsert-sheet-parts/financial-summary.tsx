@@ -15,7 +15,11 @@ import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { useSaleTotals } from "./use-sale-totals";
 
-export const FinancialSummary = () => {
+interface FinancialSummaryProps {
+  isReadOnly?: boolean;
+}
+
+export const FinancialSummary = ({ isReadOnly = false }: FinancialSummaryProps) => {
   const { watch, setValue } = useFormContext();
   const totals = useSaleTotals();
 
@@ -41,6 +45,7 @@ export const FinancialSummary = () => {
                 onCheckedChange={(val) => setValue("applyServiceCharge", val)}
                 id="service-charge"
                 className="origin-left scale-75"
+                disabled={isReadOnly}
               />
               <div className="flex flex-col">
                 <Label
@@ -75,6 +80,7 @@ export const FinancialSummary = () => {
                 onCheckedChange={(val) => setValue("isEmployeeSale", val)}
                 id="employee-sale"
                 className="origin-left scale-75"
+                disabled={isReadOnly}
               />
               <div className="flex flex-col">
                 <Label
@@ -142,7 +148,7 @@ export const FinancialSummary = () => {
                     if (type === "discount") setValue("extraAmount", 0);
                     else setValue("discountAmount", 0);
                   }}
-                  className="h-7"
+                  className={cn("h-7", isReadOnly && "pointer-events-none opacity-50")}
                 >
                   <TabsList className="h-7 bg-muted/50 p-0.5">
                     <TabsTrigger
@@ -184,6 +190,7 @@ export const FinancialSummary = () => {
                 min={0}
                 placeholder="0,00"
                 className="h-8 pl-8 text-xs font-black text-primary"
+                disabled={isReadOnly}
                 value={
                   adjustmentType === "discount"
                     ? discountAmount || ""
@@ -208,6 +215,7 @@ export const FinancialSummary = () => {
             <Input
               placeholder="Justificativa..."
               className="h-7 text-[10px] italic"
+              disabled={isReadOnly}
               value={adjustmentReason}
               onChange={(e) => setValue("adjustmentReason", e.target.value)}
             />

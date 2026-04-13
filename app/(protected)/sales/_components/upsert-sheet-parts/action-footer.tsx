@@ -17,6 +17,7 @@ interface ActionFooterProps {
   isUpsertPending: boolean;
   isOrderPending: boolean;
   saleId?: string;
+  isReadOnly?: boolean;
 }
 
 export const ActionFooter = ({
@@ -26,12 +27,23 @@ export const ActionFooter = ({
   isUpsertPending,
   isOrderPending,
   saleId,
+  isReadOnly = false,
 }: ActionFooterProps) => {
   const { watch } = useFormContext();
   const items = watch("items") || [];
   const paymentMethod = watch("paymentMethod");
 
   const hasItems = items.length > 0;
+
+  if (isReadOnly) {
+    return (
+      <div className="mt-2 rounded-2xl bg-muted/50 p-3 text-center">
+        <p className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
+          Visualização em modo de consulta
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div

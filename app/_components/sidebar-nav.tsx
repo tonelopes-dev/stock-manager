@@ -12,6 +12,9 @@ import {
   TargetIcon,
   ChefHat,
   QrCode,
+  Truck,
+  Utensils,
+  Boxes,
 } from "lucide-react";
 import SidebarButton from "./sidebar-button";
 import LogoutButton from "./logout-button";
@@ -25,8 +28,9 @@ interface SidebarNavProps {
 const gestaoItems = [
   { href: "/sales", icon: ShoppingBasketIcon, label: "Vendas" },
   { href: "/customers", icon: UsersIcon, label: "CRM" },
-  { href: "/products", icon: PackageIcon, label: "Produtos" },
-  { href: "/ingredients", icon: BeakerIcon, label: "Insumos" },
+  { href: "/cardapio", icon: Utensils, label: "Cardápio" },
+  { href: "/estoque", icon: Boxes, label: "Estoque" },
+  { href: "/fornecedores", icon: Truck, label: "Fornecedores" },
   { href: "/goals", icon: TargetIcon, label: "Metas" },
   { href: "/dashboard", icon: LayoutGridIcon, label: "Dashboard" },
 ];
@@ -35,7 +39,7 @@ const operacaoItems = [
   { href: "/sales", icon: ShoppingBasketIcon, label: "PDV / Vendas" },
   { href: "/kds", icon: ChefHat, label: "Monitor Cozinha" },
   { href: "/menu-management", icon: QrCode, label: "Cardápio Digital" },
-  { href: "/products", icon: PackageIcon, label: "Produtos" },
+  { href: "/cardapio", icon: Utensils, label: "Cardápio" },
 ];
 
 export const SidebarNav = ({ isOwner, isAdminOrOwner }: SidebarNavProps) => {

@@ -4,15 +4,18 @@ import { useFormContext } from "react-hook-form";
 import { UsersIcon, CheckIcon } from "lucide-react";
 import { Combobox, ComboboxOption } from "@/app/_components/ui/combobox";
 import { Badge } from "@/app/_components/ui/badge";
+import { cn } from "@/app/_lib/utils";
 
 interface CustomerSectionProps {
   customerOptions: ComboboxOption[];
   categories: { id: string; name: string }[];
   stages: { id: string; name: string }[];
+  isReadOnly?: boolean;
 }
 
 export const CustomerSection = ({
   customerOptions,
+  isReadOnly = false,
 }: CustomerSectionProps) => {
   const { watch, setValue } = useFormContext();
   const customerId = watch("customerId");
@@ -37,17 +40,20 @@ export const CustomerSection = ({
               onChange={(val) => setValue("customerId", val)}
               placeholder="Selecione o Cliente..."
               className="h-10 text-xs font-bold"
+              disabled={isReadOnly}
             />
           </div>
 
           <Badge
             variant={customerId ? "outline" : "secondary"}
-            className={`h-10 cursor-pointer gap-1.5 whitespace-nowrap px-2.5 py-1 text-[10px] font-black uppercase tracking-tight transition-all active:scale-95 ${
+            className={cn(
+              "h-10 gap-1.5 whitespace-nowrap px-2.5 py-1 text-[10px] font-black uppercase tracking-tight transition-all active:scale-95",
               !customerId
                 ? "border-emerald-500/20 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-600"
-                : "border-border/50 bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
-            }`}
-            onClick={() => setValue("customerId", null)}
+                : "border-border/50 bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground",
+              isReadOnly && "pointer-events-none opacity-50"
+            )}
+            onClick={() => !isReadOnly && setValue("customerId", null)}
           >
             {!customerId && (
               <CheckIcon size={12} className="animate-pulse" />

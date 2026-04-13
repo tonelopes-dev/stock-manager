@@ -19,6 +19,7 @@ model Product {
   cost             Decimal           @default(0) @db.Decimal(10, 2)
   operationalCost  Decimal           @default(0) @db.Decimal(10, 2)
   sku              String?
+  isMadeToOrder    Boolean           @default(true)
   stock            Decimal           @default(0) @db.Decimal(10, 4)
   minStock         Decimal           @default(0) @db.Decimal(10, 4)
   unit             UnitType          @default(UN)
@@ -48,6 +49,10 @@ model Product {
   expirationDate   DateTime?
   trackExpiration  Boolean           @default(false)
   expirationReminderDate DateTime?
+
+  suppliers        ProductSupplier[]
+  stockEntries     StockEntry[]
+
 
   @@unique([sku, companyId])
 }
@@ -138,6 +143,7 @@ model User {
   sales                Sale[]
   sessions             Session[]
   stockMovements       StockMovement[]
+  stockEntries         StockEntry[]
   userCompanies        UserCompany[]
 }
 
@@ -231,6 +237,9 @@ model Company {
   estimatedMonthlyVolume Int                @default(1000)
   enableOverheadInjection Boolean            @default(true)
   fixedExpenses          FixedExpense[]
+  suppliers              Supplier[]
+  stockEntries           StockEntry[]
+
 
   @@index([deletedAt])
 }
@@ -512,6 +521,60 @@ model Notification {
   @@index([companyId])
 }
 
+model Supplier {
+  id             String            @id @default(cuid())
+  name           String
+  contactName    String?
+  email          String?
+  phone          String?
+  taxId          String?           // CNPJ ou CPF
+  companyId      String
+  company        Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  products       ProductSupplier[]
+  stockEntries   StockEntry[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([name, companyId])
+  @@index([companyId])
+}
+
+model ProductSupplier {
+  productId      String
+  supplierId     String
+  supplierSku    String?
+  lastCost       Decimal?          @db.Decimal(10, 2)
+  product        Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  supplier       Supplier          @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@id([productId, supplierId])
+}
+
+model StockEntry {
+  id             String            @id @default(cuid())
+  productId      String
+  supplierId     String?
+  userId         String?
+  companyId      String
+  quantity       Decimal           @db.Decimal(10, 4)
+  unitCost       Decimal           @db.Decimal(10, 2)
+  totalCost      Decimal           @db.Decimal(10, 2)
+  batchNumber    String?
+  expirationDate DateTime?
+  invoiceNumber  String?
+  createdAt      DateTime          @default(now())
+  
+  product        Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  supplier       Supplier?         @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  user           User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  company        Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([supplierId])
+  @@index([companyId])
+}
+
+
 enum SaleStatus {
   ACTIVE
   CANCELED
@@ -554,6 +617,8 @@ enum StockMovementType {
   CANCEL
   PRODUCTION
   ORDER
+  PURCHASE
+  WASTE
 }
 
 enum ProductType {

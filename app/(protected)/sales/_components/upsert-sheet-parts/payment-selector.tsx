@@ -17,7 +17,11 @@ import {
 } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 
-export const PaymentSelector = () => {
+interface PaymentSelectorProps {
+  isReadOnly?: boolean;
+}
+
+export const PaymentSelector = ({ isReadOnly = false }: PaymentSelectorProps) => {
   const { watch, setValue } = useFormContext();
   const paymentMethod = watch("paymentMethod");
 
@@ -27,13 +31,14 @@ export const PaymentSelector = () => {
         Forma de Pagamento
       </Label>
       <Select
-        value={paymentMethod || undefined}
+        value={paymentMethod || ""}
         onValueChange={(val) => setValue("paymentMethod", val as PaymentMethod)}
       >
         <SelectTrigger
           className="h-12 border-border font-bold focus:ring-primary/20"
           aria-label="Forma de Pagamento"
           data-testid="payment-method-select"
+          disabled={isReadOnly}
         >
           <SelectValue placeholder="Selecione..." />
         </SelectTrigger>

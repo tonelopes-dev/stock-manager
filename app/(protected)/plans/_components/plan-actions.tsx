@@ -13,9 +13,11 @@ interface PlanActionsProps {
   isPro: boolean;
   isCurrent: boolean;
   actionLabel: string;
+  allowRenewal?: boolean;
   externalProcessing?: boolean;
   externalLink?: string | null;
   externalLabel?: string;
+  renewalDatePreview?: string | null;
 }
 
 const PlanActions = ({
@@ -23,16 +25,18 @@ const PlanActions = ({
   isPro,
   isCurrent,
   actionLabel,
+  allowRenewal,
   externalProcessing,
   externalLink,
   externalLabel,
+  renewalDatePreview,
 }: PlanActionsProps) => {
   const searchParams = useSearchParams();
   const isRedirectingSuccess = searchParams.get("success") === "true";
   const checkoutAction = useAction(createMercadoPagoPreference, {
     onSuccess: ({ data }) => {
       if (data?.url) {
-        window.location.href = data.url;
+        window.open(data.url, "_blank");
       }
     },
     onError: (error) => {
@@ -43,11 +47,12 @@ const PlanActions = ({
 
   const handleAction = () => {
     if (externalLink) {
-      window.location.href = externalLink;
+      window.open(externalLink, "_blank");
       return;
     }
 
-    if (planName === "Pro" && !isPro) {
+    // Allow checkout if it's the Pro plan AND (not Pro OR allowed to renew)
+    if (planName === "Pro" && (!isPro || allowRenewal)) {
       checkoutAction.execute();
     }
   };
@@ -70,14 +75,14 @@ const PlanActions = ({
       {externalLink && (
         <Button
           className="w-full bg-orange-500 font-bold text-background hover:bg-orange-500"
-          onClick={() => (window.location.href = externalLink)}
+          onClick={() => window.open(externalLink, "_blank")}
         >
           {externalLabel || "Visualizar Boleto"}
         </Button>
       )}
       <Button
-        className="w-full"
-        variant={planName === "Pro" ? "default" : "outline"}
+        className="w-full transition-all active:scale-95"
+        variant={(planName === "Pro" || allowRenewal) ? "default" : "outline"}
         onClick={handleAction}
         disabled={
           isLoading || (isCurrent && planName === "Free" && !externalLink)
@@ -86,6 +91,14 @@ const PlanActions = ({
         {isLoading && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
         {isRedirectingSuccess ? "Processando..." : actionLabel}
       </Button>
+
+      {renewalDatePreview && (
+        <p className="px-1 text-center text-xs text-muted-foreground">
+          Renovando agora, seu plano será estendido em 1 mês (vencimento em{" "}
+          <span className="font-bold text-foreground">{renewalDatePreview}</span>
+          ).
+        </p>
+      )}
     </div>
   );
 };

@@ -69,7 +69,7 @@ export const upsertProduct = actionClient
     const sku = data.sku?.trim() || null;
 
     const result = await db.$transaction(async (trx) => {
-      const { stock, unit, type, cost, operationalCost, expirationDate, trackExpiration, imageUrl, ...rest } = data;
+      const { stock, unit, type, cost, operationalCost, isMadeToOrder, expirationDate, trackExpiration, imageUrl, ...rest } = data;
       
       const categoryId = data.categoryId?.trim() || null;
       const environmentId = data.environmentId?.trim() || null;
@@ -83,6 +83,7 @@ export const upsertProduct = actionClient
         trackExpiration,
         imageUrl,
         operationalCost,
+        isMadeToOrder,
         // If it's a combo/production, we'll calculate cost later
         cost: (type === "COMBO" || type === "PRODUCAO_PROPRIA") ? undefined : cost
       };
@@ -180,9 +181,8 @@ export const upsertProduct = actionClient
       return productId;
     });
 
-    revalidatePath("/", "layout");
-    revalidatePath("/products");
-    revalidatePath("/dashboard");
+    revalidatePath("/cardapio");
+    revalidatePath("/estoque");
     
     return result;
   });

@@ -2,6 +2,12 @@
 
 > **A modern, enterprise-ready inventory management system designed for multi-tenant scalability and precision.**
 
+<div align="center">
+
+[![Português (Brasil)](https://img.shields.io/badge/Leia_em-Português-green?style=for-the-badge&logo=readme)](./docs/README.pt-BR.md)
+
+</div>
+
 [![Next.js](https://img.shields.io/badge/Next.js-16.1.6-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.2.0-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
@@ -12,39 +18,40 @@
 
 ## 🎯 **Project Overview**
 
-KIPO is a robust multi-tenant SaaS solution. It enables business owners to manage inventory across multiple companies, coordinate teams with granular permissions, and gain deep financial insights through advanced analytics—all while scaling effortlessly with Stripe-powered subscriptions.
+KIPO is a robust multi-tenant SaaS solution (v1.4.0). It enables business owners to manage inventory across multiple companies, coordinate teams with granular permissions, and gain deep financial insights through advanced analytics—all while scaling effortlessly with Stripe-powered subscriptions.
 
 ### ✨ **Core SaaS Pillars**
 
 - **🏢 Advanced Multi-tenancy**: Complete data isolation across companies. A single user can be part of multiple organizations with different roles.
-- **📑 Automatic Comandas (New)**: Real-time synchronization of customer consumption. Orders from the Digital Menu update the dashboard instantly via **SSE (Server-Sent Events)**.
+- **📑 Modular Sales & POS (New)**: A completely refactored sales interface featuring specialized containers for Cart management, Customer selection, and real-time Financial Summaries. Supports **Venda Avulsa** (one-off sales) with precision.
+- **🧑‍🍳 Kitchen Display System (KDS)**: Real-time order management system. Track order status across different prep stages with automatic synchronization via **SSE (Server-Sent Events)**.
+- **🔔 CRM & Notification Center**: Integrated intelligence for customer relationships. Automatic alerts for birthdays, manual price adjustments with justification, and a global notification hub.
+- **📉 Advanced Analytics & Reporting**: Deep financial engines that track revenue, profit, and margins. Export professional **XLSX reports** with calculated metrics for offline auditing.
 - **👥 Identity & Team Management**: Professional role hierarchy (**Owner**, **Admin**, **Member**). Includes a frictionless **WhatsApp invitation flow**.
-- **📈 Professional Analytics**: Growth engines that track revenue, cost, profit, and margin trends. Dynamic period filters with interactive charts.
-- **💳 Enterprise Billing**: Full Stripe & Mercado Pago integration with Pro plans and usage-based limitations.
-- **🛡️ Audit & Security**: Transactional stock movements, sales linked to specific users (Audit Trail), and encrypted credential management.
 
 ## 🚀 **Tech Stack**
 
 ### **The Engine**
 
-| Technology     | Role        | Features                                                   |
-| :------------- | :---------- | :--------------------------------------------------------- |
-| **Next.js 16** | Foundation  | App Router, Server Actions, PPR (Partial Prerendering)     |
-| **React 19**   | UI Library  | Actions, UseOptimistic, Enhanced Component Lifecycle       |
-| **Auth.js v5** | Security    | Type-safe authentication & session management              |
-| **Prisma ORM** | Data        | PostgreSQL integration with multi-tenant relational schema |
-| **Stripe**     | Revenue     | Automated billing, webhooks, and subscription lifecycle    |
-| **Sentry**     | Reliability | Full-stack error monitoring and performance tracing        |
+| Technology | Role | Features |
+| :--- | :--- | :--- |
+| **Next.js 16** | Foundation | App Router, Server Actions, PPR (Partial Prerendering) |
+| **React 19** | UI Library | Actions, UseOptimistic, Transitions, Enhanced Lifecycle |
+| **Auth.js v5** | Security | Type-safe authentication & multi-tenant session management |
+| **Prisma ORM** | Data | PostgreSQL integration with relational multi-tenant schema |
+| **Stripe** | Revenue | Automated billing, webhooks, and subscription lifecycle |
+| **Sentry** | Reliability | Full-stack error monitoring and performance tracing |
 
 ### **The Experience**
 
-| Library          | Description                                     |
-| :--------------- | :---------------------------------------------- |
-| **Tailwind CSS** | Premium glassmorphism and modern UI tokens      |
-| **shadcn/ui**    | Robust components powered by Radix UI           |
-| **Recharts**     | Dynamic financial data visualization            |
-| **Sonner**       | Interactive, non-blocking user notifications    |
-| **Zod**          | End-to-end schema validation for server actions |
+| Library | Description |
+| :--- | :--- |
+| **Tailwind CSS** | Premium glassmorphism and modern UI tokens |
+| **shadcn/ui** | Robust components powered by Radix UI (Radix 1.x) |
+| **Framer Motion** | Fluid micro-animations and smooth UI transitions |
+| **ExcelJS** | High-performance generation of complex XLSX reports |
+| **Recharts** | Dynamic data visualization for financial trends |
+| **Sonner** | Interactive, global notification system |
 
 ## 📊 **Relational Architecture**
 
@@ -54,7 +61,8 @@ erDiagram
     User ||--o{ UserCompany : "linked to"
     Company ||--o{ Product : "owns"
     Company ||--o{ Sale : "manages"
-    Product ||--o{ SaleProduct : "included in"
+    Sale ||--o{ SaleItem : "contains"
+    Product ||--o{ SaleItem : "refers to"
     Product ||--o{ StockMovement : "movement log"
     User ||--o{ Sale : "registers"
     User ||--o{ StockMovement : "performs"
@@ -72,29 +80,28 @@ erDiagram
         string email
         string phone
         string password
-        boolean needsPasswordChange
-    }
-
-    UserCompany {
-        enum role "OWNER | ADMIN | MEMBER"
     }
 
     Product {
         string id PK
         string name
         decimal price
+        decimal cost
+        decimal operationalCost
         int stock
-        int minStock
     }
 
     Sale {
         string id PK
         decimal totalAmount
+        decimal tipAmount
+        decimal discountAmount
+        string paymentMethod
         string createdBy FK
     }
 ```
 
-## 🛠️ **Installation & Features**
+## 🛠️ **Installation & Setup**
 
 ### **1. Rapid Deployment**
 
@@ -104,32 +111,36 @@ npm install
 npx prisma generate
 ```
 
-### **2. Advanced Features**
+### **2. Development Mode**
 
-- **Smart Exports**: Generate professional CSV reports for products and sales with calculated financial metrics.
-- **Low Stock Alerts**: Real-time dashboard indicators when items fall below their `minStock` threshold.
-- **WhatsApp Onboarding**: Invite members by generating a temporary access link sent directly via WhatsApp.
-- **Onboarding Guard**: Mandatory step-by-step setup for new companies to ensure data integrity.
+```bash
+# Start the development server
+npm run dev
+
+# Run database migrations
+npx prisma migrate dev
+```
 
 ## 📁 **Project Structure**
 
 ```bash
 kipo/
 ├── app/
-│   ├── (protected)/        # Dashboard, Team, Profile, Products, Sales
-│   ├── auth/               # Login, Forgot Password, Reset Password
-│   ├── _actions/           # Transactional Server Actions (User, Sale, Product)
-│   ├── _data-access/       # Repository Pattern for clean data fetching
-│   └── _lib/               # Core configs (Auth, RBAC, Prisma, Stripe)
-├── prisma/                 # Relational Multi-tenant Schema
-└── package.json            # Scripts for Dev and Stripe Local Listeners
+│   ├── (protected)/        # Dashboard, Sales (PDV), Products, Team, CRM
+│   ├── auth/               # Login, Password recovery flow
+│   ├── _actions/           # Transactional Server Actions (the core logic)
+│   ├── _data-access/       # Clean Room Data Access Layer (Repository Pattern)
+│   ├── _lib/               # Core configs (Auth, RBAC, Prisma, Stripe)
+│   └── _components/        # Reusable global UI (Notification Center, Layout)
+├── prisma/                 # Relational Schema with Multi-tenant isolation
+└── docs/                   # Additional documentation and PT-BR README
 ```
 
 ---
 
 <div align="center">
 
-**KIPO - Empowering Modern Inventory Management**
+**KIPO - Empowering Modern Inventory & Sales Management**
 
 [🌐 Access Kipo](https://usekipo.com.br/) • [🛠️ Issues](https://github.com/tonelopes-dev/stock-manager/issues)
 

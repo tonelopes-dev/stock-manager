@@ -55,11 +55,19 @@ async function sendAllTemplates() {
     {
       name: 'Assinatura Ativada',
       template: () => templates.subscriptionActivatedTemplate({
-        name: 'Tone',
+        name: 'Tone Lopes',
         companyName: 'Bistrô do Tone',
         expiryDateFormatted: '24/04/2026'
       }),
       subject: 'Pagamento Confirmado! ✅ - Kipo PRO'
+    },
+    {
+      name: 'Pagamento Recusado',
+      template: () => templates.paymentFailedTemplate({
+        name: 'Tone Lopes',
+        companyName: 'Bistrô do Tone'
+      }),
+      subject: 'Problema com seu pagamento ⚠️ - Kipo'
     }
   ];
 

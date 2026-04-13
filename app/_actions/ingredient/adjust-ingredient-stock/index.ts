@@ -59,6 +59,6 @@ export const adjustIngredientStock = actionClient
       });
     });
 
-    revalidatePath("/ingredients", "page");
+    revalidatePath("/estoque", "page");
     revalidatePath("/");
   });

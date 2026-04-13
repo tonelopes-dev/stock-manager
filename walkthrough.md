@@ -24,7 +24,15 @@ Implementamos um sistema visual e funcional para gerenciar o consumo dos cliente
   - Busca rápida por cliente ou celular.
   - Atualização manual e via **Server-Sent Events (SSE)**: Quando um pedido é feito no Menu Digital, a comanda surge ou atualiza instantaneamente no dashboard sem recarregar a página.
 
-### 3. Painel de Consumo (Sheet de Detalhes)
+### 3. Inventário Híbrido (MTO / Feito na Hora)
+
+Refinamos a experiência de gestão para produtos que não possuem estoque físico próprio:
+
+- **UX Educativa:** O botão "Ajustar Estoque" para produtos MTO agora aparece desabilitado com um Tooltip explicativo, informando que o estoque é calculado via Ficha Técnica.
+- **Correção de Navegação:** Corrigimos um problema onde clicar no botão desabilitado redirecionava o usuário para os detalhes do produto, garantindo que a ação seja devidamente bloqueada.
+- **Integridade Visual:** Removidos cards de status de estoque para produtos MTO em todo o catálogo.
+
+### 4. Painel de Consumo (Sheet de Detalhes)
 
 Ao clicar em uma comanda:
 

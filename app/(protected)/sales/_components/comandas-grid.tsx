@@ -12,6 +12,7 @@ import { ComandaDetailsSheet } from "./comanda-details-sheet";
 
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
+import { cn } from "@/app/_lib/utils";
 
 interface ComandasGridProps {
   initialComandas: ComandaDto[];
@@ -20,6 +21,7 @@ interface ComandasGridProps {
   productOptions: ComboboxOption[];
   stages: { id: string; name: string }[];
   categories: { id: string; name: string }[];
+  search: string;
 }
 
 export const ComandasGrid = ({
@@ -29,16 +31,16 @@ export const ComandasGrid = ({
   productOptions,
   stages,
   categories,
+  search,
 }: ComandasGridProps) => {
   const [comandas, setComandas] = useState<ComandaDto[]>(initialComandas);
-  const [search, setSearch] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedComanda, setSelectedComanda] = useState<ComandaDto | null>(
     null,
   );
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   // Sync with initialComandas
   useEffect(() => {
@@ -56,30 +58,7 @@ export const ComandasGrid = ({
         setSelectedComanda(null);
       }
     }
-  }, [initialComandas, selectedComanda?.customerId]); // Added selectedComanda?.customerId as dependency for safety, though initialComandas is the main trigger
-
-  // Real-time Updates via SSE
-  useEffect(() => {
-    // We use the central KDS events endpoint
-    const eventSource = new EventSource(
-      `/api/kds/events?companyId=${companyId}`,
-    );
-
-    eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      // If the event belongs to this company, refresh the data
-      if (data.companyId === companyId) {
-        router.refresh();
-      }
-    };
-
-    eventSource.onerror = (error) => {
-      console.error("SSE Connection Error:", error);
-      eventSource.close();
-    };
-
-    return () => eventSource.close();
-  }, [companyId, router]);
+  }, [initialComandas, selectedComanda?.customerId]);
 
   // Deep Link Search Handler
   useEffect(() => {
@@ -93,6 +72,27 @@ export const ComandasGrid = ({
       }
     }
   }, [searchParams, initialComandas]);
+  
+  // Real-time Updates via SSE
+  useEffect(() => {
+    const eventSource = new EventSource(
+      `/api/kds/events?companyId=${companyId}`,
+    );
+
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.companyId === companyId) {
+        router.refresh();
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error("SSE Connection Error:", error);
+      eventSource.close();
+    };
+
+    return () => eventSource.close();
+  }, [companyId, router]);
 
   const handleCloseSheet = () => {
     setSelectedComanda(null);
@@ -112,29 +112,18 @@ export const ComandasGrid = ({
   const handleRefresh = async () => {
     setIsRefreshing(true);
     router.refresh();
-    // Simulate a bit of loading for UX feedback if refresh is too fast
     setTimeout(() => setIsRefreshing(false), 800);
   };
 
   return (
     <div className="space-y-6">
-      {/* Header Operational Actions */}
-      <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-        <div className="relative w-full md:max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por cliente ou celular..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-12 rounded-2xl border-border bg-muted/50 pl-10 font-bold transition-all placeholder:font-medium placeholder:text-muted-foreground focus:bg-background"
-          />
-        </div>
-
+      {/* Action Bar (Refresh only, Search is handled by parent) */}
+      <div className="flex justify-end">
         <Button
           variant="outline"
           size="sm"
           onClick={handleRefresh}
-          className="h-12 gap-2 rounded-2xl border-border px-6 font-black uppercase italic tracking-tighter transition-colors hover:bg-muted"
+          className="h-10 gap-2 rounded-2xl border-border px-6 font-black uppercase italic tracking-tighter transition-colors hover:bg-muted"
           disabled={isRefreshing}
         >
           <RefreshCcw
@@ -188,8 +177,3 @@ export const ComandasGrid = ({
     </div>
   );
 };
-
-// Internal utility
-function cn(...classes: any[]) {
-  return classes.filter(Boolean).join(" ");
-}

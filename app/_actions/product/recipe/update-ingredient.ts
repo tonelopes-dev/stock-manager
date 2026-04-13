@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { updateRecipeIngredientSchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { isUnitCompatible } from "@/app/_lib/units";
+import { isUnitCompatible, calculateStockDeduction } from "@/app/_lib/units";
 import { UnitType } from "@prisma/client";
 import { recalculateProductCostRecursive } from "./recalculate-cost";
 
@@ -30,15 +30,19 @@ export const updateRecipeIngredient = actionClient
       );
     }
 
+    // Normalize quantity to the child's base unit before saving
+    // Example: If user sends 100g and child is in KG, we save 0.1
+    const normalizedQuantity = calculateStockDeduction(quantity, unit as UnitType, composition.child.unit);
+
     await db.productComposition.update({
       where: { id },
-      data: { quantity },
+      data: { quantity: normalizedQuantity },
     });
 
     // Recalculate cost recursively up the tree
     await recalculateProductCostRecursive(composition.parentId);
 
-    revalidatePath(`/products/${composition.parentId}`, "page");
-    revalidatePath("/products", "page");
+    revalidatePath(`/cardapio/${composition.parentId}`, "page");
+    revalidatePath("/cardapio", "page");
     revalidatePath("/");
   });
