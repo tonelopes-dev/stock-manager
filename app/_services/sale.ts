@@ -141,7 +141,7 @@ export const SaleService = {
               userId,
               type: "SALE",
               saleId: saleId!,
-              forceAllowNegative: true,
+              forceAllowNegative: productFromDb.isMadeToOrder, // MTO products bypass main stock check
             },
             trx
           );

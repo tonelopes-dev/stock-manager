@@ -48,6 +48,7 @@ export interface ProductDetailDto {
   trackExpiration: boolean;
   expirationDate: Date | null;
   isActive: boolean;
+  isMadeToOrder: boolean;
   createdAt: Date;
   updatedAt: Date;
   recipes: RecipeIngredientDto[];
@@ -117,27 +118,28 @@ export const getProductById = async (id: string): Promise<ProductDetailDto | nul
       : productCost;
   const price = product.price?.toNumber() ?? 0;
 
-  return {
-    id: product.id,
-    name: product.name,
-    type: product.type,
-    price,
-    cost: effectiveCost,
-    operationalCost,
-    margin: calculateMargin(price, effectiveCost + operationalCost),
-    sku: product.sku,
-    stock: product.stock?.toNumber() ?? 0,
-    minStock: product.minStock?.toNumber() ?? 0,
-    unit: product.unit,
-    categoryId: product.categoryId,
-    environmentId: product.environmentId,
-    imageUrl: product.imageUrl,
-    trackExpiration: product.trackExpiration,
-    expirationDate: product.expirationDate,
-    isActive: product.isActive,
-    createdAt: product.createdAt,
-    updatedAt: product.updatedAt,
-    recipes,
-    recipeCost,
-  };
+    return {
+      id: product.id,
+      name: product.name,
+      type: product.type,
+      price,
+      cost: effectiveCost,
+      operationalCost,
+      margin: calculateMargin(price, effectiveCost + operationalCost),
+      sku: product.sku,
+      stock: product.stock?.toNumber() ?? 0,
+      minStock: product.minStock?.toNumber() ?? 0,
+      unit: product.unit,
+      categoryId: product.categoryId,
+      environmentId: product.environmentId,
+      imageUrl: product.imageUrl,
+      trackExpiration: product.trackExpiration,
+      expirationDate: product.expirationDate,
+      isActive: product.isActive,
+      isMadeToOrder: product.isMadeToOrder,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+      recipes,
+      recipeCost,
+    };
 };

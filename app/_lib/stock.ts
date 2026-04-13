@@ -47,11 +47,14 @@ export const recordStockMovement = async (
       const stockBefore = stockAfter.minus(qty);
 
       // 2. Validate negative stock (ignore if forceAllowNegative is true)
+      console.log(`[STOCK_DEBUG] Product: ${updatedProduct.name}, StockAfter: ${stockAfter.toNumber()}, AllowNegative: ${updatedProduct.company.allowNegativeStock}, ForceAllow: ${params.forceAllowNegative}`);
+
       if (
         stockAfter.lt(0) && 
         !updatedProduct.company.allowNegativeStock && 
         !params.forceAllowNegative
       ) {
+        console.log(`[STOCK_DEBUG] THROWING BusinessError for ${updatedProduct.name}`);
         throw new BusinessError(
           "Estoque insuficiente. A empresa não permite estoque negativo."
         );
@@ -115,23 +118,25 @@ export async function processRecursiveStockMovement(
 
     if (!product) return;
 
-    // 1. Record movement for the product itself
-    await recordStockMovement(
-      {
-        productId: pid,
-        companyId,
-        userId,
-        type,
-        quantity: qty,
-        saleId,
-        orderId,
-        forceAllowNegative: forceAllowNegative ?? true,
-      },
-      trx
-    );
+    // 1. Record movement for the product itself (Only if NOT MTO)
+    if (!product.isMadeToOrder) {
+      await recordStockMovement(
+        {
+          productId: pid,
+          companyId,
+          userId,
+          type,
+          quantity: qty,
+          saleId,
+          orderId,
+          forceAllowNegative: forceAllowNegative ?? true,
+        },
+        trx
+      );
+    }
 
-    // 2. If it has children (Ficha Técnica / Composition), recurse
-    if (product.parentCompositions && product.parentCompositions.length > 0) {
+    // 2. If it has children (Ficha Técnica / Composition), AND it's Made-to-Order, recurse
+    if (product.isMadeToOrder && product.parentCompositions && product.parentCompositions.length > 0) {
       for (const comp of product.parentCompositions) {
         // The quantity of the child is: (quantity sold/moved) * (quantity in composition)
         const childQty = qty.mul(new Prisma.Decimal(comp.quantity.toString()));

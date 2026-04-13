@@ -136,6 +136,7 @@ export const getProducts = async (
       expirationDate: product.expirationDate,
       trackExpiration: product.trackExpiration,
       expirationReminderDate: product.expirationReminderDate,
+      isMadeToOrder: product.isMadeToOrder,
     };
   });
 };

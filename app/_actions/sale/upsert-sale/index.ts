@@ -64,10 +64,10 @@ export const upsertSale = actionClient
     }
 
 
-    revalidatePath("/", "layout");
     revalidatePath("/dashboard");
     revalidatePath("/sales");
     revalidatePath("/products");
     revalidatePath("/customers");
+    revalidatePath("/inventory"); // Adicionado para garantir atualização de estoque na UI
   });
 
