@@ -35,6 +35,7 @@ export const recordStockMovement = async (
           },
         },
         select: {
+          name: true,
           stock: true,
           unit: true,
           company: {

@@ -257,6 +257,7 @@ const ProductSearchHandler = ({
           stock: selectedProduct.stock,
           minStock: selectedProduct.minStock,
           unit: selectedProduct.unit,
+          isMadeToOrder: selectedProduct.isMadeToOrder,
           categoryId: selectedProduct.categoryId || "",
           environmentId: selectedProduct.environmentId || "",
           expirationDate: selectedProduct.expirationDate
