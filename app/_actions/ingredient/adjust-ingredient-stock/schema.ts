@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const adjustIngredientStockSchema = z.object({
-  id: z.string().cuid(),
+  id: z.string().uuid(),
   quantity: z.number().refine((val) => val !== 0, {
     message: "A quantidade deve ser diferente de zero.",
   }),

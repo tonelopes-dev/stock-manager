@@ -33,6 +33,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon, CalendarIcon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import { flattenValidationErrors } from "next-safe-action";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import { NumericFormat, NumericFormatProps, NumberFormatValues } from "react-number-format";
@@ -167,13 +168,15 @@ const UpsertIngredientDialogContent = ({
     return () => clearTimeout(timer);
   }, []);
 
-  const { execute: executeUpsertIngredient } = useAction(upsertIngredient, {
+  const { execute: executeUpsertIngredient, isPending } = useAction(upsertIngredient, {
     onSuccess: () => {
       toast.success("Insumo salvo com sucesso.");
       setDialogIsOpen(false);
     },
     onError: ({ error: { serverError, validationErrors } }) => {
-      const firstError = validationErrors?._errors?.[0] || serverError;
+      const flattenedErrors = flattenValidationErrors(validationErrors);
+      const fieldErrors = Object.values(flattenedErrors.fieldErrors) as (string[] | undefined)[];
+      const firstError = serverError || flattenedErrors.formErrors[0] || fieldErrors[0]?.[0];
       toast.error(firstError || "Ocorreu um erro ao salvar o insumo.");
     },
   });
@@ -437,10 +440,10 @@ const UpsertIngredientDialogContent = ({
             </DialogClose>
             <Button
               type="submit"
-              disabled={form.formState.isSubmitting}
+              disabled={isPending}
               className="gap-1.5"
             >
-              {form.formState.isSubmitting && (
+              {isPending && (
                 <Loader2Icon className="animate-spin" size={16} />
               )}
               Salvar

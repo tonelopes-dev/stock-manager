@@ -26,6 +26,7 @@ import { Input } from "@/app/_components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import { flattenValidationErrors } from "next-safe-action";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -57,14 +58,15 @@ const AdjustStockDialogContent = ({
 }: AdjustStockDialogContentProps) => {
   const [displayUnit, setDisplayUnit] = useState(baseUnit);
 
-  const { execute: executeAdjust } = useAction(adjustIngredientStock, {
-    // ... same logic
+  const { execute: executeAdjust, isPending } = useAction(adjustIngredientStock, {
     onSuccess: () => {
       toast.success("Estoque ajustado com sucesso.");
       setDialogIsOpen(false);
     },
     onError: ({ error: { serverError, validationErrors } }) => {
-      const firstError = validationErrors?._errors?.[0] || serverError;
+      const flattenedErrors = flattenValidationErrors(validationErrors);
+      const fieldErrors = Object.values(flattenedErrors.fieldErrors) as (string[] | undefined)[];
+      const firstError = serverError || flattenedErrors.formErrors[0] || fieldErrors[0]?.[0];
       toast.error(firstError || "Ocorreu um erro ao ajustar o estoque.");
     },
   });
@@ -235,10 +237,10 @@ const AdjustStockDialogContent = ({
             </DialogClose>
             <Button
               type="submit"
-              disabled={form.formState.isSubmitting || watchValue === 0}
+              disabled={isPending || watchValue === 0}
               className="gap-1.5"
             >
-              {form.formState.isSubmitting && (
+              {isPending && (
                 <Loader2Icon className="animate-spin" size={16} />
               )}
               Confirmar Ajuste
