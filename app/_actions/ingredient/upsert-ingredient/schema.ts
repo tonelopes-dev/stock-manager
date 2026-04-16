@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const upsertIngredientSchema = z.object({
-  id: z.string().cuid("ID de insumo inválido").optional().or(z.literal("")),
+  id: z.string().uuid("ID de insumo inválido").optional().or(z.literal("")),
   name: z.string().trim().min(1, {
     message: "O nome do insumo é obrigatório.",
   }),
