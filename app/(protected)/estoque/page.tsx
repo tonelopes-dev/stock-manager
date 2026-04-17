@@ -27,6 +27,7 @@ interface EstoquePageProps {
     search?: string;
     supplierId?: string;
     status?: string;
+    showInactive?: string;
     page?: string;
   }>;
 }
@@ -53,12 +54,14 @@ const EstoqueTableWrapper = async ({
   const search = searchParams.search;
   const supplierId = searchParams.supplierId;
   const status = searchParams.status as any;
+  const showInactive = searchParams.showInactive === "true";
 
   const { data: ingredients, total } = await getIngredients({
     page,
     search,
     supplierId,
     status,
+    includeInactive: showInactive,
     pageSize: 10,
   });
 

@@ -12,6 +12,8 @@ const UNIT_LABELS: Record<string, string> = {
   L: "L",
   ML: "ml",
   UN: "Un",
+  PCT: "pct",
+  MC: "mç",
 };
 
 export interface IngredientDto {
@@ -37,6 +39,7 @@ export interface GetIngredientsParams {
   search?: string;
   supplierId?: string;
   status?: "LOW_STOCK" | "OUT_OF_STOCK" | "EXPIRING" | "OK";
+  includeInactive?: boolean;
   page?: number;
   pageSize?: number;
 }
@@ -50,14 +53,14 @@ export const getIngredients = async (
   params: GetIngredientsParams = {}
 ): Promise<GetIngredientsResponse> => {
   const companyId = await getCurrentCompanyId();
-  const { search, supplierId, status, page = 1, pageSize = 10 } = params;
+  const { search, supplierId, status, includeInactive, page = 1, pageSize = 10 } = params;
   const skip = (page - 1) * pageSize;
 
   // Build where clause
   const where: any = {
     companyId,
     type: { in: ["INSUMO", "REVENDA"] },
-    isActive: true,
+    isActive: includeInactive ? undefined : true,
   };
 
   if (search) {

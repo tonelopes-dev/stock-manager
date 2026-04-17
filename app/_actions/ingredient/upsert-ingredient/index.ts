@@ -25,56 +25,63 @@ export const upsertIngredient = actionClient
 
     const userId = session.user.id;
 
-    await db.$transaction(async (trx) => {
-      let ingredientId = id;
+    try {
+      await db.$transaction(async (trx) => {
+        let ingredientId = id;
 
-      if (id) {
-        // Update metadata only, ignore stock field from form
-        const updated = await trx.product.update({
-          where: { id },
-          data,
-        });
-        ingredientId = updated.id;
-      } else {
-        // Create new product of type INSUMO with 0 price and 0 stock initially
-        const ingredient = await trx.product.create({
-          data: { ...data, companyId, type: "INSUMO", price: 0, stock: 0 },
-        });
-        ingredientId = ingredient.id;
+        if (id) {
+          // Update metadata only, ignore stock field from form
+          const updated = await trx.product.update({
+            where: { id },
+            data,
+          });
+          ingredientId = updated.id;
+        } else {
+          // Create new product of type INSUMO with 0 price and 0 stock initially
+          const ingredient = await trx.product.create({
+            data: { ...data, companyId, type: "INSUMO", price: 0, stock: 0 },
+          });
+          ingredientId = ingredient.id;
 
-        // Set initial stock via movement for auditability
-        if (stock && stock > 0) {
-          // Validation: Units cannot have decimals
-          if (data.unit === "UN" && !Number.isInteger(stock)) {
-            throw new Error("Estoque inicial de produtos por unidade deve ser um número inteiro.");
+          // Set initial stock via movement for auditability
+          if (stock && stock > 0) {
+            // Validation: Units cannot have decimals
+            if (data.unit === "UN" && !Number.isInteger(stock)) {
+              throw new Error("Estoque inicial de produtos por unidade deve ser um número inteiro.");
+            }
+
+            await IngredientService.adjustStock(
+              {
+                ingredientId: ingredient.id,
+                companyId,
+                userId,
+                quantity: stock,
+                reason: "Estoque inicial",
+              },
+              trx,
+            );
           }
-
-          await IngredientService.adjustStock(
-            {
-              ingredientId: ingredient.id,
-              companyId,
-              userId,
-              quantity: stock,
-              reason: "Estoque inicial",
-            },
-            trx,
-          );
         }
-      }
 
-      // 3. Log Audit
-      await AuditService.logWithTransaction(trx, {
-        type: id ? AuditEventType.INGREDIENT_UPDATED : AuditEventType.INGREDIENT_CREATED,
-        companyId,
-        entityType: "PRODUCT", // Use PRODUCT for now as it's the catch-all for items
-        entityId: ingredientId,
-        metadata: {
-          ingredientId,
-          name: data.name,
-          unit: data.unit,
-        },
+        // 3. Log Audit
+        await AuditService.logWithTransaction(trx, {
+          type: id ? AuditEventType.INGREDIENT_UPDATED : AuditEventType.INGREDIENT_CREATED,
+          companyId,
+          entityType: "PRODUCT", // Use PRODUCT for now as it's the catch-all for items
+          entityId: ingredientId,
+          metadata: {
+            ingredientId,
+            name: data.name,
+            unit: data.unit,
+          },
+        });
       });
-    });
+    } catch (error: any) {
+      if (error.code === "P2002") {
+        throw new Error("Já existe um insumo com este nome, inclusive nos desativados. Verifique a lista de inativos.");
+      }
+      throw error;
+    }
 
     revalidatePath("/estoque");
     revalidatePath("/cardapio");

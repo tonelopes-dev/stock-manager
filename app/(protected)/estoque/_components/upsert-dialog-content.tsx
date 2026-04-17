@@ -57,6 +57,8 @@ const UNIT_OPTIONS = [
   { value: "L", label: "Litro (L)" },
   { value: "ML", label: "Mililitro (ml)" },
   { value: "UN", label: "Unidade (Un)" },
+  { value: "PCT", label: "Pacote (pct)" },
+  { value: "MC", label: "Maço (mç)" },
 ];
 
 interface UpsertIngredientDialogContentProps {

@@ -26,6 +26,7 @@ import {
   PackagePlusIcon,
   TrashIcon,
   ExternalLinkIcon,
+  RefreshCcwIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { useAction } from "next-safe-action/hooks";
@@ -35,6 +36,7 @@ import UpsertIngredientDialogContent from "./upsert-dialog-content";
 import AdjustStockDialogContent from "./adjust-stock-dialog-content";
 import { IngredientDto } from "@/app/_data-access/ingredient/get-ingredients";
 import { deleteIngredient } from "@/app/_actions/ingredient/delete-ingredient";
+import { toggleProductStatus } from "@/app/_actions/product/toggle-status";
 
 interface IngredientTableDropdownMenuProps {
   ingredient: IngredientDto;
@@ -54,6 +56,16 @@ const IngredientTableDropdownMenu = ({
     },
     onError: () => {
       toast.error("Ocorreu um erro ao desativar o insumo.");
+    },
+  });
+
+  const { execute: executeToggleStatus, isPending: toggleIsPending } = useAction(toggleProductStatus, {
+    onSuccess: (data) => {
+      toast.success(ingredient.isActive ? "Insumo desativado com sucesso." : "Insumo reativado com sucesso.");
+      setDeleteDialogIsOpen(false);
+    },
+    onError: () => {
+      toast.error("Ocorreu um erro ao alterar o status do insumo.");
     },
   });
 
@@ -89,13 +101,24 @@ const IngredientTableDropdownMenu = ({
             Ajustar Estoque
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="gap-1.5 text-destructive"
-            onClick={() => setDeleteDialogIsOpen(true)}
-          >
-            <TrashIcon size={16} />
-            Desativar
-          </DropdownMenuItem>
+          {ingredient.isActive ? (
+            <DropdownMenuItem
+              className="gap-1.5 text-destructive"
+              onClick={() => setDeleteDialogIsOpen(true)}
+            >
+              <TrashIcon size={16} />
+              Desativar
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem
+              className="gap-1.5 text-blue-600 focus:text-blue-700 focus:bg-blue-50"
+              onClick={() => executeToggleStatus({ id: ingredient.id })}
+              disabled={toggleIsPending}
+            >
+              <RefreshCcwIcon size={16} />
+              Reativar
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 

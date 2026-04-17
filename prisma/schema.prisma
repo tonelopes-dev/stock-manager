@@ -634,6 +634,8 @@ enum UnitType {
   L
   ML
   UN
+  PCT
+  MC
 }
 
 enum SubscriptionStatus {
