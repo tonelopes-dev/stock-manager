@@ -145,6 +145,7 @@ export const getSales = async ({
 };
 
 export const getSaleById = async (id: string): Promise<SaleDto | null> => {
+  if (!id || id === "" || id === "undefined" || id === "null") return null;
   const companyId = await getCurrentCompanyId();
   if (!companyId) return null;
 

@@ -33,7 +33,8 @@ export const getProducts = async (
   slowMovingDays = 30, 
   status: "ACTIVE" | "INACTIVE" | "ALL" = "ACTIVE",
   environmentId?: string,
-  types?: ProductType[]
+  types?: ProductType[],
+  categoryId?: string
 ): Promise<ProductDto[]> => {
   const companyId = await getCurrentCompanyId();
   const slowMovingThreshold = subDays(new Date(), slowMovingDays);
@@ -46,8 +47,19 @@ export const getProducts = async (
     delete where.isActive;
   }
 
-  if (environmentId && environmentId !== "all") {
+  // UUID Sanitization & Validation (PostgreSQL 22P03 protection)
+  const isValidUUID = (id: string | undefined): id is string => {
+    if (!id) return false;
+    const invalidValues = ["all", "undefined", "null", ""];
+    return !invalidValues.includes(id.toLowerCase().trim());
+  };
+
+  if (isValidUUID(environmentId)) {
     where.environmentId = environmentId;
+  }
+
+  if (isValidUUID(categoryId)) {
+    where.categoryId = categoryId;
   }
 
   if (types && types.length > 0) {
@@ -56,6 +68,7 @@ export const getProducts = async (
 
   const products = await db.product.findMany({
     where,
+
     orderBy: { createdAt: "desc" },
     include: {
       _count: {

@@ -67,7 +67,14 @@ export const getIngredients = async (
     where.name = { contains: search, mode: "insensitive" };
   }
 
-  if (supplierId) {
+  // UUID Sanitization & Validation (PostgreSQL 22P03 protection)
+  const isValidUUID = (id: string | undefined): id is string => {
+    if (!id) return false;
+    const invalidValues = ["all", "undefined", "null", ""];
+    return !invalidValues.includes(id.toLowerCase().trim());
+  };
+
+  if (isValidUUID(supplierId)) {
     where.suppliers = { some: { supplierId } };
   }
 
