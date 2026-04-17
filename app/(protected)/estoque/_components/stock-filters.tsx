@@ -13,6 +13,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTransition, useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { Button } from "@/app/_components/ui/button";
+import { Switch } from "@/app/_components/ui/switch";
+import { Label } from "@/app/_components/ui/label";
 
 interface StockFiltersProps {
   suppliers: { id: string; name: string }[];
@@ -29,6 +31,7 @@ const StockFilters = ({ suppliers }: StockFiltersProps) => {
 
   const currentSupplier = searchParams.get("supplierId") || "all";
   const currentStatus = searchParams.get("status") || "all";
+  const isShowInactive = searchParams.get("showInactive") === "true";
 
   // Update URL when debounced search changes
   useEffect(() => {
@@ -56,6 +59,17 @@ const StockFilters = ({ suppliers }: StockFiltersProps) => {
       params.delete(key);
     } else {
       params.set(key, value);
+    }
+    params.set("page", "1");
+    router.push(`?${params.toString()}`);
+  };
+
+  const handleToggleInactive = (checked: boolean) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (checked) {
+      params.set("showInactive", "true");
+    } else {
+      params.delete("showInactive");
     }
     params.set("page", "1");
     router.push(`?${params.toString()}`);
@@ -109,6 +123,17 @@ const StockFilters = ({ suppliers }: StockFiltersProps) => {
             <SelectItem value="OUT_OF_STOCK">Sem Estoque</SelectItem>
           </SelectContent>
         </Select>
+
+        <div className="flex items-center gap-2 bg-white px-4 h-12 rounded-2xl shadow-sm border-none">
+          <Switch 
+            id="show-inactive" 
+            checked={isShowInactive} 
+            onCheckedChange={handleToggleInactive} 
+          />
+          <Label htmlFor="show-inactive" className="text-sm font-medium text-slate-600 cursor-pointer whitespace-nowrap">
+            Mostrar Inativos
+          </Label>
+        </div>
 
         {hasFilters && (
           <Button 

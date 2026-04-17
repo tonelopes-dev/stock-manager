@@ -1,11 +1,12 @@
 import { z } from "zod";
+import { UnitType } from "@prisma/client";
 
 export const upsertIngredientSchema = z.object({
   id: z.string().uuid("ID de insumo inválido").optional().or(z.literal("")),
   name: z.string().trim().min(1, {
     message: "O nome do insumo é obrigatório.",
   }),
-  unit: z.enum(["KG", "G", "L", "ML", "UN"], {
+  unit: z.nativeEnum(UnitType, {
     required_error: "A unidade de medida é obrigatória.",
   }),
   cost: z.number().min(0, {
