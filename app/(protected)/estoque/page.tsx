@@ -84,7 +84,7 @@ const EstoqueTableWrapper = async ({
             <CreateIngredientButton />
             <RegisterPurchaseButton
               suppliers={suppliers}
-              products={allIngredients as any}
+              products={allIngredients}
             />
             <DownloadShoppingListButton />
           </div>
