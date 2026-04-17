@@ -46,6 +46,20 @@ export const UNIT_CONFIG: Record<UnitType, UnitInfo> = {
     min: "1", 
     placeholder: "Ex: 12" 
   },
+  [UnitType.PCT]: { 
+    family: "UNIT", 
+    ratio: 1, 
+    step: "1", 
+    min: "1", 
+    placeholder: "Ex: 5" 
+  },
+  [UnitType.MC]: { 
+    family: "UNIT", 
+    ratio: 1, 
+    step: "1", 
+    min: "1", 
+    placeholder: "Ex: 3" 
+  },
 };
 
 /**
