@@ -140,7 +140,7 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
                       .filter((i: any) => i.id !== serializedProduct.id)
                       .map((i: any) => ({
                         value: i.id,
-                        label: `${i.name} (${i.unitLabel})`,
+                        label: `${i.name} (${i.unitLabel}) - R$ ${i.cost}${i.isActive ? "" : " (Inativo)"}`,
                         unit: i.unit,
                       }))}
                   />

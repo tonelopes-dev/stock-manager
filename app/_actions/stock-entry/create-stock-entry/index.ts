@@ -83,6 +83,7 @@ export const createStockEntry = actionClient
           batchNumber: data.batchNumber,
           expirationDate: data.expirationDate,
           invoiceNumber: data.invoiceNumber,
+          date: data.date,
           companyId,
           userId,
         },
@@ -96,6 +97,7 @@ export const createStockEntry = actionClient
           userId,
           type: "PURCHASE",
           quantity: data.quantity,
+          date: data.date,
           reason: `Entrada de mercadoria - NF: ${data.invoiceNumber || "N/A"}`,
         },
         trx

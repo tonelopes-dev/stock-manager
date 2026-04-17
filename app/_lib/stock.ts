@@ -15,6 +15,7 @@ interface RecordStockMovementParams {
   saleId?: string;
   orderId?: string;
   reason?: string;
+  date?: Date;
   forceAllowNegative?: boolean; // New flag for PDV recursive deduction
 }
 
@@ -74,6 +75,7 @@ export const recordStockMovement = async (
           stockAfter,
           unit: params.unit || updatedProduct.unit,
           quantityDecimal: qty,
+          date: params.date || new Date(),
         },
       });
     } catch (err) {
