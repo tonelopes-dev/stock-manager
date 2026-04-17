@@ -1,4 +1,5 @@
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { sanitizeUUID } from "@/app/_lib/uuid";
 import { db } from "@/app/_lib/prisma";
 import { SaleStatus, SaleItem, Product, Prisma, PaymentMethod } from "@prisma/client";
 
@@ -145,7 +146,8 @@ export const getSales = async ({
 };
 
 export const getSaleById = async (id: string): Promise<SaleDto | null> => {
-  if (!id || id === "" || id === "undefined" || id === "null") return null;
+  const sanitizedId = sanitizeUUID(id);
+  if (!sanitizedId) return null;
   const companyId = await getCurrentCompanyId();
   if (!companyId) return null;
 

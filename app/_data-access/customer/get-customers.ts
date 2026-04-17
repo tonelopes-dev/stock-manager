@@ -3,6 +3,7 @@ import "server-only";
 import { db } from "@/app/_lib/prisma";
 import { CustomerCategory, Prisma } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { sanitizeUUID } from "@/app/_lib/uuid";
 
 export interface CustomerDto {
   id: string;
@@ -51,10 +52,12 @@ export const getCustomers = async (
 ): Promise<{ data: CustomerDto[]; total: number }> => {
   const companyId = await getCurrentCompanyId();
 
+  const sanitizedCategoryId = sanitizeUUID(categoryId);
+
   const where: Prisma.CustomerWhereInput = {
     companyId,
-    ...(categoryId && categoryId !== "ALL"
-      ? { categories: { some: { id: categoryId } } }
+    ...(sanitizedCategoryId
+      ? { categories: { some: { id: sanitizedCategoryId } } }
       : {}),
     ...(journey === "with" ? { checklists: { some: {} } } : {}),
     ...(journey === "without" ? { checklists: { none: {} } } : {}),

@@ -5,6 +5,7 @@ import { Product, Prisma, ProductType } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { calculateMargin } from "@/app/_lib/pricing";
 import { subDays } from "date-fns";
+import { sanitizeUUID } from "@/app/_lib/uuid";
 
 export type ProductStatusDto = "IN_STOCK" | "OUT_OF_STOCK" | "LOW_STOCK" | "SLOW_MOVING";
 
@@ -48,18 +49,15 @@ export const getProducts = async (
   }
 
   // UUID Sanitization & Validation (PostgreSQL 22P03 protection)
-  const isValidUUID = (id: string | undefined): id is string => {
-    if (!id) return false;
-    const invalidValues = ["all", "undefined", "null", ""];
-    return !invalidValues.includes(id.toLowerCase().trim());
-  };
+  const sanitizedEnvironmentId = sanitizeUUID(environmentId);
+  const sanitizedCategoryId = sanitizeUUID(categoryId);
 
-  if (isValidUUID(environmentId)) {
-    where.environmentId = environmentId;
+  if (sanitizedEnvironmentId) {
+    where.environmentId = sanitizedEnvironmentId;
   }
 
-  if (isValidUUID(categoryId)) {
-    where.categoryId = categoryId;
+  if (sanitizedCategoryId) {
+    where.categoryId = sanitizedCategoryId;
   }
 
   if (types && types.length > 0) {

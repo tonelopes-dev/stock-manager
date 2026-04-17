@@ -1,4 +1,5 @@
 import { db } from "@/app/_lib/prisma";
+import { Prisma } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
 export const getLowStockProducts = async () => {
@@ -14,8 +15,8 @@ export const getLowStockProducts = async () => {
       // Avoid showing items that are supposed to have 0 stock and minStock 0
       NOT: {
         AND: [
-            { stock: 0 },
-            { minStock: 0 }
+            { stock: new Prisma.Decimal(0) },
+            { minStock: new Prisma.Decimal(0) }
         ]
       }
     },

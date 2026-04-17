@@ -1,8 +1,9 @@
 import "server-only";
 
 import { db } from "@/app/_lib/prisma";
-import { Product, ProductType, UnitType } from "@prisma/client";
+import { Product, ProductType, UnitType, Prisma } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { sanitizeUUID } from "@/app/_lib/uuid";
 
 export type IngredientStatusDto = "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
 
@@ -68,24 +69,20 @@ export const getIngredients = async (
   }
 
   // UUID Sanitization & Validation (PostgreSQL 22P03 protection)
-  const isValidUUID = (id: string | undefined): id is string => {
-    if (!id) return false;
-    const invalidValues = ["all", "undefined", "null", ""];
-    return !invalidValues.includes(id.toLowerCase().trim());
-  };
+  const sanitizedSupplierId = sanitizeUUID(supplierId);
 
-  if (isValidUUID(supplierId)) {
-    where.suppliers = { some: { supplierId } };
+  if (sanitizedSupplierId) {
+    where.suppliers = { some: { supplierId: sanitizedSupplierId } };
   }
 
   // Handle complex status filters
   if (status === "LOW_STOCK") {
     where.OR = [
-      { stock: { lte: 0 } },
+      { stock: { lte: new Prisma.Decimal(0) } },
       { stock: { lte: db.product.fields.minStock } }
     ];
   } else if (status === "OUT_OF_STOCK") {
-    where.stock = { lte: 0 };
+    where.stock = { lte: new Prisma.Decimal(0) };
   } else if (status === "EXPIRING") {
     // Items with at least one batch expiring in the next 3 days
     const threeDaysFromNow = new Date();
