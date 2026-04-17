@@ -25,8 +25,24 @@ export const upsertIngredient = actionClient
 
     const userId = session.user.id;
 
-    try {
-      await db.$transaction(async (trx) => {
+    // Manual duplication check (Application Level)
+    const existingIngredient = await db.product.findFirst({
+      where: {
+        name: data.name,
+        companyId,
+        type: "INSUMO",
+        NOT: id ? { id } : undefined,
+      },
+      select: { id: true },
+    });
+
+    if (existingIngredient) {
+      throw new Error(
+        "Já existe um insumo com este nome, inclusive nos desativados. Verifique a lista de inativos e reative-o."
+      );
+    }
+
+    await db.$transaction(async (trx) => {
         let ingredientId = id;
 
         if (id) {
@@ -75,13 +91,7 @@ export const upsertIngredient = actionClient
             unit: data.unit,
           },
         });
-      });
-    } catch (error: any) {
-      if (error.code === "P2002") {
-        throw new Error("Já existe um insumo com este nome, inclusive nos desativados. Verifique a lista de inativos.");
-      }
-      throw error;
-    }
+    });
 
     revalidatePath("/estoque");
     revalidatePath("/cardapio");
