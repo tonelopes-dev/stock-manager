@@ -25,14 +25,15 @@ import { useAction } from "next-safe-action/hooks";
 import { createStockEntry } from "@/app/_actions/stock-entry/create-stock-entry";
 import { createStockEntrySchema, CreateStockEntrySchema } from "@/app/_actions/stock-entry/create-stock-entry/schema";
 import { toast } from "sonner";
-import { Supplier, Product } from "@prisma/client";
+import { Supplier } from "@prisma/client";
+import { IngredientDto } from "@/app/_data-access/ingredient/get-ingredients";
 import { Combobox } from "@/app/_components/ui/combobox";
 import { DatePicker } from "@/app/_components/ui/date-picker";
 
 interface CreateStockEntryDialogContentProps {
   setSheetIsOpen: (isOpen: boolean) => void;
   suppliers: Supplier[];
-  products: Product[];
+  products: IngredientDto[];
 }
 
 const CreateStockEntryDialogContent = ({
@@ -49,6 +50,7 @@ const CreateStockEntryDialogContent = ({
       unitCost: 0,
       batchNumber: "",
       invoiceNumber: "",
+      date: new Date(),
     },
   });
 
@@ -82,7 +84,7 @@ const CreateStockEntryDialogContent = ({
 
   const productOptions = products.map((p) => ({
     value: p.id,
-    label: p.name,
+    label: `${p.name} (${p.unitLabel}) - R$ ${p.cost}${p.isActive ? "" : " (Inativo)"}`,
   }));
 
   const selectedProduct = products.find((p) => p.id === form.watch("productId"));
@@ -223,6 +225,23 @@ const CreateStockEntryDialogContent = ({
                   <FormLabel className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground mr-1">Lote</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex: LOTE-A1" className="h-10 rounded-xl" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground mr-1">Data da Compra</FormLabel>
+                  <FormControl>
+                    <DatePicker 
+                      value={field.value} 
+                      onChange={field.onChange} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

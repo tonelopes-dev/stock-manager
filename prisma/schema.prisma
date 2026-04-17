@@ -55,6 +55,7 @@ model Product {
 
 
   @@unique([sku, companyId])
+  @@unique([name, companyId])
 }
 
 model ProductComposition {
@@ -191,6 +192,7 @@ model StockMovement {
   userId          String?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+  date            DateTime          @default(now())
   saleId          String?
   reason          String?
   quantityDecimal Decimal?          @db.Decimal(10, 4)
@@ -562,6 +564,7 @@ model StockEntry {
   batchNumber    String?
   expirationDate DateTime?
   invoiceNumber  String?
+  date           DateTime          @default(now())
   createdAt      DateTime          @default(now())
   
   product        Product           @relation(fields: [productId], references: [id], onDelete: Cascade)

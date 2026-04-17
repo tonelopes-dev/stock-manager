@@ -8,6 +8,9 @@ export const createStockEntrySchema = z.object({
   batchNumber: z.string().optional(),
   expirationDate: z.date().optional(),
   invoiceNumber: z.string().optional(),
+  date: z.date({
+    required_error: "A data da compra é obrigatória.",
+  }),
   description: z.string().optional(),
 });
 
