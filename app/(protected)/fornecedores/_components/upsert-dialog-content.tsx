@@ -50,6 +50,23 @@ const UpsertSupplierDialogContent = ({
   });
 
   const [isReady, setIsReady] = React.useState(false);
+
+  const formatTaxId = (raw: string): string => {
+    const digits = raw.replace(/\D/g, "").slice(0, 14);
+    if (digits.length <= 11) {
+      // CPF: 000.000.000-00
+      return digits
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    }
+    // CNPJ: 00.000.000/0000-00
+    return digits
+      .replace(/(\d{2})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1/$2")
+      .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+  };
   
   React.useEffect(() => {
     // Small delay to ensure Radix/Next hydration is settled
@@ -139,12 +156,13 @@ const UpsertSupplierDialogContent = ({
                 <FormItem>
                   <FormLabel>CNPJ / CPF</FormLabel>
                   <FormControl>
-                    <PatternFormat
-                      format={(field.value ?? "").length <= 11 ? "###.###.###-##" : "##.###.###/####-##"}
-                      customInput={Input}
+                    <Input
                       placeholder="00.000.000/0000-00"
-                      value={field.value}
-                      onValueChange={(values: NumberFormatValues) => field.onChange(values.value)}
+                      value={formatTaxId(field.value ?? "")}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, "").slice(0, 14);
+                        field.onChange(digits);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
