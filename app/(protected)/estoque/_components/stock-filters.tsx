@@ -13,7 +13,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTransition, useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { Button } from "@/app/_components/ui/button";
-import { Switch } from "@/app/_components/ui/switch";
 import { Label } from "@/app/_components/ui/label";
 
 interface StockFiltersProps {
@@ -30,8 +29,8 @@ const StockFilters = ({ suppliers }: StockFiltersProps) => {
   const [debouncedSearchValue] = useDebounce(searchValue, 500);
 
   const currentSupplier = searchParams.get("supplierId") || "all";
-  const currentStatus = searchParams.get("status") || "all";
-  const isShowInactive = searchParams.get("showInactive") === "true";
+  const currentStockStatus = searchParams.get("stockStatus") || "all";
+  const currentStatus = searchParams.get("status") || "ACTIVE";
 
   // Update URL when debounced search changes
   useEffect(() => {
@@ -64,23 +63,6 @@ const StockFilters = ({ suppliers }: StockFiltersProps) => {
     router.push(`?${params.toString()}`);
   };
 
-  const handleToggleInactive = (checked: boolean) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (checked) {
-      params.set("showInactive", "true");
-    } else {
-      params.delete("showInactive");
-    }
-    params.set("page", "1");
-    router.push(`?${params.toString()}`);
-  };
-
-  const clearFilters = () => {
-    setSearchValue("");
-    router.push("/estoque");
-  };
-
-  const hasFilters = searchValue || currentSupplier !== "all" || currentStatus !== "all";
 
   return (
     <div className="flex flex-wrap items-center gap-4 bg-white/50 backdrop-blur-sm p-4 rounded-3xl border border-white/60 shadow-inner">
@@ -112,39 +94,28 @@ const StockFilters = ({ suppliers }: StockFiltersProps) => {
           </SelectContent>
         </Select>
 
-        <Select value={currentStatus} onValueChange={(v) => handleSelectChange("status", v)}>
+        <Select value={currentStockStatus} onValueChange={(v) => handleSelectChange("stockStatus", v)}>
           <SelectTrigger className="w-[180px] rounded-2xl border-none bg-white shadow-sm h-12">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder="Estoque" />
           </SelectTrigger>
           <SelectContent className="rounded-2xl border-none shadow-xl">
-            <SelectItem value="all">Todos Status</SelectItem>
+            <SelectItem value="all">Todos Níveis</SelectItem>
             <SelectItem value="LOW_STOCK">Estoque Baixo</SelectItem>
             <SelectItem value="EXPIRING">Vencendo Logo</SelectItem>
             <SelectItem value="OUT_OF_STOCK">Sem Estoque</SelectItem>
           </SelectContent>
         </Select>
 
-        <div className="flex items-center gap-2 bg-white px-4 h-12 rounded-2xl shadow-sm border-none">
-          <Switch 
-            id="show-inactive" 
-            checked={isShowInactive} 
-            onCheckedChange={handleToggleInactive} 
-          />
-          <Label htmlFor="show-inactive" className="text-sm font-medium text-slate-600 cursor-pointer whitespace-nowrap">
-            Mostrar Inativos
-          </Label>
-        </div>
-
-        {hasFilters && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={clearFilters}
-            className="rounded-2xl h-12 w-12 hover:bg-red-50 hover:text-red-500 transition-colors"
-          >
-            <XIcon size={20} />
-          </Button>
-        )}
+        <Select value={currentStatus} onValueChange={(v) => handleSelectChange("status", v)}>
+          <SelectTrigger className="w-[180px] rounded-2xl border-none bg-white shadow-sm h-12">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent className="rounded-2xl border-none shadow-xl">
+            <SelectItem value="ACTIVE">Ativos</SelectItem>
+            <SelectItem value="INACTIVE">Inativos</SelectItem>
+            <SelectItem value="ALL">Todos</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

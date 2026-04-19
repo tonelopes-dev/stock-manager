@@ -26,8 +26,8 @@ interface EstoquePageProps {
   searchParams: Promise<{
     search?: string;
     supplierId?: string;
-    status?: string;
-    showInactive?: string;
+    status?: "ACTIVE" | "INACTIVE" | "ALL";
+    stockStatus?: string;
     page?: string;
   }>;
 }
@@ -53,15 +53,15 @@ const EstoqueTableWrapper = async ({
   const page = Number(searchParams.page) || 1;
   const search = searchParams.search;
   const supplierId = searchParams.supplierId;
-  const status = searchParams.status as any;
-  const showInactive = searchParams.showInactive === "true";
+  const status = searchParams.status || "ACTIVE";
+  const stockStatus = searchParams.stockStatus as any;
 
   const { data: ingredients, total } = await getIngredients({
     page,
     search,
     supplierId,
+    stockStatus,
     status,
-    includeInactive: showInactive,
     pageSize: 10,
   });
 

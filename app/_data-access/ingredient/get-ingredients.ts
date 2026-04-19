@@ -39,8 +39,8 @@ export interface IngredientDto {
 export interface GetIngredientsParams {
   search?: string;
   supplierId?: string;
-  status?: "LOW_STOCK" | "OUT_OF_STOCK" | "EXPIRING" | "OK";
-  includeInactive?: boolean;
+  stockStatus?: "LOW_STOCK" | "OUT_OF_STOCK" | "EXPIRING" | "OK";
+  status?: "ACTIVE" | "INACTIVE" | "ALL";
   page?: number;
   pageSize?: number;
 }
@@ -54,15 +54,21 @@ export const getIngredients = async (
   params: GetIngredientsParams = {}
 ): Promise<GetIngredientsResponse> => {
   const companyId = await getCurrentCompanyId();
-  const { search, supplierId, status, includeInactive, page = 1, pageSize = 10 } = params;
+  const { search, supplierId, stockStatus, status = "ACTIVE", page = 1, pageSize = 10 } = params;
   const skip = (page - 1) * pageSize;
 
   // Build where clause
   const where: any = {
     companyId,
     type: { in: ["INSUMO", "REVENDA"] },
-    isActive: includeInactive ? undefined : true,
   };
+
+  if (status === "ACTIVE") {
+    where.isActive = true;
+  } else if (status === "INACTIVE") {
+    where.isActive = false;
+  }
+  // status === "ALL" does not set isActive (shows both)
 
   if (search) {
     where.name = { contains: search, mode: "insensitive" };
@@ -76,14 +82,14 @@ export const getIngredients = async (
   }
 
   // Handle complex status filters
-  if (status === "LOW_STOCK") {
+  if (stockStatus === "LOW_STOCK") {
     where.OR = [
       { stock: { lte: new Prisma.Decimal(0) } },
       { stock: { lte: db.product.fields.minStock } }
     ];
-  } else if (status === "OUT_OF_STOCK") {
+  } else if (stockStatus === "OUT_OF_STOCK") {
     where.stock = { lte: new Prisma.Decimal(0) };
-  } else if (status === "EXPIRING") {
+  } else if (stockStatus === "EXPIRING") {
     // Items with at least one batch expiring in the next 3 days
     const threeDaysFromNow = new Date();
     threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
