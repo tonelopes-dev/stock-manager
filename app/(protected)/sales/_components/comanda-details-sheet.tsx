@@ -63,6 +63,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
+import { ProductAvailabilityInfo } from "./shared/product-availability-info";
 
 interface ComandaDetailsSheetProps {
   comanda: ComandaDto | null;
@@ -689,14 +690,6 @@ export const ComandaDetailsSheet = ({
                           min={1}
                           className="h-10 w-32"
                         />
-                        {currentProduct && (
-                          <p className="text-[10px] font-bold text-muted-foreground animate-in fade-in slide-in-from-top-1">
-                            Estoque:{" "}
-                            <span className="text-foreground">
-                              {Number(currentProduct.stock)} unid.
-                            </span>
-                          </p>
-                        )}
                       </div>
                       <Button
                         onClick={handleAddItem}
@@ -710,6 +703,15 @@ export const ComandaDetailsSheet = ({
                         )}
                       </Button>
                     </div>
+
+                    {currentProduct && (
+                      <div className="pt-2 border-t border-border/50">
+                        <ProductAvailabilityInfo 
+                          product={currentProduct} 
+                          className="bg-background/50 rounded-lg p-1"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="mt-2 space-y-2">
