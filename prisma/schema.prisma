@@ -55,6 +55,7 @@ model Product {
 
 
   @@unique([sku, companyId])
+  @@unique([name, companyId])
 }
 
 model ProductComposition {
