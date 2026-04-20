@@ -58,7 +58,7 @@ export const recordStockMovement = async (
       ) {
         console.log(`[STOCK_DEBUG] THROWING BusinessError for ${updatedProduct.name}`);
         throw new BusinessError(
-          "Estoque insuficiente. A empresa não permite estoque negativo."
+          `Estoque insuficiente para ${updatedProduct.name}. A empresa não permite estoque negativo.`
         );
       }
 
