@@ -20,6 +20,7 @@ import { QuantityStepper } from "@/app/_components/ui/quantity-stepper";
 import { formatCurrency } from "@/app/_helpers/currency";
 import { cn } from "@/app/_lib/utils";
 import { ProductDto } from "@/app/_data-access/product/get-products";
+import { ProductAvailabilityInfo } from "../shared/product-availability-info";
 
 const composerSchema = z.object({
   productId: z.string().uuid({
@@ -61,6 +62,7 @@ export const CartComposer = ({
   const currentProduct = useMemo(() => {
     return products.find((p) => p.id === selectedProductId);
   }, [products, selectedProductId]);
+
 
   const onAddProduct = (data: ComposerSchema) => {
     const product = products.find((p) => p.id === data.productId);
@@ -124,37 +126,33 @@ export const CartComposer = ({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="quantity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center justify-between text-[10px] font-black uppercase text-muted-foreground">
-                    Quantidade
-                    {currentProduct && (
-                      <span
-                        className={cn(
-                          "text-[9px] font-bold lowercase italic",
-                          Number(currentProduct.stock) < 0
-                            ? "text-destructive"
-                            : "text-muted-foreground/60",
-                        )}
-                      >
-                        {Number(currentProduct.stock)} em estoque
-                      </span>
-                    )}
-                  </FormLabel>
-                  <FormControl>
-                    <QuantityStepper
-                      value={field.value}
-                      onChange={field.onChange}
-                      className="h-10 w-full"
-                    />
-                  </FormControl>
-                  <FormMessage className="text-[10px]" />
-                </FormItem>
-              )}
-            />
+            <div className="flex items-end gap-3">
+              <div className="w-[110px] shrink-0">
+                <FormField
+                  control={form.control}
+                  name="quantity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[10px] font-black uppercase text-muted-foreground">
+                        Quantidade
+                      </FormLabel>
+                      <FormControl>
+                        <QuantityStepper
+                          value={field.value}
+                          onChange={field.onChange}
+                          className="h-10 w-full"
+                        />
+                      </FormControl>
+                      <FormMessage className="text-[10px]" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <ProductAvailabilityInfo product={currentProduct!} />
+              </div>
+            </div>
           </div>
 
           {currentProduct && (

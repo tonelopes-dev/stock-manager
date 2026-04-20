@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/app/_lib/prisma";
+import { Prisma } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { actionClient } from "@/app/_lib/safe-action";
 import { z } from "zod";
@@ -20,7 +21,7 @@ export const getInventoryAlerts = actionClient
         isActive: true,
         type: { in: ["INSUMO", "REVENDA"] },
         OR: [
-          { stock: { lte: 0 } },
+          { stock: { lte: new Prisma.Decimal(0) } },
           { stock: { lte: db.product.fields.minStock } }
         ],
       },
@@ -71,7 +72,7 @@ export const getInventoryAlerts = actionClient
         companyId,
         expirationDate: { not: null },
         product: {
-          stock: { gt: 0 },
+          stock: { gt: new Prisma.Decimal(0) },
           isActive: true
         }
       },

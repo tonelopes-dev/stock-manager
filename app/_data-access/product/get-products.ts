@@ -5,6 +5,7 @@ import { Product, Prisma, ProductType } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { calculateMargin } from "@/app/_lib/pricing";
 import { subDays } from "date-fns";
+import { sanitizeUUID } from "@/app/_lib/uuid";
 
 export type ProductStatusDto = "IN_STOCK" | "OUT_OF_STOCK" | "LOW_STOCK" | "SLOW_MOVING";
 
@@ -22,7 +23,9 @@ export interface ProductDto extends Omit<Product, "price" | "cost" | "operationa
   trackExpiration: boolean;
   environmentId: string | null;
   environment?: { id: string; name: string } | null;
-  parentCompositions?: any[]; // Simplified for DTO
+  virtualStock: number;
+  limitingIngredient?: string;
+  ingredients?: { name: string; availability: number }[];
   _count?: {
     saleItems: number;
     productionOrders: number;
@@ -33,7 +36,8 @@ export const getProducts = async (
   slowMovingDays = 30, 
   status: "ACTIVE" | "INACTIVE" | "ALL" = "ACTIVE",
   environmentId?: string,
-  types?: ProductType[]
+  types?: ProductType[],
+  categoryId?: string
 ): Promise<ProductDto[]> => {
   const companyId = await getCurrentCompanyId();
   const slowMovingThreshold = subDays(new Date(), slowMovingDays);
@@ -46,8 +50,16 @@ export const getProducts = async (
     delete where.isActive;
   }
 
-  if (environmentId && environmentId !== "all") {
-    where.environmentId = environmentId;
+  // UUID Sanitization & Validation (PostgreSQL 22P03 protection)
+  const sanitizedEnvironmentId = sanitizeUUID(environmentId);
+  const sanitizedCategoryId = sanitizeUUID(categoryId);
+
+  if (sanitizedEnvironmentId) {
+    where.environmentId = sanitizedEnvironmentId;
+  }
+
+  if (sanitizedCategoryId) {
+    where.categoryId = sanitizedCategoryId;
   }
 
   if (types && types.length > 0) {
@@ -56,6 +68,7 @@ export const getProducts = async (
 
   const products = await db.product.findMany({
     where,
+
     orderBy: { createdAt: "desc" },
     include: {
       _count: {
@@ -101,6 +114,30 @@ export const getProducts = async (
     // The cost is now persisted in the DB and updated by the action
     const effectiveCost = cost;
 
+    let virtualStock = stock;
+    let limitingIngredient: string | undefined;
+    let ingredients: { name: string; availability: number }[] | undefined;
+
+    if (product.isMadeToOrder && product.parentCompositions.length > 0) {
+      let minCapacity = Infinity;
+      ingredients = product.parentCompositions.map(comp => {
+        const childStock = comp.child.stock.toNumber();
+        const qtyRequired = comp.quantity.toNumber();
+        const capacity = qtyRequired > 0 ? Math.floor(childStock / qtyRequired) : Infinity;
+        
+        if (capacity < minCapacity) {
+          minCapacity = capacity;
+          limitingIngredient = comp.child.name;
+        }
+
+        return {
+          name: comp.child.name,
+          availability: capacity === Infinity ? 0 : capacity
+        };
+      });
+      virtualStock = Math.max(0, minCapacity);
+    }
+
     return {
       id: product.id,
       name: product.name,
@@ -137,6 +174,9 @@ export const getProducts = async (
       trackExpiration: product.trackExpiration,
       expirationReminderDate: product.expirationReminderDate,
       isMadeToOrder: product.isMadeToOrder,
+      virtualStock,
+      limitingIngredient,
+      ingredients,
     };
   });
 };

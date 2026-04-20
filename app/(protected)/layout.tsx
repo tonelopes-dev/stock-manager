@@ -39,14 +39,16 @@ export default async function ProtectedLayout({
     pathname.includes("/plans") ||
     pathname.includes("/checkout") ||
     pathname.includes("/billing-required") ||
-    pathname.includes("/profile");
+    pathname.includes("/profile") ||
+    pathname.startsWith("/auth/clear-session");
 
   // 1. Rigid Subscription Guard (Redirection)
   // Block if NOT an essential route and subscription is expired or null
   const now = new Date();
   const isExpired = !expiresAt || expiresAt < now;
 
-  if (!isEssentialRoute && isExpired) {
+  // LOOP PROTECTION: Never redirect to /plans if we are already there or on an essential route
+  if (!isEssentialRoute && isExpired && pathname !== "/plans") {
     redirect("/plans");
   }
 

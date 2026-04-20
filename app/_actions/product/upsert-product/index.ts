@@ -66,6 +66,22 @@ export const upsertProduct = actionClient
     const { userId } = await assertRole(ADMIN_AND_OWNER);
     await requireActiveSubscription(companyId);
 
+    // Manual duplication check (Application Level)
+    const existingProduct = await db.product.findFirst({
+      where: {
+        name: data.name,
+        companyId,
+        NOT: id ? { id } : undefined,
+      },
+      select: { id: true },
+    });
+
+    if (existingProduct) {
+      throw new Error(
+        "Já existe um item com este nome. Se não estiver vendo na lista, verifique os filtros ou itens Inativos e reative-o."
+      );
+    }
+
     const sku = data.sku?.trim() || null;
 
     const result = await db.$transaction(async (trx) => {
