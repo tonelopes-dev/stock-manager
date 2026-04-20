@@ -30,15 +30,17 @@ export const upsertIngredient = actionClient
       where: {
         name: data.name,
         companyId,
-        type: "INSUMO",
         NOT: id ? { id } : undefined,
       },
-      select: { id: true },
+      select: { id: true, type: true, isActive: true },
     });
 
     if (existingIngredient) {
+      const typeLabel = existingIngredient.type === "INSUMO" ? "um insumo" : "um produto";
+      const statusLabel = existingIngredient.isActive ? "" : " (mesmo que esteja inativo)";
+      
       throw new Error(
-        "Já existe um insumo com este nome, inclusive nos desativados. Verifique a lista de inativos e reative-o."
+        `Já existe ${typeLabel} com este nome${statusLabel}. Escolha um nome diferente ou reative o item existente.`
       );
     }
 

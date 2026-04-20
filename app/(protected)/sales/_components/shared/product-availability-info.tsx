@@ -11,7 +11,7 @@ import {
 } from "@/app/_components/ui/tooltip";
 
 interface ProductAvailabilityInfoProps {
-  product: ProductDto;
+  product?: ProductDto | null;
   className?: string;
   showDetails?: boolean; // If true, shows the ingredients grid for MTO
 }
@@ -21,6 +21,8 @@ export const ProductAvailabilityInfo = ({
   className,
   showDetails = true,
 }: ProductAvailabilityInfoProps) => {
+  if (!product) return null;
+
   const getStockColor = (stock: number) => {
     if (stock > 10) return "bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-sm";
     if (stock >= 6) return "bg-amber-400 hover:bg-amber-500 text-black border-none shadow-sm";

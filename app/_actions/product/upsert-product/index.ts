@@ -73,12 +73,15 @@ export const upsertProduct = actionClient
         companyId,
         NOT: id ? { id } : undefined,
       },
-      select: { id: true },
+      select: { id: true, type: true, isActive: true },
     });
 
     if (existingProduct) {
+      const typeLabel = existingProduct.type === "INSUMO" ? "um insumo" : "um produto";
+      const statusLabel = existingProduct.isActive ? "" : " (mesmo que esteja inativo)";
+
       throw new Error(
-        "Já existe um item com este nome. Se não estiver vendo na lista, verifique os filtros ou itens Inativos e reative-o."
+        `Já existe ${typeLabel} com este nome${statusLabel}. Escolha um nome diferente ou reative o item existente.`
       );
     }
 

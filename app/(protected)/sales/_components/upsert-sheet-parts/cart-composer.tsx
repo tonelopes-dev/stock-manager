@@ -150,7 +150,7 @@ export const CartComposer = ({
               </div>
 
               <div className="flex-1 min-w-0">
-                <ProductAvailabilityInfo product={currentProduct!} />
+                <ProductAvailabilityInfo product={currentProduct} />
               </div>
             </div>
           </div>
