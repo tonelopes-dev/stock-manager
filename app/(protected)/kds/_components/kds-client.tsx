@@ -22,31 +22,54 @@ export const KDSClient = ({ initialOrders, companyId }: KDSClientProps) => {
   const router = useRouter();
   const [orders, setOrders] = useState<KDSOrderDto[]>(initialOrders);
 
-  // SSE Integration
+  // SSE Integration with Exponential Backoff
   useEffect(() => {
-    const eventSource = new EventSource(
-      `/api/kds/events?companyId=${companyId}`,
-    );
+    let eventSource: EventSource | null = null;
+    let retryTimeout: NodeJS.Timeout;
+    let retryCount = 0;
 
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === "NEW_ORDER" || data.type === "STATUS_UPDATED") {
-          // Refetch data without losing client state
-          router.refresh();
+    const connect = () => {
+      if (eventSource) eventSource.close();
+
+      eventSource = new EventSource("/api/kds/stream");
+
+      eventSource.onopen = () => {
+        retryCount = 0; // Reset retry count on successful connection
+      };
+
+      eventSource.onmessage = (event) => {
+        try {
+          if (!event.data) return;
+          const data = JSON.parse(event.data);
+          if (data.type === "NEW_ORDER" || data.type === "STATUS_UPDATED") {
+            router.refresh();
+          }
+        } catch (e) {
+          // Ignore parse errors (e.g., keep-alive strings)
         }
-      } catch (e) {
-        console.error("Failed to parse SSE message");
-      }
+      };
+
+      eventSource.onerror = (err) => {
+        console.error("SSE Error:", err);
+        eventSource?.close();
+        
+        // Exponential backoff: 1s, 2s, 4s, 8s, 16s, max 30s
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
+        
+        retryTimeout = setTimeout(() => {
+          retryCount++;
+          connect();
+        }, delay);
+      };
     };
 
-    eventSource.onerror = (err) => {
-      console.error("SSE Error:", err);
-      eventSource.close();
-    };
+    connect();
 
-    return () => eventSource.close();
-  }, [companyId, router]);
+    return () => {
+      if (eventSource) eventSource.close();
+      if (retryTimeout) clearTimeout(retryTimeout);
+    };
+  }, [router]);
 
   const handleStatusUpdate = async (orderId: string, status: OrderStatus) => {
     const result = await updateOrderStatusAction({
