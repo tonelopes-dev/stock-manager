@@ -11,6 +11,7 @@ const createOrderSchema = z.object({
   items: z.array(z.object({
     productId: z.string(),
     quantity: z.number().positive(),
+    notes: z.string().optional(),
   })),
   tableNumber: z.string().optional(),
   notes: z.string().optional(),

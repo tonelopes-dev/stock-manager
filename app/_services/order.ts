@@ -17,6 +17,7 @@ interface CreateOrderParams {
   items: {
     productId: string;
     quantity: number;
+    notes?: string;
   }[];
 }
 
@@ -83,6 +84,7 @@ export const OrderService = {
                 productId: item.productId,
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
+                notes: item.notes,
               })),
             },
           },
