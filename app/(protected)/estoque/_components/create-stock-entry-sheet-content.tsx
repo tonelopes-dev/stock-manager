@@ -68,7 +68,7 @@ const CreateStockEntryDialogContent = ({
       setSheetIsOpen(false);
       form.reset();
     },
-    onError: (error) => {
+    onError: ({ error }) => {
       toast.error(error.serverError || "Erro ao registrar compra.");
     },
   });
