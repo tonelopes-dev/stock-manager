@@ -4,6 +4,20 @@ export const actionClient = createSafeActionClient({
   // This handles the error message sent to the client
   handleServerError(e) {
     if (e instanceof Error) {
+      // Prisma unique constraint error
+      if (e.message.includes("Unique constraint failed") || e.message.includes("P2002")) {
+        if (e.message.includes("name")) {
+          // Check if it's a Supplier constraint (often mentions model name or fields)
+          if (e.message.toLowerCase().includes("supplier")) {
+            return "Já existe um fornecedor com este nome cadastrado.";
+          }
+          return "Já existe um item (produto ou insumo) com este nome nesta empresa.";
+        }
+        if (e.message.includes("sku")) {
+          return "Já existe um item com este SKU cadastrado nesta empresa.";
+        }
+        return "Já existe um registro com estes dados.";
+      }
       return e.message;
     }
     return "Ocorreu um erro inesperado.";
