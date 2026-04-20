@@ -83,24 +83,51 @@ export const OrderStatusClient = ({
 }: OrderStatusClientProps) => {
   const [order, setOrder] = useState<OrderStatusDto>(initialOrder);
 
+  // Real-time updates via Resilient SSE
   useEffect(() => {
-    // SSE connection for real-time updates
-    const eventSource = new EventSource(
-      `/api/kds/events?companyId=${companyId}`,
-    );
+    let eventSource: EventSource | null = null;
+    let retryTimeout: NodeJS.Timeout;
+    let retryCount = 0;
 
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === "STATUS_UPDATED" && data.orderId === order.id) {
-          setOrder((prev) => ({ ...prev, status: data.status }));
+    const connect = () => {
+      if (eventSource) eventSource.close();
+
+      // Passing companyId in query param because customers don't have an ERP session
+      eventSource = new EventSource(`/api/kds/stream?companyId=${companyId}`);
+
+      eventSource.onopen = () => {
+        retryCount = 0;
+      };
+
+      eventSource.onmessage = (event) => {
+        try {
+          if (!event.data) return;
+          const data = JSON.parse(event.data);
+          
+          if (data.type === "STATUS_UPDATED" && data.orderId === order.id) {
+            setOrder((prev) => ({ ...prev, status: data.status }));
+          }
+        } catch (e) {
+          // ignore parse errors
         }
-      } catch (e) {
-        console.error("Failed to parse SSE message");
-      }
+      };
+
+      eventSource.onerror = () => {
+        eventSource?.close();
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
+        retryTimeout = setTimeout(() => {
+          retryCount++;
+          connect();
+        }, delay);
+      };
     };
 
-    return () => eventSource.close();
+    connect();
+
+    return () => {
+      if (eventSource) eventSource.close();
+      if (retryTimeout) clearTimeout(retryTimeout);
+    };
   }, [companyId, order.id]);
 
   const currentStatus = statusConfig[order.status];

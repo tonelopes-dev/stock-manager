@@ -186,36 +186,62 @@ export const MyOrdersClient = ({ companyId }: MyOrdersClientProps) => {
     }
   }, [companyId]);
 
+  // Real-time updates via Resilient SSE
   useEffect(() => {
     if (!customerId) return;
 
-    const eventSource = new EventSource(
-      `/api/kds/events?companyId=${companyId}`,
-    );
+    let eventSource: EventSource | null = null;
+    let retryTimeout: NodeJS.Timeout;
+    let retryCount = 0;
 
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
+    const connect = () => {
+      if (eventSource) eventSource.close();
 
-        // Se for um evento deste cliente específico
-        if (data.customerId === customerId) {
-          if (data.type === "STATUS_UPDATED") {
-            setOrders((prev) =>
-              prev.map((o) =>
-                o.id === data.orderId ? { ...o, status: data.status } : o,
-              ),
-            );
-          } else if (data.type === "NEW_ORDER") {
-            // Recarrega a lista para mostrar o novo pedido
-            loadOrders(customerId);
+      // Passing companyId in query param because customers don't have an ERP session
+      eventSource = new EventSource(`/api/kds/stream?companyId=${companyId}`);
+
+      eventSource.onopen = () => {
+        retryCount = 0;
+      };
+
+      eventSource.onmessage = (event) => {
+        try {
+          if (!event.data) return;
+          const data = JSON.parse(event.data);
+
+          // Se for um evento deste cliente específico
+          if (data.customerId === customerId) {
+            if (data.type === "STATUS_UPDATED") {
+              setOrders((prev) =>
+                prev.map((o) =>
+                  o.id === data.orderId ? { ...o, status: data.status } : o,
+                ),
+              );
+            } else if (data.type === "NEW_ORDER") {
+              loadOrders(customerId);
+            }
           }
+        } catch (e) {
+          // ignore parse errors
         }
-      } catch (e) {
-        console.error("Failed to parse SSE message");
-      }
+      };
+
+      eventSource.onerror = () => {
+        eventSource?.close();
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
+        retryTimeout = setTimeout(() => {
+          retryCount++;
+          connect();
+        }, delay);
+      };
     };
 
-    return () => eventSource.close();
+    connect();
+
+    return () => {
+      if (eventSource) eventSource.close();
+      if (retryTimeout) clearTimeout(retryTimeout);
+    };
   }, [companyId, customerId]);
 
   if (loading) {

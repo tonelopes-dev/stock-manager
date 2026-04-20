@@ -97,52 +97,73 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
     fetchAlerts();
   }, []);
 
-  // SSE listener
+  // SSE listener with Resilient Reconnect
   useEffect(() => {
     if (!companyId) return;
 
-    const eventSource = new EventSource(
-      `/api/kds/events?companyId=${companyId}`,
-    );
+    let eventSource: EventSource | null = null;
+    let retryTimeout: NodeJS.Timeout;
+    let retryCount = 0;
 
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === "NEW_ORDER") {
-          triggerAlert("Novo pedido recebido!");
-          setNotifications((prev) => [
-            {
-              id: `notif-${Date.now()}`,
-              type: "order",
-              message: `Novo pedido recebido!`,
-              timestamp: new Date(),
-              read: false,
-            },
-            ...prev.slice(0, 49),
-          ]);
-        } else if (data.type === "STATUS_UPDATED") {
-          triggerAlert(`Pedido atualizado → ${data.status || "Novo status"}`);
-          setNotifications((prev) => [
-            {
-              id: `notif-${Date.now()}`,
-              type: "status",
-              message: `Pedido atualizado → ${data.status || "Novo status"}`,
-              timestamp: new Date(),
-              read: false,
-            },
-            ...prev.slice(0, 49),
-          ]);
+    const connect = () => {
+      if (eventSource) eventSource.close();
+
+      eventSource = new EventSource("/api/kds/stream");
+
+      eventSource.onopen = () => {
+        retryCount = 0;
+      };
+
+      eventSource.onmessage = (event) => {
+        try {
+          if (!event.data) return;
+          const data = JSON.parse(event.data);
+          if (data.type === "NEW_ORDER") {
+            triggerAlert("Novo pedido recebido!");
+            setNotifications((prev) => [
+              {
+                id: `notif-${Date.now()}`,
+                type: "order",
+                message: "Novo pedido recebido!",
+                timestamp: new Date(),
+                read: false,
+              },
+              ...prev.slice(0, 49),
+            ]);
+          } else if (data.type === "STATUS_UPDATED") {
+            triggerAlert(`Pedido atualizado → ${data.status || "Novo status"}`);
+            setNotifications((prev) => [
+              {
+                id: `notif-${Date.now()}`,
+                type: "status",
+                message: `Pedido atualizado → ${data.status || "Novo status"}`,
+                timestamp: new Date(),
+                read: false,
+              },
+              ...prev.slice(0, 49),
+            ]);
+          }
+        } catch {
+          // ignore parse errors
         }
-      } catch {
-        // ignore parse errors
-      }
+      };
+
+      eventSource.onerror = () => {
+        eventSource?.close();
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
+        retryTimeout = setTimeout(() => {
+          retryCount++;
+          connect();
+        }, delay);
+      };
     };
 
-    eventSource.onerror = () => {
-      eventSource.close();
-    };
+    connect();
 
-    return () => eventSource.close();
+    return () => {
+      if (eventSource) eventSource.close();
+      if (retryTimeout) clearTimeout(retryTimeout);
+    };
   }, [companyId]);
 
   const markAllRead = () => {

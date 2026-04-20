@@ -5,12 +5,16 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
+  const { searchParams } = new URL(req.url);
+  
+  // Hybrid detection: 
+  // 1. If session exists (ERP), use session.companyId
+  // 2. Otherwise use query param (Public Menu / Anonymous)
+  const companyId = (session?.user as any)?.companyId || searchParams.get("companyId");
 
-  if (!session?.user?.companyId) {
-    return new Response("Unauthorized", { status: 401 });
+  if (!companyId) {
+    return new Response("Missing companyId", { status: 400 });
   }
-
-  const companyId = (session.user as any).companyId;
   const baseUrl = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 

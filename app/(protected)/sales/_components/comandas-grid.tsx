@@ -73,26 +73,51 @@ export const ComandasGrid = ({
     }
   }, [searchParams, initialComandas]);
   
-  // Real-time Updates via SSE
+  // Real-time Updates via Resilient SSE
   useEffect(() => {
-    const eventSource = new EventSource(
-      `/api/kds/events?companyId=${companyId}`,
-    );
+    let eventSource: EventSource | null = null;
+    let retryTimeout: NodeJS.Timeout;
+    let retryCount = 0;
 
-    eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.companyId === companyId) {
-        router.refresh();
-      }
+    const connect = () => {
+      if (eventSource) eventSource.close();
+
+      eventSource = new EventSource("/api/kds/stream");
+
+      eventSource.onopen = () => {
+        retryCount = 0;
+      };
+
+      eventSource.onmessage = (event) => {
+        try {
+          if (!event.data) return;
+          const data = JSON.parse(event.data);
+          // Refresh on any relevant update (New Order or Status Update)
+          if (data.type === "NEW_ORDER" || data.type === "STATUS_UPDATED") {
+            router.refresh();
+          }
+        } catch {
+          // ignore parse errors
+        }
+      };
+
+      eventSource.onerror = () => {
+        eventSource?.close();
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
+        retryTimeout = setTimeout(() => {
+          retryCount++;
+          connect();
+        }, delay);
+      };
     };
 
-    eventSource.onerror = (error) => {
-      console.error("SSE Connection Error:", error);
-      eventSource.close();
-    };
+    connect();
 
-    return () => eventSource.close();
-  }, [companyId, router]);
+    return () => {
+      if (eventSource) eventSource.close();
+      if (retryTimeout) clearTimeout(retryTimeout);
+    };
+  }, [router]);
 
   const handleCloseSheet = () => {
     setSelectedComanda(null);

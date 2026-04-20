@@ -2,7 +2,7 @@ import { db } from "@/app/_lib/prisma";
 import { recordStockMovement, processRecursiveStockMovement } from "@/app/_lib/stock";
 import { BusinessError } from "@/app/_lib/errors";
 import { OrderStatus, Prisma } from "@prisma/client";
-import { notifyKDS } from "@/app/api/kds/events/route";
+import { notifyKDS } from "@/app/_lib/kds";
 
 interface CreateOrderParams {
   companyId: string;
