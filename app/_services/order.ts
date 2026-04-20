@@ -40,11 +40,6 @@ export const OrderService = {
               throw new BusinessError(`O produto ${product.name} está desativado.`);
             }
 
-            // Check stock level
-            if (Number(item.quantity) > Number(product.stock)) {
-              throw new BusinessError(`Estoque insuficiente para ${product.name}.`);
-            }
-
             const unitPrice = isEmployeeSale 
               ? Number(product.cost) + Number(product.operationalCost)
               : Number(product.price);
