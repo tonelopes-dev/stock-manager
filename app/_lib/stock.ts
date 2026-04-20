@@ -109,23 +109,21 @@ export async function processRecursiveStockMovement(
   const visited = new Set<string>();
   const { productId, quantity, companyId, userId, type, saleId, orderId, forceAllowNegative } = params;
 
-  const recursive = async (pid: string, qty: Prisma.Decimal) => {
-    if (visited.has(pid)) return;
-    visited.add(pid);
+    const recursive = async (pid: string, qty: Prisma.Decimal, forceAllow?: boolean) => {
+      if (visited.has(pid)) return;
+      visited.add(pid);
 
-    // Fetch product with its composition
-    const product = await trx.product.findUnique({
-      where: { id: pid },
-      include: { parentCompositions: true },
-    });
+      // Fetch product with its composition
+      const product = await trx.product.findUnique({
+        where: { id: pid },
+        include: { parentCompositions: true },
+      });
 
-    if (!product) return;
+      if (!product) return;
 
-    const hasIngredients = product.parentCompositions && product.parentCompositions.length > 0;
-    
-    // 1. Record movement for the product itself if it's NOT MTO
-    // OR if it IS MTO but has NO ingredients (safety fallback for misconfigured products)
-    if (!product.isMadeToOrder || (product.isMadeToOrder && !hasIngredients)) {
+      const hasIngredients = product.parentCompositions && product.parentCompositions.length > 0;
+      
+      // 1. Record movement for the product itself
       await recordStockMovement(
         {
           productId: pid,
@@ -135,23 +133,25 @@ export async function processRecursiveStockMovement(
           quantity: qty,
           saleId,
           orderId,
-          forceAllowNegative: forceAllowNegative ?? true,
+          // Use provided forceAllow, or default to checking ingredients
+          forceAllowNegative: forceAllow ?? (!product.isMadeToOrder || !hasIngredients ? forceAllowNegative : true),
         },
         trx
       );
-    }
 
-    // 2. If it has children (Ficha Técnica / Composition), AND it's Made-to-Order, recurse
-    if (product.isMadeToOrder && hasIngredients) {
-      for (const comp of product.parentCompositions) {
-        // The quantity of the child is: (quantity sold/moved) * (quantity in composition)
-        const childQty = qty.mul(new Prisma.Decimal(comp.quantity.toString()));
-        await recursive(comp.childId, childQty);
+      // 2. If it has children (Ficha Técnica / Composition), AND it's Made-to-Order, recurse
+      if (product.isMadeToOrder && hasIngredients) {
+        for (const comp of product.parentCompositions) {
+          // The quantity of the child is: (quantity sold/moved) * (quantity in composition)
+          const childQty = qty.mul(new Prisma.Decimal(comp.quantity.toString()));
+          // For ingredients, we typically want to respect the company's negative stock setting
+          // unless the whole movement was explicitly forced (which isn't the case for regular sales)
+          await recursive(comp.childId, childQty, false);
+        }
       }
-    }
 
-    visited.delete(pid);
-  };
+      visited.delete(pid);
+    };
 
-  await recursive(productId, new Prisma.Decimal(quantity.toString()));
+    await recursive(productId, new Prisma.Decimal(quantity.toString()), forceAllowNegative);
 }

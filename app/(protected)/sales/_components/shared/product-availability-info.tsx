@@ -23,9 +23,10 @@ export const ProductAvailabilityInfo = ({
 }: ProductAvailabilityInfoProps) => {
   if (!product) return null;
 
-  const getStockColor = (stock: number) => {
+  const getStockColor = (stock: number, allowNegative: boolean) => {
     if (stock > 10) return "bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-sm";
     if (stock >= 6) return "bg-amber-400 hover:bg-amber-500 text-black border-none shadow-sm";
+    if (stock <= 0 && allowNegative) return "bg-sky-600 hover:bg-sky-700 text-white border-none shadow-sm";
     return "bg-rose-600 hover:bg-rose-700 text-white border-none shadow-sm";
   };
 
@@ -60,20 +61,22 @@ export const ProductAvailabilityInfo = ({
              <TooltipProvider>
                 <Tooltip delayDuration={300}>
                   <TooltipTrigger asChild>
-                    <Badge className={cn("px-1.5 py-0 h-4 text-[9px] font-black uppercase tracking-tighter shadow-sm cursor-help", getStockColor(product.virtualStock))}>
-                      {product.virtualStock} DISPONÍVEL
+                    <Badge className={cn("px-1.5 py-0 h-4 text-[9px] font-black uppercase tracking-tighter shadow-sm cursor-help", getStockColor(product.virtualStock, product.allowNegativeStock))}>
+                      {product.virtualStock} {product.virtualStock <= 0 && product.allowNegativeStock ? "LIBERADO" : "DISPONÍVEL"}
                     </Badge>
                   </TooltipTrigger>
                   <TooltipContent side="top" align="end" className="bg-popover border-border p-3 shadow-xl max-w-[220px]">
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-2">
-                        <div className={cn("h-1.5 w-1.5 rounded-full shrink-0", product.virtualStock > 0 ? "bg-emerald-500" : "bg-rose-500")} />
+                        <div className={cn("h-1.5 w-1.5 rounded-full shrink-0", product.virtualStock > 0 ? "bg-emerald-500" : product.allowNegativeStock ? "bg-sky-500" : "bg-rose-500")} />
                         <h5 className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                          Disponibilidade Virtual
+                          {product.virtualStock <= 0 && product.allowNegativeStock ? "Venda Liberada" : "Disponibilidade Virtual"}
                         </h5>
                       </div>
                       <p className="text-[9px] font-medium leading-relaxed text-muted-foreground italic">
-                        Calculado via ficha técnica. O estoque disponível é limitado pelo insumo de menor quantidade.
+                        {product.virtualStock <= 0 && product.allowNegativeStock 
+                          ? "O estoque está zerado, mas a empresa permite a venda com saldo negativo." 
+                          : "Calculado via ficha técnica. O estoque disponível é limitado pelo insumo de menor quantidade."}
                       </p>
                     </div>
                   </TooltipContent>
@@ -86,20 +89,22 @@ export const ProductAvailabilityInfo = ({
            <TooltipProvider>
               <Tooltip delayDuration={300}>
                 <TooltipTrigger asChild>
-                  <Badge className={cn("px-2 py-0.5 h-auto text-[10px] font-black uppercase tracking-tighter shadow-sm cursor-help", getStockColor(product.virtualStock))}>
-                    {product.virtualStock} {product.isMadeToOrder ? "DISPONÍVEL" : "EM ESTOQUE"}
+                  <Badge className={cn("px-2 py-0.5 h-auto text-[10px] font-black uppercase tracking-tighter shadow-sm cursor-help", getStockColor(product.virtualStock, product.allowNegativeStock))}>
+                    {product.virtualStock} {product.virtualStock <= 0 && product.allowNegativeStock ? "LIBERADO" : product.isMadeToOrder ? "DISPONÍVEL" : "EM ESTOQUE"}
                   </Badge>
                 </TooltipTrigger>
                 <TooltipContent side="top" align="end" className="bg-popover border-border p-3 shadow-xl max-w-[220px]">
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
-                      <div className={cn("h-1.5 w-1.5 rounded-full shrink-0", product.virtualStock > 0 ? "bg-emerald-500" : "bg-rose-500")} />
+                      <div className={cn("h-1.5 w-1.5 rounded-full shrink-0", product.virtualStock > 0 ? "bg-emerald-500" : product.allowNegativeStock ? "bg-sky-500" : "bg-rose-500")} />
                       <h5 className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                        {product.isMadeToOrder ? "Estoque Virtual" : "Estoque Físico"}
+                        {product.virtualStock <= 0 && product.allowNegativeStock ? "Venda Liberada" : product.isMadeToOrder ? "Estoque Virtual" : "Estoque Físico"}
                       </h5>
                     </div>
                     <p className="text-[9px] font-medium leading-relaxed text-muted-foreground italic">
-                      {product.isMadeToOrder 
+                      {product.virtualStock <= 0 && product.allowNegativeStock 
+                        ? "O estoque está zerado, mas a empresa permite a venda com saldo negativo."
+                        : product.isMadeToOrder 
                         ? "Disponibilidade calculada via ficha técnica." 
                         : "Quantidade exata registrada em estoque físico."}
                     </p>

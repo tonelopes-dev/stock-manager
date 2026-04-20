@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const createStockEntrySchema = z.object({
   productId: z.string().uuid("Produto inválido"),
-  supplierId: z.string().cuid("Fornecedor inválido").optional().or(z.literal("")),
+  supplierId: z.string().cuid("Fornecedor inválido").optional().or(z.literal("")).transform(val => val === "" ? null : val),
   quantity: z.number().positive("A quantidade deve ser maior que zero"),
   unitCost: z.number().nonnegative("O custo unitário não pode ser negativo"),
   batchNumber: z.string().optional(),

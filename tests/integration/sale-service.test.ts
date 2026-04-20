@@ -188,9 +188,9 @@ describe("SaleService — Recursive Stock Deduction", () => {
   });
 
   // ============================================================
-  // TEST 6: forceAllowNegative permits going below zero
+  // TEST 6: Ingredient stock MUST respect company setting
   // ============================================================
-  it("should allow negative stock via forceAllowNegative in recursive deduction", async () => {
+  it("should reject sale if an ingredient goes negative and company setting prohibits it", async () => {
     const { company, user, combo, pao } = await createSaleTestFixture();
 
     await testDb.product.update({
@@ -198,16 +198,13 @@ describe("SaleService — Recursive Stock Deduction", () => {
       data: { stock: 1 },
     });
 
-    const sale = await SaleService.upsertSale({
-      companyId: company.id,
-      userId: user.id,
-      products: [{ id: combo.id, quantity: 3 }],
-    });
-
-    expect(sale).toBeDefined();
-
-    const paoAfter = await testDb.product.findUnique({ where: { id: pao.id } });
-    // Pão: 1 - 3 = -2 (negative, but allowed via forceAllowNegative)
-    expect(Number(paoAfter!.stock)).toBe(-2);
+    // Selling 3 combos (needs 3 pao, but only 1 available)
+    await expect(
+      SaleService.upsertSale({
+        companyId: company.id,
+        userId: user.id,
+        products: [{ id: combo.id, quantity: 3 }],
+      })
+    ).rejects.toThrow("Estoque insuficiente");
   });
 });

@@ -18,6 +18,23 @@ export const actionClient = createSafeActionClient({
         }
         return "Já existe um registro com estes dados.";
       }
+
+      // Prisma Foreign Key constraint error (P2003)
+      if (e.message.includes("Foreign key constraint failed") || e.message.includes("P2003")) {
+        return "Erro de integridade: Um registro relacionado (como fornecedor ou categoria) não foi encontrado ou está associado a outros dados.";
+      }
+
+      // Prisma Record Not Found (P2025)
+      if (e.message.includes("Record to update not found") || e.message.includes("P2025")) {
+        return "O registro solicitado não foi encontrado para esta operação.";
+      }
+
+      // Evitar expor erros brutos de invocação do Prisma
+      if (e.message.includes("Invalid `prisma") || e.message.includes("invocation")) {
+        console.error("[PRISMA ERROR]", e.message);
+        return "Erro interno no banco de dados. Por favor, verifique os dados informados.";
+      }
+
       return e.message;
     }
     return "Ocorreu um erro inesperado.";
