@@ -26,6 +26,7 @@ export interface ProductDto extends Omit<Product, "price" | "cost" | "operationa
   virtualStock: number;
   limitingIngredient?: string;
   ingredients?: { name: string; availability: number }[];
+  allowNegativeStock: boolean;
   _count?: {
     saleItems: number;
     productionOrders: number;
@@ -96,6 +97,9 @@ export const getProducts = async (
       },
       environment: {
         select: { id: true, name: true },
+      },
+      company: {
+        select: { allowNegativeStock: true },
       },
     }
   });
@@ -177,6 +181,7 @@ export const getProducts = async (
       virtualStock,
       limitingIngredient,
       ingredients,
+      allowNegativeStock: product.company.allowNegativeStock,
     };
   });
 };

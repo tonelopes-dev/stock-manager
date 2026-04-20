@@ -19,6 +19,7 @@ export function setTestDb(client: PrismaClient) {
  * Order matters due to FK constraints.
  */
 export async function cleanDatabase() {
+  // Ordered from leaf nodes to root to avoid FK violations
   await testDb.stockMovement.deleteMany();
   await testDb.saleItem.deleteMany();
   await testDb.sale.deleteMany();
@@ -27,17 +28,21 @@ export async function cleanDatabase() {
   await testDb.productComposition.deleteMany();
   await testDb.productionOrder.deleteMany();
   await testDb.goal.deleteMany();
+  await testDb.stockEntry.deleteMany();
+  await testDb.productSupplier.deleteMany();
   await testDb.product.deleteMany();
+  await testDb.fixedExpense.deleteMany();
+  await testDb.supplier.deleteMany();
   await testDb.category.deleteMany();
   await testDb.environment.deleteMany();
   await testDb.checklistItem.deleteMany();
   await testDb.checklist.deleteMany();
   await testDb.checklistTemplate.deleteMany();
   await testDb.notification.deleteMany();
-  await testDb.customer.deleteMany();
-  await testDb.customerCategory.deleteMany();
-  await testDb.cRMStage.deleteMany();
   await testDb.auditEvent.deleteMany();
+  await testDb.customer.deleteMany(); // Delete Customer BEFORE CRMStage
+  await testDb.cRMStage.deleteMany();
+  await testDb.customerCategory.deleteMany();
   await testDb.companyInvitation.deleteMany();
   await testDb.userCompany.deleteMany();
   await testDb.session.deleteMany();
@@ -143,6 +148,7 @@ export async function createSaleTestFixture() {
       unit: UnitType.UN,
       companyId: company.id,
       sku: "prod-hamburguer",
+      isMadeToOrder: true,
     },
   });
 
@@ -166,6 +172,7 @@ export async function createSaleTestFixture() {
       unit: UnitType.UN,
       companyId: company.id,
       sku: "combo-rota-burger",
+      isMadeToOrder: true,
     },
   });
 
