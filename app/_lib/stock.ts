@@ -121,8 +121,11 @@ export async function processRecursiveStockMovement(
 
     if (!product) return;
 
-    // 1. Record movement for the product itself (Only if NOT MTO)
-    if (!product.isMadeToOrder) {
+    const hasIngredients = product.parentCompositions && product.parentCompositions.length > 0;
+    
+    // 1. Record movement for the product itself if it's NOT MTO
+    // OR if it IS MTO but has NO ingredients (safety fallback for misconfigured products)
+    if (!product.isMadeToOrder || (product.isMadeToOrder && !hasIngredients)) {
       await recordStockMovement(
         {
           productId: pid,
@@ -139,7 +142,7 @@ export async function processRecursiveStockMovement(
     }
 
     // 2. If it has children (Ficha Técnica / Composition), AND it's Made-to-Order, recurse
-    if (product.isMadeToOrder && product.parentCompositions && product.parentCompositions.length > 0) {
+    if (product.isMadeToOrder && hasIngredients) {
       for (const comp of product.parentCompositions) {
         // The quantity of the child is: (quantity sold/moved) * (quantity in composition)
         const childQty = qty.mul(new Prisma.Decimal(comp.quantity.toString()));
