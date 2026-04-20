@@ -51,20 +51,30 @@ export async function GET(req: NextRequest) {
   });
 }
 
-// Function to notify clients (can be called from actions/services)
-// In a scalable app, this would publish to Redis.
-export function notifyKDS(companyId: string, data: any) {
-  const message = `data: ${JSON.stringify(data)}\n\n`;
-  const encoder = new TextEncoder();
-  const encoded = encoder.encode(message);
+import { redis } from "@/app/_lib/redis";
 
-  for (const client of clients) {
-    if (client.companyId === companyId) {
-      try {
-        client.controller.enqueue(encoded);
-      } catch (e) {
-        clients.delete(client);
+// Function to notify clients via Redis Pub/Sub
+export async function notifyKDS(companyId: string, data: any) {
+  try {
+    const channel = `kds:${companyId}`;
+    await redis.publish(channel, JSON.stringify(data));
+    
+    // Also notify local clients for zero-downtime migration
+    const message = `data: ${JSON.stringify(data)}\n\n`;
+    const encoder = new TextEncoder();
+    const encoded = encoder.encode(message);
+
+    for (const client of clients) {
+      if (client.companyId === companyId) {
+        try {
+          client.controller.enqueue(encoded);
+        } catch (e) {
+          clients.delete(client);
+        }
       }
     }
+  } catch (error) {
+    console.error("[REDIS_KDS_ERROR] Failed to publish event:", error);
+    // We don't rethrow to avoid breaking the core business logic (fire-and-forget)
   }
 }

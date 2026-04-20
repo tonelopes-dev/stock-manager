@@ -105,7 +105,7 @@ export const OrderService = {
         }
 
         // 4. Notify KDS
-        notifyKDS(companyId, { 
+        await notifyKDS(companyId, { 
           type: "NEW_ORDER", 
           orderId: order.id,
           customerId: order.customerId 
@@ -153,7 +153,7 @@ export const OrderService = {
         });
 
         // Notify KDS
-        notifyKDS(companyId, { 
+        await notifyKDS(companyId, { 
           type: "STATUS_UPDATED", 
           orderId, 
           status,
