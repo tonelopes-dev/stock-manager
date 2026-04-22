@@ -62,6 +62,6 @@ export const deleteProduct = actionClient
     });
 
     revalidatePath("/", "layout");
-    revalidatePath("/products");
+    revalidatePath("/cardapio");
 
   });

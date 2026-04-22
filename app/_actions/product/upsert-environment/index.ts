@@ -32,6 +32,6 @@ export const upsertEnvironment = actionClient
       });
     }
 
-    revalidatePath("/products");
+    revalidatePath("/cardapio");
     return { success: true };
   });

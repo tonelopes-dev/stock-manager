@@ -61,82 +61,89 @@ export const createStockEntry = actionClient
     const companyId = await getCurrentCompanyId();
     const { userId } = await assertRole(ADMIN_AND_OWNER);
 
-    const result = await db.$transaction(async (trx) => {
-      // 0. Buscar a unidade do produto para validação
-      const product = await trx.product.findUnique({
-        where: { id: data.productId },
-        select: { unit: true }
-      });
+    console.log("[STOCK_ENTRY] Requisição recebida:", { productId: data.productId, quantity: data.quantity });
 
-      if (product?.unit === "UN" && !Number.isInteger(data.quantity)) {
-        throw new Error("Produtos por unidade não aceitam frações (casas decimais).");
-      }
+    try {
+      const result = await db.$transaction(async (trx) => {
+        // 0. Buscar a unidade do produto para validação
+        const product = await trx.product.findUnique({
+          where: { id: data.productId },
+          select: { unit: true }
+        });
 
-      // 1. Criar o registro de Entrada de Mercadoria
-      const stockEntry = await trx.stockEntry.create({
-        data: {
-          productId: data.productId,
-          supplierId: data.supplierId,
-          quantity: data.quantity,
-          unitCost: data.unitCost,
-          totalCost: data.quantity * data.unitCost,
-          batchNumber: data.batchNumber,
-          expirationDate: data.expirationDate,
-          invoiceNumber: data.invoiceNumber,
-          date: data.date,
+        if (product?.unit === "UN" && !Number.isInteger(data.quantity)) {
+          throw new Error("Produtos por unidade não aceitam frações (casas decimais).");
+        }
+
+        // 1. Criar o registro de Entrada de Mercadoria
+        const stockEntry = await trx.stockEntry.create({
+          data: {
+            productId: data.productId,
+            supplierId: data.supplierId,
+            quantity: data.quantity,
+            unitCost: data.unitCost,
+            totalCost: data.quantity * data.unitCost,
+            batchNumber: data.batchNumber,
+            expirationDate: data.expirationDate,
+            invoiceNumber: data.invoiceNumber,
+            date: data.date,
+            companyId,
+            userId,
+          },
+        });
+
+        // 2. Registrar a Movimentação de Estoque (Incrementar estoque físico)
+        await recordStockMovement(
+          {
+            productId: data.productId,
+            companyId,
+            userId,
+            type: "PURCHASE",
+            quantity: data.quantity,
+            date: data.date,
+            reason: `Entrada de mercadoria - NF: ${data.invoiceNumber || "N/A"}`,
+          },
+          trx
+        );
+
+        // 3. Atualizar o Custo do Produto (Last Purchase Price)
+        const updatedProduct = await trx.product.update({
+          where: { id: data.productId },
+          data: {
+            cost: data.unitCost,
+          },
+        });
+
+        // 4. Recalcular Custos de Receitas dependentas (BOM)
+        await updateParentCostsRecursive(data.productId, trx);
+
+        // 5. Auditoria
+        await AuditService.logWithTransaction(trx, {
+          type: AuditEventType.STOCK_ADJUSTED, 
           companyId,
-          userId,
-        },
+          entityType: "PRODUCT",
+          entityId: stockEntry.id,
+          metadata: {
+            productId: data.productId,
+            quantity: data.quantity,
+            unitCost: data.unitCost,
+            invoiceNumber: data.invoiceNumber,
+          },
+        });
+
+        return stockEntry;
       });
 
-      // 2. Registrar a Movimentação de Estoque (Incrementar estoque físico)
-      await recordStockMovement(
-        {
-          productId: data.productId,
-          companyId,
-          userId,
-          type: "PURCHASE",
-          quantity: data.quantity,
-          date: data.date,
-          reason: `Entrada de mercadoria - NF: ${data.invoiceNumber || "N/A"}`,
-        },
-        trx
-      );
+      // Revalidação de caminhos afetados
+      revalidatePath("/estoque");
+      revalidatePath("/cardapio");
+      revalidatePath("/dashboard");
+      revalidatePath("/reports");
 
-      // 3. Atualizar o Custo do Produto (Last Purchase Price)
-      const updatedProduct = await trx.product.update({
-        where: { id: data.productId },
-        data: {
-          cost: data.unitCost,
-        },
-      });
-
-      // 4. Recalcular Custos de Receitas dependentas (BOM)
-      await updateParentCostsRecursive(data.productId, trx);
-
-      // 5. Auditoria
-      await AuditService.logWithTransaction(trx, {
-        type: AuditEventType.STOCK_ADJUSTED, 
-        companyId,
-        entityType: "PRODUCT",
-        entityId: stockEntry.id,
-        metadata: {
-          productId: data.productId,
-          quantity: data.quantity,
-          unitCost: data.unitCost,
-          invoiceNumber: data.invoiceNumber,
-        },
-      });
-
-      return stockEntry;
-    });
-
-    // Revalidação de caminhos afetados
-    revalidatePath("/estoque");
-    revalidatePath("/cardapio");
-    revalidatePath("/dashboard");
-    revalidatePath("/reports");
-
-    // Fix Serialization: Convert Decimal objects from Prisma to plain numbers
-    return JSON.parse(JSON.stringify(result));
+      // Fix Serialization: Convert Decimal objects from Prisma to plain numbers
+      return JSON.parse(JSON.stringify(result));
+    } catch (error) {
+      console.error("[STOCK_ENTRY_ERROR]", error);
+      throw error;
+    }
   });

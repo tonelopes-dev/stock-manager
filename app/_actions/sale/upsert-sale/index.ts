@@ -66,8 +66,8 @@ export const upsertSale = actionClient
 
     revalidatePath("/dashboard");
     revalidatePath("/sales");
-    revalidatePath("/products");
+    revalidatePath("/cardapio");
     revalidatePath("/customers");
-    revalidatePath("/inventory"); // Adicionado para garantir atualização de estoque na UI
+    revalidatePath("/estoque"); // Adicionado para garantir atualização de estoque na UI
   });
 

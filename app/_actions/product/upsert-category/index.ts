@@ -27,5 +27,5 @@ export const upsertCategory = actionClient
       });
     }
 
-    revalidatePath("/products");
+    revalidatePath("/cardapio");
   });
