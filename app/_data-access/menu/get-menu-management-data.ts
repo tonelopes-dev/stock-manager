@@ -22,12 +22,38 @@ export interface MenuManagementCategory {
   products: MenuManagementProduct[];
 }
 
+export interface CompanyBranding {
+  name: string;
+  bannerUrl: string | null;
+  logoUrl: string | null;
+  address: string | null;
+  description: string | null;
+  whatsappNumber: string | null;
+  instagramUrl: string | null;
+  operatingHours: any;
+}
+
 export const getMenuManagementData = async (): Promise<{
   categories: MenuManagementCategory[];
   companyId: string;
+  company: CompanyBranding | null;
 }> => {
   const companyId = await getCurrentCompanyId();
-  if (!companyId) return { categories: [], companyId: "" };
+  if (!companyId) return { categories: [], companyId: "", company: null };
+
+  const company = await db.company.findUnique({
+    where: { id: companyId },
+    select: {
+      name: true,
+      bannerUrl: true,
+      logoUrl: true,
+      address: true,
+      description: true,
+      whatsappNumber: true,
+      instagramUrl: true,
+      operatingHours: true,
+    },
+  });
 
   const categories = await db.category.findMany({
     where: { companyId },
@@ -96,5 +122,5 @@ export const getMenuManagementData = async (): Promise<{
     });
   }
 
-  return { categories: result, companyId };
+  return { categories: result, companyId, company };
 };

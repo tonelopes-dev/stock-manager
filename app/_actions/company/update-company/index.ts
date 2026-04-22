@@ -9,7 +9,20 @@ import { assertRole, OWNER_ONLY } from "@/app/_lib/rbac";
 
 export const updateCompany = actionClient
   .schema(updateCompanySchema)
-  .action(async ({ parsedInput: { name, allowNegativeStock, estimatedMonthlyVolume, enableOverheadInjection } }) => {
+  .action(async ({ parsedInput: { 
+    name, 
+    allowNegativeStock, 
+    estimatedMonthlyVolume, 
+    enableOverheadInjection,
+    bannerUrl,
+    logoUrl,
+    address,
+    description,
+    whatsappNumber,
+    instagramUrl,
+    operatingHours
+  } }) => {
+    console.log("UPDATING COMPANY WITH:", { bannerUrl, logoUrl });
     const companyId = await getCurrentCompanyId();
     
     // Layer 2: Action Guard
@@ -22,11 +35,19 @@ export const updateCompany = actionClient
         allowNegativeStock,
         estimatedMonthlyVolume,
         enableOverheadInjection,
+        bannerUrl,
+        logoUrl,
+        address,
+        description,
+        whatsappNumber,
+        instagramUrl,
+        operatingHours: operatingHours as any,
       },
     });
 
     revalidatePath("/", "layout");
-    revalidatePath("/settings/company"); // Future page
+    revalidatePath("/menu-management");
+    revalidatePath(`/menu/${companyId}`);
     
     return { success: true };
   });
