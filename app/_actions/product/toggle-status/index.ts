@@ -33,8 +33,8 @@ export const toggleProductStatus = actionClient
     revalidatePath("/", "layout");
     revalidatePath("/dashboard");
     revalidatePath("/sales");
-    revalidatePath("/products");
-    revalidatePath(`/products/${id}`);
+    revalidatePath("/cardapio");
+    revalidatePath(`/cardapio/${id}`);
 
     return {
       success: true,

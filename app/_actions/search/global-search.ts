@@ -101,7 +101,7 @@ export const globalSearch = async (query: string): Promise<SearchResult[]> => {
       type: "product" as const,
       title: p.name,
       subtitle: currencyFormatter.format(Number(p.price)),
-      href: `/products?action=edit&id=${p.id}`,
+      href: `/cardapio?action=edit&id=${p.id}`,
     })),
     ...activeOrders.map((o) => ({
       id: o.id,

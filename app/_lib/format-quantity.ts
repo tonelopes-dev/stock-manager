@@ -28,7 +28,7 @@ const DOWNSCALE_MAP: Record<string, { targetUnit: string; factor: number }> = {
   KG: { targetUnit: "G", factor: 1000 },
 };
 
-function formatNumber(value: number, maxDecimals: number = 2): string {
+function formatNumber(value: number, maxDecimals: number = 4): string {
   // Round to max decimals to avoid floating point artifacts
   const rounded = Math.round(value * Math.pow(10, maxDecimals)) / Math.pow(10, maxDecimals);
   

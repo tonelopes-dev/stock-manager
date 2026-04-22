@@ -14,46 +14,54 @@ import { AuditEventType } from "@prisma/client";
 export const adjustStock = actionClient
   .schema(adjustStockSchema)
   .action(async ({ parsedInput: { id, quantity, reason } }) => {
-    const companyId = await getCurrentCompanyId();
-    await requireActiveSubscription(companyId);
-    const { userId } = await assertRole(ADMIN_AND_OWNER);
+    console.log("[STOCK_ADJUST] Requisição recebida:", { productId: id, quantity, reason });
 
-    await db.$transaction(async (trx) => {
-      const movement = await recordStockMovement(
-        {
-          productId: id,
+    try {
+      const companyId = await getCurrentCompanyId();
+      await requireActiveSubscription(companyId);
+      const { userId } = await assertRole(ADMIN_AND_OWNER);
+
+      await db.$transaction(async (trx) => {
+        const movement = await recordStockMovement(
+          {
+            productId: id,
+            companyId,
+            userId,
+            type: "ADJUSTMENT",
+            quantity,
+            reason,
+          },
+          trx
+        );
+
+        const product = await trx.product.findUniqueOrThrow({
+          where: { id, companyId },
+          select: { name: true, unit: true },
+        });
+
+        // Log Audit
+        await AuditService.logWithTransaction(trx, {
+          type: AuditEventType.STOCK_ADJUSTED,
           companyId,
-          userId,
-          type: "ADJUSTMENT",
-          quantity,
-          reason,
-        },
-        trx
-      );
-
-      const product = await trx.product.findUniqueOrThrow({
-        where: { id, companyId },
-        select: { name: true, unit: true },
+          entityType: "PRODUCT",
+          entityId: id,
+          metadata: {
+            productId: id,
+            name: product.name,
+            qty: quantity,
+            unit: product.unit,
+            before: Number(movement.stockBefore),
+            after: Number(movement.stockAfter),
+            reason,
+          },
+        });
       });
 
-      // Log Audit
-      await AuditService.logWithTransaction(trx, {
-        type: AuditEventType.STOCK_ADJUSTED,
-        companyId,
-        entityType: "PRODUCT",
-        entityId: id,
-        metadata: {
-          productId: id,
-          name: product.name,
-          qty: quantity,
-          unit: product.unit,
-          before: Number(movement.stockBefore),
-          after: Number(movement.stockAfter),
-          reason,
-        },
-      });
-    });
-
-    revalidatePath("/products", "page");
-    revalidatePath("/");
+      revalidatePath("/cardapio");
+      revalidatePath("/estoque");
+      revalidatePath("/");
+    } catch (error) {
+      console.error("[STOCK_ADJUST_ERROR]", error);
+      throw error;
+    }
   });

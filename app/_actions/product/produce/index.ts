@@ -43,8 +43,9 @@ export const produceProduct = actionClient
     });
 
 
-    revalidatePath(`/products/${productId}`, "page");
-    revalidatePath("/products", "page");
+    revalidatePath(`/cardapio/${productId}`, "page");
+    revalidatePath("/cardapio", "page");
+    revalidatePath("/estoque", "page");
     revalidatePath("/estoque", "page");
     revalidatePath("/");
 

@@ -30,7 +30,7 @@ export const bulkUpdateOperationalCosts = actionClient
 
     revalidatePath("/", "layout");
     revalidatePath("/dashboard");
-    revalidatePath("/products");
+    revalidatePath("/cardapio");
 
     return { count: result.count };
   });

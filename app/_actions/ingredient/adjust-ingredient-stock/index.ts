@@ -15,50 +15,57 @@ import { AuditEventType } from "@prisma/client";
 export const adjustIngredientStock = actionClient
   .schema(adjustIngredientStockSchema)
   .action(async ({ parsedInput: { id, quantity, reason } }) => {
-    const companyId = await getCurrentCompanyId();
-    await requireActiveSubscription(companyId);
-    const { userId } = await assertRole(ADMIN_AND_OWNER);
+    console.log("[INGREDIENT_STOCK_ADJUST] Requisição recebida:", { ingredientId: id, quantity, reason });
 
+    try {
+      const companyId = await getCurrentCompanyId();
+      await requireActiveSubscription(companyId);
+      const { userId } = await assertRole(ADMIN_AND_OWNER);
 
-    if (!userId) {
-      throw new Error("User not authenticated");
-    }
+      if (!userId) {
+        throw new Error("User not authenticated");
+      }
 
-    await db.$transaction(async (trx) => {
-      const movement = await IngredientService.adjustStock(
-        {
-          ingredientId: id,
+      await db.$transaction(async (trx) => {
+        const movement = await IngredientService.adjustStock(
+          {
+            ingredientId: id,
+            companyId,
+            userId,
+            quantity,
+            reason,
+          },
+          trx
+        );
+
+        const ingredient = await trx.product.findUniqueOrThrow({
+          where: { id },
+          select: { name: true, unit: true },
+        });
+
+        // Log Audit
+        await AuditService.logWithTransaction(trx, {
+          type: AuditEventType.INGREDIENT_STOCK_ADJUSTED,
           companyId,
-          userId,
-          quantity,
-          reason,
-        },
-        trx,
-      );
-
-      const ingredient = await trx.product.findUniqueOrThrow({
-        where: { id },
-        select: { name: true, unit: true },
+          entityType: "PRODUCT", // Or add INGREDIENT to entityType later, but PRODUCT is used for items
+          entityId: id,
+          metadata: {
+            ingredientId: id,
+            name: ingredient.name,
+            qty: quantity,
+            unit: ingredient.unit,
+            before: Number(movement.stockBefore),
+            after: Number(movement.stockAfter),
+            reason,
+          },
+        });
       });
 
-      // Log Audit
-      await AuditService.logWithTransaction(trx, {
-        type: AuditEventType.INGREDIENT_STOCK_ADJUSTED,
-        companyId,
-        entityType: "PRODUCT", // Or add INGREDIENT to entityType later, but PRODUCT is used for items
-        entityId: id,
-        metadata: {
-          ingredientId: id,
-          name: ingredient.name,
-          qty: quantity,
-          unit: ingredient.unit,
-          before: Number(movement.stockBefore),
-          after: Number(movement.stockAfter),
-          reason,
-        },
-      });
-    });
-
-    revalidatePath("/estoque", "page");
-    revalidatePath("/");
+      revalidatePath("/estoque");
+      revalidatePath("/cardapio");
+      revalidatePath("/");
+    } catch (error) {
+      console.error("[INGREDIENT_STOCK_ADJUST_ERROR]", error);
+      throw error;
+    }
   });

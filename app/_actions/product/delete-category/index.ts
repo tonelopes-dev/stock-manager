@@ -40,5 +40,5 @@ export const deleteCategory = actionClient
       });
     });
 
-    revalidatePath("/products");
+    revalidatePath("/cardapio");
   });
