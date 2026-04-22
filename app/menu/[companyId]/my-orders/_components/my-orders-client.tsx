@@ -90,59 +90,98 @@ const OrderCard = ({
     Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
       price,
     );
-
   return (
-    <Card className="overflow-hidden rounded-[2.5rem] border-none bg-background p-6 shadow-xl shadow-slate-200/50">
-      <div className="mb-4 flex items-center justify-between border-b border-border pb-4">
+    <Card className="overflow-hidden rounded-[2.5rem] border-none bg-white p-8 shadow-2xl shadow-gray-200/50 transition-all hover:shadow-gray-300/50">
+      {/* Header: Order # and Icon */}
+      <div className="mb-6 flex items-start justify-between">
         <div>
-          <h3 className="text-lg font-black italic tracking-tighter text-foreground">
+          <h3 className="text-xl font-black tracking-tighter text-gray-900">
             PEDIDO #{order.orderNumber}
           </h3>
-          <p className="text-[10px] font-bold uppercase text-muted-foreground">
-            {new Date(order.createdAt).toLocaleTimeString("pt-BR", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}{" "}
-            • {order.items.length} {order.items.length === 1 ? "item" : "itens"}
-          </p>
+          <div className="mt-1 flex items-center gap-2 text-xs font-bold text-gray-400">
+            <span>
+              {new Date(order.createdAt).toLocaleTimeString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+            <span className="h-1 w-1 rounded-full bg-gray-200" />
+            <span>{order.items.reduce((acc, i) => acc + i.quantity, 0)} itens</span>
+          </div>
         </div>
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-2xl bg-muted ${currentStatus.color}`}
+          className={`flex h-12 w-12 items-center justify-center rounded-[1.25rem] bg-gray-50 ${currentStatus.color}`}
         >
-          <currentStatus.icon className="h-5 w-5" />
+          <currentStatus.icon className="h-6 w-6" />
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-black text-foreground">
+      {/* Status Bar & Label */}
+      <div className="space-y-4">
+        <div className="flex flex-col gap-1">
+          <p className="text-sm font-black text-gray-900 uppercase tracking-tight">
             {currentStatus.label}
-          </span>
-          <span className="text-sm font-black text-primary">
-            {formatPrice(order.totalAmount)}
-          </span>
+          </p>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            {currentStatus.description}
+          </p>
         </div>
 
         {/* Mini Stepper */}
         {order.status !== "CANCELED" && (
-          <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-1.5 px-0.5">
             {[1, 2, 3, 4, 5].map((step) => {
               const isActive = currentStatus.step >= step;
+              const isCurrent = currentStatus.step === step;
               return (
                 <div
                   key={step}
-                  className="relative flex flex-1 items-center justify-center"
-                >
-                  <div
-                    className={`z-10 h-2 w-full rounded-full transition-all duration-700 ${
-                      isActive ? "bg-primary" : "bg-muted"
-                    }`}
-                  />
-                </div>
+                  className={`h-2 flex-1 rounded-full transition-all duration-700 ${
+                    isActive 
+                      ? isCurrent ? "bg-primary animate-pulse" : "bg-primary"
+                      : "bg-gray-100"
+                  }`}
+                />
               );
             })}
           </div>
         )}
+      </div>
+
+      {/* Item List (Transparency) */}
+      <div className="mt-8 space-y-4 border-t border-gray-50 pt-6">
+        <div className="space-y-3">
+          {order.items.map((item, idx) => (
+            <div key={idx} className="flex items-start justify-between gap-4">
+              <div className="flex gap-3">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-gray-900 text-[10px] font-black text-white">
+                  {item.quantity}
+                </span>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-bold text-gray-800 leading-tight">
+                    {item.name}
+                  </span>
+                  {item.notes && (
+                    <span className="text-[10px] italic text-gray-400 leading-tight">
+                      "{item.notes}"
+                    </span>
+                  )}
+                </div>
+              </div>
+              <span className="text-xs font-bold text-gray-500">
+                {formatPrice(item.price * item.quantity)}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Total Footer */}
+        <div className="flex items-center justify-between border-t border-gray-50 pt-4 mt-2">
+          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Total Pago</span>
+          <span className="text-lg font-black text-primary">
+            {formatPrice(order.totalAmount)}
+          </span>
+        </div>
       </div>
     </Card>
   );
@@ -253,22 +292,22 @@ export const MyOrdersClient = ({ companyId }: MyOrdersClientProps) => {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-muted font-sans shadow-2xl">
-      <header className="sticky top-0 z-20 bg-background/90 px-6 pb-6 pt-10 shadow-sm backdrop-blur-md">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-gray-50/50 font-sans shadow-2xl">
+      <header className="sticky top-0 z-20 bg-white/95 px-6 pb-6 pt-10 shadow-sm backdrop-blur-md">
         <Link
           href={`/menu/${companyId}`}
-          className="mb-6 flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-muted-foreground"
+          className="mb-6 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-primary transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          VOLTAR PARA O MENU
+          Voltar para o Cardápio
         </Link>
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-black uppercase italic tracking-tighter text-foreground">
+          <h1 className="text-2xl font-black tracking-tight text-gray-900">
             Meus Pedidos
           </h1>
-          <Badge className="rounded-full bg-primary px-3 font-black text-background">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-900 text-xs font-black text-white">
             {orders.length}
-          </Badge>
+          </div>
         </div>
       </header>
 

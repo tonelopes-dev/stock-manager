@@ -21,6 +21,9 @@ import {
   Mail,
   Calendar,
   Loader2,
+  Pencil,
+  MapPin,
+  ChevronRight,
 } from "lucide-react";
 import { Input } from "@/app/_components/ui/input";
 import Image from "next/image";
@@ -31,6 +34,7 @@ import {
   SheetTitle,
   SheetFooter,
 } from "@/app/_components/ui/sheet";
+import { Textarea } from "@/app/_components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -53,6 +57,7 @@ interface MenuClientProps {
 
 interface CartItem extends MenuProductDto {
   quantity: number;
+  notes?: string;
 }
 
 interface CustomerInfo {
@@ -76,6 +81,12 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tableNumber, setTableNumber] = useState<string | null>(null);
+
+  // New UI states
+  const [selectedProduct, setSelectedProduct] = useState<MenuProductDto | null>(null);
+  const [detailsQuantity, setDetailsQuantity] = useState(1);
+  const [itemNotes, setItemNotes] = useState("");
+  const [editingCartItemIndex, setEditingCartItemIndex] = useState<number | null>(null);
 
   // Customer identification
   const [customer, setCustomer] = useState<CustomerInfo | null>(null);
@@ -134,6 +145,18 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
     localStorage.setItem(`kipo-cart-${companyId}`, JSON.stringify(cart));
   }, [cart, companyId]);
 
+  // Scroll Spy for sticky header
+  useEffect(() => {
+    const handleScroll = () => {
+      // Performance log for scroll (sampled)
+      if (Math.random() > 0.95) {
+        console.log("[UI-LOG] Scroll performance check: Page offset", window.scrollY);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem(STORAGE_KEY(companyId));
     setCustomer(null);
@@ -142,26 +165,46 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
     );
   };
 
-  const addToCart = (product: MenuProductDto) => {
+  const handleAddToCart = (product: MenuProductDto, quantity: number, notes?: string) => {
     setCart((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
+      if (editingCartItemIndex !== null) {
+        const newCart = [...prev];
+        newCart[editingCartItemIndex] = { ...product, quantity, notes };
+        return newCart;
+      }
+
+      const existing = prev.find((item) => item.id === product.id && item.notes === notes);
       if (existing) {
         return prev.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+          item.id === product.id && item.notes === notes
+            ? { ...item, quantity: item.quantity + quantity }
             : item,
         );
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prev, { ...product, quantity, notes }];
     });
-    toast.success(`${product.name} adicionado!`);
+    toast.success(editingCartItemIndex !== null ? "Item atualizado!" : `${product.name} adicionado!`);
+    setSelectedProduct(null);
+    setDetailsQuantity(1);
+    setItemNotes("");
+    setEditingCartItemIndex(null);
   };
 
-  const updateQuantity = (productId: string, delta: number) => {
+  const handleEditCartItem = (index: number) => {
+    const item = cart[index];
+    setSelectedProduct(item);
+    setDetailsQuantity(item.quantity);
+    setItemNotes(item.notes || "");
+    setEditingCartItemIndex(index);
+    setIsCartOpen(false);
+    console.log(`[UI-LOG] Editing cart item at index: ${index}`);
+  };
+
+  const updateQuantity = (productId: string, notes: string | undefined, delta: number) => {
     setCart((prev) =>
       prev
         .map((item) => {
-          if (item.id === productId) {
+          if (item.id === productId && item.notes === notes) {
             const newQty = Math.max(0, item.quantity + delta);
             return { ...item, quantity: newQty };
           }
@@ -176,6 +219,10 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
+
+  const highlights = useMemo(() => {
+    return menuData.categories.flatMap(cat => cat.products).filter(p => p.isPromotion);
+  }, [menuData]);
 
   const filteredCategories = useMemo(() => {
     return menuData.categories
@@ -194,6 +241,22 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
     Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
       price,
     );
+
+  const scrollToCategory = (categoryId: string) => {
+    console.log(`[UI-LOG] Scrolling to category: ${categoryId}`);
+    const element = document.getElementById(`category-${categoryId}`);
+    if (element) {
+      const offset = 140; // Sticky header + Category nav height
+      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+    }
+    setSelectedCategoryId(categoryId);
+  };
 
   const handleIdentifyPhone = async () => {
     if (!identifyForm.phoneNumber) {
@@ -297,6 +360,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
         items: cart.map((item) => ({
           productId: item.id,
           quantity: item.quantity,
+          notes: item.notes,
         })),
         tableNumber: tableNumber || undefined,
         notes: `Pedido via Cardápio Digital`,
@@ -333,161 +397,214 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
   };
 
   return (
-    <div className="relative mx-auto flex min-h-screen max-w-md flex-col bg-[#F8F9FA] font-sans shadow-2xl">
-      {/* Premium Header with Glassmorphism */}
-      <header className="sticky top-0 z-30 flex flex-col gap-4 border-b border-gray-100 bg-white/80 px-6 pb-4 pt-10 backdrop-blur-xl">
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col">
-            <h1 className="text-3xl font-black italic leading-none tracking-tighter text-gray-900">
-              {menuData.companyName.toUpperCase()}
-            </h1>
-            <div className="mt-2 flex items-center gap-2">
-              <Badge
-                variant="outline"
-                className="border-primary/20 bg-primary/5 text-[10px] font-bold uppercase tracking-wider text-primary"
-              >
-                Cardápio Digital
-              </Badge>
-              {tableNumber && (
-                <Badge
-                  variant="secondary"
-                  className="bg-gray-900 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg"
-                >
-                  Mesa {tableNumber}
-                </Badge>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {customer && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-12 w-12 rounded-full bg-gray-50 text-gray-400 hover:bg-destructive/10 hover:text-destructive"
-                onClick={handleLogout}
-              >
-                <LogOut className="h-5 w-5" />
-              </Button>
-            )}
+    <div className="relative mx-auto flex min-h-screen max-w-md flex-col bg-white font-sans shadow-2xl">
+      {/* 1. Header with Banner & Avatar */}
+      <header className="relative w-full">
+        <div className="relative aspect-video w-full overflow-hidden">
+          <Image
+            src="/restaurant_banner_bg_1776862657537.png"
+            alt="Banner Loja"
+            fill
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          
+          {/* Top Actions Over Banner */}
+          <div className="absolute top-6 left-6 right-6 flex items-center justify-between">
             <Button
               variant="ghost"
               size="icon"
-              className="relative h-12 w-12 rounded-full border border-gray-100 bg-white text-gray-900 shadow-sm"
-              onClick={() => setIsCartOpen(true)}
+              className="h-10 w-10 rounded-full bg-white/20 text-white backdrop-blur-md"
+              onClick={() => router.back()}
             >
-              <ShoppingBag className="h-5 w-5" />
-              {totalItems > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-6 min-w-[24px] items-center justify-center rounded-full border-4 border-white bg-primary px-1 text-[10px] font-black text-white">
-                  {totalItems}
-                </span>
-              )}
+              <Utensils className="h-5 w-5" />
             </Button>
+            <div className="flex gap-2">
+              {customer && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 rounded-full bg-white/20 text-white backdrop-blur-md"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative h-10 w-10 rounded-full bg-white/20 text-white backdrop-blur-md"
+                onClick={() => setIsCartOpen(true)}
+              >
+                <ShoppingBag className="h-5 w-5" />
+                {totalItems > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary text-[8px] font-black">
+                    {totalItems}
+                  </span>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Search Input */}
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        {/* 1.2 Floating Store Info Card */}
+        <div className="relative z-10 -mt-10 mx-6 rounded-[2.5rem] bg-white p-6 shadow-2xl shadow-gray-200/50">
+          <div className="absolute -top-14 left-1/2 h-28 w-28 -translate-x-1/2 overflow-hidden rounded-full border-[6px] border-white bg-white shadow-xl">
+            <Image
+              src="/restaurant_logo_avatar_1776862675336.png"
+              alt="Logo"
+              fill
+              className="object-cover"
+            />
+          </div>
+          
+          <div className="mt-14 flex flex-col items-center gap-3 text-center">
+            <h1 className="text-2xl font-black tracking-tight text-gray-900">
+              {menuData.companyName}
+            </h1>
+            
+            <div className="flex flex-col items-center gap-3 text-gray-500">
+              <div className="flex items-center gap-2 text-xs font-semibold">
+                <MapPin className="h-3.5 w-3.5 text-gray-400" />
+                <span>Parnamirim - RN</span>
+                <span className="h-1 w-1 rounded-full bg-gray-300" />
+                <button className="font-bold text-gray-700 hover:text-primary transition-colors">
+                  Mais informações
+                </button>
+              </div>
+
+              <div className="flex flex-col items-center gap-1">
+                <p className="text-sm font-black text-rose-500">
+                  Fechado • Abrimos às 11h00
+                </p>
+                {tableNumber && (
+                  <Badge variant="secondary" className="mt-1 bg-gray-900 px-3 py-1 text-[10px] font-black text-white rounded-full">
+                    Mesa {tableNumber}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 1.3 Search Input */}
+        <div className="relative mt-8 px-6">
+          <Search className="absolute left-10 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
             placeholder="O que você quer comer hoje?"
-            className="h-14 rounded-2xl border-none bg-gray-100/50 pl-11 text-sm shadow-inner focus-visible:ring-primary/20"
+            className="h-14 rounded-2xl border-none bg-gray-100 pl-12 text-sm shadow-inner focus-visible:ring-primary/20"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+      </header>
 
-        {/* Horizontal Categories */}
-        <div className="scrollbar-hide -mx-2 flex items-center gap-3 overflow-x-auto px-2 py-1">
+      {/* 2. Highlights Section (isPromotion) */}
+      {highlights.length > 0 && (
+        <section className="py-6">
+          <div className="flex items-center justify-between px-6 pb-4">
+            <h2 className="text-lg font-black tracking-tight">Destaques da Casa</h2>
+            <Badge variant="outline" className="text-[10px] font-bold text-primary border-none bg-transparent">Ver todos</Badge>
+          </div>
+          <div className="flex gap-4 overflow-x-auto snap-x px-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {highlights.map((product) => (
+              <div 
+                key={product.id} 
+                className="w-72 shrink-0 snap-start"
+                onClick={() => {
+                  console.log(`[UI-LOG] Opening detail modal for: ${product.name}`);
+                  setSelectedProduct(product);
+                  setDetailsQuantity(1);
+                  setItemNotes("");
+                  setEditingCartItemIndex(null);
+                }}
+              >
+                <div className="group relative aspect-[16/9] w-full overflow-hidden rounded-3xl bg-muted shadow-sm">
+                  {product.imageUrl && (
+                    <Image
+                      src={product.imageUrl}
+                      alt={product.name}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <p className="text-sm font-bold text-white line-clamp-1">{product.name}</p>
+                    <p className="text-xs font-black text-primary">{formatPrice(product.price)}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 3. Sticky Category Nav */}
+      <nav className="sticky top-0 z-30 border-b border-gray-50 bg-white/95 px-2 py-3 backdrop-blur-md">
+        <div className="flex items-center gap-2 overflow-x-auto px-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {menuData.categories.map((category) => (
             <button
               key={category.id}
-              onClick={() => setSelectedCategoryId(category.id)}
-              className={`flex items-center gap-2 whitespace-nowrap rounded-2xl px-6 py-3 transition-all duration-300 ${
+              onClick={() => scrollToCategory(category.id)}
+              className={`whitespace-nowrap rounded-full px-5 py-2 text-xs font-bold transition-all ${
                 selectedCategoryId === category.id
-                  ? "bg-gray-900 text-white shadow-xl shadow-gray-200"
-                  : "bg-white text-gray-400 border border-gray-50 hover:bg-gray-50"
+                  ? "bg-gray-900 text-white"
+                  : "bg-gray-50 text-gray-400 border border-gray-100 hover:bg-gray-100"
               }`}
             >
-              <span className="text-sm font-bold tracking-tight">
-                {category.name}
-              </span>
+              {category.name}
             </button>
           ))}
         </div>
-      </header>
+      </nav>
 
-      {/* Main Content: Product List */}
-      <main className="flex-1 space-y-12 overflow-y-auto px-6 py-8 pb-32">
+      {/* 4. Product List (Refined Cards) */}
+      <main className="flex-1 space-y-10 px-6 py-8 pb-32">
         {filteredCategories.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gray-100">
-              <Utensils className="h-10 w-10 text-gray-300" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900">Nada por aqui ainda</h3>
-            <p className="mt-2 max-w-[240px] text-sm text-gray-400">
-              Tente buscar por outro termo ou mude de categoria.
-            </p>
+            <Utensils className="h-12 w-12 text-gray-200" />
+            <h3 className="mt-4 text-lg font-bold">Nada encontrado</h3>
           </div>
         ) : (
           filteredCategories.map((category) => (
-            <section
-              key={category.id}
-              className="space-y-6 duration-700 animate-in fade-in slide-in-from-bottom-4"
-            >
-              <h2 className="flex items-center gap-4 text-2xl font-black tracking-tighter text-gray-900">
-                <span className="h-8 w-2 rounded-full bg-primary" />
-                {category.name}
-              </h2>
+            <section key={category.id} id={`category-${category.id}`} className="scroll-mt-32 space-y-6">
+              <h2 className="text-xl font-black tracking-tight text-gray-900">{category.name}</h2>
               <div className="grid gap-6">
                 {category.products.map((product) => (
                   <div
                     key={product.id}
-                    className="group relative cursor-pointer"
-                    onClick={() => addToCart(product)}
+                    className="group relative flex cursor-pointer gap-4 rounded-3xl bg-white p-2 transition-all active:scale-[0.98]"
+                    onClick={() => {
+                      setSelectedProduct(product);
+                      setDetailsQuantity(1);
+                      setItemNotes("");
+                      setEditingCartItemIndex(null);
+                    }}
                   >
-                    <Card className="overflow-hidden rounded-[2.5rem] border-none bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgb(0,0,0,0.08)] active:scale-[0.98]">
-                      <div className="flex gap-6">
-                        <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-[2rem] bg-gray-50 shadow-sm">
-                          {product.imageUrl ? (
-                            <Image
-                              src={product.imageUrl}
-                              alt={product.name}
-                              fill
-                              className="object-cover transition-transform duration-700 group-hover:scale-110"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center">
-                              <Utensils className="h-10 w-10 text-gray-200" />
-                            </div>
-                          )}
-                          {product.isPromotion && (
-                            <div className="absolute left-2 top-2 rounded-full bg-destructive px-2.5 py-1 text-[8px] font-black uppercase tracking-widest text-white shadow-lg">
-                              OFF
-                            </div>
-                          )}
+                    <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-muted shadow-sm">
+                      {product.imageUrl ? (
+                        <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center">
+                          <Utensils className="h-6 w-6 text-gray-200" />
                         </div>
-                        <div className="flex flex-1 flex-col justify-between py-1">
-                          <div className="space-y-1">
-                            <div className="flex items-center justify-between">
-                              <h3 className="text-lg font-bold text-gray-900 group-hover:text-primary transition-colors">
-                                {product.name}
-                              </h3>
-                            </div>
-                            <p className="line-clamp-2 text-xs leading-relaxed text-gray-400">
-                              {product.description || "O sabor irresistível que você já conhece, preparado com ingredientes selecionados."}
-                            </p>
-                          </div>
-                          <div className="mt-3 flex items-center justify-between">
-                            <span className="text-lg font-black text-gray-900">
-                              {formatPrice(product.price)}
-                            </span>
-                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-900 text-white shadow-lg transition-all group-hover:bg-primary group-hover:scale-110">
-                              <Plus className="h-5 w-5" />
-                            </div>
-                          </div>
+                      )}
+                    </div>
+                    <div className="flex flex-1 flex-col justify-between py-1 pr-2">
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-bold text-gray-900 line-clamp-1">{product.name}</h3>
+                        <p className="line-clamp-2 text-[10px] leading-relaxed text-gray-400">
+                          {product.description || "Ingredientes selecionados para o melhor sabor."}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-black text-gray-900">{formatPrice(product.price)}</span>
+                        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gray-900 text-white shadow-lg transition-transform group-hover:scale-110">
+                          <Plus className="h-4 w-4" />
                         </div>
                       </div>
-                    </Card>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -496,29 +613,113 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
         )}
       </main>
 
+      {/* 5. Product Details Modal (Sheet) */}
+      <Sheet open={!!selectedProduct} onOpenChange={(open) => {
+        if (!open) {
+          setSelectedProduct(null);
+          setEditingCartItemIndex(null);
+        }
+      }}>
+        <SheetContent side="bottom" hideClose className="mx-auto flex h-[85vh] max-w-md flex-col rounded-t-[3rem] border-none p-0 shadow-2xl">
+          {selectedProduct && (
+            <>
+              {/* Product Header / Image */}
+              <div className="relative aspect-video w-full overflow-hidden">
+                {selectedProduct.imageUrl ? (
+                  <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} fill className="object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-muted">
+                    <Utensils className="h-12 w-12 text-gray-200" />
+                  </div>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-6 top-6 h-10 w-10 rounded-full bg-black/20 text-white backdrop-blur-md"
+                  onClick={() => setSelectedProduct(null)}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+
+              {/* Product Info */}
+              <div className="flex-1 overflow-y-auto px-8 pt-8">
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <h2 className="text-2xl font-black tracking-tight text-gray-900">{selectedProduct.name}</h2>
+                    <span className="text-xl font-black text-primary">{formatPrice(selectedProduct.price)}</span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-gray-500">
+                    {selectedProduct.description || "Descrição detalhada do produto não informada. Preparado com todo o cuidado para garantir a melhor experiência gastronômica."}
+                  </p>
+                </div>
+
+                {/* Observations Field */}
+                <div className="mt-8 space-y-3">
+                  <label className="text-xs font-black uppercase tracking-widest text-gray-400">
+                    Alguma observação?
+                  </label>
+                  <Textarea
+                    placeholder="Ex: sem cebola, ponto da carne mal passado, retirar tomate..."
+                    className="min-h-[100px] rounded-2xl border-none bg-gray-50 p-4 text-sm focus-visible:ring-primary/20"
+                    value={itemNotes}
+                    onChange={(e) => setItemNotes(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Footer with Quantity & Add Button */}
+              <div className="flex flex-col gap-4 border-t px-8 pb-10 pt-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Quantidade</span>
+                  <div className="flex items-center gap-4 rounded-2xl border bg-muted p-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-10 w-10 rounded-xl"
+                      onClick={() => setDetailsQuantity(Math.max(1, detailsQuantity - 1))}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="w-6 text-center text-sm font-black">{detailsQuantity}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-10 w-10 rounded-xl"
+                      onClick={() => setDetailsQuantity(detailsQuantity + 1)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <Button
+                  className="h-16 w-full rounded-[2rem] bg-gray-900 text-lg font-black text-white shadow-xl active:scale-[0.98]"
+                  onClick={() => handleAddToCart(selectedProduct, detailsQuantity, itemNotes)}
+                >
+                  {editingCartItemIndex !== null ? "ATUALIZAR ITEM" : "ADICIONAR À SACOLA"} • {formatPrice(selectedProduct.price * detailsQuantity)}
+                </Button>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
       {/* Floating Action Cart Button */}
-      {totalItems > 0 && (
+      {totalItems > 0 && !isCartOpen && !selectedProduct && (
         <footer className="fixed bottom-8 left-1/2 z-40 w-full max-w-md -translate-x-1/2 px-6 duration-500 animate-in slide-in-from-bottom-8">
           <Button
             onClick={() => setIsCartOpen(true)}
-            className="flex h-18 w-full items-center justify-between rounded-[2.5rem] bg-gray-900 px-8 text-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] transition-all hover:bg-gray-900 hover:scale-[1.02] active:scale-95"
+            className="flex h-18 w-full items-center justify-between rounded-[2.5rem] bg-gray-900 px-8 text-white shadow-2xl transition-all hover:bg-gray-900 active:scale-95"
           >
             <div className="flex items-center gap-5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-[1.25rem] bg-white/10 backdrop-blur-sm">
-                <ShoppingBag className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex flex-col items-start leading-none">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
-                  Ver Sacola
-                </span>
-                <span className="text-sm font-bold mt-1">
-                  {totalItems} {totalItems === 1 ? "ITEM" : "ITENS"}
-                </span>
+              <ShoppingBag className="h-6 w-6 text-primary" />
+              <div className="flex flex-col items-start">
+                <span className="text-[10px] font-black uppercase text-gray-400">Sacola</span>
+                <span className="text-sm font-bold">{totalItems} {totalItems === 1 ? "ITEM" : "ITENS"}</span>
               </div>
             </div>
-            <span className="text-xl font-black">
-              {formatPrice(totalPrice)}
-            </span>
+            <span className="text-xl font-black">{formatPrice(totalPrice)}</span>
           </Button>
         </footer>
       )}
@@ -527,7 +728,8 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
       <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
         <SheetContent
           side="bottom"
-          className="mx-auto h-[90vh] max-w-md rounded-t-[3rem] border-none shadow-2xl"
+          hideClose
+          className="mx-auto flex h-[90vh] max-w-md flex-col rounded-t-[3rem] border-none p-0 shadow-2xl"
         >
           <SheetHeader className="px-8 pt-8">
             <SheetTitle className="flex items-center justify-between text-2xl font-black italic tracking-tighter text-foreground">
@@ -536,14 +738,14 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsCartOpen(false)}
-                className="rounded-full bg-muted"
+                className="h-12 w-12 rounded-full bg-muted ring-2 ring-primary ring-offset-2 transition-all hover:bg-muted hover:ring-primary active:scale-95"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </Button>
             </SheetTitle>
           </SheetHeader>
 
-          <main className="max-h-[60vh] space-y-6 overflow-y-auto px-8 pt-2">
+          <main className="flex-1 space-y-6 overflow-y-auto px-8 pt-2">
             {cart.length === 0 ? (
               <div className="py-10 text-center">
                 <p className="font-medium text-muted-foreground">
@@ -551,9 +753,9 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
                 </p>
               </div>
             ) : (
-              cart.map((item) => (
+              cart.map((item, index) => (
                 <div
-                  key={item.id}
+                  key={`${item.id}-${index}`}
                   className="flex items-center gap-4 duration-300 animate-in fade-in slide-in-from-right-4"
                 >
                   <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-muted shadow-sm">
@@ -566,10 +768,18 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
                       />
                     )}
                   </div>
-                  <div className="flex-1 space-y-1">
-                    <h4 className="text-sm font-bold text-foreground">
-                      {item.name}
-                    </h4>
+                  <div className="flex-1 space-y-1 cursor-pointer" onClick={() => handleEditCartItem(index)}>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-foreground">
+                        {item.name}
+                      </h4>
+                      <Pencil className="h-3 w-3 text-muted-foreground opacity-40" />
+                    </div>
+                    {item.notes && (
+                      <p className="text-[10px] italic text-muted-foreground line-clamp-1">
+                        "{item.notes}"
+                      </p>
+                    )}
                     <p className="text-xs font-black text-primary">
                       {formatPrice(item.price)}
                     </p>
@@ -579,7 +789,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 rounded-xl text-muted-foreground transition-colors hover:text-destructive"
-                      onClick={() => updateQuantity(item.id, -1)}
+                      onClick={() => updateQuantity(item.id, item.notes, -1)}
                     >
                       <Minus className="h-3 w-3" />
                     </Button>
@@ -590,7 +800,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 rounded-xl text-muted-foreground transition-colors hover:text-primary"
-                      onClick={() => updateQuantity(item.id, 1)}
+                      onClick={() => updateQuantity(item.id, item.notes, 1)}
                     >
                       <Plus className="h-3 w-3" />
                     </Button>
@@ -600,18 +810,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
             )}
           </main>
 
-          <SheetFooter className="space-y-4 px-8 pb-10 pt-6">
-            <div className="flex flex-col gap-2 rounded-[2rem] border border-border bg-muted p-6">
-              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                <span>Subtotal</span>
-                <span>{formatPrice(totalPrice)}</span>
-              </div>
-              <div className="mt-1 flex items-center justify-between text-lg font-black text-foreground">
-                <span>Total</span>
-                <span className="text-primary">{formatPrice(totalPrice)}</span>
-              </div>
-            </div>
-
+          <div className="flex flex-col gap-4 px-8 pb-10 pt-6 border-t">
             {customer && (
               <div className="flex items-center gap-2 rounded-2xl bg-green-50 px-4 py-2.5">
                 <User className="h-4 w-4 text-green-600" />
@@ -627,8 +826,21 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
               </div>
             )}
 
+            <div className="flex flex-col gap-2 rounded-[2rem] border border-border bg-muted p-6">
+              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                <span>Subtotal</span>
+                <span>{formatPrice(totalPrice)}</span>
+              </div>
+              <div className="mt-1 flex items-center justify-between text-lg font-black text-foreground">
+                <span>Total</span>
+                <span className="text-primary font-black">
+                  {formatPrice(totalPrice)}
+                </span>
+              </div>
+            </div>
+
             <Button
-              className="h-16 w-full rounded-[2rem] bg-foreground text-lg font-black text-background shadow-xl shadow-slate-200 transition-all hover:bg-foreground disabled:opacity-50"
+              className="h-16 w-full rounded-[2rem] bg-foreground text-lg font-black text-background shadow-xl shadow-slate-200 transition-all hover:bg-foreground disabled:opacity-50 active:scale-[0.98]"
               disabled={cart.length === 0 || isSubmitting}
               onClick={handleCheckout}
             >
@@ -641,7 +853,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
                 "FINALIZAR PEDIDO"
               )}
             </Button>
-          </SheetFooter>
+          </div>
         </SheetContent>
       </Sheet>
 

@@ -16,7 +16,7 @@ export const upsertProductSchema = z.object({
   sku: z.string().trim().nullable().optional(),
   categoryId: z.string().trim().nullable().optional(),
   environmentId: z.string().trim().nullable().optional(),
-  stock: z.coerce.number().min(0).default(0),
+  stock: z.coerce.number().default(0),
   unit: z.nativeEnum(UnitType).default(UnitType.UN),
   minStock: z.coerce.number().min(0).default(0),
   expirationDate: z.coerce.date().nullable().optional(),

@@ -6,6 +6,7 @@ import {
   UpsertProductSchema,
 } from "@/app/_actions/product/upsert-product/schema";
 import { Button } from "@/app/_components/ui/button";
+import { Badge } from "@/app/_components/ui/badge";
 import {
   DialogClose,
   DialogContent,
@@ -198,7 +199,7 @@ const UpsertProductDialogContent = ({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto px-1 pr-3 space-y-6">
+          <div className="flex-1 overflow-y-auto px-1 pr-3 pb-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="md:col-span-3 space-y-4">
                 <FormField
@@ -449,30 +450,32 @@ const UpsertProductDialogContent = ({
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="stock"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center h-5">Estoque Inicial</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        step="any" 
-                        {...field} 
-                        disabled={!!defaultValues}
-                        className={!!defaultValues ? "bg-muted" : ""}
-                      />
-                    </FormControl>
-                    {!!defaultValues && (
-                      <p className="text-[10px] text-muted-foreground mt-1">
-                        O estoque é atualizado por Compras, Vendas ou Ajustes Manuais.
-                      </p>
-                    )}
-                  </FormItem>
-                )}
-              />
+            <div className={cn("grid gap-4", form.watch("isMadeToOrder") ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2")}>
+              {!form.watch("isMadeToOrder") && (
+                <FormField
+                  control={form.control}
+                  name="stock"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center h-5">Estoque Inicial</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          step="any" 
+                          {...field} 
+                          disabled={!!defaultValues}
+                          className={!!defaultValues ? "bg-muted font-bold" : ""}
+                        />
+                      </FormControl>
+                      {!!defaultValues && (
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          O estoque é atualizado por Compras, Vendas ou Ajustes Manuais.
+                        </p>
+                      )}
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}
@@ -523,7 +526,7 @@ const UpsertProductDialogContent = ({
                   <FormItem>
                     <FormLabel>Ambiente</FormLabel>
                     <Select onValueChange={(val) => val === "create" ? setIsEnvironmentDialogOpen(true) : field.onChange(val === "none" ? null : val)} value={field.value || "none"}>
-                      <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
+                      <FormControl><SelectTrigger className="w-full"><SelectValue/></SelectTrigger></FormControl>
                       <SelectContent>
                         <SelectItem value="none">Padrão</SelectItem>
                         {environments.map(env => <SelectItem key={env.id} value={env.id}>{env.name}</SelectItem>)}
