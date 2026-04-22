@@ -49,6 +49,7 @@ export const getMyOrdersAction = actionClient
         name: item.product.name,
         quantity: Number(item.quantity),
         price: Number(item.unitPrice),
+        notes: item.notes,
       })),
     }));
 

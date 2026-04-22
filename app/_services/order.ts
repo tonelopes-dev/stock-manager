@@ -24,7 +24,7 @@ interface CreateOrderParams {
 export const OrderService = {
   async createOrder({ companyId, customerId, tableNumber, notes, hasServiceTax, discountAmount = 0, extraAmount = 0, adjustmentReason, isEmployeeSale = false, items }: CreateOrderParams) {
     try {
-      return await db.$transaction(async (trx) => {
+      const order = await db.$transaction(async (trx) => {
         // 1. Validate items and stock
         const itemsWithPrices = await Promise.all(
           items.map(async (item) => {
@@ -106,15 +106,17 @@ export const OrderService = {
           );
         }
 
-        // 4. Notify KDS
-        await notifyKDS(companyId, { 
-          type: "NEW_ORDER", 
-          orderId: order.id,
-          customerId: order.customerId 
-        });
-
         return order;
       });
+
+      // 4. Notify KDS (Outside transaction to avoid race conditions with router.refresh)
+      await notifyKDS(companyId, { 
+        type: "NEW_ORDER", 
+        orderId: order.id,
+        customerId: order.customerId 
+      });
+
+      return order;
     } catch (error) {
       if (error instanceof BusinessError) throw error;
       console.error("Error creating order:", error);
@@ -124,7 +126,7 @@ export const OrderService = {
 
   async updateStatus(orderId: string, companyId: string, status: OrderStatus, userId: string) {
     try {
-      return await db.$transaction(async (trx) => {
+      const updatedOrder = await db.$transaction(async (trx) => {
         const order = await trx.order.findUnique({
           where: { id: orderId, companyId },
           include: { orderItems: true },
@@ -154,16 +156,18 @@ export const OrderService = {
           data: { status },
         });
 
-        // Notify KDS
-        await notifyKDS(companyId, { 
-          type: "STATUS_UPDATED", 
-          orderId, 
-          status,
-          customerId: order.customerId 
-        });
-
         return updatedOrder;
       });
+
+      // Notify KDS (Outside transaction)
+      await notifyKDS(companyId, { 
+        type: "STATUS_UPDATED", 
+        orderId, 
+        status,
+        customerId: updatedOrder.customerId 
+      });
+
+      return updatedOrder;
     } catch (error) {
       if (error instanceof BusinessError) throw error;
       console.error("Error updating order status:", error);
@@ -183,7 +187,7 @@ export const OrderService = {
     isEmployeeSale: boolean = false
   ) {
     try {
-      return await db.$transaction(async (trx) => {
+      const sale = await db.$transaction(async (trx) => {
         const order = await trx.order.findUnique({
           where: { id: orderId, companyId },
           include: { orderItems: { include: { product: true } } },
@@ -252,13 +256,23 @@ export const OrderService = {
 
         return sale;
       });
+
+      // Notify KDS (Outside transaction)
+      await notifyKDS(companyId, { 
+        type: "STATUS_UPDATED", 
+        orderId, 
+        status: OrderStatus.PAID 
+      });
+
+      return sale;
     } catch (error) {
       if (error instanceof BusinessError) throw error;
       console.error("Error converting order to sale:", error);
       throw new Error("Erro ao processar pagamento do pedido.");
     }
   },
-   async convertItemsToSale(
+
+  async convertItemsToSale(
     itemIds: string[],
     companyId: string,
     userId: string,
@@ -270,7 +284,7 @@ export const OrderService = {
     isEmployeeSale: boolean = false
   ) {
     try {
-      return await db.$transaction(async (trx) => {
+      const { sale, originalOrderIds } = await db.$transaction(async (trx) => {
         // 1. Fetch the items and their orders
         const items = await trx.orderItem.findMany({
           where: { id: { in: itemIds }, order: { companyId } },
@@ -350,8 +364,18 @@ export const OrderService = {
           }
         }
 
-        return sale;
+        return { sale, originalOrderIds };
       });
+
+      // Notify KDS (Outside transaction)
+      for (const orderId of originalOrderIds) {
+        await notifyKDS(companyId, { 
+          type: "ORDER_UPDATED", 
+          orderId 
+        });
+      }
+
+      return sale;
     } catch (error) {
       if (error instanceof BusinessError) throw error;
       console.error("Error converting items to sale:", error);
@@ -361,13 +385,15 @@ export const OrderService = {
 
   async deleteOrderItem(itemId: string, companyId: string, userId: string) {
     try {
-      return await db.$transaction(async (trx) => {
+      const { orderId } = await db.$transaction(async (trx) => {
         const item = await trx.orderItem.findUnique({
           where: { id: itemId, order: { companyId } },
           include: { order: true },
         });
 
         if (!item) throw new BusinessError("Item não encontrado.");
+
+        const orderId = item.orderId;
 
         // 1. Return stock
         await processRecursiveStockMovement(
@@ -404,8 +430,16 @@ export const OrderService = {
           });
         }
 
-        return { success: true };
+        return { orderId };
       });
+
+      // Notify KDS (Outside transaction)
+      await notifyKDS(companyId, { 
+        type: "ORDER_UPDATED", 
+        orderId 
+      });
+
+      return { success: true };
     } catch (error) {
       if (error instanceof BusinessError) throw error;
       console.error("Error deleting order item:", error);

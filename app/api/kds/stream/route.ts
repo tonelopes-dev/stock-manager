@@ -24,11 +24,18 @@ export async function GET(req: NextRequest) {
   }
 
   const url = `${baseUrl}/subscribe/kds:${companyId}?_token=${token}`;
+  
+  // Use AbortController to prevent 5-minute hangs on initial connection
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout for headers
 
   try {
     const upstreamResponse = await fetch(url, {
       cache: "no-store",
+      signal: controller.signal,
     });
+    
+    clearTimeout(timeoutId);
 
     if (!upstreamResponse.ok) {
       throw new Error(`Upstash returned ${upstreamResponse.status}`);
@@ -43,8 +50,15 @@ export async function GET(req: NextRequest) {
         "X-Accel-Buffering": "no", // Disable buffering for Nginx/Vercel
       },
     });
-  } catch (error) {
-    console.error("[KDS_STREAM_ERROR]", error);
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    
+    if (error.name === "AbortError") {
+      console.warn(`[KDS_STREAM] Connection timeout for company: ${companyId}`);
+      return new Response("Connection timeout", { status: 504 });
+    }
+
+    console.error("[KDS_STREAM_ERROR]", error.message || error);
     return new Response("Error connecting to event stream", { status: 500 });
   }
 }

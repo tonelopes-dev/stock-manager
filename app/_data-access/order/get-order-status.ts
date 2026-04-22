@@ -14,6 +14,7 @@ export interface OrderStatusDto {
     name: string;
     quantity: number;
     price: number;
+    notes: string | null;
   }[];
 }
 
@@ -47,6 +48,7 @@ export const getOrderStatus = async (
       name: item.product.name,
       quantity: Number(item.quantity),
       price: Number(item.unitPrice),
+      notes: item.notes,
     })),
   };
 };

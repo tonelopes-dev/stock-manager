@@ -42,7 +42,7 @@ import { toast } from "sonner";
 import { createOrderAction } from "@/app/_actions/order/create-order";
 import { identifyCustomerAction } from "@/app/_actions/order/identify-customer";
 import { checkCustomerPhoneAction } from "@/app/_actions/order/identify-customer/check-phone";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { DatePicker } from "@/app/_components/ui/date-picker";
 import { format, parseISO } from "date-fns";
 
@@ -62,9 +62,11 @@ interface CustomerInfo {
 }
 
 const STORAGE_KEY = (companyId: string) => `kipo-customer-${companyId}`;
+const TABLE_STORAGE_KEY = (companyId: string) => `kipo-table-${companyId}`;
 
 export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
     menuData.categories[0]?.id || "",
   );
@@ -73,6 +75,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tableNumber, setTableNumber] = useState<string | null>(null);
 
   // Customer identification
   const [customer, setCustomer] = useState<CustomerInfo | null>(null);
@@ -87,6 +90,20 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
     birthDate: "",
   });
   const [isIdentifying, setIsIdentifying] = useState(false);
+
+  // Table handling (QR Code Capture)
+  useEffect(() => {
+    const tableFromUrl = searchParams.get("table");
+    if (tableFromUrl) {
+      setTableNumber(tableFromUrl);
+      localStorage.setItem(TABLE_STORAGE_KEY(companyId), tableFromUrl);
+    } else {
+      const savedTable = localStorage.getItem(TABLE_STORAGE_KEY(companyId));
+      if (savedTable) {
+        setTableNumber(savedTable);
+      }
+    }
+  }, [searchParams, companyId]);
 
   // Load customer and activeOrderIds from LocalStorage
   useEffect(() => {
@@ -281,6 +298,7 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
           productId: item.id,
           quantity: item.quantity,
         })),
+        tableNumber: tableNumber || undefined,
         notes: `Pedido via Cardápio Digital`,
       });
 
@@ -315,59 +333,51 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
   };
 
   return (
-    <div className="relative mx-auto flex min-h-screen max-w-md flex-col bg-background font-sans shadow-2xl">
-      {/* Header */}
-      <header className="sticky top-0 z-20 flex flex-col gap-4 border-b border-border bg-background/90 px-6 pb-4 pt-8 backdrop-blur-md">
+    <div className="relative mx-auto flex min-h-screen max-w-md flex-col bg-[#F8F9FA] font-sans shadow-2xl">
+      {/* Premium Header with Glassmorphism */}
+      <header className="sticky top-0 z-30 flex flex-col gap-4 border-b border-gray-100 bg-white/80 px-6 pb-4 pt-10 backdrop-blur-xl">
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
-            <h1 className="text-2xl font-black italic leading-none tracking-tighter text-foreground">
+            <h1 className="text-3xl font-black italic leading-none tracking-tighter text-gray-900">
               {menuData.companyName.toUpperCase()}
             </h1>
-            <Badge
-              variant="outline"
-              className="mt-1 w-fit border-primary bg-primary/30 text-[10px] font-bold uppercase text-primary"
-            >
-              Cardápio Digital
-            </Badge>
+            <div className="mt-2 flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className="border-primary/20 bg-primary/5 text-[10px] font-bold uppercase tracking-wider text-primary"
+              >
+                Cardápio Digital
+              </Badge>
+              {tableNumber && (
+                <Badge
+                  variant="secondary"
+                  className="bg-gray-900 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg"
+                >
+                  Mesa {tableNumber}
+                </Badge>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {customer && (
-              <div className="flex items-center gap-1.5">
-                <div className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5">
-                  <User className="h-3.5 w-3.5 text-green-600" />
-                  <span className="max-w-[80px] truncate text-xs font-bold text-green-700">
-                    {customer.name.split(" ")[0]}
-                  </span>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                  title="Trocar de conta"
-                >
-                  <LogOut className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            )}
-            {customer && (
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push(`/menu/${companyId}/my-orders`)}
-                className="flex h-10 items-center gap-2 rounded-2xl border-primary bg-primary/30 px-4 text-[10px] font-black uppercase text-primary shadow-sm transition-all hover:bg-primary"
+                variant="ghost"
+                size="icon"
+                className="h-12 w-12 rounded-full bg-gray-50 text-gray-400 hover:bg-destructive/10 hover:text-destructive"
+                onClick={handleLogout}
               >
-                <ShoppingBag className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Meus Pedidos</span>
+                <LogOut className="h-5 w-5" />
               </Button>
             )}
             <Button
               variant="ghost"
               size="icon"
-              className="relative h-12 w-12 rounded-full border border-border bg-muted text-foreground"
+              className="relative h-12 w-12 rounded-full border border-gray-100 bg-white text-gray-900 shadow-sm"
               onClick={() => setIsCartOpen(true)}
             >
               <ShoppingBag className="h-5 w-5" />
               {totalItems > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full border-2 border-white bg-primary px-1 text-[10px] font-black text-background">
+                <span className="absolute -right-1 -top-1 flex h-6 min-w-[24px] items-center justify-center rounded-full border-4 border-white bg-primary px-1 text-[10px] font-black text-white">
                   {totalItems}
                 </span>
               )}
@@ -375,27 +385,27 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
           </div>
         </div>
 
-        {/* Search */}
+        {/* Search Input */}
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
             placeholder="O que você quer comer hoje?"
-            className="h-12 rounded-2xl border-none bg-muted/50 pl-11 shadow-inner focus-visible:ring-primary"
+            className="h-14 rounded-2xl border-none bg-gray-100/50 pl-11 text-sm shadow-inner focus-visible:ring-primary/20"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
-        {/* Categories Bar */}
-        <div className="scrollbar-hide -mx-2 flex items-center gap-2 overflow-x-auto px-2 py-2">
+        {/* Horizontal Categories */}
+        <div className="scrollbar-hide -mx-2 flex items-center gap-3 overflow-x-auto px-2 py-1">
           {menuData.categories.map((category) => (
             <button
               key={category.id}
               onClick={() => setSelectedCategoryId(category.id)}
-              className={`flex items-center gap-2 whitespace-nowrap rounded-2xl px-5 py-2.5 transition-all duration-300 ${
+              className={`flex items-center gap-2 whitespace-nowrap rounded-2xl px-6 py-3 transition-all duration-300 ${
                 selectedCategoryId === category.id
-                  ? "bg-foreground text-background shadow-xl shadow-slate-200"
-                  : "bg-muted text-muted-foreground hover:bg-muted"
+                  ? "bg-gray-900 text-white shadow-xl shadow-gray-200"
+                  : "bg-white text-gray-400 border border-gray-50 hover:bg-gray-50"
               }`}
             >
               <span className="text-sm font-bold tracking-tight">
@@ -406,38 +416,28 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
         </div>
       </header>
 
-      {/* Product List */}
-      <main className="flex-1 space-y-10 overflow-y-auto bg-background px-6 py-6 pb-28">
+      {/* Main Content: Product List */}
+      <main className="flex-1 space-y-12 overflow-y-auto px-6 py-8 pb-32">
         {filteredCategories.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
-              <Utensils className="h-10 w-10 text-muted-foreground" />
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gray-100">
+              <Utensils className="h-10 w-10 text-gray-300" />
             </div>
-            <h3 className="text-lg font-bold text-foreground">
-              Nenhum prato encontrado
-            </h3>
-            <p className="mt-2 max-w-[200px] text-sm text-muted-foreground">
-              Dica: Tente buscar por nomes genéricos ou verifique as categorias.
+            <h3 className="text-xl font-bold text-gray-900">Nada por aqui ainda</h3>
+            <p className="mt-2 max-w-[240px] text-sm text-gray-400">
+              Tente buscar por outro termo ou mude de categoria.
             </p>
           </div>
         ) : (
           filteredCategories.map((category) => (
             <section
               key={category.id}
-              className="space-y-5 duration-500 animate-in fade-in"
+              className="space-y-6 duration-700 animate-in fade-in slide-in-from-bottom-4"
             >
-              <div className="flex items-center justify-between">
-                <h2 className="flex items-center gap-3 text-xl font-black tracking-tighter text-foreground">
-                  <span className="h-6 w-1.5 rounded-full bg-primary" />
-                  {category.name}
-                </h2>
-                <Badge
-                  variant="outline"
-                  className="border-none font-bold text-muted-foreground"
-                >
-                  {category.products.length}
-                </Badge>
-              </div>
+              <h2 className="flex items-center gap-4 text-2xl font-black tracking-tighter text-gray-900">
+                <span className="h-8 w-2 rounded-full bg-primary" />
+                {category.name}
+              </h2>
               <div className="grid gap-6">
                 {category.products.map((product) => (
                   <div
@@ -445,49 +445,43 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
                     className="group relative cursor-pointer"
                     onClick={() => addToCart(product)}
                   >
-                    <Card className="overflow-hidden rounded-[2.5rem] border-none bg-muted/40 transition-all duration-500 hover:bg-background hover:shadow-2xl hover:shadow-slate-100 active:scale-95">
-                      <div className="flex gap-5 p-4">
-                        {product.imageUrl ? (
-                          <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-3xl shadow-lg">
+                    <Card className="overflow-hidden rounded-[2.5rem] border-none bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgb(0,0,0,0.08)] active:scale-[0.98]">
+                      <div className="flex gap-6">
+                        <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-[2rem] bg-gray-50 shadow-sm">
+                          {product.imageUrl ? (
                             <Image
                               src={product.imageUrl}
                               alt={product.name}
                               fill
                               className="object-cover transition-transform duration-700 group-hover:scale-110"
                             />
-                            {product.isPromotion && (
-                              <div className="absolute left-2 top-2 rounded-full bg-destructive px-2 py-1 text-[8px] font-black uppercase tracking-widest text-background shadow-lg">
-                                Promo
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="relative flex h-28 w-28 shrink-0 items-center justify-center rounded-3xl bg-background shadow-lg">
-                            <Utensils className="h-10 w-10 text-muted-foreground" />
-                            {product.isPromotion && (
-                              <div className="absolute left-2 top-2 rounded-full bg-destructive px-2 py-1 text-[8px] font-black uppercase tracking-widest text-background shadow-lg">
-                                Promo
-                              </div>
-                            )}
-                          </div>
-                        )}
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center">
+                              <Utensils className="h-10 w-10 text-gray-200" />
+                            </div>
+                          )}
+                          {product.isPromotion && (
+                            <div className="absolute left-2 top-2 rounded-full bg-destructive px-2.5 py-1 text-[8px] font-black uppercase tracking-widest text-white shadow-lg">
+                              OFF
+                            </div>
+                          )}
+                        </div>
                         <div className="flex flex-1 flex-col justify-between py-1">
                           <div className="space-y-1">
-                            <h3 className="text-lg font-bold leading-tight text-foreground transition-colors group-hover:text-primary">
-                              {product.name}
-                            </h3>
-                            <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                              {product.description ||
-                                "Ingredientes selecionados para uma experiência gastronômica única."}
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-lg font-bold text-gray-900 group-hover:text-primary transition-colors">
+                                {product.name}
+                              </h3>
+                            </div>
+                            <p className="line-clamp-2 text-xs leading-relaxed text-gray-400">
+                              {product.description || "O sabor irresistível que você já conhece, preparado com ingredientes selecionados."}
                             </p>
                           </div>
                           <div className="mt-3 flex items-center justify-between">
-                            <div className="rounded-full bg-primary px-3 py-1">
-                              <span className="text-sm font-black text-primary">
-                                {formatPrice(product.price)}
-                              </span>
-                            </div>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-foreground text-background shadow-lg shadow-slate-200 transition-all group-hover:bg-primary">
+                            <span className="text-lg font-black text-gray-900">
+                              {formatPrice(product.price)}
+                            </span>
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-900 text-white shadow-lg transition-all group-hover:bg-primary group-hover:scale-110">
                               <Plus className="h-5 w-5" />
                             </div>
                           </div>
@@ -502,27 +496,27 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
         )}
       </main>
 
-      {/* Floating Cart Button */}
+      {/* Floating Action Cart Button */}
       {totalItems > 0 && (
-        <footer className="fixed bottom-8 left-1/2 z-30 w-[calc(100%-48px)] max-w-[calc(448px-48px)] -translate-x-1/2 duration-500 animate-in slide-in-from-bottom-6">
+        <footer className="fixed bottom-8 left-1/2 z-40 w-full max-w-md -translate-x-1/2 px-6 duration-500 animate-in slide-in-from-bottom-8">
           <Button
             onClick={() => setIsCartOpen(true)}
-            className="flex h-16 w-full items-center justify-between rounded-[2rem] border-t border-white/10 bg-foreground px-8 text-background shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-all hover:bg-foreground active:scale-95"
+            className="flex h-18 w-full items-center justify-between rounded-[2.5rem] bg-gray-900 px-8 text-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] transition-all hover:bg-gray-900 hover:scale-[1.02] active:scale-95"
           >
-            <div className="flex items-center gap-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-background/10 backdrop-blur-sm">
-                <ShoppingBag className="h-5 w-5" />
+            <div className="flex items-center gap-5">
+              <div className="flex h-12 w-12 items-center justify-center rounded-[1.25rem] bg-white/10 backdrop-blur-sm">
+                <ShoppingBag className="h-6 w-6 text-primary" />
               </div>
-              <div className="flex flex-col items-start leading-tight">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <div className="flex flex-col items-start leading-none">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
                   Ver Sacola
                 </span>
-                <span className="text-sm font-bold">
-                  {totalItems} {totalItems === 1 ? "item" : "itens"}
+                <span className="text-sm font-bold mt-1">
+                  {totalItems} {totalItems === 1 ? "ITEM" : "ITENS"}
                 </span>
               </div>
             </div>
-            <span className="text-lg font-black">
+            <span className="text-xl font-black">
               {formatPrice(totalPrice)}
             </span>
           </Button>

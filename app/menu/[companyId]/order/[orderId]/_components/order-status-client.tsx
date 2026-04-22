@@ -10,13 +10,19 @@ import {
   ChefHat,
   ShoppingBag,
   ArrowLeft,
-  ChevronRight,
   PackageCheck,
   Plus,
+  Utensils,
+  X,
+  Bell,
+  BellOff,
+  BellRing,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/app/_components/ui/button";
 import { OrderStatusDto } from "@/app/_data-access/order/get-order-status";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface OrderStatusClientProps {
   initialOrder: OrderStatusDto;
@@ -29,50 +35,57 @@ const statusConfig: Record<
     label: string;
     icon: any;
     color: string;
+    bgColor: string;
     description: string;
     step: number;
   }
 > = {
   PENDING: {
-    label: "Pendente",
+    label: "Recebido",
     icon: Clock,
-    color: "text-muted-foreground",
-    description: "Aguardando confirmação da cozinha",
+    color: "text-gray-400",
+    bgColor: "bg-gray-50",
+    description: "Seu pedido chegou na nossa cozinha.",
     step: 1,
   },
   PREPARING: {
-    label: "Preparando",
+    label: "No Fogo",
     icon: ChefHat,
-    color: "text-primary",
-    description: "Seu pedido já está no fogo!",
+    color: "text-orange-500",
+    bgColor: "bg-orange-50",
+    description: "Preparando com carinho e fogo alto!",
     step: 2,
   },
   READY: {
     label: "Pronto",
     icon: PackageCheck,
-    color: "text-green-500",
-    description: "Hora de saborear! Seu pedido está pronto.",
+    color: "text-green-600",
+    bgColor: "bg-green-50",
+    description: "Hora de saborear! Já pode ser servido.",
     step: 3,
   },
   DELIVERED: {
     label: "Entregue",
-    icon: ShoppingBag,
+    icon: Utensils,
     color: "text-primary",
-    description: "Seu pedido foi entregue na mesa!",
+    bgColor: "bg-primary/5",
+    description: "Aproveite cada mordida!",
     step: 4,
   },
   PAID: {
-    label: "Pago",
+    label: "Finalizado",
     icon: CheckCircle2,
-    color: "text-green-600",
-    description: "Pedido finalizado e pago.",
+    color: "text-gray-900",
+    bgColor: "bg-gray-100",
+    description: "Obrigado! Volte sempre ao nosso restaurante.",
     step: 5,
   },
   CANCELED: {
     label: "Cancelado",
-    icon: Clock,
+    icon: X,
     color: "text-destructive",
-    description: "Infelizmente seu pedido foi cancelado.",
+    bgColor: "bg-destructive/5",
+    description: "Infelizmente este pedido foi cancelado.",
     step: 0,
   },
 };
@@ -81,7 +94,26 @@ export const OrderStatusClient = ({
   initialOrder,
   companyId,
 }: OrderStatusClientProps) => {
+  const router = useRouter();
   const [order, setOrder] = useState<OrderStatusDto>(initialOrder);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>("default");
+
+  // Notification Permission Handling
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
+
+  const requestNotificationPermission = async () => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      if (permission === "granted") {
+        toast.success("Você será avisado quando o pedido estiver pronto! 🔔");
+      }
+    }
+  };
 
   // Real-time updates via Resilient SSE
   useEffect(() => {
@@ -91,13 +123,7 @@ export const OrderStatusClient = ({
 
     const connect = () => {
       if (eventSource) eventSource.close();
-
-      // Passing companyId in query param because customers don't have an ERP session
       eventSource = new EventSource(`/api/kds/stream?companyId=${companyId}`);
-
-      eventSource.onopen = () => {
-        retryCount = 0;
-      };
 
       eventSource.onmessage = (event) => {
         try {
@@ -106,10 +132,17 @@ export const OrderStatusClient = ({
           
           if (data.type === "STATUS_UPDATED" && data.orderId === order.id) {
             setOrder((prev) => ({ ...prev, status: data.status }));
+            router.refresh();
+
+            // Native Notification trigger
+            if (data.status === "READY" && typeof window !== "undefined" && Notification.permission === "granted") {
+              new Notification("Pedido Pronto! 🍽️", {
+                body: "Seu pedido já pode ser servido. Bom apetite!",
+                icon: "/favicon.ico",
+              });
+            }
           }
-        } catch (e) {
-          // ignore parse errors
-        }
+        } catch (e) { /* ignore */ }
       };
 
       eventSource.onerror = () => {
@@ -123,138 +156,135 @@ export const OrderStatusClient = ({
     };
 
     connect();
-
     return () => {
       if (eventSource) eventSource.close();
       if (retryTimeout) clearTimeout(retryTimeout);
     };
-  }, [companyId, order.id]);
+  }, [companyId, order.id, router]);
 
   const currentStatus = statusConfig[order.status];
   const formatPrice = (price: number) =>
-    Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
-      price,
-    );
+    Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price);
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-muted font-sans shadow-2xl">
-      {/* Header */}
-      <header className="bg-background px-6 pb-6 pt-10 shadow-sm">
-        <Link
-          href={`/menu/${companyId}`}
-          className="mb-6 flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-muted-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          VOLTAR PARA O MENU
-        </Link>
+    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-[#F8F9FA] font-sans shadow-2xl">
+      {/* Premium Tracking Header */}
+      <header className="sticky top-0 z-20 flex flex-col gap-4 border-b border-gray-100 bg-white/80 px-6 pb-4 pt-10 backdrop-blur-xl">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-black italic tracking-tighter text-foreground">
-              PEDIDO #{order.orderNumber}
-            </h1>
-            <p className="text-sm font-medium text-muted-foreground">
-              {new Date(order.createdAt).toLocaleDateString("pt-BR", {
-                day: "2-digit",
-                month: "long",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
-          </div>
-          <div
-            className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-muted ${currentStatus.color}`}
+          <Link
+            href={`/menu/${companyId}`}
+            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors"
           >
-            <currentStatus.icon className="h-6 w-6" />
-          </div>
+            <ArrowLeft className="h-3 w-3" />
+            Cardápio
+          </Link>
+          <Badge variant="outline" className="border-gray-200 bg-gray-50 text-[10px] font-black uppercase text-gray-500">
+            Mesa {order.tableNumber || "N/A"}
+          </Badge>
+        </div>
+        <div className="flex items-end justify-between">
+          <h1 className="text-3xl font-black italic leading-none tracking-tighter text-gray-900">
+            PEDIDO <span className="text-primary">#{order.orderNumber}</span>
+          </h1>
+          <p className="text-[10px] font-bold text-gray-400 uppercase">
+            {new Date(order.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+          </p>
         </div>
       </header>
 
-      <main className="flex-1 space-y-6 px-6 py-8">
-        {/* Status Card */}
-        <Card className="overflow-hidden rounded-[2rem] border-none bg-background p-8 shadow-xl shadow-slate-200/50">
-          <div className="flex flex-col items-center text-center">
-            <div
-              className={`mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-muted ${currentStatus.color}`}
-            >
-              <currentStatus.icon className="h-10 w-10" />
-            </div>
-            <h2 className="text-2xl font-black tracking-tight text-foreground">
-              {currentStatus.label}
-            </h2>
-            <p className="mt-2 text-sm font-medium text-muted-foreground">
-              {currentStatus.description}
-            </p>
+      <main className="flex-1 space-y-8 px-6 py-8">
+        {/* Hero Status Card */}
+        <section className="relative overflow-hidden rounded-[2.5rem] bg-white p-10 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          <div className={`mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full ${currentStatus.bgColor} ${currentStatus.color} transition-all duration-700`}>
+            <currentStatus.icon className="h-12 w-12 animate-in zoom-in-50 duration-500" />
           </div>
+          <h2 className={`text-3xl font-black tracking-tight ${currentStatus.color}`}>
+            {currentStatus.label}
+          </h2>
+          <p className="mt-2 text-sm font-medium text-gray-400">
+            {currentStatus.description}
+          </p>
 
-          {/* Progress Steps */}
-          {order.status !== "CANCELED" && (
-            <div className="mt-10 flex items-center justify-between px-2">
-              {[1, 2, 3, 4, 5].map((step) => {
-                const isActive = currentStatus.step >= step;
-                const isCompleted = currentStatus.step > step;
-                return (
-                  <div
-                    key={step}
-                    className="relative flex flex-col items-center gap-2"
-                  >
-                    <div
-                      className={`z-10 flex h-10 w-10 items-center justify-center rounded-full border-4 transition-all duration-500 ${
-                        isActive
-                          ? "border-primary bg-primary text-background"
-                          : "border-border bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {isCompleted ? (
-                        <CheckCircle2 className="h-5 w-5" />
-                      ) : (
-                        <span className="text-xs font-black">{step}</span>
+          {/* Native Notification Opt-in */}
+          {notificationPermission !== "granted" && order.status !== "PAID" && (
+            <button
+              onClick={requestNotificationPermission}
+              className="mt-8 flex items-center gap-2 rounded-2xl bg-gray-900 px-6 py-3 text-xs font-bold text-white shadow-xl shadow-gray-200 hover:scale-105 active:scale-95 transition-all"
+            >
+              {notificationPermission === "denied" ? (
+                <><BellOff className="h-4 w-4" /> Notificações Bloqueadas</>
+              ) : (
+                <><BellRing className="h-4 w-4" /> Me avise quando estiver pronto</>
+              )}
+            </button>
+          )}
+        </section>
+
+        {/* Immersive Progress Timeline */}
+        {order.status !== "CANCELED" && (
+          <div className="px-4">
+             <div className="flex items-center justify-between relative">
+               {/* Timeline Background Line */}
+               <div className="absolute top-5 left-0 w-full h-[2px] bg-gray-100 -z-0" />
+               
+               {[1, 2, 3, 4, 5].map((step) => {
+                 const isActive = currentStatus.step >= step;
+                 const isCurrent = currentStatus.step === step;
+                 return (
+                   <div key={step} className="relative z-10 flex flex-col items-center gap-3">
+                     <div
+                       className={`flex h-10 w-10 items-center justify-center rounded-full border-4 transition-all duration-700 ${
+                         isActive
+                           ? "border-white bg-gray-900 text-white shadow-lg"
+                           : "border-white bg-gray-100 text-gray-300"
+                       } ${isCurrent ? "scale-125 ring-4 ring-gray-900/5" : ""}`}
+                     >
+                       {isActive && currentStatus.step > step ? (
+                         <CheckCircle2 className="h-4 w-4" />
+                       ) : (
+                         <span className="text-[10px] font-black">{step}</span>
+                       )}
+                     </div>
+                   </div>
+                 );
+               })}
+             </div>
+             <div className="mt-4 flex justify-between px-1">
+                <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Fila</span>
+                <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Finalizado</span>
+             </div>
+          </div>
+        )}
+
+        {/* Order Summary Refined */}
+        <div className="space-y-4">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+            Resumo da Experiência
+          </h3>
+          <Card className="rounded-[2.5rem] border-none bg-white p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <div className="space-y-5">
+              {order.items.map((item, idx) => (
+                <div key={idx} className="flex items-start justify-between">
+                  <div className="flex gap-4">
+                    <span className="text-sm font-black text-primary">{item.quantity}x</span>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-gray-900">{item.name}</span>
+                      {item.notes && (
+                        <span className="mt-1 text-[10px] font-bold text-destructive bg-destructive/5 px-2 py-0.5 rounded-md w-fit">
+                          {item.notes}
+                        </span>
                       )}
                     </div>
-                    {/* Line */}
-                    {step < 4 && (
-                      <div
-                        className={`absolute left-[2.5rem] top-5 h-1 w-[calc(100%+1.5rem)] -translate-y-1/2 ${
-                          currentStatus.step > step
-                            ? "bg-primary"
-                            : "bg-muted"
-                        }`}
-                      />
-                    )}
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </Card>
-
-        {/* Order Items */}
-        <div className="space-y-4">
-          <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-            Resumo do Pedido
-          </h3>
-          <Card className="rounded-[2rem] border-none bg-background p-6 shadow-lg shadow-slate-200/30">
-            <div className="space-y-4">
-              {order.items.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-muted text-[10px] font-black text-foreground">
-                      {item.quantity}x
-                    </div>
-                    <span className="text-sm font-bold text-foreground">
-                      {item.name}
-                    </span>
-                  </div>
-                  <span className="text-sm font-medium text-muted-foreground">
+                  <span className="text-sm font-bold text-gray-900">
                     {formatPrice(item.price * item.quantity)}
                   </span>
                 </div>
               ))}
-              <div className="my-2 border-t border-border pt-4">
+              <div className="mt-6 border-t border-gray-50 pt-6">
                 <div className="flex items-center justify-between">
-                  <span className="text-lg font-black text-foreground">
-                    Total
-                  </span>
-                  <span className="text-xl font-black text-primary">
+                  <span className="text-lg font-black text-gray-900">Total</span>
+                  <span className="text-2xl font-black text-primary">
                     {formatPrice(order.totalAmount)}
                   </span>
                 </div>
@@ -263,31 +293,29 @@ export const OrderStatusClient = ({
           </Card>
         </div>
 
-        {/* Info Card */}
-        <Card className="flex items-center gap-4 rounded-[2rem] border-none bg-foreground p-6 text-background shadow-xl shadow-slate-900/20">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-background/10">
-            <ShoppingBag className="h-6 w-6 text-primary" />
-          </div>
-          <div className="flex-1">
-            <h4 className="text-sm font-black">Ainda com fome?</h4>
-            <p className="text-[10px] font-medium text-muted-foreground">
-              Você pode adicionar mais itens ao seu pedido voltando ao cardápio.
-            </p>
-          </div>
-          <Link href={`/menu/${companyId}`}>
-            <Button
-              size="icon"
-              className="h-10 w-10 rounded-xl bg-primary p-0 text-background hover:bg-primary"
-            >
-              <Plus className="h-5 w-5" />
-            </Button>
-          </Link>
+        {/* Upsell / Branding */}
+        <Card className="group relative flex items-center gap-5 overflow-hidden rounded-[2.5rem] border-none bg-gray-900 p-8 text-white shadow-2xl">
+           <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-primary/20 blur-2xl group-hover:bg-primary/40 transition-all duration-700" />
+           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.25rem] bg-white/10 backdrop-blur-md">
+             <Plus className="h-6 w-6 text-primary" />
+           </div>
+           <div className="flex-1">
+             <h4 className="text-md font-black">Ainda com fome?</h4>
+             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">
+               Adicione mais itens ao seu banquete.
+             </p>
+           </div>
+           <Link href={`/menu/${companyId}`}>
+             <Button className="h-12 w-12 rounded-2xl bg-white text-gray-900 hover:bg-gray-100 hover:scale-110 transition-all">
+               <Plus className="h-5 w-5" />
+             </Button>
+           </Link>
         </Card>
       </main>
 
-      <footer className="p-8 text-center">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-          Powered by Kipo
+      <footer className="py-12 text-center">
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">
+          KIPO • PREMIUM GUEST EXPERIENCE
         </p>
       </footer>
     </div>
