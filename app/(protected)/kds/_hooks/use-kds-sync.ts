@@ -41,12 +41,29 @@ export const useKdsSync = ({ initialOrders, companyId }: UseKdsSyncProps) => {
             playBeep();
             const { data: newOrder } = await supabase
               .from("Order")
-              .select("*, items:OrderItem(*, product:Product(*, category:Category(*)))")
+              .select("*, items:OrderItem(*, product:Product(*, environment:Environment(*)))")
               .eq("id", payload.new.id)
               .single();
 
             if (newOrder) {
-              setOrders((prev) => [newOrder as KDSOrderDto, ...prev]);
+              const mappedOrder: KDSOrderDto = {
+                id: newOrder.id,
+                orderNumber: newOrder.orderNumber,
+                status: newOrder.status,
+                tableNumber: newOrder.tableNumber,
+                notes: newOrder.notes,
+                createdAt: new Date(newOrder.createdAt),
+                items: (newOrder.items || []).map((item: any) => ({
+                  id: item.id,
+                  productName: item.product?.name || "Produto",
+                  quantity: Number(item.quantity),
+                  notes: item.notes,
+                  environmentId: item.product?.environmentId,
+                  environmentName: item.product?.environment?.name || "Cozinha",
+                  status: item.status,
+                })),
+              };
+              setOrders((prev) => [mappedOrder, ...prev]);
             }
           } else if (payload.eventType === "UPDATE") {
             const updatedOrder = payload.new as any;

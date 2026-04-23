@@ -2,7 +2,8 @@
 
 import { KDSOrderDto } from "@/app/_data-access/order/get-kds-orders";
 import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { OrderStatus } from "@prisma/client";
 import { Badge } from "@/app/_components/ui/badge";
 import {
@@ -47,8 +48,25 @@ export const KDSClient = ({
   companyId,
   environments,
 }: KDSClientProps) => {
-  const [activeEnvId, setActiveEnvId] = useState<string>("all");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // O estado da praça ativa agora é lido diretamente da URL (?station=...)
+  const activeEnvId = searchParams.get("station") || "all";
+  
   const [selectedOrder, setSelectedOrder] = useState<KDSOrderDto | null>(null);
+
+  // Função para atualizar a URL quando trocar de aba
+  const handleStationChange = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === "all") {
+      params.delete("station");
+    } else {
+      params.set("station", value);
+    }
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
   // Hook de Sincronização (Estado + Realtime)
   const { orders, pendingUpdates, setOrders } = useKdsSync({ 
@@ -146,7 +164,7 @@ export const KDSClient = ({
             </span>
           </div>
 
-          <Tabs value={activeEnvId} onValueChange={setActiveEnvId}>
+          <Tabs value={activeEnvId} onValueChange={handleStationChange}>
             <TabsList className="h-12 rounded-[1.2rem] border bg-muted/50 p-1.5 shadow-inner">
               <TabsTrigger
                 value="all"
