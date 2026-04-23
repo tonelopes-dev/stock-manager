@@ -242,6 +242,15 @@ model Company {
   suppliers              Supplier[]
   stockEntries           StockEntry[]
 
+  // Branding & Menu Info
+  bannerUrl              String?
+  logoUrl                String?
+  address                String?
+  description            String?           @db.Text
+  whatsappNumber         String?
+  instagramUrl           String?
+  operatingHours         Json?
+
 
   @@index([deletedAt])
 }
@@ -429,16 +438,17 @@ model Order {
 }
 
 model OrderItem {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
   orderId   String
   productId String
-  quantity  Decimal  @db.Decimal(10, 3)
-  unitPrice Decimal  @db.Decimal(10, 2)
-  notes     String?  @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Decimal     @db.Decimal(10, 3)
+  unitPrice Decimal     @db.Decimal(10, 2)
+  status    OrderStatus @default(PENDING)
+  notes     String?     @db.Text
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product     @relation(fields: [productId], references: [id])
 
   @@index([orderId])
 }
