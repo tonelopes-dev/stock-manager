@@ -2,7 +2,7 @@ import { db } from "@/app/_lib/prisma";
 import { recordStockMovement, processRecursiveStockMovement } from "@/app/_lib/stock";
 import { BusinessError } from "@/app/_lib/errors";
 import { OrderStatus, Prisma } from "@prisma/client";
-import { notifyKDS } from "@/app/_lib/kds";
+
 
 interface CreateOrderParams {
   companyId: string;
@@ -85,19 +85,19 @@ export const OrderService = {
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
                 notes: item.notes,
+                status: OrderStatus.PENDING, // Explicitly set pending for each item
               })),
             },
           },
         });
 
-        // 3. Reserve Stock (Immediate deduction upon PENDING as per design decision)
-        // This ensures items are committed to the kitchen and prevents over-ordering.
+        // 3. Reserve Stock
         for (const item of itemsWithPrices) {
           await processRecursiveStockMovement(
             {
               productId: item.productId,
               companyId,
-              userId: null, // Public menu orders have no authenticated user
+              userId: null,
               type: "ORDER",
               quantity: new Prisma.Decimal(item.quantity.toString()).negated(),
               orderId: order.id,
@@ -109,18 +109,80 @@ export const OrderService = {
         return order;
       });
 
-      // 4. Notify KDS (Outside transaction to avoid race conditions with router.refresh)
-      await notifyKDS(companyId, { 
-        type: "NEW_ORDER", 
-        orderId: order.id,
-        customerId: order.customerId 
-      });
 
       return order;
     } catch (error) {
       if (error instanceof BusinessError) throw error;
       console.error("Error creating order:", error);
       throw new Error("Erro ao criar pedido.");
+    }
+  },
+
+  /**
+   * Updates a single item status and synchronizes the parent order status.
+   */
+  async updateOrderItemStatus(itemId: string, companyId: string, status: OrderStatus, userId: string) {
+    try {
+      const { updatedItem, orderId } = await db.$transaction(async (trx) => {
+        // 1. Update the item
+        const item = await trx.orderItem.findUnique({
+          where: { id: itemId, order: { companyId } },
+          select: { id: true, orderId: true },
+        });
+
+        if (!item) throw new BusinessError("Item não encontrado.");
+
+        const updatedItem = await trx.orderItem.update({
+          where: { id: itemId },
+          data: { status },
+        });
+
+        // 2. Sync order status based on all items
+        const allItems = await trx.orderItem.findMany({
+          where: { orderId: item.orderId },
+          select: { status: true },
+        });
+
+        // Calculate logic:
+        // - DELIVERED/PAID: Manual override (not handled here usually)
+        // - READY: If ALL items are READY (or DELIVERED/PAID)
+        // - PREPARING: If ANY item is PREPARING
+        // - PENDING: If ALL items are PENDING
+        
+        let newOrderStatus = OrderStatus.PENDING;
+        
+        const hasPreparing = allItems.some(i => i.status === OrderStatus.PREPARING);
+        const allReady = allItems.every(i => 
+          i.status === OrderStatus.READY || 
+          i.status === OrderStatus.DELIVERED || 
+          i.status === OrderStatus.PAID
+        );
+
+        if (allReady) {
+          newOrderStatus = OrderStatus.READY;
+        } else if (hasPreparing) {
+          newOrderStatus = OrderStatus.PREPARING;
+        } else {
+          // If some are READY but some are PENDING, it's still PREPARING in a sense?
+          // Or we keep as PENDING until someone starts something.
+          const hasReady = allItems.some(i => i.status === OrderStatus.READY);
+          if (hasReady) newOrderStatus = OrderStatus.PREPARING;
+        }
+
+        await trx.order.update({
+          where: { id: item.orderId },
+          data: { status: newOrderStatus },
+        });
+
+        return { updatedItem, orderId: item.orderId };
+      });
+
+
+      return updatedItem;
+    } catch (error) {
+      if (error instanceof BusinessError) throw error;
+      console.error("Error updating item status:", error);
+      throw new Error("Erro ao atualizar item.");
     }
   },
 
@@ -151,21 +213,18 @@ export const OrderService = {
           }
         }
 
+        // When updating whole order status, also update all items to match
+        // (This is useful for 'DELIVERED' or 'PAID' bulk updates)
         const updatedOrder = await trx.order.update({
           where: { id: orderId },
-          data: { status },
+          data: { 
+            status,
+          },
         });
 
         return updatedOrder;
       });
 
-      // Notify KDS (Outside transaction)
-      await notifyKDS(companyId, { 
-        type: "STATUS_UPDATED", 
-        orderId, 
-        status,
-        customerId: updatedOrder.customerId 
-      });
 
       return updatedOrder;
     } catch (error) {
@@ -175,17 +234,7 @@ export const OrderService = {
     }
   },
 
-  async convertToSale(
-    orderId: string,
-    companyId: string,
-    userId: string,
-    paymentMethod: any,
-    tipAmount: number = 0,
-    discountAmount: number = 0,
-    extraAmount: number = 0,
-    adjustmentReason?: string,
-    isEmployeeSale: boolean = false
-  ) {
+  async convertToSale(orderId: string, companyId: string, userId: string, paymentMethod: any, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false) {
     try {
       const sale = await db.$transaction(async (trx) => {
         const order = await trx.order.findUnique({
@@ -194,9 +243,25 @@ export const OrderService = {
         });
 
         if (!order) throw new BusinessError("Pedido não encontrado.");
+        
+        // 1. Check if a sale already exists for this order (Race Condition prevention)
+        const existingSale = await trx.sale.findUnique({
+          where: { orderId }
+        });
+
+        if (existingSale) {
+          // If sale exists but order isn't marked PAID, fix it
+          if (order.status !== OrderStatus.PAID) {
+            await trx.order.update({
+              where: { id: orderId },
+              data: { status: OrderStatus.PAID }
+            });
+          }
+          return existingSale;
+        }
+
         if (order.status === OrderStatus.PAID) throw new BusinessError("Este pedido já foi pago.");
 
-        // Calculate final amounts based on current toggles/discounts
         const subtotal = order.orderItems.reduce((acc, item) => {
           const price = isEmployeeSale 
             ? (Number(item.product.cost || 0) + Number(item.product.operationalCost || 0))
@@ -206,7 +271,6 @@ export const OrderService = {
 
         const totalWithTip = Math.max(0, subtotal + tipAmount - discountAmount + extraAmount);
 
-        // 1. Create the Sale
         const sale = await trx.sale.create({
           data: {
             companyId,
@@ -225,7 +289,6 @@ export const OrderService = {
           },
         });
 
-        // 2. Create SaleItems using historical order prices OR cost depending on mode
         for (const item of order.orderItems) {
           const unitPrice = isEmployeeSale
             ? (Number(item.product.cost || 0) + Number(item.product.operationalCost || 0))
@@ -241,28 +304,22 @@ export const OrderService = {
             },
           });
           
-          // Link stock movement to sale for better traceability (optional, but good)
           await trx.stockMovement.updateMany({
             where: { orderId: order.id, productId: item.productId, type: "ORDER" },
             data: { saleId: sale.id }
           });
         }
 
-        // 3. Mark Order as PAID and complete
         await trx.order.update({
           where: { id: orderId },
-          data: { status: OrderStatus.PAID },
+          data: { 
+            status: OrderStatus.PAID,
+          },
         });
 
         return sale;
       });
 
-      // Notify KDS (Outside transaction)
-      await notifyKDS(companyId, { 
-        type: "STATUS_UPDATED", 
-        orderId, 
-        status: OrderStatus.PAID 
-      });
 
       return sale;
     } catch (error) {
@@ -272,20 +329,9 @@ export const OrderService = {
     }
   },
 
-  async convertItemsToSale(
-    itemIds: string[],
-    companyId: string,
-    userId: string,
-    paymentMethod: any,
-    tipAmount: number = 0,
-    discountAmount: number = 0,
-    extraAmount: number = 0,
-    adjustmentReason?: string,
-    isEmployeeSale: boolean = false
-  ) {
+  async convertItemsToSale(itemIds: string[], companyId: string, userId: string, paymentMethod: any, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false) {
     try {
       const { sale, originalOrderIds } = await db.$transaction(async (trx) => {
-        // 1. Fetch the items and their orders
         const items = await trx.orderItem.findMany({
           where: { id: { in: itemIds }, order: { companyId } },
           include: { order: true, product: { select: { cost: true, operationalCost: true } } },
@@ -303,7 +349,6 @@ export const OrderService = {
         const totalAmount = Math.max(0, subtotal + tipAmount - discountAmount + extraAmount);
         const originalOrderIds = Array.from(new Set(items.map((i) => i.orderId)));
 
-        // 2. Create the Sale
         const sale = await trx.sale.create({
           data: {
             companyId,
@@ -321,7 +366,6 @@ export const OrderService = {
           },
         });
 
-        // 3. Create SaleItems and link stock movement
         for (const item of items) {
           const unitPrice = isEmployeeSale
             ? (Number(item.product.cost || 0) + Number(item.product.operationalCost || 0))
@@ -337,25 +381,20 @@ export const OrderService = {
             },
           });
 
-          // Link the "ORDER" stock movement to this sale
           await trx.stockMovement.updateMany({
             where: { orderId: item.orderId, productId: item.productId, type: "ORDER" },
             data: { saleId: sale.id },
           });
 
-          // Delete the OrderItem
           await trx.orderItem.delete({ where: { id: item.id } });
         }
 
-        // 4. Update order totals and cleanup empty orders
         for (const orderId of originalOrderIds) {
           const remainingItems = await trx.orderItem.findMany({ where: { orderId } });
           
           if (remainingItems.length === 0) {
-            // No items left, delete the order (it's fully paid)
             await trx.order.delete({ where: { id: orderId } });
           } else {
-            // Update totalAmount of the order
             const newTotal = remainingItems.reduce((sum, item) => sum + Number(item.unitPrice) * Number(item.quantity), 0);
             await trx.order.update({
               where: { id: orderId },
@@ -367,13 +406,6 @@ export const OrderService = {
         return { sale, originalOrderIds };
       });
 
-      // Notify KDS (Outside transaction)
-      for (const orderId of originalOrderIds) {
-        await notifyKDS(companyId, { 
-          type: "ORDER_UPDATED", 
-          orderId 
-        });
-      }
 
       return sale;
     } catch (error) {
@@ -395,7 +427,6 @@ export const OrderService = {
 
         const orderId = item.orderId;
 
-        // 1. Return stock
         await processRecursiveStockMovement(
           {
             productId: item.productId,
@@ -409,10 +440,8 @@ export const OrderService = {
           trx
         );
 
-        // 2. Delete the item
         await trx.orderItem.delete({ where: { id: itemId } });
 
-        // 3. Update order total or cleanup
         const remainingItems = await trx.orderItem.findMany({
           where: { orderId: item.orderId },
         });
@@ -433,11 +462,6 @@ export const OrderService = {
         return { orderId };
       });
 
-      // Notify KDS (Outside transaction)
-      await notifyKDS(companyId, { 
-        type: "ORDER_UPDATED", 
-        orderId 
-      });
 
       return { success: true };
     } catch (error) {

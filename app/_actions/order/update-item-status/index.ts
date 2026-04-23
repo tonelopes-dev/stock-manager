@@ -7,20 +7,20 @@ import { OrderStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/app/_lib/auth";
 
-const updateOrderStatusSchema = z.object({
-  orderId: z.string(),
+const updateItemStatusSchema = z.object({
+  itemId: z.string(),
   status: z.nativeEnum(OrderStatus),
   companyId: z.string(),
 });
 
-export const updateOrderStatusAction = actionClient
-  .schema(updateOrderStatusSchema)
-  .action(async ({ parsedInput: { orderId, status, companyId } }) => {
+export const updateItemStatusAction = actionClient
+  .schema(updateItemStatusSchema)
+  .action(async ({ parsedInput: { itemId, status, companyId } }) => {
     const session = await auth();
     if (!session?.user?.id) throw new Error("Não autorizado");
 
     try {
-      await OrderService.updateStatus(orderId, companyId, status, session.user.id);
+      await OrderService.updateOrderItemStatus(itemId, companyId, status, session.user.id);
       
       revalidatePath(`/kds`, "page");
       revalidatePath(`/sales`, "page");
@@ -28,7 +28,7 @@ export const updateOrderStatusAction = actionClient
       
       return { success: true };
     } catch (error: any) {
-      console.error("Update Status Action Error:", error);
-      throw new Error(error.message || "Falha ao atualizar status do pedido.");
+      console.error("Update Item Status Action Error:", error);
+      throw new Error(error.message || "Falha ao atualizar status do item.");
     }
   });

@@ -39,7 +39,9 @@ export const createOrderAction = actionClient
         isEmployeeSale,
       });
 
-      revalidatePath(`/kds`);
+      revalidatePath(`/kds`, "page");
+      revalidatePath(`/sales`, "page");
+      revalidatePath(`/menu/${companyId}/my-orders`, "page");
       
       return { success: true, orderId: order.id };
     } catch (error: any) {

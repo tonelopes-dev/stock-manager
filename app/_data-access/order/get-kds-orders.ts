@@ -14,6 +14,7 @@ export interface KDSOrderDto {
     quantity: number;
     notes: string | null;
     environmentId: string | null;
+    status: OrderStatus;
   }[];
 }
 
@@ -63,6 +64,7 @@ export const getKDSOrders = async (companyId: string): Promise<KDSOrderDto[]> =>
       quantity: Number(item.quantity),
       notes: item.notes,
       environmentId: item.product.environmentId,
+      status: item.status,
     })),
   }));
 };

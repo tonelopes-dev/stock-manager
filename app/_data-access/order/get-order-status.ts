@@ -11,10 +11,12 @@ export interface OrderStatusDto {
   tableNumber: string | null;
   createdAt: Date;
   items: {
+    id: string;
     name: string;
     quantity: number;
     price: number;
     notes: string | null;
+    status: OrderStatus;
   }[];
 }
 
@@ -45,10 +47,12 @@ export const getOrderStatus = async (
     tableNumber: order.tableNumber,
     createdAt: order.createdAt,
     items: order.orderItems.map((item) => ({
+      id: item.id,
       name: item.product.name,
       quantity: Number(item.quantity),
       price: Number(item.unitPrice),
       notes: item.notes,
+      status: item.status,
     })),
   };
 };

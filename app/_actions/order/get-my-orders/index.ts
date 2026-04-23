@@ -46,10 +46,12 @@ export const getMyOrdersAction = actionClient
       tableNumber: order.tableNumber,
       createdAt: order.createdAt,
       items: order.orderItems.map((item) => ({
+        id: item.id,
         name: item.product.name,
         quantity: Number(item.quantity),
         price: Number(item.unitPrice),
         notes: item.notes,
+        status: item.status,
       })),
     }));
 
