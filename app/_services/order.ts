@@ -149,7 +149,7 @@ export const OrderService = {
         // - PREPARING: If ANY item is PREPARING
         // - PENDING: If ALL items are PENDING
         
-        let newOrderStatus = OrderStatus.PENDING;
+        let newOrderStatus: OrderStatus = OrderStatus.PENDING;
         
         const hasPreparing = allItems.some(i => i.status === OrderStatus.PREPARING);
         const allReady = allItems.every(i => 

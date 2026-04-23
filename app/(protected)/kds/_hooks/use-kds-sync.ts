@@ -10,7 +10,6 @@ interface UseKdsSyncProps {
 export const useKdsSync = ({ initialOrders, companyId }: UseKdsSyncProps) => {
   const [orders, setOrders] = useState<KDSOrderDto[]>(initialOrders);
   const pendingUpdates = useRef<Set<string>>(new Set());
-  const supabase = createClient();
 
   const playBeep = () => {
     try {

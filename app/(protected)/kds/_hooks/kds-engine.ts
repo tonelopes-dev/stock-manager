@@ -64,7 +64,7 @@ export const getStationSummary = (order: KDSOrderDto): StationSummary[] => {
   
   return envs.map((envId) => {
     const envItems = order.items.filter((i) => i.environmentId === envId);
-    const envName = envItems[0]?.product?.category?.name || "Cozinha"; // Fallback name
+    const envName = envItems[0]?.environmentName || "Cozinha"; // Fallback name
     const readyCount = envItems.filter(
       (i) =>
         i.status !== OrderStatus.PENDING && i.status !== OrderStatus.PREPARING

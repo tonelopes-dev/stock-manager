@@ -26,7 +26,6 @@ import {
   SheetDescription,
 } from "@/app/_components/ui/sheet";
 import { cn } from "@/app/_lib/utils";
-import { Badge } from "@/app/_components/ui/badge";
 
 import { useKdsSync } from "../_hooks/use-kds-sync";
 import { useKdsActions } from "../_hooks/use-kds-actions";
@@ -133,42 +132,6 @@ export const KDSClient = ({
       icon: null,
     },
   ];
-
-  return (
-    <div className="flex h-[calc(100vh-150px)] flex-col overflow-hidden bg-slate-50/30">
-      <div className="flex items-center justify-between border-b bg-background px-8 py-3">
-        <Tabs
-          value={activeEnvId}
-          onValueChange={setActiveEnvId}
-          className="w-auto"
-        >
-          <TabsList className="bg-muted/50 p-1">
-            <TabsTrigger
-              value="all"
-              className="px-6 text-xs font-bold uppercase tracking-wider"
-            >
-              Todos (Expedição)
-            </TabsTrigger>
-            {environments.map((env) => (
-              <TabsTrigger
-                key={env.id}
-                value={env.id}
-                className="px-6 text-xs font-bold uppercase tracking-wider"
-              >
-                {env.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-        <div className="flex items-center gap-4 text-xs font-bold text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <div className="h-2 w-2 rounded-full bg-orange-500" /> Pendentes
-          </span>
-          <span className="flex items-center gap-1.5">
-            <div className="h-2 w-2 rounded-full bg-emerald-500" /> Ativos
-          </span>
-        </div>
-      </div>
 
   return (
     <div className="flex h-[calc(100vh-150px)] flex-col overflow-hidden bg-slate-50/30">

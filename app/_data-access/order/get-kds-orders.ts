@@ -14,6 +14,7 @@ export interface KDSOrderDto {
     quantity: number;
     notes: string | null;
     environmentId: string | null;
+    environmentName: string;
     status: OrderStatus;
   }[];
 }
@@ -44,7 +45,13 @@ export const getKDSOrders = async (companyId: string): Promise<KDSOrderDto[]> =>
     include: {
       orderItems: {
         include: {
-          product: { select: { name: true, environmentId: true } },
+          product: { 
+            select: { 
+              name: true, 
+              environmentId: true,
+              environment: { select: { name: true } }
+            } 
+          },
         },
       },
     },
@@ -64,6 +71,7 @@ export const getKDSOrders = async (companyId: string): Promise<KDSOrderDto[]> =>
       quantity: Number(item.quantity),
       notes: item.notes,
       environmentId: item.product.environmentId,
+      environmentName: item.product.environment?.name || "Cozinha",
       status: item.status,
     })),
   }));
