@@ -25,33 +25,48 @@ export const OrderService = {
   async createOrder({ companyId, customerId, tableNumber, notes, hasServiceTax, discountAmount = 0, extraAmount = 0, adjustmentReason, isEmployeeSale = false, items }: CreateOrderParams) {
     try {
       const order = await db.$transaction(async (trx) => {
-        // 1. Validate items and stock
-        const itemsWithPrices = await Promise.all(
-          items.map(async (item) => {
-            const product = await trx.product.findUnique({
-              where: { id: item.productId, companyId },
-              select: { id: true, name: true, price: true, cost: true, operationalCost: true, stock: true, isActive: true },
-            });
+        // 1. Fetch all products at once to optimize performance
+        const productIds = items.map(i => i.productId);
+        const products = await trx.product.findMany({
+          where: { 
+            id: { in: productIds },
+            companyId 
+          },
+          select: { 
+            id: true, 
+            name: true, 
+            price: true, 
+            cost: true, 
+            operationalCost: true, 
+            stock: true, 
+            isActive: true 
+          },
+        });
 
-            if (!product) {
-              throw new BusinessError(`Produto não encontrado: ${item.productId}`);
-            }
+        // Map products for quick access
+        const productMap = new Map(products.map(p => [p.id, p]));
 
-            if (!product.isActive) {
-              throw new BusinessError(`O produto ${product.name} está desativado.`);
-            }
+        const itemsWithPrices = items.map((item) => {
+          const product = productMap.get(item.productId);
 
-            const unitPrice = isEmployeeSale 
-              ? Number(product.cost) + Number(product.operationalCost)
-              : Number(product.price);
+          if (!product) {
+            throw new BusinessError(`Produto não encontrado: ${item.productId}`);
+          }
 
-            return {
-              ...item,
-              unitPrice,
-              name: product.name,
-            };
-          })
-        );
+          if (!product.isActive) {
+            throw new BusinessError(`O produto ${product.name} está desativado.`);
+          }
+
+          const unitPrice = isEmployeeSale 
+            ? Number(product.cost) + Number(product.operationalCost)
+            : Number(product.price);
+
+          return {
+            ...item,
+            unitPrice,
+            name: product.name,
+          };
+        });
 
         const subtotal = itemsWithPrices.reduce(
           (sum, item) => sum + item.unitPrice * item.quantity,
@@ -85,13 +100,14 @@ export const OrderService = {
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
                 notes: item.notes,
-                status: OrderStatus.PENDING, // Explicitly set pending for each item
+                status: OrderStatus.PENDING,
               })),
             },
           },
         });
 
         // 3. Reserve Stock
+        // Note: Stock updates remain serial to ensure consistency and avoid deadlocks
         for (const item of itemsWithPrices) {
           await processRecursiveStockMovement(
             {
@@ -107,6 +123,8 @@ export const OrderService = {
         }
 
         return order;
+      }, {
+        timeout: 20000, // Increase timeout to 20s for complex stock recursions
       });
 
 
