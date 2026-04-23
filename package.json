@@ -17,7 +17,7 @@
     "test:billing-emails": "npx tsx scripts/test-billing-emails.ts",
     "test": "dotenv -e .env.test -- vitest run",
     "test:watch": "dotenv -e .env.test -- vitest",
-    "test:integration": "dotenv -e .env.test -- vitest run tests/integration",
+    "test:integration": "dotenv -e .env.test -- vitest run --fileParallelism=false tests/integration",
     "test:setup-db": "dotenv -e .env.test -- npx prisma db push --force-reset --accept-data-loss --skip-generate",
     "e2e": "npx playwright test",
     "e2e:ui": "npx playwright test --ui",

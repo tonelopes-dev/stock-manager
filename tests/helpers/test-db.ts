@@ -19,35 +19,47 @@ export function setTestDb(client: PrismaClient) {
  * Order matters due to FK constraints.
  */
 export async function cleanDatabase() {
-  // Ordered from leaf nodes to root to avoid FK violations
+  // 1. Transações e Tabelas de Ligação (Filhos / Tabelas de Cruzamento)
   await testDb.stockMovement.deleteMany();
+  await testDb.stockEntry.deleteMany();
+  await testDb.productComposition.deleteMany();
+  await testDb.productSupplier.deleteMany();
   await testDb.saleItem.deleteMany();
   await testDb.sale.deleteMany();
   await testDb.orderItem.deleteMany();
   await testDb.order.deleteMany();
-  await testDb.productComposition.deleteMany();
   await testDb.productionOrder.deleteMany();
-  await testDb.goal.deleteMany();
-  await testDb.stockEntry.deleteMany();
-  await testDb.productSupplier.deleteMany();
-  await testDb.product.deleteMany();
-  await testDb.fixedExpense.deleteMany();
-  await testDb.supplier.deleteMany();
-  await testDb.category.deleteMany();
-  await testDb.environment.deleteMany();
+  await testDb.auditEvent.deleteMany();
+  await testDb.notification.deleteMany();
+  
+  // 2. Checklist e Itens Relacionados
   await testDb.checklistItem.deleteMany();
   await testDb.checklist.deleteMany();
   await testDb.checklistTemplate.deleteMany();
-  await testDb.notification.deleteMany();
-  await testDb.auditEvent.deleteMany();
-  await testDb.customer.deleteMany(); // Delete Customer BEFORE CRMStage
+
+  // 3. Entidades de CRM e Clientes
+  await testDb.customer.deleteMany(); 
   await testDb.cRMStage.deleteMany();
   await testDb.customerCategory.deleteMany();
+
+  // 4. Entidades de Produto e Configuração
+  await testDb.product.deleteMany();
+  await testDb.category.deleteMany();
+  await testDb.supplier.deleteMany();
+  await testDb.environment.deleteMany();
+  await testDb.goal.deleteMany();
+  await testDb.fixedExpense.deleteMany();
+
+  // 5. Relacionamentos de Empresa e Convites
   await testDb.companyInvitation.deleteMany();
   await testDb.userCompany.deleteMany();
+
+  // 6. Autenticação e Usuário (Base)
   await testDb.session.deleteMany();
   await testDb.account.deleteMany();
   await testDb.user.deleteMany();
+
+  // 7. Empresa (Raiz)
   await testDb.company.deleteMany();
 }
 

@@ -1,27 +1,68 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { db } from "@/app/_lib/prisma";
-import { cleanDatabase, setTestDb, createSaleTestFixture } from "../helpers/test-db";
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from "vitest";
+
+// 1. Setup PrismaClient isolado
+const { testDb } = vi.hoisted(() => {
+  const { PrismaClient } = require("@prisma/client");
+  return { testDb: new PrismaClient() };
+});
+
+// 2. Mocks de Infraestrutura
+vi.mock("@/app/_lib/prisma", () => ({
+  db: testDb,
+}));
+
+vi.mock("@/app/_lib/auth", () => ({
+  auth: vi.fn(),
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+  handlers: {},
+}));
+
+vi.mock("@/app/_lib/get-current-company", () => ({
+  getCurrentCompanyId: vi.fn(async () => "test-company"),
+}));
+
+vi.mock("@/app/_lib/rbac", () => ({
+  assertRole: vi.fn(),
+  ADMIN_AND_OWNER: ["OWNER", "ADMIN"],
+}));
+
+vi.mock("next/cache", () => ({
+  revalidatePath: vi.fn(),
+}));
+
+import { setTestDb, cleanDatabase, createSaleTestFixture } from "../helpers/test-db";
 import { createStockEntry } from "@/app/_actions/stock-entry/create-stock-entry";
+import { assertRole } from "@/app/_lib/rbac";
 
 describe("Stock Entry — Supplier ID Handling", () => {
   let testData: any;
 
-  beforeEach(async () => {
-    setTestDb(db);
-    await cleanDatabase();
-    testData = await createSaleTestFixture();
+  beforeAll(async () => {
+    setTestDb(testDb);
+    await testDb.$connect();
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await cleanDatabase();
+    await testDb.$disconnect();
+  });
+
+  beforeEach(async () => {
+    await cleanDatabase();
+    testData = await createSaleTestFixture();
+
+    // Mock assertRole to return the real fixture user ID
+    vi.mocked(assertRole).mockResolvedValue({
+      role: "OWNER",
+      userId: testData.user.id,
+    });
   });
 
   it("should successfully create a stock entry with an empty string supplierId (transformed to undefined)", async () => {
-    // We call the action directly with an empty string for supplierId
-    // This simulates the form sending ""
     const result = await createStockEntry({
       productId: testData.pao.id,
-      supplierId: "", // This should be transformed to undefined by Zod
+      supplierId: "", // Simula o form enviando string vazia
       quantity: 10,
       unitCost: 5,
       date: new Date(),
@@ -29,8 +70,7 @@ describe("Stock Entry — Supplier ID Handling", () => {
 
     expect(result?.data).toBeDefined();
     
-    // Verify in database
-    const entry = await db.stockEntry.findFirst({
+    const entry = await testDb.stockEntry.findFirst({
         where: { productId: testData.pao.id }
     });
     
@@ -40,8 +80,7 @@ describe("Stock Entry — Supplier ID Handling", () => {
   });
 
   it("should successfully create a stock entry with a valid supplierId", async () => {
-    // Create a supplier first
-    const supplier = await db.supplier.create({
+    const supplier = await testDb.supplier.create({
         data: {
             name: "Test Supplier",
             companyId: testData.company.id
@@ -58,7 +97,7 @@ describe("Stock Entry — Supplier ID Handling", () => {
 
     expect(result?.data).toBeDefined();
     
-    const entry = await db.stockEntry.findFirst({
+    const entry = await testDb.stockEntry.findFirst({
         where: { quantity: 5 }
     });
     

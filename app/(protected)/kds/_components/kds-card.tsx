@@ -18,6 +18,7 @@ import {
 import { differenceInMinutes } from "date-fns";
 import { useState, useEffect } from "react";
 import { cn } from "@/app/_lib/utils";
+import { isUrgent } from "../_hooks/kds-engine";
 
 interface KDSCardProps {
   order: KDSOrderDto & { 
@@ -51,7 +52,7 @@ export const KDSCard = ({
   const [minutesSince, setMinutesSince] = useState(
     differenceInMinutes(new Date(), new Date(order.createdAt)),
   );
-  const isUrgent = minutesSince >= 30;
+  const urgent = isUrgent(new Date(order.createdAt));
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -93,7 +94,7 @@ export const KDSCard = ({
       className={cn(
         "group relative overflow-hidden rounded-[2rem] border-none p-6 shadow-lg shadow-slate-200/50 transition-all duration-300 hover:shadow-xl",
         isExpeditionView ? "bg-white ring-1 ring-slate-100" : "bg-background",
-        isUrgent && "border-l-4 border-red-600 bg-red-50/50 shadow-red-100/10",
+        urgent && "border-l-4 border-red-600 bg-red-50/50 shadow-red-100/10",
         isUpdating && "pointer-events-none opacity-60 grayscale-[0.5]",
       )}
     >
@@ -102,7 +103,7 @@ export const KDSCard = ({
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
       )}
-      {isUrgent && (
+      {urgent && (
         <div className="absolute -right-1 -top-1 flex h-7 items-center gap-1.5 rounded-bl-2xl bg-red-600 px-4 text-[9px] font-black text-white shadow-sm">
           <AlertTriangle size={12} />
           SLA CRÍTICO

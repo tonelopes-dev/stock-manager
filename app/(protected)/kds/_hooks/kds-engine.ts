@@ -92,3 +92,12 @@ export const getPreviousStatus = (status: OrderStatus): OrderStatus | null => {
       return null;
   }
 };
+
+/**
+ * Verifica se um pedido ultrapassou o SLA (30 min por padrão)
+ */
+export const isUrgent = (createdAt: Date, now: Date = new Date(), slaMinutes: number = 30): boolean => {
+  const diffInMs = now.getTime() - createdAt.getTime();
+  const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+  return diffInMinutes >= slaMinutes;
+};
