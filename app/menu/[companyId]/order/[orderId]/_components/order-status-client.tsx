@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { OrderStatus } from "@prisma/client";
+import { supabase } from "@/app/_lib/supabase";
+
 import { Card } from "@/app/_components/ui/card";
 import { Badge } from "@/app/_components/ui/badge";
 import {
@@ -115,52 +117,38 @@ export const OrderStatusClient = ({
     }
   };
 
-  // Real-time updates via Resilient SSE
+  // Supabase Realtime - Native Postgres Changes
   useEffect(() => {
-    let eventSource: EventSource | null = null;
-    let retryTimeout: NodeJS.Timeout;
-    let retryCount = 0;
+    const channel = supabase
+      .channel(`order-status-${order.id}`)
+      .on(
+        "postgres_changes",
+        { 
+          event: "UPDATE", 
+          schema: "public", 
+          table: "Order",
+          filter: `id=eq.${order.id}`
+        },
+        (payload) => {
+          const updatedOrder = payload.new as any;
+          setOrder((prev) => ({ ...prev, status: updatedOrder.status }));
+          router.refresh();
 
-    const connect = () => {
-      if (eventSource) eventSource.close();
-      eventSource = new EventSource(`/api/kds/stream?companyId=${companyId}`);
-
-      eventSource.onmessage = (event) => {
-        try {
-          if (!event.data) return;
-          const data = JSON.parse(event.data);
-          
-          if (data.type === "STATUS_UPDATED" && data.orderId === order.id) {
-            setOrder((prev) => ({ ...prev, status: data.status }));
-            router.refresh();
-
-            // Native Notification trigger
-            if (data.status === "READY" && typeof window !== "undefined" && Notification.permission === "granted") {
-              new Notification("Pedido Pronto! 🍽️", {
-                body: "Seu pedido já pode ser servido. Bom apetite!",
-                icon: "/favicon.ico",
-              });
-            }
+          // Native Notification trigger
+          if (updatedOrder.status === "READY" && typeof window !== "undefined" && Notification.permission === "granted") {
+            new Notification("Pedido Pronto! 🍽️", {
+              body: "Seu pedido já pode ser servido. Bom apetite!",
+              icon: "/favicon.ico",
+            });
           }
-        } catch (e) { /* ignore */ }
-      };
+        }
+      )
+      .subscribe();
 
-      eventSource.onerror = () => {
-        eventSource?.close();
-        const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
-        retryTimeout = setTimeout(() => {
-          retryCount++;
-          connect();
-        }, delay);
-      };
-    };
-
-    connect();
     return () => {
-      if (eventSource) eventSource.close();
-      if (retryTimeout) clearTimeout(retryTimeout);
+      supabase.removeChannel(channel);
     };
-  }, [companyId, order.id, router]);
+  }, [order.id, router]);
 
   const currentStatus = statusConfig[order.status];
   const formatPrice = (price: number) =>

@@ -13,6 +13,8 @@ import { ComandaDetailsSheet } from "./comanda-details-sheet";
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
 import { cn } from "@/app/_lib/utils";
+import { supabase } from "@/app/_lib/supabase";
+
 
 interface ComandasGridProps {
   initialComandas: ComandaDto[];
@@ -73,49 +75,22 @@ export const ComandasGrid = ({
     }
   }, [searchParams, initialComandas]);
   
-  // Real-time Updates via Resilient SSE
+  // Supabase Realtime - Native Postgres Changes
   useEffect(() => {
-    let eventSource: EventSource | null = null;
-    let retryTimeout: NodeJS.Timeout;
-    let retryCount = 0;
-
-    const connect = () => {
-      if (eventSource) eventSource.close();
-
-      eventSource = new EventSource("/api/kds/stream");
-
-      eventSource.onopen = () => {
-        retryCount = 0;
-      };
-
-      eventSource.onmessage = (event) => {
-        try {
-          if (!event.data) return;
-          const data = JSON.parse(event.data);
-          // Refresh on any relevant update (New Order or Status Update)
-          if (data.type === "NEW_ORDER" || data.type === "STATUS_UPDATED") {
-            router.refresh();
-          }
-        } catch {
-          // ignore parse errors
+    const channel = supabase
+      .channel("sales-grid-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "Order" },
+        (payload) => {
+          console.log("[SUPABASE REALTIME] Mudança detectada no grid de vendas:", payload.eventType);
+          router.refresh();
         }
-      };
-
-      eventSource.onerror = () => {
-        eventSource?.close();
-        const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
-        retryTimeout = setTimeout(() => {
-          retryCount++;
-          connect();
-        }, delay);
-      };
-    };
-
-    connect();
+      )
+      .subscribe();
 
     return () => {
-      if (eventSource) eventSource.close();
-      if (retryTimeout) clearTimeout(retryTimeout);
+      supabase.removeChannel(channel);
     };
   }, [router]);
 

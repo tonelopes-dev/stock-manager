@@ -18,16 +18,37 @@ export interface MenuCategoryDto {
 
 export interface MenuDataDto {
   companyName: string;
+  bannerUrl: string | null;
+  logoUrl: string | null;
+  address: string | null;
+  description: string | null;
+  whatsappNumber: string | null;
+  instagramUrl: string | null;
+  operatingHours: any;
   categories: MenuCategoryDto[];
 }
 
 export const getMenuData = async (companyId: string): Promise<MenuDataDto | null> => {
   const company = await db.company.findUnique({
     where: { id: companyId },
-    select: { name: true },
+    select: { 
+      name: true,
+      bannerUrl: true,
+      logoUrl: true,
+      address: true,
+      description: true,
+      whatsappNumber: true,
+      instagramUrl: true,
+      operatingHours: true,
+    },
   });
 
   if (!company) return null;
+
+  console.log(`[MENU_DATA_FETCH] ${companyId}:`, {
+    banner: company.bannerUrl,
+    logo: company.logoUrl,
+  });
 
   const categories = await db.category.findMany({
     where: { companyId },
@@ -89,7 +110,13 @@ export const getMenuData = async (companyId: string): Promise<MenuDataDto | null
 
   return {
     companyName: company.name,
+    bannerUrl: company.bannerUrl,
+    logoUrl: company.logoUrl,
+    address: company.address,
+    description: company.description,
+    whatsappNumber: company.whatsappNumber,
+    instagramUrl: company.instagramUrl,
+    operatingHours: company.operatingHours,
     categories: result,
   };
 };
-

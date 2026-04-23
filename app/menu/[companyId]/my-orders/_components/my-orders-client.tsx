@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/app/_lib/supabase";
+
+
 import { OrderStatus } from "@prisma/client";
 import { Card } from "@/app/_components/ui/card";
 import { Badge } from "@/app/_components/ui/badge";
@@ -14,11 +18,13 @@ import {
   Plus,
   Loader2,
   Utensils,
+  Check
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/app/_components/ui/button";
 import { OrderStatusDto } from "@/app/_data-access/order/get-order-status";
 import { getMyOrdersAction } from "@/app/_actions/order/get-my-orders";
+import { cn } from "@/app/_lib/utils";
 
 interface MyOrdersClientProps {
   companyId: string;
@@ -78,6 +84,15 @@ const statusConfig: Record<
   },
 };
 
+const itemStatusConfig: Record<OrderStatus, { label: string; color: string; icon: any }> = {
+  PENDING: { label: "Pendente", color: "bg-orange-100 text-orange-700 border-orange-200", icon: Clock },
+  PREPARING: { label: "Preparando", color: "bg-primary/10 text-primary border-primary/20", icon: ChefHat },
+  READY: { label: "Pronto", color: "bg-emerald-100 text-emerald-700 border-emerald-200", icon: CheckCircle2 },
+  DELIVERED: { label: "Entregue", color: "bg-primary/10 text-primary border-primary/20", icon: Check },
+  PAID: { label: "Pago", color: "bg-emerald-100 text-emerald-700 border-emerald-200", icon: Check },
+  CANCELED: { label: "Cancelado", color: "bg-destructive/10 text-destructive border-destructive/20", icon: Clock },
+};
+
 const OrderCard = ({
   order,
   companyId,
@@ -90,6 +105,7 @@ const OrderCard = ({
     Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
       price,
     );
+
   return (
     <Card className="overflow-hidden rounded-[2.5rem] border-none bg-white p-8 shadow-2xl shadow-gray-200/50 transition-all hover:shadow-gray-300/50">
       {/* Header: Order # and Icon */}
@@ -110,7 +126,10 @@ const OrderCard = ({
           </div>
         </div>
         <div
-          className={`flex h-12 w-12 items-center justify-center rounded-[1.25rem] bg-gray-50 ${currentStatus.color}`}
+          className={cn(
+            "flex h-12 w-12 items-center justify-center rounded-[1.25rem] bg-gray-50",
+            currentStatus.color
+          )}
         >
           <currentStatus.icon className="h-6 w-6" />
         </div>
@@ -136,11 +155,12 @@ const OrderCard = ({
               return (
                 <div
                   key={step}
-                  className={`h-2 flex-1 rounded-full transition-all duration-700 ${
+                  className={cn(
+                    "h-2 flex-1 rounded-full transition-all duration-700",
                     isActive 
                       ? isCurrent ? "bg-primary animate-pulse" : "bg-primary"
                       : "bg-gray-100"
-                  }`}
+                  )}
                 />
               );
             })}
@@ -150,29 +170,50 @@ const OrderCard = ({
 
       {/* Item List (Transparency) */}
       <div className="mt-8 space-y-4 border-t border-gray-50 pt-6">
-        <div className="space-y-3">
-          {order.items.map((item, idx) => (
-            <div key={idx} className="flex items-start justify-between gap-4">
-              <div className="flex gap-3">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-gray-900 text-[10px] font-black text-white">
-                  {item.quantity}
-                </span>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-bold text-gray-800 leading-tight">
-                    {item.name}
-                  </span>
-                  {item.notes && (
-                    <span className="text-[10px] italic text-gray-400 leading-tight">
-                      "{item.notes}"
+        <div className="space-y-4">
+          {order.items.map((item, idx) => {
+            const config = itemStatusConfig[item.status as OrderStatus] || itemStatusConfig.PENDING;
+            const ItemIcon = config.icon;
+            
+            return (
+              <div key={idx} className="flex flex-col gap-2">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex gap-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-gray-900 text-[10px] font-black text-white">
+                      {item.quantity}
                     </span>
-                  )}
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-sm font-bold text-gray-800 leading-tight">
+                        {item.name}
+                      </span>
+                      {item.notes && (
+                        <span className="text-[10px] italic text-gray-400 leading-tight">
+                          "{item.notes}"
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold text-gray-500">
+                    {formatPrice(item.price * item.quantity)}
+                  </span>
+                </div>
+                
+                {/* Granular Item Status Badge */}
+                <div className="ml-9">
+                  <Badge 
+                    variant="outline" 
+                    className={cn(
+                      "h-6 gap-1.5 px-2.5 text-[9px] font-black uppercase tracking-wider border",
+                      config.color
+                    )}
+                  >
+                    <ItemIcon className="h-3 w-3" />
+                    {config.label}
+                  </Badge>
                 </div>
               </div>
-              <span className="text-xs font-bold text-gray-500">
-                {formatPrice(item.price * item.quantity)}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Total Footer */}
@@ -188,9 +229,11 @@ const OrderCard = ({
 };
 
 export const MyOrdersClient = ({ companyId }: MyOrdersClientProps) => {
+  const router = useRouter();
   const [orders, setOrders] = useState<OrderStatusDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [customerId, setCustomerId] = useState<string | null>(null);
+
 
   const loadOrders = async (cid: string) => {
     try {
@@ -225,63 +268,70 @@ export const MyOrdersClient = ({ companyId }: MyOrdersClientProps) => {
     }
   }, [companyId]);
 
-  // Real-time updates via Resilient SSE
+  // Supabase Realtime - Native Postgres Changes
   useEffect(() => {
-    if (!customerId) return;
-
-    let eventSource: EventSource | null = null;
-    let retryTimeout: NodeJS.Timeout;
-    let retryCount = 0;
-
-    const connect = () => {
-      if (eventSource) eventSource.close();
-
-      // Passing companyId in query param because customers don't have an ERP session
-      eventSource = new EventSource(`/api/kds/stream?companyId=${companyId}`);
-
-      eventSource.onopen = () => {
-        retryCount = 0;
-      };
-
-      eventSource.onmessage = (event) => {
-        try {
-          if (!event.data) return;
-          const data = JSON.parse(event.data);
-
-          // Se for um evento deste cliente específico
-          if (data.customerId === customerId) {
-            if (data.type === "STATUS_UPDATED") {
-              setOrders((prev) =>
-                prev.map((o) =>
-                  o.id === data.orderId ? { ...o, status: data.status } : o,
-                ),
-              );
-            } else if (data.type === "NEW_ORDER") {
-              loadOrders(customerId);
-            }
+    const channel = supabase
+      .channel("customer-order-updates")
+      .on(
+        "postgres_changes",
+        { 
+          event: "*", 
+          schema: "public", 
+          table: "Order" 
+        },
+        (payload) => {
+          if (payload.eventType === "UPDATE") {
+            const updatedOrder = payload.new as any;
+            setOrders((prev) =>
+              prev.map((order) =>
+                order.id === updatedOrder.id ? { ...order, status: updatedOrder.status } : order
+              )
+            );
           }
-        } catch (e) {
-          // ignore parse errors
+          router.refresh();
         }
-      };
-
-      eventSource.onerror = () => {
-        eventSource?.close();
-        const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
-        retryTimeout = setTimeout(() => {
-          retryCount++;
-          connect();
-        }, delay);
-      };
-    };
-
-    connect();
+      )
+      .on(
+        "postgres_changes",
+        { 
+          event: "*", 
+          schema: "public", 
+          table: "OrderItem" 
+        },
+        (payload) => {
+          if (payload.eventType === "UPDATE") {
+            const updatedItem = payload.new as any;
+            setOrders((prev) =>
+              prev.map((order) => {
+                if (order.id !== updatedItem.orderId) return order;
+                return {
+                  ...order,
+                  items: order.items.map((item) =>
+                    item.id === updatedItem.id ? { ...item, status: updatedItem.status } : item
+                  ),
+                };
+              })
+            );
+          }
+          if (payload.eventType === "DELETE") {
+            const oldItem = payload.old as any;
+            setOrders((prev) =>
+              prev.map((order) => ({
+                ...order,
+                items: order.items.filter((item) => item.id !== oldItem.id),
+              })).filter((order) => order.items.length > 0)
+            );
+          }
+          router.refresh();
+        }
+      )
+      .subscribe();
 
     return () => {
-      if (eventSource) eventSource.close();
-      if (retryTimeout) clearTimeout(retryTimeout);
+      supabase.removeChannel(channel);
     };
-  }, [companyId, customerId]);
+  }, [router]);
+
 
   if (loading) {
     return (

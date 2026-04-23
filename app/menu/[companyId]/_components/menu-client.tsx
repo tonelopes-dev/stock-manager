@@ -42,6 +42,12 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/app/_components/ui/dialog";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/app/_components/ui/tabs";
 import { toast } from "sonner";
 import { createOrderAction } from "@/app/_actions/order/create-order";
 import { identifyCustomerAction } from "@/app/_actions/order/identify-customer";
@@ -49,11 +55,22 @@ import { checkCustomerPhoneAction } from "@/app/_actions/order/identify-customer
 import { useRouter, useSearchParams } from "next/navigation";
 import { DatePicker } from "@/app/_components/ui/date-picker";
 import { format, parseISO } from "date-fns";
+import { Instagram, MessageCircle, Clock } from "lucide-react";
 
 interface MenuClientProps {
   menuData: MenuDataDto;
   companyId: string;
 }
+
+const DEFAULT_HOURS = [
+  { day: "Segunda", open: "08:00", close: "22:00", closed: false },
+  { day: "Terça", open: "08:00", close: "22:00", closed: false },
+  { day: "Quarta", open: "08:00", close: "22:00", closed: false },
+  { day: "Quinta", open: "08:00", close: "22:00", closed: false },
+  { day: "Sexta", open: "08:00", close: "22:00", closed: false },
+  { day: "Sábado", open: "08:00", close: "22:00", closed: false },
+  { day: "Domingo", open: "08:00", close: "22:00", closed: true },
+];
 
 interface CartItem extends MenuProductDto {
   quantity: number;
@@ -72,6 +89,11 @@ const TABLE_STORAGE_KEY = (companyId: string) => `kipo-table-${companyId}`;
 export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  console.log("[MENU_CLIENT_DATA]:", {
+    banner: menuData.bannerUrl,
+    logo: menuData.logoUrl,
+  });
+
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
     menuData.categories[0]?.id || "",
   );
@@ -82,11 +104,40 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tableNumber, setTableNumber] = useState<string | null>(null);
 
+  const status = useMemo(() => {
+    const hours = menuData.operatingHours || DEFAULT_HOURS;
+    const today = new Date().toLocaleDateString("pt-BR", { weekday: "long" }).toLowerCase();
+    const todayHours = hours.find((h: any) => h.day.toLowerCase() === today);
+    
+    if (!todayHours || todayHours.closed) return { isOpen: false, label: "Fechado hoje" };
+    
+    const now = new Date();
+    const [openH, openM] = todayHours.open.split(":").map(Number);
+    const [closeH, closeM] = todayHours.close.split(":").map(Number);
+    
+    const openTime = new Date();
+    openTime.setHours(openH, openM, 0);
+    
+    const closeTime = new Date();
+    closeTime.setHours(closeH, closeM, 0);
+    
+    if (now >= openTime && now <= closeTime) {
+      return { isOpen: true, label: `Aberto • Fecha às ${todayHours.close}` };
+    }
+    
+    if (now < openTime) {
+      return { isOpen: false, label: `Fechado • Abre às ${todayHours.open}` };
+    }
+
+    return { isOpen: false, label: "Fechado por hoje" };
+  }, [menuData.operatingHours]);
+
   // New UI states
   const [selectedProduct, setSelectedProduct] = useState<MenuProductDto | null>(null);
   const [detailsQuantity, setDetailsQuantity] = useState(1);
   const [itemNotes, setItemNotes] = useState("");
   const [editingCartItemIndex, setEditingCartItemIndex] = useState<number | null>(null);
+  const [isStoreInfoOpen, setIsStoreInfoOpen] = useState(false);
 
   // Customer identification
   const [customer, setCustomer] = useState<CustomerInfo | null>(null);
@@ -402,10 +453,11 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
       <header className="relative w-full">
         <div className="relative aspect-video w-full overflow-hidden">
           <Image
-            src="/restaurant_banner_bg_1776862657537.png"
+            src={menuData.bannerUrl || "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=2070&auto=format&fit=crop"}
             alt="Banner Loja"
             fill
             className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           
@@ -451,34 +503,46 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
         <div className="relative z-10 -mt-10 mx-6 rounded-[2.5rem] bg-white p-6 shadow-2xl shadow-gray-200/50">
           <div className="absolute -top-14 left-1/2 h-28 w-28 -translate-x-1/2 overflow-hidden rounded-full border-[6px] border-white bg-white shadow-xl">
             <Image
-              src="/restaurant_logo_avatar_1776862675336.png"
+              src={menuData.logoUrl || "/logo/logo-kipo.png"}
               alt="Logo"
               fill
               className="object-cover"
+              sizes="112px"
             />
           </div>
           
-          <div className="mt-14 flex flex-col items-center gap-3 text-center">
-            <h1 className="text-2xl font-black tracking-tight text-gray-900">
+          <div className="mt-14 flex flex-col items-center gap-2 text-center">
+            <h1 className="text-2xl font-black tracking-tight text-gray-900 leading-tight">
               {menuData.companyName}
             </h1>
+
+            {menuData.description && (
+              <p className="text-[10px] uppercase font-bold tracking-widest text-gray-400">
+                {menuData.description}
+              </p>
+            )}
             
-            <div className="flex flex-col items-center gap-3 text-gray-500">
+            <div className="flex flex-col items-center gap-2 text-gray-500 mt-1">
               <div className="flex items-center gap-2 text-xs font-semibold">
-                <MapPin className="h-3.5 w-3.5 text-gray-400" />
-                <span>Parnamirim - RN</span>
+                <MapPin className="h-3 w-3 text-gray-400" />
+                <span className="max-w-[200px] truncate">
+                  {menuData.address || "Endereço não informado"}
+                </span>
                 <span className="h-1 w-1 rounded-full bg-gray-300" />
-                <button className="font-bold text-gray-700 hover:text-primary transition-colors">
+                <button 
+                  onClick={() => setIsStoreInfoOpen(true)}
+                  className="font-bold text-gray-700 hover:text-primary transition-colors text-[10px]"
+                >
                   Mais informações
                 </button>
               </div>
 
               <div className="flex flex-col items-center gap-1">
-                <p className="text-sm font-black text-rose-500">
-                  Fechado • Abrimos às 11h00
+                <p className={`text-[11px] font-black uppercase tracking-tight ${status.isOpen ? "text-green-600" : "text-rose-500"}`}>
+                  {status.label}
                 </p>
                 {tableNumber && (
-                  <Badge variant="secondary" className="mt-1 bg-gray-900 px-3 py-1 text-[10px] font-black text-white rounded-full">
+                  <Badge variant="secondary" className="mt-1 bg-gray-900 px-3 py-1 text-[9px] font-black text-white rounded-full uppercase">
                     Mesa {tableNumber}
                   </Badge>
                 )}
@@ -621,6 +685,9 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
         }
       }}>
         <SheetContent side="bottom" hideClose className="mx-auto flex h-[85vh] max-w-md flex-col rounded-t-[3rem] border-none p-0 shadow-2xl">
+          <SheetHeader className="sr-only">
+            <SheetTitle>{selectedProduct?.name}</SheetTitle>
+          </SheetHeader>
           {selectedProduct && (
             <>
               {/* Product Header / Image */}
@@ -1006,6 +1073,140 @@ export const MenuClient = ({ menuData, companyId }: MenuClientProps) => {
               </button>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+      {/* 8. Store Information Modal */}
+      <Dialog open={isStoreInfoOpen} onOpenChange={setIsStoreInfoOpen}>
+        <DialogContent className="max-w-md gap-0 p-0 overflow-hidden rounded-[2.5rem] border-none shadow-2xl">
+          <DialogHeader className="p-6 bg-white border-b sticky top-0 z-10">
+            <DialogTitle className="text-xl font-black text-gray-900 text-center">
+              {menuData.companyName}
+            </DialogTitle>
+          </DialogHeader>
+
+          <Tabs defaultValue="about" className="w-full">
+            <TabsList className="w-full h-14 rounded-none bg-white border-b p-0 gap-0">
+              <TabsTrigger 
+                value="about" 
+                className="flex-1 h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent text-xs font-black uppercase tracking-widest text-gray-400 data-[state=active]:text-gray-900 transition-all"
+              >
+                Sobre
+              </TabsTrigger>
+              <TabsTrigger 
+                value="hours" 
+                className="flex-1 h-full rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent text-xs font-black uppercase tracking-widest text-gray-400 data-[state=active]:text-gray-900 transition-all"
+              >
+                Horário
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="about" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              {/* Logo & Description */}
+              <div className="flex flex-col items-center gap-6 text-center">
+                <div className="relative h-28 w-28 overflow-hidden rounded-[2rem] border-4 border-gray-50 bg-white shadow-xl">
+                  <Image
+                    src={menuData.logoUrl || "/logo/logo-kipo.png"}
+                    alt="Logo"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <p className="text-sm leading-relaxed text-gray-600 font-medium px-2">
+                  {menuData.description || "Bem-vindo à nossa loja! Oferecemos os melhores produtos com qualidade e carinho."}
+                </p>
+              </div>
+
+              {/* Instagram Link */}
+              {menuData.instagramUrl && (
+                <a 
+                  href={`https://instagram.com/${menuData.instagramUrl.replace('@', '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-purple-50 to-pink-50 border border-pink-100/50 hover:scale-[1.02] transition-transform"
+                >
+                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                    <Instagram size={20} />
+                  </div>
+                  <span className="text-sm font-bold text-gray-800">@{menuData.instagramUrl.replace('@', '')}</span>
+                </a>
+              )}
+
+              {/* Contact Info */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-black uppercase tracking-wider text-gray-900">Contato</h3>
+                <div className="grid grid-cols-1 gap-3">
+                  {menuData.whatsappNumber && (
+                    <a 
+                      href={`https://wa.me/${menuData.whatsappNumber.replace(/\D/g, '')}`}
+                      target="_blank"
+                      className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 bg-white hover:border-green-200 hover:bg-green-50/30 transition-all group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <MessageCircle className="text-green-500" size={20} />
+                        <span className="text-sm font-bold text-gray-700">WhatsApp</span>
+                      </div>
+                      <span className="text-sm font-black text-gray-900">{menuData.whatsappNumber}</span>
+                    </a>
+                  )}
+                  {/* Phone */}
+                  <div className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 bg-white group">
+                    <div className="flex items-center gap-3">
+                      <Phone className="text-gray-400" size={20} />
+                      <span className="text-sm font-bold text-gray-700">Telefone</span>
+                    </div>
+                    <span className="text-sm font-black text-gray-900">{menuData.whatsappNumber || "(84) 99999-9999"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Address Info */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-black uppercase tracking-wider text-gray-900">Endereço</h3>
+                <div className="flex gap-4 p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
+                  <div className="mt-0.5">
+                    <MapPin className="text-gray-400" size={20} />
+                  </div>
+                  <p className="text-sm leading-relaxed text-gray-600 font-medium">
+                    {menuData.address || "Endereço não cadastrado"}
+                  </p>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="hours" className="p-8 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-50/50 border border-amber-100 text-amber-800">
+                <Clock size={18} className="shrink-0" />
+                <p className="text-xs font-bold uppercase tracking-tight">Horários sujeitos a alteração em feriados</p>
+              </div>
+
+              <div className="space-y-1">
+                {(menuData.operatingHours || DEFAULT_HOURS).map((item: any) => {
+                  const today = new Date().toLocaleDateString("pt-BR", { weekday: "long" }).toLowerCase();
+                  const isToday = item.day.toLowerCase() === today;
+                  
+                  return (
+                    <div 
+                      key={item.day}
+                      className={`flex justify-between items-start p-4 rounded-2xl transition-all ${
+                        isToday ? "bg-primary/5 border border-primary/10" : "hover:bg-gray-50"
+                      }`}
+                    >
+                      <span className={`text-sm font-bold ${isToday ? "text-primary" : "text-gray-700"}`}>
+                        {item.day}
+                      </span>
+                      <div className="text-right whitespace-pre-line text-sm font-black text-gray-900">
+                        {item.closed ? (
+                          <span className="text-rose-500 uppercase">Fechado</span>
+                        ) : (
+                          `${item.open} às ${item.close}`
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
     </div>

@@ -14,7 +14,10 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getCRMAlertsAction } from "@/app/_actions/crm/get-alerts";
 import { getInventoryAlerts } from "@/app/_actions/inventory/get-inventory-alerts";
+
 import Link from "next/link";
+import { supabase } from "@/app/_lib/supabase";
+
 
 interface Notification {
   id: string;
@@ -97,28 +100,22 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
     fetchAlerts();
   }, []);
 
-  // SSE listener with Resilient Reconnect
+  // Supabase Realtime - Native Postgres Changes for Order/Status
   useEffect(() => {
     if (!companyId) return;
 
-    let eventSource: EventSource | null = null;
-    let retryTimeout: NodeJS.Timeout;
-    let retryCount = 0;
-
-    const connect = () => {
-      if (eventSource) eventSource.close();
-
-      eventSource = new EventSource("/api/kds/stream");
-
-      eventSource.onopen = () => {
-        retryCount = 0;
-      };
-
-      eventSource.onmessage = (event) => {
-        try {
-          if (!event.data) return;
-          const data = JSON.parse(event.data);
-          if (data.type === "NEW_ORDER") {
+    const channel = supabase
+      .channel("notification-center-realtime")
+      .on(
+        "postgres_changes",
+        { 
+          event: "*", 
+          schema: "public", 
+          table: "Order", 
+          filter: `companyId=eq.${companyId}` 
+        },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
             triggerAlert("Novo pedido recebido!");
             setNotifications((prev) => [
               {
@@ -130,39 +127,26 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
               },
               ...prev.slice(0, 49),
             ]);
-          } else if (data.type === "STATUS_UPDATED") {
-            triggerAlert(`Pedido atualizado → ${data.status || "Novo status"}`);
+          } else if (payload.eventType === "UPDATE") {
+            const updatedOrder = payload.new as any;
+            triggerAlert(`Pedido atualizado → ${updatedOrder.status || "Novo status"}`);
             setNotifications((prev) => [
               {
                 id: `notif-${Date.now()}`,
                 type: "status",
-                message: `Pedido atualizado → ${data.status || "Novo status"}`,
+                message: `Pedido atualizado → ${updatedOrder.status || "Novo status"}`,
                 timestamp: new Date(),
                 read: false,
               },
               ...prev.slice(0, 49),
             ]);
           }
-        } catch {
-          // ignore parse errors
         }
-      };
-
-      eventSource.onerror = () => {
-        eventSource?.close();
-        const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
-        retryTimeout = setTimeout(() => {
-          retryCount++;
-          connect();
-        }, delay);
-      };
-    };
-
-    connect();
+      )
+      .subscribe();
 
     return () => {
-      if (eventSource) eventSource.close();
-      if (retryTimeout) clearTimeout(retryTimeout);
+      supabase.removeChannel(channel);
     };
   }, [companyId]);
 
