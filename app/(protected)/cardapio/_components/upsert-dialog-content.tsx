@@ -50,7 +50,7 @@ import {
   PopoverTrigger,
 } from "@/app/_components/ui/popover";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2Icon, X, CalendarIcon, ImageIcon, PlusIcon, Trash2Icon, InfoIcon } from "lucide-react";
+import { Loader2Icon, X, CalendarIcon, ImageIcon, PlusIcon, Trash2Icon, InfoIcon, Star } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
@@ -145,6 +145,8 @@ const UpsertProductDialogContent = ({
       minStock: 0,
       trackExpiration: false,
       isMadeToOrder: true,
+      promotionalPrice: null,
+      isFeatured: false,
     },
   });
 
@@ -188,7 +190,7 @@ const UpsertProductDialogContent = ({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="h-full flex flex-col space-y-6"
+          className="h-full flex flex-col space-y-4"
         >
           <DialogHeader>
             <DialogTitle>
@@ -199,15 +201,16 @@ const UpsertProductDialogContent = ({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto px-1 pr-3 pb-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="md:col-span-3 space-y-4">
+          <div className="flex-1 overflow-y-auto px-1 pr-3 pb-4 space-y-4">
+            {/* Top Section: Name, Type, Unit and Photo */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <div className="md:col-span-10 space-y-4">
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome</FormLabel>
+                      <FormLabel className="text-[11px] uppercase font-bold text-muted-foreground">Nome</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Ex: X-Salada, Coca-Cola..."
@@ -226,28 +229,20 @@ const UpsertProductDialogContent = ({
                     name="type"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Tipo de Produto</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
+                        <FormLabel className="text-[11px] uppercase font-bold text-muted-foreground">Tipo</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="upsert-product-type-select">
-                              <SelectValue placeholder="Selecione o tipo" />
+                              <SelectValue placeholder="Selecione..." />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="REVENDA">Revenda</SelectItem>
-                            <SelectItem value="PRODUCAO_PROPRIA">
-                              Produção Própria
-                            </SelectItem>
+                            <SelectItem value="PRODUCAO_PROPRIA">Produção Própria</SelectItem>
                             <SelectItem value="COMBO">Combo</SelectItem>
-                            <SelectItem value="INSUMO">
-                              Insumo / Matéria-prima
-                            </SelectItem>
+                            <SelectItem value="INSUMO">Insumo</SelectItem>
                           </SelectContent>
                         </Select>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -257,291 +252,163 @@ const UpsertProductDialogContent = ({
                     name="unit"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Unidade</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
+                        <FormLabel className="text-[11px] uppercase font-bold text-muted-foreground">Unidade</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                           <SelectContent>
-                            <SelectItem value={UnitType.UN}>
-                              Unidade (UN)
-                            </SelectItem>
-                            <SelectItem value={UnitType.KG}>
-                              Quilograma (kg)
-                            </SelectItem>
-                            <SelectItem value={UnitType.G}>
-                              Grama (g)
-                            </SelectItem>
-                            <SelectItem value={UnitType.L}>
-                              Litro (L)
-                            </SelectItem>
-                            <SelectItem value={UnitType.ML}>
-                              Mililitro (ml)
-                            </SelectItem>
+                            <SelectItem value={UnitType.UN}>UN</SelectItem>
+                            <SelectItem value={UnitType.KG}>KG</SelectItem>
+                            <SelectItem value={UnitType.G}>G</SelectItem>
+                            <SelectItem value={UnitType.L}>L</SelectItem>
+                            <SelectItem value={UnitType.ML}>ML</SelectItem>
                           </SelectContent>
                         </Select>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
               </div>
 
-              <div className="flex flex-col items-center gap-2">
-                <Label>Foto</Label>
+              <div className="md:col-span-2 flex flex-col items-center justify-center pt-5">
                 <FormField
                   control={form.control}
                   name="imageUrl"
                   render={({ field }) => (
-                    <div className="relative w-32 h-32 rounded-xl border-2 border-dashed border-border flex items-center justify-center overflow-hidden bg-muted hover:bg-muted/80 transition-colors">
+                    <div className="relative w-24 h-24 rounded-xl border-2 border-dashed border-border flex items-center justify-center overflow-hidden bg-muted hover:bg-muted/80 transition-colors">
                       {field.value ? (
                         <>
-                          <img
-                            src={field.value}
-                            className="w-full h-full object-cover"
-                            alt="Produto"
-                          />
-                          <button
-                            onClick={() => field.onChange("")}
-                            className="absolute top-1 right-1 bg-destructive text-destructive-foreground p-1 rounded-full shadow-md"
-                          >
-                            <X size={14} />
-                          </button>
+                          <img src={field.value} className="w-full h-full object-cover" alt="Produto" />
+                          <button onClick={() => field.onChange("")} className="absolute top-1 right-1 bg-destructive text-white p-1 rounded-full"><X size={12} /></button>
                         </>
                       ) : (
-                        <label className="cursor-pointer flex flex-col items-center gap-1 text-muted-foreground pt-2">
-                          <ImageIcon size={24} />
-                          <span className="text-[10px] font-bold">UPLOAD</span>
-                          <input
-                            type="file"
-                            className="hidden"
-                            onChange={handleImageUpload}
-                            disabled={isUploading}
-                          />
+                        <label className="cursor-pointer flex flex-col items-center text-muted-foreground">
+                          <ImageIcon size={20} />
+                          <span className="text-[9px] font-bold">FOTO</span>
+                          <input type="file" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
                         </label>
                       )}
                     </div>
                   )}
                 />
               </div>
-            
-            <div className="md:col-span-4 rounded-2xl border-2 border-primary/10 bg-primary/5 p-4 space-y-3">
-              <div className="flex items-center justify-between gap-4">
-                <div className="space-y-0.5 flex-1">
-                  <Label className="text-sm font-bold flex items-center gap-2">
-                    Modelo de Baixa de Estoque
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <InfoIcon size={14} className="text-primary/60" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-[250px]">
-                          <p className="text-[10px]">Define se o sistema deve baixar os ingredientes automaticamente na venda ou se exige a produção manual de lotes.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </Label>
-                  <p className="text-[11px] text-muted-foreground leading-tight">
-                    {form.watch("isMadeToOrder") 
-                      ? "Feito na hora: Baixa os insumos diretamente na venda (ideal para Drinks e Lanches)."
-                      : "Pré-produzido: Exige produção de lote prévia e baixa o produto final (ideal para Bolos e Salgados/Sucos em jarra)."}
-                  </p>
+            </div>
+
+            {/* Middle Section: Stock Model and Prices */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="rounded-xl border border-primary/10 bg-primary/5 p-3 flex flex-col justify-center">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <Label className="text-[12px] font-bold flex items-center gap-2">
+                      Estoque Automático
+                      <TooltipProvider><Tooltip><TooltipTrigger asChild><InfoIcon size={12} className="text-primary/60" /></TooltipTrigger><TooltipContent className="max-w-[200px]"><p className="text-[10px]">Baixa insumos na venda.</p></TooltipContent></Tooltip></TooltipProvider>
+                    </Label>
+                    <p className="text-[10px] text-muted-foreground leading-tight">Ideal para Drinks e Lanches.</p>
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="isMadeToOrder"
+                    render={({ field }) => (
+                      <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                    )}
+                  />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
-                  name="isMadeToOrder"
+                  name="price"
                   render={({ field }) => (
-                    <FormControl>
-                      <Switch
-                        id="is-made-to-order-switch"
-                        aria-label="Como o estoque deste produto funciona"
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
+                    <FormItem>
+                      <FormLabel className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider">Venda</FormLabel>
+                      <FormControl><NumericFormat customInput={Input} thousandSeparator="." decimalSeparator="," prefix="R$ " decimalScale={2} onValueChange={(vals) => field.onChange(vals.floatValue)} value={field.value} /></FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="cost"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider">Custo</FormLabel>
+                      <FormControl><NumericFormat customInput={Input} thousandSeparator="." decimalSeparator="," prefix="R$ " decimalScale={2} disabled={isCompositionType || !!defaultValues} onValueChange={(vals) => field.onChange(vals.floatValue)} value={field.value} className={isCompositionType || !!defaultValues ? "bg-muted font-bold" : ""} /></FormControl>
+                    </FormItem>
                   )}
                 />
               </div>
             </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center h-5">Preço Venda</FormLabel>
-                    <FormControl>
-                      <NumericFormat
-                        customInput={Input}
-                        thousandSeparator="."
-                        decimalSeparator=","
-                        prefix="R$ "
-                        decimalScale={2}
-                        onValueChange={(vals) => field.onChange(vals.floatValue)}
-                        value={field.value}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="cost"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center h-5">Custo {isCompositionType && "(Auto)"}</FormLabel>
-                    <FormControl>
-                      <NumericFormat
-                        customInput={Input}
-                        thousandSeparator="."
-                        decimalSeparator=","
-                        prefix="R$ "
-                        decimalScale={2}
-                        disabled={isCompositionType || !!defaultValues}
-                        onValueChange={(vals) => field.onChange(vals.floatValue)}
-                        value={field.value}
-                        className={isCompositionType || !!defaultValues ? "bg-muted font-bold" : ""}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
+            {/* Bottom Section: More Financials and Logistics */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <FormField
                 control={form.control}
                 name="operationalCost"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center h-5 gap-1.5 overflow-hidden whitespace-nowrap">
-                      Custo Operac.
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <InfoIcon size={12} className="text-muted-foreground flex-shrink-0" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-[200px]">
-                            <p className="text-[10px]">Custo fixo indireto (taxa de rateio) calculado globalmente nas configurações da empresa.</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </FormLabel>
-                    <FormControl>
-                      <NumericFormat
-                        customInput={Input}
-                        thousandSeparator="."
-                        decimalSeparator=","
-                        prefix="R$ "
-                        decimalScale={2}
-                        onValueChange={(vals) => field.onChange(vals.floatValue)}
-                        value={field.value}
-                        className="bg-orange-500/5 border-orange-500/20 font-bold"
-                      />
-                    </FormControl>
+                    <FormLabel className="text-[11px] uppercase font-bold text-muted-foreground">Rateio</FormLabel>
+                    <FormControl><NumericFormat customInput={Input} thousandSeparator="." decimalSeparator="," prefix="R$ " decimalScale={2} onValueChange={(vals) => field.onChange(vals.floatValue)} value={field.value} className="bg-orange-500/5 border-orange-500/20" /></FormControl>
                   </FormItem>
                 )}
               />
-            </div>
-
-            <div className={cn("grid gap-4", form.watch("isMadeToOrder") ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2")}>
-              {!form.watch("isMadeToOrder") && (
-                <FormField
-                  control={form.control}
-                  name="stock"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center h-5">Estoque Inicial</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          step="any" 
-                          {...field} 
-                          disabled={!!defaultValues}
-                          className={!!defaultValues ? "bg-muted font-bold" : ""}
-                        />
-                      </FormControl>
-                      {!!defaultValues && (
-                        <p className="text-[10px] text-muted-foreground mt-1">
-                          O estoque é atualizado por Compras, Vendas ou Ajustes Manuais.
-                        </p>
-                      )}
-                    </FormItem>
-                  )}
-                />
-              )}
-
               <FormField
                 control={form.control}
                 name="sku"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center h-5">SKU / Código</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Opcional"
-                        {...field}
-                        value={field.value || ""}
-                      />
-                    </FormControl>
+                    <FormLabel className="text-[11px] uppercase font-bold text-muted-foreground">SKU</FormLabel>
+                    <FormControl><Input placeholder="Opcional" {...field} value={field.value || ""} /></FormControl>
                   </FormItem>
                 )}
               />
-            </div>
-
-            <div className="grid grid-cols-2 gap-6 pt-4 border-t">
               <FormField
                 control={form.control}
                 name="categoryId"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Categoria</FormLabel>
-                    <div className="flex gap-2">
-                      <Select onValueChange={field.onChange} value={field.value || undefined} key={categories.length}>
-                        <FormControl>
-                          <SelectTrigger data-testid="category-select-trigger" className="flex-1">
-                            <SelectValue placeholder="Selecione..." />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {categories.map(cat => <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      <Button type="button" variant="outline" size="icon" onClick={() => setIsAddingCategory(true)}><PlusIcon size={18} /></Button>
+                  <FormItem className="md:col-span-1">
+                    <FormLabel className="text-[11px] uppercase font-bold text-muted-foreground">Categoria</FormLabel>
+                    <div className="flex gap-1.5">
+                      <Select onValueChange={field.onChange} value={field.value || undefined}><FormControl><SelectTrigger><SelectValue placeholder="..." /></SelectTrigger></FormControl><SelectContent>{categories.map(cat => <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>)}</SelectContent></Select>
+                      <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => setIsAddingCategory(true)}><PlusIcon size={16} /></Button>
                     </div>
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="environmentId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ambiente</FormLabel>
+                    <FormLabel className="text-[11px] uppercase font-bold text-muted-foreground">Ambiente</FormLabel>
                     <Select onValueChange={(val) => val === "create" ? setIsEnvironmentDialogOpen(true) : field.onChange(val === "none" ? null : val)} value={field.value || "none"}>
-                      <FormControl><SelectTrigger className="w-full"><SelectValue/></SelectTrigger></FormControl>
+                      <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
                       <SelectContent>
                         <SelectItem value="none">Padrão</SelectItem>
                         {environments.map(env => <SelectItem key={env.id} value={env.id}>{env.name}</SelectItem>)}
-                        <SelectSeparator/>
-                        <SelectItem value="create" className="text-primary font-bold">Criar novo...</SelectItem>
+                        <SelectSeparator/><SelectItem value="create" className="text-primary font-bold">Novo...</SelectItem>
                       </SelectContent>
                     </Select>
-                    <QuickEnvironmentDialog open={isEnvironmentDialogOpen} onOpenChange={setIsEnvironmentDialogOpen} />
                   </FormItem>
                 )}
               />
             </div>
+
+            {!form.watch("isMadeToOrder") && (
+              <div className="pt-2 border-t">
+                <FormField
+                  control={form.control}
+                  name="stock"
+                  render={({ field }) => (
+                    <FormItem className="max-w-[200px]">
+                      <FormLabel className="text-[11px] uppercase font-bold text-muted-foreground">Estoque Inicial</FormLabel>
+                      <FormControl><NumericFormat customInput={Input} thousandSeparator="." decimalSeparator="," decimalScale={2} disabled={!!defaultValues} onValueChange={(vals) => field.onChange(vals.floatValue)} value={field.value} className={!!defaultValues ? "bg-muted font-bold" : ""} /></FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
           </div>
 
-          <DialogFooter className="pt-4 border-t">
+          <DialogFooter className="pt-2 border-t">
             <DialogClose asChild><Button variant="outline">Cancelar</Button></DialogClose>
             <Button type="submit" disabled={isPending || isUploading} className="min-w-[120px]">
               {(isPending || isUploading) && <Loader2Icon className="mr-2 h-4 w-4 animate-spin"/>}
