@@ -1,8 +1,7 @@
 import { db } from "@/app/_lib/prisma";
-import { recordStockMovement, processRecursiveStockMovement } from "@/app/_lib/stock";
+import { recordStockMovement, processRecursiveStockMovement, getProductsWithFullTree, processBatchStockMovement } from "@/app/_lib/stock";
 import { BusinessError } from "@/app/_lib/errors";
 import { OrderStatus, Prisma } from "@prisma/client";
-
 
 interface CreateOrderParams {
   companyId: string;
@@ -24,30 +23,13 @@ interface CreateOrderParams {
 export const OrderService = {
   async createOrder({ companyId, customerId, tableNumber, notes, hasServiceTax, discountAmount = 0, extraAmount = 0, adjustmentReason, isEmployeeSale = false, items }: CreateOrderParams) {
     try {
+      // 1. Fetch all products AND their full composition tree BEFORE the transaction
+      const initialProductIds = items.map(i => i.productId);
+      const fullProductMap = await getProductsWithFullTree(initialProductIds, companyId);
+
       const order = await db.$transaction(async (trx) => {
-        // 1. Fetch all products at once to optimize performance
-        const productIds = items.map(i => i.productId);
-        const products = await trx.product.findMany({
-          where: { 
-            id: { in: productIds },
-            companyId 
-          },
-          select: { 
-            id: true, 
-            name: true, 
-            price: true, 
-            cost: true, 
-            operationalCost: true, 
-            stock: true, 
-            isActive: true 
-          },
-        });
-
-        // Map products for quick access
-        const productMap = new Map(products.map(p => [p.id, p]));
-
         const itemsWithPrices = items.map((item) => {
-          const product = productMap.get(item.productId);
+          const product = fullProductMap.get(item.productId);
 
           if (!product) {
             throw new BusinessError(`Produto não encontrado: ${item.productId}`);
@@ -106,27 +88,24 @@ export const OrderService = {
           },
         });
 
-        // 3. Reserve Stock
-        // Note: Stock updates remain serial to ensure consistency and avoid deadlocks
-        for (const item of itemsWithPrices) {
-          await processRecursiveStockMovement(
-            {
-              productId: item.productId,
-              companyId,
-              userId: null,
-              type: "ORDER",
-              quantity: new Prisma.Decimal(item.quantity.toString()).negated(),
-              orderId: order.id,
-            },
-            trx
-          );
-        }
+        // 3. Batch Stock Deduction (Simulation + Batch Writes)
+        await processBatchStockMovement(
+          itemsWithPrices.map(item => ({
+            productId: item.productId,
+            quantity: new Prisma.Decimal(item.quantity.toString()).negated(),
+            type: "ORDER",
+            orderId: order.id,
+          })),
+          companyId,
+          null, // userId
+          trx,
+          fullProductMap // Pass pre-fetched map to avoid new queries
+        );
 
         return order;
       }, {
-        timeout: 20000, // Increase timeout to 20s for complex stock recursions
+        timeout: 20000, 
       });
-
 
       return order;
     } catch (error) {
@@ -136,12 +115,9 @@ export const OrderService = {
     }
   },
 
-  /**
-   * Updates a single item status and synchronizes the parent order status.
-   */
   async updateOrderItemStatus(itemId: string, companyId: string, status: OrderStatus, userId: string) {
     try {
-      const { updatedItem, orderId } = await db.$transaction(async (trx) => {
+      const { updatedItem } = await db.$transaction(async (trx) => {
         // 1. Update the item
         const item = await trx.orderItem.findUnique({
           where: { id: itemId, order: { companyId } },
@@ -161,12 +137,6 @@ export const OrderService = {
           select: { status: true },
         });
 
-        // Calculate logic:
-        // - DELIVERED/PAID: Manual override (not handled here usually)
-        // - READY: If ALL items are READY (or DELIVERED/PAID)
-        // - PREPARING: If ANY item is PREPARING
-        // - PENDING: If ALL items are PENDING
-        
         let newOrderStatus: OrderStatus = OrderStatus.PENDING;
         
         const hasPreparing = allItems.some(i => i.status === OrderStatus.PREPARING);
@@ -181,8 +151,6 @@ export const OrderService = {
         } else if (hasPreparing) {
           newOrderStatus = OrderStatus.PREPARING;
         } else {
-          // If some are READY but some are PENDING, it's still PREPARING in a sense?
-          // Or we keep as PENDING until someone starts something.
           const hasReady = allItems.some(i => i.status === OrderStatus.READY);
           if (hasReady) newOrderStatus = OrderStatus.PREPARING;
         }
@@ -192,9 +160,8 @@ export const OrderService = {
           data: { status: newOrderStatus },
         });
 
-        return { updatedItem, orderId: item.orderId };
+        return { updatedItem };
       });
-
 
       return updatedItem;
     } catch (error) {
@@ -216,33 +183,27 @@ export const OrderService = {
 
         // If canceling, return Reserved Stock
         if (status === OrderStatus.CANCELED && order.status !== OrderStatus.CANCELED) {
-          for (const item of order.orderItems) {
-            await processRecursiveStockMovement(
-              {
-                productId: item.productId,
-                companyId,
-                userId,
-                type: "CANCEL",
-                quantity: new Prisma.Decimal(item.quantity.toString()),
-                orderId: order.id,
-              },
-              trx
-            );
-          }
+          await processBatchStockMovement(
+            order.orderItems.map(item => ({
+              productId: item.productId,
+              quantity: new Prisma.Decimal(item.quantity.toString()),
+              type: "CANCEL",
+              orderId: order.id,
+              reason: "Cancelamento do pedido",
+            })),
+            companyId,
+            userId,
+            trx
+          );
         }
 
-        // When updating whole order status, also update all items to match
-        // (This is useful for 'DELIVERED' or 'PAID' bulk updates)
         const updatedOrder = await trx.order.update({
           where: { id: orderId },
-          data: { 
-            status,
-          },
+          data: { status },
         });
 
         return updatedOrder;
       });
-
 
       return updatedOrder;
     } catch (error) {
@@ -262,13 +223,11 @@ export const OrderService = {
 
         if (!order) throw new BusinessError("Pedido não encontrado.");
         
-        // 1. Check if a sale already exists for this order (Race Condition prevention)
         const existingSale = await trx.sale.findUnique({
           where: { orderId }
         });
 
         if (existingSale) {
-          // If sale exists but order isn't marked PAID, fix it
           if (order.status !== OrderStatus.PAID) {
             await trx.order.update({
               where: { id: orderId },
@@ -307,37 +266,34 @@ export const OrderService = {
           },
         });
 
-        for (const item of order.orderItems) {
-          const unitPrice = isEmployeeSale
-            ? (Number(item.product.cost || 0) + Number(item.product.operationalCost || 0))
-            : Number(item.unitPrice);
+        await trx.saleItem.createMany({
+          data: order.orderItems.map((item) => {
+            const unitPrice = isEmployeeSale
+              ? (Number(item.product.cost || 0) + Number(item.product.operationalCost || 0))
+              : Number(item.unitPrice);
 
-          await trx.saleItem.create({
-            data: {
+            return {
               saleId: sale.id,
               productId: item.productId,
               quantity: item.quantity,
               unitPrice: unitPrice,
-              baseCost: item.product.cost, 
-            },
-          });
-          
-          await trx.stockMovement.updateMany({
-            where: { orderId: order.id, productId: item.productId, type: "ORDER" },
-            data: { saleId: sale.id }
-          });
-        }
+              baseCost: item.product.cost,
+            };
+          }),
+        });
+
+        await trx.stockMovement.updateMany({
+          where: { orderId: order.id, type: "ORDER" },
+          data: { saleId: sale.id }
+        });
 
         await trx.order.update({
           where: { id: orderId },
-          data: { 
-            status: OrderStatus.PAID,
-          },
+          data: { status: OrderStatus.PAID },
         });
 
         return sale;
       });
-
 
       return sale;
     } catch (error) {
@@ -349,7 +305,7 @@ export const OrderService = {
 
   async convertItemsToSale(itemIds: string[], companyId: string, userId: string, paymentMethod: any, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false) {
     try {
-      const { sale, originalOrderIds } = await db.$transaction(async (trx) => {
+      const { sale } = await db.$transaction(async (trx) => {
         const items = await trx.orderItem.findMany({
           where: { id: { in: itemIds }, order: { companyId } },
           include: { order: true, product: { select: { cost: true, operationalCost: true } } },
@@ -421,9 +377,8 @@ export const OrderService = {
           }
         }
 
-        return { sale, originalOrderIds };
+        return { sale };
       });
-
 
       return sale;
     } catch (error) {
@@ -435,15 +390,13 @@ export const OrderService = {
 
   async deleteOrderItem(itemId: string, companyId: string, userId: string) {
     try {
-      const { orderId } = await db.$transaction(async (trx) => {
+      await db.$transaction(async (trx) => {
         const item = await trx.orderItem.findUnique({
           where: { id: itemId, order: { companyId } },
           include: { order: true },
         });
 
         if (!item) throw new BusinessError("Item não encontrado.");
-
-        const orderId = item.orderId;
 
         await processRecursiveStockMovement(
           {
@@ -476,10 +429,7 @@ export const OrderService = {
             data: { totalAmount: newTotal },
           });
         }
-
-        return { orderId };
       });
-
 
       return { success: true };
     } catch (error) {
