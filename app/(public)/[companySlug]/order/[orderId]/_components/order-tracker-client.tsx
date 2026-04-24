@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * OrderTrackerClient - Premium Real-time Order Tracking Component
+ */
+
 import { useEffect, useState } from "react";
 import { OrderStatus } from "@prisma/client";
 import { supabase } from "@/app/_lib/supabase";

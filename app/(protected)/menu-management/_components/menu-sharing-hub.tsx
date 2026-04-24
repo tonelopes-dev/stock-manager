@@ -23,19 +23,26 @@ import { toast } from "sonner";
 
 interface MenuSharingHubProps {
   companyId: string;
+  companySlug: string;
 }
 
-export const MenuSharingHub = ({ companyId }: MenuSharingHubProps) => {
+export const MenuSharingHub = ({ companyId, companySlug }: MenuSharingHubProps) => {
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [tableNumber, setTableNumber] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [baseUrl, setBaseUrl] = useState("");
 
-  const baseUrl = `https://usekipo.com.br/menu/${companyId}`;
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setBaseUrl(`${window.location.origin}/${companySlug}`);
+    }
+  }, [companySlug]);
+
   const menuUrl = tableNumber ? `${baseUrl}?table=${tableNumber}` : baseUrl;
 
   useEffect(() => {
-    if (qrModalOpen && canvasRef.current) {
+    if (qrModalOpen && canvasRef.current && baseUrl) {
       QRCode.toCanvas(canvasRef.current, menuUrl, {
         width: 280,
         margin: 2,
@@ -45,7 +52,7 @@ export const MenuSharingHub = ({ companyId }: MenuSharingHubProps) => {
         },
       });
     }
-  }, [qrModalOpen, menuUrl]);
+  }, [qrModalOpen, menuUrl, baseUrl]);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(menuUrl);

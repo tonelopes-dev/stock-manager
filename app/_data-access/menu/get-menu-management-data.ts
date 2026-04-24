@@ -24,6 +24,7 @@ export interface MenuManagementCategory {
 
 export interface CompanyBranding {
   name: string;
+  slug: string;
   bannerUrl: string | null;
   logoUrl: string | null;
   address: string | null;
@@ -45,6 +46,7 @@ export const getMenuManagementData = async (): Promise<{
     where: { id: companyId },
     select: {
       name: true,
+      slug: true,
       bannerUrl: true,
       logoUrl: true,
       address: true,

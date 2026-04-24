@@ -51,7 +51,10 @@ const MenuManagementPage = async () => {
 
         <TabsContent value="menu" className="space-y-8 m-0 border-none p-0 outline-none">
           {/* Sharing Hub */}
-          <MenuSharingHub companyId={companyId} />
+          <MenuSharingHub 
+            companyId={companyId} 
+            companySlug={company?.slug || ""} 
+          />
 
           {/* Stats Bar */}
           <div className="flex flex-wrap gap-4 rounded-xl bg-muted px-5 py-3">
