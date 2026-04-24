@@ -221,6 +221,7 @@ export const KDSCard = ({
                         variant="outline"
                         className="h-8 gap-2 rounded-full border-primary/20 px-3 text-[10px] font-black text-primary hover:bg-primary hover:text-white"
                         onClick={() => onItemAction(item.id, OrderStatus.PREPARING)}
+                        disabled={isUpdating}
                       >
                         <Play size={12} fill="currentColor" /> PREPARAR
                       </Button>
@@ -230,6 +231,7 @@ export const KDSCard = ({
                         size="sm"
                         className="h-8 gap-2 rounded-full bg-primary px-3 text-[10px] font-black text-white hover:bg-primary/90"
                         onClick={() => onItemAction(item.id, OrderStatus.READY)}
+                        disabled={isUpdating}
                       >
                         <Check size={12} strokeWidth={4} /> PRONTO
                       </Button>
@@ -270,6 +272,7 @@ export const KDSCard = ({
 
         <Button
           onClick={() => onAction(order.id)}
+          disabled={isUpdating}
           className={cn(
             "flex h-14 w-full items-center justify-center gap-3 rounded-[1.8rem] text-xs font-black transition-all",
             accentColor === "bg-emerald-500" ||
@@ -297,6 +300,7 @@ export const KDSCard = ({
             size="sm"
             className="h-8 w-full rounded-xl text-[10px] font-bold text-muted-foreground hover:bg-muted"
             onClick={() => onUndo(order.id, order.status)}
+            disabled={isUpdating}
           >
             <RotateCcw className="mr-2 h-3 w-3" /> VOLTAR STATUS
           </Button>

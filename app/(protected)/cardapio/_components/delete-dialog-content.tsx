@@ -1,5 +1,6 @@
 "use client";
 import { deleteProduct } from "@/app/_actions/product/delete-product";
+import { Loader2Icon } from "lucide-react";
 import {
   AlertDialogAction,
   AlertDialogCancel,
@@ -19,7 +20,7 @@ interface DeleteProductDialogContentProps {
 const DeleteProductDialogContent = ({
   productId,
 }: DeleteProductDialogContentProps) => {
-  const { execute: executeDeleteProduct } = useAction(deleteProduct, {
+  const { execute: executeDeleteProduct, isPending } = useAction(deleteProduct, {
     onSuccess: () => {
       toast.success("Produto excluído com sucesso.");
     },
@@ -38,8 +39,9 @@ const DeleteProductDialogContent = ({
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
-        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-        <AlertDialogAction onClick={handleContinueClick}>
+        <AlertDialogCancel disabled={isPending}>Cancelar</AlertDialogCancel>
+        <AlertDialogAction onClick={handleContinueClick} disabled={isPending}>
+          {isPending && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
           Continuar
         </AlertDialogAction>
       </AlertDialogFooter>
