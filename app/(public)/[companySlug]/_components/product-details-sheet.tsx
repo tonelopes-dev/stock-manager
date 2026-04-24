@@ -128,6 +128,7 @@ export const ProductDetailsSheet = ({
               className="min-h-[100px] rounded-2xl border-none bg-gray-50 p-4 text-sm focus-visible:ring-primary/20"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              data-testid="product-details-notes"
             />
           </div>
         </div>
@@ -164,6 +165,7 @@ export const ProductDetailsSheet = ({
           <Button
             className="h-16 w-full rounded-[2rem] bg-gray-900 text-lg font-black text-white shadow-xl transition-all active:scale-[0.98] hover:bg-gray-800"
             onClick={handleAddToCart}
+            data-testid="product-details-add-button"
           >
             ADICIONAR À SACOLA • {formatPrice(activePrice * quantity)}
           </Button>

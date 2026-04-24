@@ -185,6 +185,7 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId }: CartCheck
                       onChange={(e) => setCustomerName(e.target.value)}
                       className="h-12 rounded-xl border-none bg-white shadow-sm focus-visible:ring-primary/20"
                       disabled={isSubmitting}
+                      data-testid="checkout-customer-name"
                     />
                   </div>
 
@@ -199,6 +200,7 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId }: CartCheck
                       onChange={(e) => setTableNumber(e.target.value)}
                       className="h-12 rounded-xl border-none bg-white shadow-sm focus-visible:ring-primary/20"
                       disabled={isSubmitting}
+                      data-testid="checkout-table-number"
                     />
                   </div>
                 </div>
@@ -232,6 +234,7 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId }: CartCheck
           <Button
             className="h-16 w-full rounded-[2rem] bg-foreground text-lg font-black text-background shadow-xl transition-all hover:bg-foreground active:scale-[0.98] disabled:opacity-50"
             disabled={items.length === 0 || isSubmitting}
+            data-testid="checkout-submit-button"
             onClick={handleCheckout}
           >
             {isSubmitting ? (

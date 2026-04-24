@@ -91,6 +91,7 @@ export const KDSCard = ({
 
   return (
     <Card
+      data-testid={`kds-card-${order.id}`}
       className={cn(
         "group relative overflow-hidden rounded-[2rem] border-none p-6 shadow-lg shadow-slate-200/50 transition-all duration-300 hover:shadow-xl",
         isExpeditionView ? "bg-white ring-1 ring-slate-100" : "bg-background",
@@ -273,6 +274,7 @@ export const KDSCard = ({
         <Button
           onClick={() => onAction(order.id)}
           disabled={isUpdating}
+          data-testid={`kds-action-button-${order.id}`}
           className={cn(
             "flex h-14 w-full items-center justify-center gap-3 rounded-[1.8rem] text-xs font-black transition-all",
             accentColor === "bg-emerald-500" ||
@@ -301,6 +303,7 @@ export const KDSCard = ({
             className="h-8 w-full rounded-xl text-[10px] font-bold text-muted-foreground hover:bg-muted"
             onClick={() => onUndo(order.id, order.status)}
             disabled={isUpdating}
+            data-testid={`kds-undo-button-${order.id}`}
           >
             <RotateCcw className="mr-2 h-3 w-3" /> VOLTAR STATUS
           </Button>

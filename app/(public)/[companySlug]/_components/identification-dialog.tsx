@@ -76,6 +76,7 @@ export function IdentificationDialog({
                 className="rounded-xl"
                 type="tel"
                 autoFocus
+                data-testid="identify-phone-input"
               />
             </div>
           ) : (
@@ -91,6 +92,7 @@ export function IdentificationDialog({
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   className="rounded-xl"
                   autoFocus
+                  data-testid="identify-name-input"
                 />
               </div>
 
@@ -146,6 +148,7 @@ export function IdentificationDialog({
               (step === "DETAILS" && (!form.name || !form.phoneNumber))
             }
             onClick={onIdentify}
+            data-testid="identify-submit-button"
           >
             {isIdentifying ? (
               <div className="flex items-center gap-2">
