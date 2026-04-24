@@ -25,7 +25,13 @@ model Product {
   unit             UnitType          @default(UN)
   isActive         Boolean           @default(true)
   isVisibleOnMenu  Boolean           @default(false)
-  isPromotion      Boolean           @default(false)
+  
+  // Promo Engine
+  promoPrice       Decimal?          @db.Decimal(10, 2)
+  promoActive      Boolean           @default(false)
+  promoSchedule    Json?             // { days: [0,1,2...], startTime: "18:00", endTime: "22:00" }
+  
+  isFeatured       Boolean           @default(false)
   categoryId       String?
   category         Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   environmentId    String?
