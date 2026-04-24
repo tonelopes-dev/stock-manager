@@ -210,6 +210,7 @@ model StockMovement {
 
 model Company {
   id                     String              @id @default(cuid())
+  slug                   String              @unique
   name                   String
   createdAt              DateTime            @default(now())
   allowNegativeStock     Boolean             @default(false)

@@ -17,6 +17,7 @@ export interface MenuCategoryDto {
 }
 
 export interface MenuDataDto {
+  id: string;
   companyName: string;
   bannerUrl: string | null;
   logoUrl: string | null;
@@ -32,6 +33,7 @@ export const getMenuData = async (companyId: string): Promise<MenuDataDto | null
   const company = await db.company.findUnique({
     where: { id: companyId },
     select: { 
+      id: true,
       name: true,
       bannerUrl: true,
       logoUrl: true,
@@ -45,11 +47,31 @@ export const getMenuData = async (companyId: string): Promise<MenuDataDto | null
 
   if (!company) return null;
 
-  console.log(`[MENU_DATA_FETCH] ${companyId}:`, {
-    banner: company.bannerUrl,
-    logo: company.logoUrl,
+  return fetchMenuDetails(company, company.id);
+};
+
+export const getMenuDataBySlug = async (slug: string): Promise<MenuDataDto | null> => {
+  const company = await db.company.findUnique({
+    where: { slug },
+    select: { 
+      id: true,
+      name: true,
+      bannerUrl: true,
+      logoUrl: true,
+      address: true,
+      description: true,
+      whatsappNumber: true,
+      instagramUrl: true,
+      operatingHours: true,
+    },
   });
 
+  if (!company) return null;
+
+  return fetchMenuDetails(company, company.id);
+};
+
+const fetchMenuDetails = async (company: any, companyId: string): Promise<MenuDataDto> => {
   const categories = await db.category.findMany({
     where: { companyId },
     orderBy: { orderIndex: "asc" },
@@ -109,6 +131,7 @@ export const getMenuData = async (companyId: string): Promise<MenuDataDto | null
   }
 
   return {
+    id: company.id,
     companyName: company.name,
     bannerUrl: company.bannerUrl,
     logoUrl: company.logoUrl,
