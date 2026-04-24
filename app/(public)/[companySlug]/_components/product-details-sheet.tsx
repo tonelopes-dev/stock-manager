@@ -35,18 +35,20 @@ export const ProductDetailsSheet = ({
       price,
     );
 
+  const activePrice = product.promoPrice || product.price;
+
   const handleAddToCart = () => {
     addItem({
       productId: product.id,
       name: product.name,
-      price: product.price,
+      price: activePrice,
       quantity,
       image: product.imageUrl || undefined,
       notes,
     });
 
     toast.success(`${product.name} adicionado à sacola!`, {
-      description: `${quantity}x por ${formatPrice(product.price * quantity)}`,
+      description: `${quantity}x por ${formatPrice(activePrice * quantity)}`,
       icon: <ShoppingBag className="h-4 w-4 text-primary" />,
     });
     
@@ -99,9 +101,16 @@ export const ProductDetailsSheet = ({
               <h2 className="text-2xl font-black tracking-tight text-gray-900">
                 {product.name}
               </h2>
-              <span className="text-xl font-black text-primary">
-                {formatPrice(product.price)}
-              </span>
+              <div className="flex flex-col items-end gap-1">
+                <span className="text-xl font-black text-primary">
+                  {formatPrice(activePrice)}
+                </span>
+                {product.promoPrice && (
+                  <span className="text-xs font-bold text-gray-400 line-through">
+                    {formatPrice(product.price)}
+                  </span>
+                )}
+              </div>
             </div>
             <p className="text-sm leading-relaxed text-gray-500">
               {product.description ||
@@ -156,7 +165,7 @@ export const ProductDetailsSheet = ({
             className="h-16 w-full rounded-[2rem] bg-gray-900 text-lg font-black text-white shadow-xl transition-all active:scale-[0.98] hover:bg-gray-800"
             onClick={handleAddToCart}
           >
-            ADICIONAR À SACOLA • {formatPrice(product.price * quantity)}
+            ADICIONAR À SACOLA • {formatPrice(activePrice * quantity)}
           </Button>
         </div>
       </SheetContent>

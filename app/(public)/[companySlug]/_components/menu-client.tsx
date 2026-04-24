@@ -20,6 +20,7 @@ import {
   User,
   Mail,
   Calendar,
+  Star,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -113,8 +114,8 @@ export function MenuClient({
   const highlights = useMemo(() => {
     return menuData.categories
       .flatMap((c: any) => c.products)
-      .filter((p: any) => p.isHighlight)
-      .slice(0, 5);
+      .filter((p: any) => p.isFeatured)
+      .slice(0, 8);
   }, [menuData.categories]);
 
   const status = useMemo(() => {
@@ -263,8 +264,10 @@ export function MenuClient({
       {highlights.length > 0 && (
         <section className="py-6">
           <div className="flex items-center justify-between px-6 pb-4">
-            <h2 className="text-lg font-black tracking-tight">Destaques da Casa</h2>
-            <Badge variant="outline" className="text-[10px] font-bold text-primary border-none bg-transparent">Ver todos</Badge>
+            <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
+              <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+              Destaques Imperdíveis
+            </h2>
           </div>
           <div className="flex gap-4 overflow-x-auto snap-x px-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {highlights.map((product: any) => (
@@ -282,10 +285,19 @@ export function MenuClient({
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
                   <div className="absolute bottom-4 left-4 right-4">
-                    <p className="text-sm font-bold text-white line-clamp-1">{product.name}</p>
-                    <p className="text-xs font-black text-primary">{formatPrice(product.price)}</p>
+                    <p className="text-sm font-black text-white line-clamp-1">{product.name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {product.promoPrice ? (
+                        <>
+                          <p className="text-sm font-black text-primary">{formatPrice(product.promoPrice)}</p>
+                          <p className="text-[10px] font-bold text-gray-400 line-through">{formatPrice(product.price)}</p>
+                        </>
+                      ) : (
+                        <p className="text-sm font-black text-primary">{formatPrice(product.price)}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

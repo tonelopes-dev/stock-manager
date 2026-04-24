@@ -35,7 +35,22 @@ export const ProductCard = ({ product, onClick }: ProductCardProps) => {
           </p>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm font-black text-gray-900">{formatPrice(product.price)}</span>
+          <div className="flex items-center gap-2">
+            {product.promoPrice ? (
+              <>
+                <span className="text-sm font-black text-primary">
+                  {formatPrice(product.promoPrice)}
+                </span>
+                <span className="text-[10px] font-bold text-gray-400 line-through">
+                  {formatPrice(product.price)}
+                </span>
+              </>
+            ) : (
+              <span className="text-sm font-black text-gray-900">
+                {formatPrice(product.price)}
+              </span>
+            )}
+          </div>
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gray-900 text-white shadow-lg transition-transform group-hover:scale-110">
             <Plus className="h-4 w-4" />
           </div>

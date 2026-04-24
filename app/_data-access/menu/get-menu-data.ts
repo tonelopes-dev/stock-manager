@@ -6,7 +6,10 @@ export interface MenuProductDto {
   description: string | null;
   imageUrl: string | null;
   price: number;
-  isPromotion: boolean;
+  promoActive: boolean;
+  promoPrice: number | null;
+  promoSchedule: any;
+  isFeatured: boolean;
 }
 
 export interface MenuCategoryDto {
@@ -108,7 +111,10 @@ const fetchMenuDetails = async (company: any, companyId: string): Promise<MenuDa
         description: p.description,
         imageUrl: p.imageUrl,
         price: Number(p.price),
-        isPromotion: p.isPromotion,
+        promoActive: p.promoActive,
+        promoPrice: p.promoPrice ? Number(p.promoPrice) : null,
+        promoSchedule: p.promoSchedule,
+        isFeatured: p.isFeatured,
       })),
     }))
     .filter((cat) => cat.products.length > 0);
@@ -125,7 +131,10 @@ const fetchMenuDetails = async (company: any, companyId: string): Promise<MenuDa
         description: p.description,
         imageUrl: p.imageUrl,
         price: Number(p.price),
-        isPromotion: p.isPromotion,
+        promoActive: p.promoActive,
+        promoPrice: p.promoPrice ? Number(p.promoPrice) : null,
+        promoSchedule: p.promoSchedule,
+        isFeatured: p.isFeatured,
       })),
     });
   }

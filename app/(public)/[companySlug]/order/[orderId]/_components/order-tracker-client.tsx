@@ -1,96 +1,89 @@
 "use client";
 
-/**
- * OrderTrackerClient - Premium Real-time Order Tracking Component
- */
-
-import { useEffect, useState } from "react";
-import { OrderStatus } from "@prisma/client";
-import { supabase } from "@/app/_lib/supabase";
+import { useState, useEffect } from "react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { 
-  Clock, 
-  Flame, 
   CheckCircle2, 
-  ArrowLeft, 
-  ShoppingBag, 
-  MapPin, 
-  UtensilsCrossed 
+  Clock, 
+  ChefHat, 
+  Bike, 
+  PackageCheck,
+  MapPin,
+  MessageCircle,
+  Phone,
+  ArrowLeft
 } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
-import { Badge } from "@/app/_components/ui/badge";
-import { Card } from "@/app/_components/ui/card";
+import { useRouter } from "next/navigation";
+
+import { toast } from "sonner";
+import { supabase } from "@/app/_lib/supabase";
+
 import { Button } from "@/app/_components/ui/button";
-import { OrderStatusDto } from "@/app/_data-access/order/get-order-status";
-import { cn } from "@/app/_lib/utils";
+import { Badge } from "@/app/_components/ui/badge";
+import { Progress } from "@/app/_components/ui/progress";
+// import { Separator } from "@/app/_components/ui/separator"; // Caso não exista
 
 interface OrderTrackerClientProps {
-  initialOrder: OrderStatusDto;
+  initialOrder: any;
   companyName: string;
   companyLogo: string | null;
   companySlug: string;
 }
 
-// Simple Fallback for XCircle if not imported
-const XCircle = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
-  </svg>
-);
-
-const statusConfig: Record<OrderStatus, {
-  label: string;
-  description: string;
-  icon: any;
-  step: number;
-  color: string;
-}> = {
+const STATUS_CONFIG = {
   PENDING: {
     label: "Recebido",
     description: "Seu pedido chegou na nossa cozinha.",
     icon: Clock,
-    step: 1,
-    color: "text-gray-400",
+    color: "text-blue-500",
+    progress: 20,
   },
   PREPARING: {
     label: "Preparando",
-    description: "Seu pedido está sendo preparado com carinho.",
-    icon: Flame,
-    step: 2,
+    description: "Nossos chefs estão cuidando do seu pedido.",
+    icon: ChefHat,
     color: "text-orange-500",
+    progress: 50,
   },
   READY: {
     label: "Pronto",
-    description: "Tudo pronto! Já pode saborear.",
-    icon: CheckCircle2,
-    step: 3,
+    description: "Pedido pronto! Logo sairá para entrega.",
+    icon: PackageCheck,
     color: "text-green-500",
+    progress: 80,
   },
   DELIVERED: {
     label: "Entregue",
-    description: "Espero que aproveite cada mordida!",
-    icon: ShoppingBag,
-    step: 4,
-    color: "text-blue-500",
+    description: "Bom apetite! Esperamos que goste.",
+    icon: CheckCircle2,
+    color: "text-green-600",
+    progress: 100,
   },
   PAID: {
-    label: "Finalizado",
-    description: "Obrigado e volte sempre!",
-    icon: UtensilsCrossed,
-    step: 4,
-    color: "text-primary",
+    label: "Pago",
+    description: "Pagamento confirmado. Obrigado!",
+    icon: CheckCircle2,
+    color: "text-green-600",
+    progress: 100,
   },
   CANCELED: {
     label: "Cancelado",
-    description: "Infelizmente este pedido foi cancelado.",
-    icon: XCircle,
-    step: 0,
-    color: "text-destructive",
+    description: "Este pedido foi cancelado.",
+    icon: Clock,
+    color: "text-red-500",
+    progress: 0,
   },
 };
 
-export function OrderTrackerClient({ initialOrder, companyName, companyLogo, companySlug }: OrderTrackerClientProps) {
-  const [order, setOrder] = useState<OrderStatusDto>(initialOrder);
+export const OrderTrackerClient = ({ 
+  initialOrder,
+  companyName,
+  companyLogo,
+  companySlug 
+}: OrderTrackerClientProps) => {
+  const [order, setOrder] = useState(initialOrder);
+  const router = useRouter();
 
   useEffect(() => {
     const channel = supabase
@@ -103,15 +96,31 @@ export function OrderTrackerClient({ initialOrder, companyName, companyLogo, com
           table: "Order",
           filter: `id=eq.${order.id}`,
         },
-        (payload) => {
-          const updatedOrder = payload.new as any;
-          // Merge payload with previous order to keep items (which aren't in payload.new)
-          setOrder((prev) => ({ 
-            ...prev, 
-            status: updatedOrder.status,
-            totalAmount: Number(updatedOrder.totalAmount),
-            tableNumber: updatedOrder.tableNumber
+        (payload: any) => {
+          const newOrder = payload.new;
+          setOrder((prev: any) => ({
+            ...prev,
+            ...newOrder,
           }));
+
+          // Notificações baseadas no novo status
+          if (newOrder.status === "PREPARING") {
+            toast.info("Seu pedido está sendo preparado! 👨‍🍳", {
+              description: "Nossos chefs já começaram a mágica.",
+            });
+          } else if (newOrder.status === "READY") {
+            toast.success("Seu pedido está pronto! 🎉", {
+              description: "Logo sairá para entrega ou retirada.",
+            });
+          } else if (newOrder.status === "DELIVERED" || newOrder.status === "PAID") {
+            toast.success("Pedido finalizado com sucesso! ✅", {
+              description: "Obrigado pela preferência e bom apetite!",
+            });
+          } else if (newOrder.status === "CANCELED") {
+            toast.error("O pedido foi cancelado. ⚠️", {
+              description: "Entre em contato com o suporte para mais informações.",
+            });
+          }
         }
       )
       .subscribe();
@@ -121,149 +130,125 @@ export function OrderTrackerClient({ initialOrder, companyName, companyLogo, com
     };
   }, [order.id]);
 
-  const currentStatus = statusConfig[order.status] || statusConfig.PENDING;
-  const steps = [
-    { id: 'PENDING', label: 'Recebido', icon: Clock },
-    { id: 'PREPARING', label: 'Preparando', icon: Flame },
-    { id: 'READY', label: 'Pronto', icon: CheckCircle2 },
-  ];
+  const currentStatus = (order.status as keyof typeof STATUS_CONFIG) || "PENDING";
+  const config = STATUS_CONFIG[currentStatus] || STATUS_CONFIG.PENDING;
+
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price);
 
   return (
-    <div className="mx-auto flex max-w-md flex-col min-h-screen bg-white">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-gray-50 pb-20 font-sans shadow-2xl">
       {/* Header */}
-      <header className="px-6 pt-12 pb-6 flex flex-col gap-4">
-        <Link 
-          href={`/${companySlug}`}
-          className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-primary transition-colors border border-gray-100"
+      <div className="bg-white px-6 pb-6 pt-12 shadow-sm">
+        <button 
+          onClick={() => router.back()}
+          className="mb-6 flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-gray-900"
         >
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        
+          <ArrowLeft size={16} />
+          Voltar ao cardápio
+        </button>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-black italic tracking-tighter text-gray-900 leading-none">
-              #<span className="text-primary">{order.orderNumber}</span>
+            <h1 className="text-2xl font-black tracking-tight text-gray-900">
+              Acompanhe seu pedido
             </h1>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">
-              Pedido Recebido!
+              Pedido #{order.id.slice(-6).toUpperCase()}
             </p>
           </div>
-          {companyLogo && (
-            <div className="relative w-12 h-12 rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
-              <Image src={companyLogo} alt={companyName} fill className="object-cover" />
-            </div>
-          )}
+          <Badge className="bg-primary/10 text-primary border-none font-black px-3 py-1">
+            {config.label}
+          </Badge>
         </div>
-      </header>
+      </div>
 
       {/* Real-time Status Card */}
-      <main className="flex-1 px-6 pb-20 space-y-8">
-        <section className="relative overflow-hidden rounded-[2.5rem] bg-gray-900 p-10 text-center shadow-2xl">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-[60px] rounded-full -mr-16 -mt-16" />
-          
-          <div className={cn(
-            "mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-white/10 backdrop-blur-md",
-            order.status === 'PREPARING' && "animate-pulse ring-4 ring-primary/30"
-          )}>
-            <currentStatus.icon className={cn("h-10 w-10", currentStatus.color)} />
-          </div>
-          
-          <h2 className="text-2xl font-black tracking-tight text-white">
-            {currentStatus.label}
-          </h2>
-          <p className="mt-2 text-sm font-medium text-gray-400 px-4">
-            {currentStatus.description}
-          </p>
-        </section>
-
-        {/* Horizontal Stepper */}
-        <div className="px-2">
-          <div className="relative flex items-center justify-between">
-            {/* Background Line */}
-            <div className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 bg-gray-100" />
-            
-            {steps.map((step, idx) => {
-              const config = statusConfig[step.id as OrderStatus];
-              const isActive = currentStatus.step >= config.step;
-              const isCurrent = currentStatus.step === config.step;
-              
-              return (
-                <div key={step.id} className="relative z-10 flex flex-col items-center gap-3">
-                  <div className={cn(
-                    "flex h-12 w-12 items-center justify-center rounded-full border-4 transition-all duration-500",
-                    isActive ? "border-white bg-gray-900 text-white shadow-lg" : "border-white bg-gray-100 text-gray-300",
-                    isCurrent && "scale-110 ring-4 ring-primary/20"
-                  )}>
-                    <step.icon className={cn("h-5 w-5", isCurrent && "animate-pulse")} />
-                  </div>
-                  <span className={cn(
-                    "text-[10px] font-black uppercase tracking-tighter",
-                    isActive ? "text-gray-900" : "text-gray-300"
-                  )}>
-                    {step.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Order Details */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
-              <ShoppingBag className="w-3 h-3" />
-              RESUMO DO PEDIDO
-            </h3>
-            {order.tableNumber && (
-              <Badge variant="outline" className="rounded-lg border-gray-100 bg-gray-50 text-[10px] font-black uppercase text-gray-500">
-                MESA {order.tableNumber}
-              </Badge>
-            )}
-          </div>
-          
-          <Card className="rounded-[2rem] border-gray-100 bg-white p-6 shadow-sm overflow-hidden">
-            <div className="space-y-4">
-              {order.items.map((item) => (
-                <div key={item.id} className="flex justify-between items-start">
-                  <div className="flex gap-3">
-                    <span className="text-sm font-black text-primary bg-primary/5 w-6 h-6 flex items-center justify-center rounded-md">
-                      {item.quantity}
-                    </span>
-                    <div>
-                      <p className="text-sm font-bold text-gray-900 leading-none">{item.name}</p>
-                      {item.notes && <p className="text-[10px] italic text-gray-400 mt-1">"{item.notes}"</p>}
-                    </div>
-                  </div>
-                  <span className="text-sm font-bold text-gray-900">
-                    {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(item.price * item.quantity)}
-                  </span>
-                </div>
-              ))}
-
-              <div className="pt-4 mt-2 border-t border-dashed border-gray-100 flex justify-between items-end">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Total Pago</span>
-                  <span className="text-2xl font-black text-gray-900 leading-none mt-1">
-                    {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(order.totalAmount)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1 text-[10px] font-black text-green-500 bg-green-50 px-3 py-1.5 rounded-full">
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                  PEDIDO ATIVO
-                </div>
+      <div className="px-6 -mt-4">
+        <div className="rounded-[2.5rem] bg-white p-8 shadow-xl border border-gray-100">
+          <div className="flex flex-col items-center text-center space-y-4">
+            <div className={`p-4 rounded-3xl bg-gray-50 ${config.color}`}>
+              <config.icon size={48} strokeWidth={2.5} />
+            </div>
+            <div className="space-y-1">
+              <h2 className="text-xl font-black text-gray-900">{config.label}</h2>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                {config.description}
+              </p>
+            </div>
+            <div className="w-full pt-4 space-y-2">
+              <Progress value={config.progress} className="h-3 rounded-full bg-gray-100" />
+              <div className="flex justify-between text-[10px] font-black uppercase tracking-wider text-gray-400">
+                <span>Recebido</span>
+                <span>Preparando</span>
+                <span>Pronto</span>
+                <span>Entregue</span>
               </div>
             </div>
-          </Card>
+          </div>
+        </div>
+      </div>
+
+      {/* Order Summary */}
+      <div className="px-6 py-8 space-y-6">
+        <h3 className="text-sm font-black uppercase tracking-widest text-gray-400">
+          Detalhes do Pedido
+        </h3>
+        
+        <div className="rounded-3xl bg-white p-6 shadow-md space-y-4">
+          <div className="space-y-3">
+            {order.orderItems?.map((item: any) => (
+              <div key={item.id} className="flex justify-between items-center text-sm">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-gray-100 text-[10px] font-black">
+                    {item.quantity}x
+                  </span>
+                  <span className="font-bold text-gray-700">{item.product.name}</span>
+                </div>
+                <span className="font-black text-gray-900">
+                  {formatPrice(Number(item.price) * item.quantity)}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="h-px w-full bg-gray-100" />
+
+          <div className="flex justify-between items-center pt-2">
+            <span className="text-sm font-bold text-gray-400">Total</span>
+            <span className="text-xl font-black text-primary">
+              {formatPrice(order.orderItems?.reduce((acc: number, item: any) => acc + (Number(item.price) * item.quantity), 0) || 0)}
+            </span>
+          </div>
         </div>
 
-        {/* Support Footer */}
-        <div className="text-center py-4">
-          <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
-            Precisa de ajuda? Fale com um atendente.
-          </p>
+        {/* Customer Info */}
+        <div className="rounded-3xl bg-white p-6 shadow-md flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-gray-100 flex items-center justify-center">
+              <MapPin className="text-gray-400" size={20} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-gray-400 uppercase">Mesa</p>
+              <p className="text-sm font-black text-gray-900">
+                {order.tableNumber ? `Mesa ${order.tableNumber}` : "Não informada"}
+              </p>
+            </div>
+          </div>
         </div>
-      </main>
+      </div>
+
+      {/* Need Help? */}
+      <div className="px-6 pb-12">
+        <div className="rounded-3xl bg-gray-900 p-6 text-white shadow-xl flex items-center justify-between group cursor-pointer active:scale-[0.98] transition-all">
+          <div className="space-y-1">
+            <h4 className="text-sm font-black tracking-tight">Algum problema?</h4>
+            <p className="text-[11px] font-bold text-gray-400">Fale conosco agora no WhatsApp</p>
+          </div>
+          <div className="p-3 rounded-2xl bg-white/10 group-hover:bg-white/20 transition-colors">
+            <MessageCircle size={20} className="text-green-400 fill-green-400" />
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
+};
