@@ -24,7 +24,7 @@ const MenuManagementPage = async () => {
     0,
   );
   const promoProducts = categories.reduce(
-    (acc, cat) => acc + cat.products.filter((p) => p.isPromotion).length,
+    (acc, cat) => acc + cat.products.filter((p) => p.promoActive).length,
     0,
   );
 
