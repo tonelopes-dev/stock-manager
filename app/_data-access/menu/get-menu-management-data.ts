@@ -9,9 +9,12 @@ export interface MenuManagementProduct {
   price: number;
   imageUrl: string | null;
   isVisibleOnMenu: boolean;
-  isPromotion: boolean;
+  promoActive: boolean;
   isActive: boolean;
   stock: number;
+  promoPrice: number | null;
+  promoSchedule: any;
+  isFeatured: boolean;
 }
 
 export interface MenuManagementCategory {
@@ -70,9 +73,12 @@ export const getMenuManagementData = async (): Promise<{
           price: true,
           imageUrl: true,
           isVisibleOnMenu: true,
-          isPromotion: true,
+          promoActive: true,
           isActive: true,
           stock: true,
+          promoPrice: true,
+          promoSchedule: true,
+          isFeatured: true,
         },
       },
     },
@@ -92,9 +98,12 @@ export const getMenuManagementData = async (): Promise<{
       price: true,
       imageUrl: true,
       isVisibleOnMenu: true,
-      isPromotion: true,
+      promoActive: true,
       isActive: true,
       stock: true,
+      promoPrice: true,
+      promoSchedule: true,
+      isFeatured: true,
     },
   });
 
@@ -105,8 +114,12 @@ export const getMenuManagementData = async (): Promise<{
     orderIndex: cat.orderIndex,
     products: cat.products.map((p) => ({
       ...p,
-      price: Number(p.price),
-      stock: Number(p.stock),
+      price: p.price.toNumber(),
+      stock: p.stock.toNumber(),
+      promoPrice: p.promoPrice ? p.promoPrice.toNumber() : null,
+      promoActive: p.promoActive,
+      promoSchedule: p.promoSchedule,
+      isFeatured: p.isFeatured,
     })),
   }));
 
@@ -118,8 +131,12 @@ export const getMenuManagementData = async (): Promise<{
       orderIndex: 9999,
       products: uncategorized.map((p) => ({
         ...p,
-        price: Number(p.price),
-        stock: Number(p.stock),
+        price: p.price.toNumber(),
+        stock: p.stock.toNumber(),
+        promoPrice: p.promoPrice ? p.promoPrice.toNumber() : null,
+        promoActive: p.promoActive,
+        promoSchedule: p.promoSchedule,
+        isFeatured: p.isFeatured,
       })),
     });
   }

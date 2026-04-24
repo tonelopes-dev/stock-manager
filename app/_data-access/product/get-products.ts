@@ -9,7 +9,7 @@ import { sanitizeUUID } from "@/app/_lib/uuid";
 
 export type ProductStatusDto = "IN_STOCK" | "OUT_OF_STOCK" | "LOW_STOCK" | "SLOW_MOVING";
 
-export interface ProductDto extends Omit<Product, "price" | "cost" | "operationalCost" | "category" | "stock" | "minStock"> {
+export interface ProductDto extends Omit<Product, "price" | "cost" | "operationalCost" | "category" | "stock" | "minStock" | "promoPrice" | "promoSchedule"> {
   price: number;
   cost: number;
   operationalCost: number;
@@ -21,8 +21,11 @@ export interface ProductDto extends Omit<Product, "price" | "cost" | "operationa
   category?: { id: string; name: string } | null;
   expirationDate: Date | null;
   trackExpiration: boolean;
-  environmentId: string | null;
   environment?: { id: string; name: string } | null;
+  promoPrice: number | null;
+  promoActive: boolean;
+  promoSchedule: any;
+  isFeatured: boolean;
   virtualStock: number;
   limitingIngredient?: string;
   ingredients?: { name: string; availability: number }[];
@@ -154,7 +157,6 @@ export const getProducts = async (
       minStock: minStock,
       isActive: product.isActive,
       isVisibleOnMenu: product.isVisibleOnMenu,
-      isPromotion: product.isPromotion,
       companyId: product.companyId,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
@@ -182,6 +184,10 @@ export const getProducts = async (
       limitingIngredient,
       ingredients,
       allowNegativeStock: product.company.allowNegativeStock,
+      promoPrice: product.promoPrice ? product.promoPrice.toNumber() : null,
+      promoActive: product.promoActive,
+      promoSchedule: product.promoSchedule,
+      isFeatured: product.isFeatured,
     };
   });
 };
