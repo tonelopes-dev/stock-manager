@@ -74,6 +74,7 @@ export async function createSaleTestFixture() {
     data: {
       id: "test-company",
       name: "Test Company",
+      slug: "test-company",
       allowNegativeStock: false,
     },
   });

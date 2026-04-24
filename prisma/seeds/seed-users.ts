@@ -9,6 +9,7 @@ export async function seedUsers(prisma: PrismaClient) {
     where: { id: "rota-360-id" },
     update: {
       name: "Rota 360",
+      slug: "rota-360",
       plan: "PRO",
       subscriptionStatus: SubscriptionStatus.ACTIVE,
       expiresAt: new Date(new Date().setDate(new Date().getDate() + 90)),
@@ -16,6 +17,7 @@ export async function seedUsers(prisma: PrismaClient) {
     create: {
       id: "rota-360-id",
       name: "Rota 360",
+      slug: "rota-360",
       plan: "PRO",
       subscriptionStatus: SubscriptionStatus.ACTIVE,
       expiresAt: new Date(new Date().setDate(new Date().getDate() + 90)),
