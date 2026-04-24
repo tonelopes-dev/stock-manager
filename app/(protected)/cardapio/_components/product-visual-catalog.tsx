@@ -265,6 +265,9 @@ const ProductSearchHandler = ({
             : undefined,
           trackExpiration: selectedProduct.trackExpiration,
           imageUrl: selectedProduct.imageUrl || "",
+          promoPrice: selectedProduct.promoPrice || undefined,
+          promoActive: selectedProduct.promoActive || false,
+          isFeatured: selectedProduct.isFeatured || false,
         }}
       />
     </Dialog>

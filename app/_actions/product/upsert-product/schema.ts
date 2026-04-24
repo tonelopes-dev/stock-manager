@@ -24,7 +24,7 @@ export const upsertProductSchema = z.object({
   imageUrl: z.string().url().optional().or(z.literal("")),
   operationalCost: z.number().min(0).default(0),
   isMadeToOrder: z.boolean().default(false),
-
+  isFeatured: z.boolean().default(false),
 }).refine((data) => {
   // PRODUCAO_PROPRIA and COMBO products get their cost from composition, skip validation if it's 0 here
   if (data.type === "PRODUCAO_PROPRIA" || data.type === "COMBO") return true;

@@ -171,7 +171,6 @@ const ProductTableDropdownMenu = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <UpsertProductDialogContent
           defaultValues={{
@@ -191,6 +190,9 @@ const ProductTableDropdownMenu = ({
             trackExpiration: product.trackExpiration,
             imageUrl: product.imageUrl || "",
             isMadeToOrder: product.isMadeToOrder,
+            promoPrice: product.promoPrice || undefined,
+            promoActive: product.promoActive || false,
+            isFeatured: product.isFeatured || false,
           }}
           setDialogIsOpen={setEditDialogOpen}
           categories={categories}
