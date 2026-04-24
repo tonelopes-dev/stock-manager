@@ -320,7 +320,8 @@ model AuditEvent {
   id              String         @id @default(cuid())
   type            AuditEventType
   companyId       String?
-  actorId         String
+  actorId         String?
+  customerId      String?
   metadata        Json?
   createdAt       DateTime       @default(now())
   actorEmail      String?
@@ -329,7 +330,8 @@ model AuditEvent {
   entityType      String?
   metadataVersion Int            @default(1)
   severity        AuditSeverity  @default(INFO)
-  actor           User           @relation("UserAudits", fields: [actorId], references: [id])
+  actor           User?          @relation("UserAudits", fields: [actorId], references: [id])
+  customer        Customer?      @relation(fields: [customerId], references: [id])
   company         Company?       @relation(fields: [companyId], references: [id])
 
   @@index([companyId, createdAt(sort: Desc)])
@@ -360,6 +362,7 @@ model Customer {
   sales       Sale[]
   categories  CustomerCategory[]   @relation("CustomerToCustomerCategory")
   checklists  Checklist[]
+  auditEvents AuditEvent[]
 
   @@unique([email, companyId])
   @@unique([phone, companyId])
@@ -698,6 +701,8 @@ enum AuditEventType {
   INGREDIENT_STOCK_ADJUSTED
   CUSTOMER_STAGE_UPDATED
   CHECKLIST_ITEM_COMPLETED
+  ORDER_CREATED
+  PRODUCT_PROMOTION_UPDATED
 }
 
 enum CustomerCategoryEnum {
