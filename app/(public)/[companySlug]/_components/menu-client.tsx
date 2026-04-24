@@ -45,6 +45,7 @@ import { ProductSection } from "./product-section";
 import { ProductDetailsSheet } from "./product-details-sheet";
 import { FloatingCartButton } from "./floating-cart-button";
 import { BottomNav } from "./bottom-nav";
+import { IdentificationDialog } from "./identification-dialog";
 import { useCartStore } from "../_store/use-cart-store";
 
 interface MenuClientProps {
@@ -344,154 +345,16 @@ export function MenuClient({
       <BottomNav companySlug={menuData.slug} />
 
       {/* Customer Identification Dialog */}
-      <Dialog
+      <IdentificationDialog
         open={showIdentifyDialog}
-        onOpenChange={(open: boolean) => {
-          setShowIdentifyDialog(open);
-          if (!open) setIdentifyStep("PHONE");
-        }}
-      >
-        <DialogContent className="max-w-sm rounded-3xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl font-black tracking-tight">
-              <User className="h-5 w-5 text-primary" />
-              {identifyStep === "PHONE"
-                ? "Identificação"
-                : "Complete seu cadastro"}
-            </DialogTitle>
-            <DialogDescription>
-              {identifyStep === "PHONE"
-                ? "Informe seu telefone para continuar."
-                : "Parece que é sua primeira vez aqui! Conte-nos quem você é."}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-2">
-            {identifyStep === "PHONE" ? (
-              <div className="space-y-1.5">
-                <label className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
-                  <Phone className="h-3 w-3" />
-                  Telefone *
-                </label>
-                <Input
-                  placeholder="(11) 99999-9999"
-                  value={identifyForm.phoneNumber}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setIdentifyForm({
-                      ...identifyForm,
-                      phoneNumber: e.target.value,
-                    })
-                  }
-                  className="rounded-xl"
-                  type="tel"
-                  autoFocus
-                />
-              </div>
-            ) : (
-              <>
-                <div className="space-y-1.5">
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
-                    <User className="h-3 w-3" />
-                    Nome *
-                  </label>
-                  <Input
-                    placeholder="Seu nome completo"
-                    value={identifyForm.name}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setIdentifyForm({ ...identifyForm, name: e.target.value })
-                    }
-                    className="rounded-xl"
-                    autoFocus
-                  />
-                </div>
-
-                <div className="space-y-1.5 opacity-60">
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
-                    <Phone className="h-3 w-3" />
-                    Telefone
-                  </label>
-                  <Input
-                    value={identifyForm.phoneNumber}
-                    disabled
-                    className="rounded-xl bg-muted"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
-                    <Mail className="h-3 w-3" />
-                    Email <span className="text-muted-foreground">(opcional)</span>
-                  </label>
-                  <Input
-                    placeholder="seu@email.com"
-                    value={identifyForm.email}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setIdentifyForm({
-                        ...identifyForm,
-                        email: e.target.value,
-                      })
-                    }
-                    className="rounded-xl"
-                    type="email"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
-                    <Calendar className="h-3 w-3" />
-                    Data de nascimento{" "}
-                    <span className="text-muted-foreground">(opcional)</span>
-                  </label>
-                  <DatePicker
-                    value={identifyForm.birthDate ? parseISO(identifyForm.birthDate) : undefined}
-                    onChange={(date: Date | undefined) =>
-                      setIdentifyForm({
-                        ...identifyForm,
-                        birthDate: date ? format(date, "yyyy-MM-dd") : "",
-                      })
-                    }
-                    showDropdowns={true}
-                    className="rounded-xl"
-                  />
-                </div>
-              </>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <Button
-              className="h-14 w-full rounded-2xl bg-foreground text-base font-black text-background shadow-xl transition-all hover:bg-foreground disabled:opacity-50"
-              disabled={
-                isIdentifying ||
-                (identifyStep === "PHONE" && !identifyForm.phoneNumber) ||
-                (identifyStep === "DETAILS" &&
-                  (!identifyForm.name || !identifyForm.phoneNumber))
-              }
-              onClick={handleIdentify}
-            >
-              {isIdentifying ? (
-                <div className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  VERIFICANDO...
-                </div>
-              ) : identifyStep === "PHONE" ? (
-                "CONTINUAR"
-              ) : (
-                "CONFIRMAR E ENVIAR PEDIDO"
-              )}
-            </Button>
-
-            {identifyStep === "DETAILS" && (
-              <button
-                onClick={() => setIdentifyStep("PHONE")}
-                className="mt-2 text-center text-xs font-bold text-muted-foreground hover:text-muted-foreground"
-              >
-                Voltar e alterar telefone
-              </button>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+        onOpenChange={setShowIdentifyDialog}
+        step={identifyStep}
+        setStep={setIdentifyStep}
+        form={identifyForm}
+        setForm={setIdentifyForm}
+        isIdentifying={isIdentifying}
+        onIdentify={handleIdentify}
+      />
 
       {/* Store Information Modal */}
       <Dialog open={isStoreInfoOpen} onOpenChange={setIsStoreInfoOpen}>

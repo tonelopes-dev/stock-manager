@@ -10,6 +10,7 @@ interface MyOrdersPageProps {
 
 export default async function MyOrdersPage({ params }: MyOrdersPageProps) {
   const { companySlug } = await params;
+  if (companySlug === "undefined") return notFound();
   const menuData = await getMenuDataBySlug(companySlug);
 
   if (!menuData) {

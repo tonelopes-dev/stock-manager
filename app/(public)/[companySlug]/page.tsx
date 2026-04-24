@@ -35,6 +35,7 @@ export async function generateMetadata({
 
 export default async function MenuPage({ params }: MenuPageProps) {
   const { companySlug } = await params;
+  if (companySlug === "undefined") return notFound();
   const menuData = await getMenuDataBySlug(companySlug);
 
   if (!menuData) {

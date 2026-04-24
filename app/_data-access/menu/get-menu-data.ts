@@ -21,6 +21,7 @@ export interface MenuCategoryDto {
 
 export interface MenuDataDto {
   id: string;
+  slug: string;
   companyName: string;
   bannerUrl: string | null;
   logoUrl: string | null;
@@ -37,6 +38,7 @@ export const getMenuData = async (companyId: string): Promise<MenuDataDto | null
     where: { id: companyId },
     select: { 
       id: true,
+      slug: true,
       name: true,
       bannerUrl: true,
       logoUrl: true,
@@ -58,6 +60,7 @@ export const getMenuDataBySlug = async (slug: string): Promise<MenuDataDto | nul
     where: { slug },
     select: { 
       id: true,
+      slug: true,
       name: true,
       bannerUrl: true,
       logoUrl: true,
@@ -85,6 +88,17 @@ const fetchMenuDetails = async (company: any, companyId: string): Promise<MenuDa
           isActive: true,
         },
         orderBy: { name: "asc" },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          imageUrl: true,
+          price: true,
+          promoActive: true,
+          promoPrice: true,
+          promoSchedule: true,
+          isFeatured: true,
+        },
       },
     },
   });
@@ -98,6 +112,17 @@ const fetchMenuDetails = async (company: any, companyId: string): Promise<MenuDa
       categoryId: null,
     },
     orderBy: { name: "asc" },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      imageUrl: true,
+      price: true,
+      promoActive: true,
+      promoPrice: true,
+      promoSchedule: true,
+      isFeatured: true,
+    },
   });
 
   const result: MenuCategoryDto[] = categories
@@ -141,6 +166,7 @@ const fetchMenuDetails = async (company: any, companyId: string): Promise<MenuDa
 
   return {
     id: company.id,
+    slug: company.slug,
     companyName: company.name,
     bannerUrl: company.bannerUrl,
     logoUrl: company.logoUrl,
