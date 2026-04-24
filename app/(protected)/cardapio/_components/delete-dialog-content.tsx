@@ -40,7 +40,7 @@ const DeleteProductDialogContent = ({
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel disabled={isPending}>Cancelar</AlertDialogCancel>
-        <AlertDialogAction onClick={handleContinueClick} disabled={isPending}>
+        <AlertDialogAction onClick={handleContinueClick} disabled={isPending} data-testid="delete-product-confirm">
           {isPending && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
           Continuar
         </AlertDialogAction>

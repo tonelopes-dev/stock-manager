@@ -26,6 +26,7 @@ export function FloatingCartButton({ companyId }: FloatingCartButtonProps) {
       <div className="fixed bottom-20 left-4 right-4 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
         <button
           onClick={() => setIsSheetOpen(true)}
+          data-testid="floating-cart-button"
           className="w-full bg-primary text-primary-foreground h-14 rounded-2xl shadow-2xl flex items-center justify-between px-6 active:scale-95 transition-transform ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           <div className="flex items-center gap-3">
