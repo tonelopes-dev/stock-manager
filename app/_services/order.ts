@@ -1,7 +1,8 @@
 import { db } from "@/app/_lib/prisma";
 import { recordStockMovement, processRecursiveStockMovement, getProductsWithFullTree, processBatchStockMovement } from "@/app/_lib/stock";
 import { BusinessError } from "@/app/_lib/errors";
-import { OrderStatus, Prisma } from "@prisma/client";
+import { AuditEventType, OrderStatus, Prisma } from "@prisma/client";
+import { AuditService } from "./audit";
 
 interface CreateOrderParams {
   companyId: string;
@@ -101,6 +102,18 @@ export const OrderService = {
           trx,
           fullProductMap // Pass pre-fetched map to avoid new queries
         );
+
+        await AuditService.logWithTransaction(trx, {
+          type: AuditEventType.ORDER_CREATED,
+          companyId,
+          customerId,
+          entityType: "ORDER",
+          entityId: order.id,
+          metadata: {
+            totalAmount: Number(order.totalAmount),
+            itemsCount: items.length,
+          },
+        });
 
         return order;
       }, {

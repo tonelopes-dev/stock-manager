@@ -6,10 +6,14 @@ interface LogEventParams {
   type: AuditEventType;
   severity?: AuditSeverity;
   companyId?: string;
-  entityType?: "USER" | "COMPANY" | "PRODUCT" | "SALE" | "TEAM_MEMBER" | "BILLING" | "CUSTOMER" | "CHECKLIST" | "STOCK_ENTRY" | "SUPPLIER" | "GOAL" | "FIXED_EXPENSE";
+  entityType?: "USER" | "COMPANY" | "PRODUCT" | "SALE" | "TEAM_MEMBER" | "BILLING" | "CUSTOMER" | "CHECKLIST" | "STOCK_ENTRY" | "SUPPLIER" | "GOAL" | "FIXED_EXPENSE" | "ORDER";
   entityId?: string;
   metadata?: Prisma.JsonValue;
   metadataVersion?: number;
+  customerId?: string;
+  actorId?: string;
+  actorName?: string;
+  actorEmail?: string;
 }
 
 export class AuditService {
@@ -21,14 +25,18 @@ export class AuditService {
     entityId,
     metadata = {},
     metadataVersion = 1,
+    customerId,
+    actorId: explicitActorId,
+    actorName: explicitActorName,
+    actorEmail: explicitActorEmail,
   }: LogEventParams) {
-    const session = await auth();
-    const actorId = session?.user?.id;
-    const actorName = session?.user?.name;
-    const actorEmail = session?.user?.email;
+    const session = !explicitActorId ? await auth() : null;
+    const actorId = explicitActorId || session?.user?.id;
+    const actorName = explicitActorName || session?.user?.name;
+    const actorEmail = explicitActorEmail || session?.user?.email;
 
-    if (!actorId) {
-      console.warn(`[AuditService] Attempted to log event ${type} without an authenticated actor.`);
+    if (!actorId && !customerId) {
+      console.warn(`[AuditService] Attempted to log event ${type} without an actor or customer.`);
       return;
     }
 
@@ -39,13 +47,12 @@ export class AuditService {
           severity,
           companyId,
           actorId,
+          customerId,
           actorName,
           actorEmail,
           entityType,
           entityId,
           metadata: metadata ?? Prisma.DbNull,
-
-
           metadataVersion,
         },
       });
@@ -65,14 +72,18 @@ export class AuditService {
       entityId,
       metadata = {},
       metadataVersion = 1,
+      customerId,
+      actorId: explicitActorId,
+      actorName: explicitActorName,
+      actorEmail: explicitActorEmail,
     }: LogEventParams
   ) {
-    const session = await auth();
-    const actorId = session?.user?.id;
-    const actorName = session?.user?.name;
-    const actorEmail = session?.user?.email;
+    const session = !explicitActorId ? await auth() : null;
+    const actorId = explicitActorId || session?.user?.id;
+    const actorName = explicitActorName || session?.user?.name;
+    const actorEmail = explicitActorEmail || session?.user?.email;
 
-    if (!actorId) return;
+    if (!actorId && !customerId) return;
 
     return await tx.auditEvent.create({
       data: {
@@ -80,13 +91,12 @@ export class AuditService {
         severity,
         companyId,
         actorId,
+        customerId,
         actorName,
         actorEmail,
         entityType,
         entityId,
         metadata: metadata ?? Prisma.DbNull,
-
-
         metadataVersion,
       },
     });
