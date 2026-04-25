@@ -33,10 +33,14 @@ export const getKDSOrders = async (companyId: string): Promise<KDSOrderDto[]> =>
           },
         },
         {
-          status: {
-            in: [OrderStatus.DELIVERED, OrderStatus.PAID],
+          status: OrderStatus.DELIVERED,
+          updatedAt: {
+            gte: startOfToday,
           },
-          createdAt: {
+        },
+        {
+          status: OrderStatus.PAID,
+          updatedAt: {
             gte: startOfToday,
           },
         },

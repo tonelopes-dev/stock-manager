@@ -20,13 +20,9 @@ export const getDerivedStatus = (
   if (itemsForThisView.length === 0) return order.status;
 
   if (activeEnvId === "all") {
-    // Se o pedido já está finalizado no banco, mantém o status do banco
-    if (
-      order.status === OrderStatus.DELIVERED ||
-      order.status === OrderStatus.PAID
-    ) {
-      return order.status;
-    }
+    if (order.status === OrderStatus.PAID) return OrderStatus.PAID;
+    if (order.status === OrderStatus.DELIVERED) return OrderStatus.DELIVERED;
+    if (order.status === OrderStatus.CANCELED) return OrderStatus.CANCELED;
 
     const allItemsDone = order.items.every(
       (i) =>
@@ -44,6 +40,8 @@ export const getDerivedStatus = (
       return hasStarted ? OrderStatus.PREPARING : OrderStatus.PENDING;
     }
   } else {
+    if (order.status === OrderStatus.PAID) return OrderStatus.PAID;
+
     const allStationItemsDelivered = itemsForThisView.every(
       (i) =>
         i.status === OrderStatus.DELIVERED || i.status === OrderStatus.PAID

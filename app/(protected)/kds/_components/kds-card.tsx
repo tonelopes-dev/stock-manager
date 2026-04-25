@@ -127,12 +127,14 @@ export const KDSCard = ({
             </div>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <div
-              className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold ${getTimeColor()}`}
-            >
-              <Clock className="h-3 w-3" />
-              {minutesSince} min
-            </div>
+            {order.displayStatus !== OrderStatus.PAID && (
+              <div
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold ${getTimeColor()}`}
+              >
+                <Clock className="h-3 w-3" />
+                {minutesSince} min
+              </div>
+            )}
             {order.tableNumber && (
               <Badge className="h-7 rounded-xl border-none bg-foreground px-3 text-[10px] font-black text-background">
                 MESA {order.tableNumber}
@@ -142,6 +144,7 @@ export const KDSCard = ({
         </div>
 
         {isExpeditionView &&
+          order.displayStatus !== OrderStatus.PAID &&
           order.stationSummary &&
           order.stationSummary.length > 0 && (
             <div className="space-y-2">
