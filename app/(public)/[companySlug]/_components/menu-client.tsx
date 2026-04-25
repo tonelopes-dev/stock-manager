@@ -111,15 +111,15 @@ export function MenuClient({
           if (payload.eventType === "UPDATE") {
             const updatedProduct = payload.new as any;
             
-            setCurrentMenuData((prev) => {
-              const newCategories = prev.categories.map((cat) => ({
+            setCurrentMenuData((prev: any) => {
+              const newCategories = prev.categories.map((cat: any) => ({
                 ...cat,
-                products: cat.products.map((p) => 
+                products: cat.products.map((p: any) => 
                   p.id === updatedProduct.id 
                     ? { ...p, ...updatedProduct, price: Number(updatedProduct.price), promoPrice: updatedProduct.promoPrice ? Number(updatedProduct.promoPrice) : null } 
                     : p
-                ).filter(p => p.isVisibleOnMenu && p.isActive) // Filter out if hidden
-              })).filter(cat => cat.products.length > 0);
+                ).filter((p: any) => p.isVisibleOnMenu && p.isActive) // Filter out if hidden
+              })).filter((cat: any) => cat.products.length > 0);
               
               return { ...prev, categories: newCategories };
             });
