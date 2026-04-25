@@ -37,6 +37,8 @@ export const useKdsActions = ({
         ? order.items
         : order.items.filter((i) => i.environmentId === activeEnvId);
 
+    const previousOrders = [...orders];
+
     // Optimistic Update
     setOrders((prev) =>
       prev.map((o) => {
@@ -62,6 +64,7 @@ export const useKdsActions = ({
 
       toast.success(`Fluxo atualizado!`);
     } catch (error) {
+      setOrders(previousOrders);
       toast.error("Erro ao sincronizar atualização");
     } finally {
       setIsUpdatingIds((prev) => {
@@ -83,6 +86,8 @@ export const useKdsActions = ({
     pendingUpdates.current.add(orderId);
     setIsUpdatingIds((prev) => new Set(prev).add(orderId));
 
+    const previousOrders = [...orders];
+
     setOrders((prev) =>
       prev.map((o) => ({
         ...o,
@@ -95,6 +100,7 @@ export const useKdsActions = ({
       if (!result?.data?.success) throw new Error();
       toast.success(`Item atualizado!`);
     } catch (error) {
+      setOrders(previousOrders);
       toast.error("Erro ao atualizar item");
     } finally {
       setIsUpdatingIds((prev) => {

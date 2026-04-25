@@ -3,7 +3,8 @@ import { KDSOrderDto } from "@/app/_data-access/order/get-kds-orders";
 
 export interface StationSummary {
   name: string;
-  count: string;
+  ready: number;
+  total: number;
   isDone: boolean;
 }
 
@@ -19,6 +20,14 @@ export const getDerivedStatus = (
   if (itemsForThisView.length === 0) return order.status;
 
   if (activeEnvId === "all") {
+    // Se o pedido já está finalizado no banco, mantém o status do banco
+    if (
+      order.status === OrderStatus.DELIVERED ||
+      order.status === OrderStatus.PAID
+    ) {
+      return order.status;
+    }
+
     const allItemsDone = order.items.every(
       (i) =>
         i.status === OrderStatus.READY ||
@@ -27,12 +36,6 @@ export const getDerivedStatus = (
     );
 
     if (allItemsDone) {
-      if (
-        order.status === OrderStatus.DELIVERED ||
-        order.status === OrderStatus.PAID
-      ) {
-        return order.status;
-      }
       return OrderStatus.READY;
     } else {
       const hasStarted = order.items.some(
@@ -41,6 +44,15 @@ export const getDerivedStatus = (
       return hasStarted ? OrderStatus.PREPARING : OrderStatus.PENDING;
     }
   } else {
+    const allStationItemsDelivered = itemsForThisView.every(
+      (i) =>
+        i.status === OrderStatus.DELIVERED || i.status === OrderStatus.PAID
+    );
+
+    if (allStationItemsDelivered) {
+      return OrderStatus.DELIVERED;
+    }
+
     const allStationItemsReady = itemsForThisView.every(
       (i) =>
         i.status === OrderStatus.READY ||
@@ -64,15 +76,18 @@ export const getStationSummary = (order: KDSOrderDto): StationSummary[] => {
   
   return envs.map((envId) => {
     const envItems = order.items.filter((i) => i.environmentId === envId);
-    const envName = envItems[0]?.environmentName || "Cozinha"; // Fallback name
+    const envName = envItems[0]?.environmentName || "Cozinha";
     const readyCount = envItems.filter(
       (i) =>
-        i.status !== OrderStatus.PENDING && i.status !== OrderStatus.PREPARING
+        i.status === OrderStatus.READY ||
+        i.status === OrderStatus.DELIVERED ||
+        i.status === OrderStatus.PAID
     ).length;
 
     return {
       name: envName,
-      count: `${readyCount}/${envItems.length}`,
+      ready: readyCount,
+      total: envItems.length,
       isDone: readyCount === envItems.length,
     };
   });

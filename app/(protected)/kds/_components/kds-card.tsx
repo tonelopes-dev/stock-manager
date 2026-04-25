@@ -281,9 +281,11 @@ export const KDSCard = ({
               order.displayStatus === OrderStatus.READY
               ? "border-b-4 border-emerald-700 bg-emerald-500 text-background shadow-2xl shadow-emerald-200 hover:bg-emerald-600 active:translate-y-1 active:border-b-0"
               : "border-b-4 border-foreground bg-foreground text-background shadow-2xl shadow-slate-300 hover:bg-foreground active:translate-y-1 active:border-b-0",
-            isExpeditionView &&
-              order.displayStatus !== OrderStatus.READY &&
-              "hidden",
+            (isExpeditionView && order.displayStatus !== OrderStatus.READY) ||
+              order.displayStatus === OrderStatus.DELIVERED ||
+              order.displayStatus === OrderStatus.PAID
+              ? "hidden"
+              : "",
           )}
         >
           {isExpeditionView ? (

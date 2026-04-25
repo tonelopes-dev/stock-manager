@@ -42,21 +42,25 @@ export const updateOrderFlowAction = actionClient
         });
 
         let newOrderStatus: OrderStatus = OrderStatus.PENDING;
-        const hasPreparing = allItems.some(i => i.status === OrderStatus.PREPARING);
+        
+        const allDelivered = allItems.every(i => i.status === OrderStatus.DELIVERED || i.status === OrderStatus.PAID);
         const allReady = allItems.every(i => 
           i.status === OrderStatus.READY || 
           i.status === OrderStatus.DELIVERED || 
           i.status === OrderStatus.PAID
         );
+        const hasPreparing = allItems.some(i => i.status === OrderStatus.PREPARING);
+        const hasReady = allItems.some(i => i.status === OrderStatus.READY);
 
-        if (allReady) {
+        if (allDelivered) {
+          newOrderStatus = OrderStatus.DELIVERED;
+        } else if (allReady) {
           newOrderStatus = OrderStatus.READY;
-        } else if (hasPreparing) {
+        } else if (hasPreparing || hasReady) {
           newOrderStatus = OrderStatus.PREPARING;
-        } else {
-          const hasReady = allItems.some(i => i.status === OrderStatus.READY);
-          if (hasReady) newOrderStatus = OrderStatus.PREPARING;
         }
+
+        console.log(`[updateOrderFlow] Order: ${orderId} | Action Status: ${status} | New Calculated Status: ${newOrderStatus}`);
 
         // 3. Update the order status
         await trx.order.update({
