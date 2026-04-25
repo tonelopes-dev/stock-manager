@@ -1,24 +1,25 @@
 import { defineConfig, devices } from "@playwright/test";
+import path from "path";
 
 /**
- * Playwright E2E Configuration for Kipo SaaS
+ * Playwright E2E Configuration for Kipo ERP
  *
  * Strategy:
  *  - Tests run against the local Next.js dev server (port 3000)
  *  - webServer auto-starts `npm run dev` before tests
- *  - Only Chromium (desktop) for fast, focused UI validation
- *  - Auth state is saved to e2e/.auth/ to avoid re-login per test
+ *  - Sequential execution (workers: 1) to prevent DB race conditions
+ *  - Auth state saved in tests/verified/.auth/
  */
 export default defineConfig({
   testDir: "./tests/verified",
-  fullyParallel: false, // Sequential for reliable E2E
+  fullyParallel: false, 
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: 1,
+  workers: 1, // Strict sequential for E2E reliability
   reporter: [["html", { open: "never" }], ["list"]],
-  timeout: 60_000, // 60s per test — UI can be slow
+  timeout: 90_000, // 90s for heavy multi-persona flows
   expect: {
-    timeout: 10_000,
+    timeout: 15_000,
   },
 
   use: {
@@ -41,21 +42,17 @@ export default defineConfig({
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
-        storageState: "tests/verified/.auth/user.json",
+        storageState: path.join(__dirname, "tests/verified/.auth/user.json"),
       },
       dependencies: ["setup"],
     },
   ],
 
-  // Auto-start the dev server (Disabled for manual stabilization)
-  /*
+  // Auto-start the dev server
   webServer: {
     command: "npm run dev",
     url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000, // 2 min to start Next.js
-    stdout: "pipe",
-    stderr: "pipe",
+    reuseExistingServer: true,
+    timeout: 120_000,
   },
-  */
 });

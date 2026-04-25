@@ -25,7 +25,13 @@ model Product {
   unit             UnitType          @default(UN)
   isActive         Boolean           @default(true)
   isVisibleOnMenu  Boolean           @default(false)
-  isPromotion      Boolean           @default(false)
+  
+  // Promo Engine
+  promoPrice       Decimal?          @db.Decimal(10, 2)
+  promoActive      Boolean           @default(false)
+  promoSchedule    Json?             // { days: [0,1,2...], startTime: "18:00", endTime: "22:00" }
+  
+  isFeatured       Boolean           @default(false)
   categoryId       String?
   category         Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   environmentId    String?
@@ -210,6 +216,7 @@ model StockMovement {
 
 model Company {
   id                     String              @id @default(cuid())
+  slug                   String              @unique
   name                   String
   createdAt              DateTime            @default(now())
   allowNegativeStock     Boolean             @default(false)
@@ -241,6 +248,15 @@ model Company {
   fixedExpenses          FixedExpense[]
   suppliers              Supplier[]
   stockEntries           StockEntry[]
+
+  // Branding & Menu Info
+  bannerUrl              String?
+  logoUrl                String?
+  address                String?
+  description            String?           @db.Text
+  whatsappNumber         String?
+  instagramUrl           String?
+  operatingHours         Json?
 
 
   @@index([deletedAt])
@@ -304,7 +320,8 @@ model AuditEvent {
   id              String         @id @default(cuid())
   type            AuditEventType
   companyId       String?
-  actorId         String
+  actorId         String?
+  customerId      String?
   metadata        Json?
   createdAt       DateTime       @default(now())
   actorEmail      String?
@@ -313,7 +330,8 @@ model AuditEvent {
   entityType      String?
   metadataVersion Int            @default(1)
   severity        AuditSeverity  @default(INFO)
-  actor           User           @relation("UserAudits", fields: [actorId], references: [id])
+  actor           User?          @relation("UserAudits", fields: [actorId], references: [id])
+  customer        Customer?      @relation(fields: [customerId], references: [id])
   company         Company?       @relation(fields: [companyId], references: [id])
 
   @@index([companyId, createdAt(sort: Desc)])
@@ -344,6 +362,7 @@ model Customer {
   sales       Sale[]
   categories  CustomerCategory[]   @relation("CustomerToCustomerCategory")
   checklists  Checklist[]
+  auditEvents AuditEvent[]
 
   @@unique([email, companyId])
   @@unique([phone, companyId])
@@ -429,16 +448,17 @@ model Order {
 }
 
 model OrderItem {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
   orderId   String
   productId String
-  quantity  Decimal  @db.Decimal(10, 3)
-  unitPrice Decimal  @db.Decimal(10, 2)
-  notes     String?  @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Decimal     @db.Decimal(10, 3)
+  unitPrice Decimal     @db.Decimal(10, 2)
+  status    OrderStatus @default(PENDING)
+  notes     String?     @db.Text
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product     @relation(fields: [productId], references: [id])
 
   @@index([orderId])
 }
@@ -681,6 +701,8 @@ enum AuditEventType {
   INGREDIENT_STOCK_ADJUSTED
   CUSTOMER_STAGE_UPDATED
   CHECKLIST_ITEM_COMPLETED
+  ORDER_CREATED
+  PRODUCT_PROMOTION_UPDATED
 }
 
 enum CustomerCategoryEnum {

@@ -10,14 +10,10 @@ const createPrismaClient = () => {
   return new PrismaClient();
 };
 
-let prisma: ReturnType<typeof createPrismaClient>;
-if (process.env.NODE_ENV === "production") {
-  prisma = createPrismaClient();
-} else {
-  if (!global.cachedPrisma) {
-    global.cachedPrisma = createPrismaClient();
-  }
-  prisma = global.cachedPrisma;
+const prisma = global.cachedPrisma || createPrismaClient();
+
+if (process.env.NODE_ENV !== "production") {
+  global.cachedPrisma = prisma;
 }
 
-export const db = prisma;
+export const db = prisma;

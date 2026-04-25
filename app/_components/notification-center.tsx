@@ -14,7 +14,10 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getCRMAlertsAction } from "@/app/_actions/crm/get-alerts";
 import { getInventoryAlerts } from "@/app/_actions/inventory/get-inventory-alerts";
+
 import Link from "next/link";
+import { supabase } from "@/app/_lib/supabase";
+
 
 interface Notification {
   id: string;
@@ -97,52 +100,55 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
     fetchAlerts();
   }, []);
 
-  // SSE listener
+  // Supabase Realtime - Native Postgres Changes for Order/Status
   useEffect(() => {
     if (!companyId) return;
 
-    const eventSource = new EventSource(
-      `/api/kds/events?companyId=${companyId}`,
-    );
-
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === "NEW_ORDER") {
-          triggerAlert("Novo pedido recebido!");
-          setNotifications((prev) => [
-            {
-              id: `notif-${Date.now()}`,
-              type: "order",
-              message: `Novo pedido recebido!`,
-              timestamp: new Date(),
-              read: false,
-            },
-            ...prev.slice(0, 49),
-          ]);
-        } else if (data.type === "STATUS_UPDATED") {
-          triggerAlert(`Pedido atualizado → ${data.status || "Novo status"}`);
-          setNotifications((prev) => [
-            {
-              id: `notif-${Date.now()}`,
-              type: "status",
-              message: `Pedido atualizado → ${data.status || "Novo status"}`,
-              timestamp: new Date(),
-              read: false,
-            },
-            ...prev.slice(0, 49),
-          ]);
+    const channel = supabase
+      .channel("notification-center-realtime")
+      .on(
+        "postgres_changes",
+        { 
+          event: "*", 
+          schema: "public", 
+          table: "Order", 
+          filter: `companyId=eq.${companyId}` 
+        },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            const newOrder = payload.new as any;
+            triggerAlert("Novo pedido recebido!");
+            setNotifications((prev) => [
+              {
+                id: `notif-order-${newOrder.id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                type: "order",
+                message: "Novo pedido recebido!",
+                timestamp: new Date(),
+                read: false,
+              },
+              ...prev.slice(0, 49),
+            ]);
+          } else if (payload.eventType === "UPDATE") {
+            const updatedOrder = payload.new as any;
+            triggerAlert(`Pedido atualizado → ${updatedOrder.status || "Novo status"}`);
+            setNotifications((prev) => [
+              {
+                id: `notif-status-${updatedOrder.id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                type: "status",
+                message: `Pedido atualizado → ${updatedOrder.status || "Novo status"}`,
+                timestamp: new Date(),
+                read: false,
+              },
+              ...prev.slice(0, 49),
+            ]);
+          }
         }
-      } catch {
-        // ignore parse errors
-      }
-    };
+      )
+      .subscribe();
 
-    eventSource.onerror = () => {
-      eventSource.close();
+    return () => {
+      supabase.removeChannel(channel);
     };
-
-    return () => eventSource.close();
   }, [companyId]);
 
   const markAllRead = () => {
@@ -196,7 +202,6 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
             notifications.map((notif) => {
               const content = (
                 <div
-                  key={notif.id}
                   className={`flex items-start gap-3 border-b border-border px-4 py-3 transition-colors ${
                     !notif.read ? "bg-primary/5" : "hover:bg-muted/50"
                   }`}
@@ -247,7 +252,11 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
                 );
               }
 
-              return content;
+              return (
+                <div key={notif.id}>
+                  {content}
+                </div>
+              );
             })
           )}
         </div>

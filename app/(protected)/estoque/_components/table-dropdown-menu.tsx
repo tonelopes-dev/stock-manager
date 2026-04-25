@@ -49,7 +49,7 @@ const IngredientTableDropdownMenu = ({
   const [adjustDialogOpen, setAdjustDialogIsOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogIsOpen] = useState(false);
 
-  const { execute: executeDelete } = useAction(deleteIngredient, {
+  const { execute: executeDelete, isPending: deleteIsPending } = useAction(deleteIngredient, {
     onSuccess: () => {
       toast.success("Insumo desativado com sucesso.");
       setDeleteDialogIsOpen(false);
@@ -161,11 +161,12 @@ const IngredientTableDropdownMenu = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteIsPending}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => executeDelete({ id: ingredient.id })}
+              disabled={deleteIsPending}
             >
-              Desativar
+              {deleteIsPending ? "Processando..." : "Desativar"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
