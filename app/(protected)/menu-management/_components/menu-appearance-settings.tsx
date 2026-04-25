@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useAction } from "next-safe-action/hooks";
-import { ImageIcon, Loader2, MapPin, MessageCircle, Instagram, Store, Save, Clock, ImagePlus, Trash2 } from "lucide-react";
+import { ImageIcon, Loader2, MapPin, MessageCircle, Instagram, Store, Save, Clock, ImagePlus, Trash2, User } from "lucide-react";
 import Image from "next/image";
 
 import { updateCompany } from "@/app/_actions/company/update-company";
@@ -47,6 +47,7 @@ export const MenuAppearanceSettings = ({ initialData }: MenuAppearanceSettingsPr
       description: initialData.description || "",
       whatsappNumber: initialData.whatsappNumber || "",
       instagramUrl: initialData.instagramUrl || "",
+
       operatingHours: initialData.operatingHours || DEFAULT_HOURS,
     },
   });
@@ -363,6 +364,8 @@ export const MenuAppearanceSettings = ({ initialData }: MenuAppearanceSettingsPr
                 </div>
               </div>
             </div>
+ 
+
 
             {/* Operating Hours Section */}
             <div className="space-y-6 pt-4 border-t">

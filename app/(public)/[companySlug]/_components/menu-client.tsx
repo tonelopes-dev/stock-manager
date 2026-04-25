@@ -409,7 +409,10 @@ export function MenuClient({
       />
 
       {/* Floating Cart Button */}
-      <FloatingCartButton companyId={companyId} />
+      <FloatingCartButton 
+        companyId={companyId} 
+        requireSelfieOnCheckout={currentMenuData.requireSelfieOnCheckout}
+      />
 
       {/* Bottom Navigation Bar */}
       <BottomNav 

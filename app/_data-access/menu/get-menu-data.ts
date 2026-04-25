@@ -30,6 +30,7 @@ export interface MenuDataDto {
   whatsappNumber: string | null;
   instagramUrl: string | null;
   operatingHours: any;
+  requireSelfieOnCheckout: boolean;
   categories: MenuCategoryDto[];
 }
 
@@ -51,6 +52,7 @@ export const getMenuData = async (companyId: string): Promise<MenuDataDto | null
       whatsappNumber: true,
       instagramUrl: true,
       operatingHours: true,
+      requireSelfieOnCheckout: true,
     },
   });
 
@@ -73,6 +75,7 @@ export const getMenuDataBySlug = async (slug: string): Promise<MenuDataDto | nul
       whatsappNumber: true,
       instagramUrl: true,
       operatingHours: true,
+      requireSelfieOnCheckout: true,
     },
   });
 
@@ -190,6 +193,7 @@ const fetchMenuDetails = async (company: any): Promise<MenuDataDto> => {
     whatsappNumber: company.whatsappNumber,
     instagramUrl: company.instagramUrl,
     operatingHours: company.operatingHours,
+    requireSelfieOnCheckout: company.requireSelfieOnCheckout,
     categories: result,
   };
 };

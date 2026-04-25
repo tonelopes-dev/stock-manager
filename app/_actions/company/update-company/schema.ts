@@ -11,6 +11,7 @@ export const updateCompanySchema = z.object({
   description: z.string().optional(),
   whatsappNumber: z.string().optional(),
   instagramUrl: z.string().optional(),
+  requireSelfieOnCheckout: z.boolean().default(false),
   operatingHours: z.array(z.object({
     day: z.string(),
     open: z.string(),

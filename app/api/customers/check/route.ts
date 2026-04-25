@@ -21,6 +21,7 @@ export async function GET(request: Request) {
         id: true,
         name: true,
         phone: true,
+        imageUrl: true,
       },
     });
 
@@ -34,6 +35,7 @@ export async function GET(request: Request) {
         customerId: customer.id,
         name: customer.name,
         phoneNumber: customer.phone,
+        imageUrl: customer.imageUrl,
       },
     });
   } catch (error) {

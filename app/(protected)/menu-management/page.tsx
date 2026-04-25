@@ -5,6 +5,7 @@ import Header, {
   HeaderTitle,
 } from "@/app/_components/header";
 import { MenuSharingHub } from "./_components/menu-sharing-hub";
+import { SelfieCheckoutCard } from "./_components/selfie-checkout-card";
 import { MenuCategorySection } from "./_components/menu-category-section";
 import { MenuAppearanceSettings } from "./_components/menu-appearance-settings";
 import { Eye, Flame, LayoutGrid, Palette } from "lucide-react";
@@ -51,10 +52,16 @@ const MenuManagementPage = async () => {
 
         <TabsContent value="menu" className="space-y-8 m-0 border-none p-0 outline-none">
           {/* Sharing Hub */}
-          <MenuSharingHub 
-            companyId={companyId} 
-            companySlug={company?.slug || ""} 
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <MenuSharingHub 
+              companyId={companyId} 
+              companySlug={company?.slug || ""} 
+            />
+            <SelfieCheckoutCard 
+              companyId={companyId}
+              initialValue={company?.requireSelfieOnCheckout || false}
+            />
+          </div>
 
           {/* Stats Bar */}
           <div className="flex flex-wrap gap-4 rounded-xl bg-muted px-5 py-3">

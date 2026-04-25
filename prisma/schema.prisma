@@ -258,6 +258,7 @@ model Company {
   instagramUrl           String?
   operatingHours         Json?
 
+  requireSelfieOnCheckout Boolean            @default(false)
 
   @@index([deletedAt])
 }
@@ -344,6 +345,7 @@ model Customer {
   name        String
   email       String?
   phone       String?
+  imageUrl    String?
   source      CustomerSource       @default(MANUAL)
   externalId  String?
   birthday    DateTime?
