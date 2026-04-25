@@ -305,6 +305,11 @@ export const OrderService = {
           data: { status: OrderStatus.PAID },
         });
 
+        await trx.orderItem.updateMany({
+          where: { orderId: order.id },
+          data: { status: OrderStatus.PAID },
+        });
+
         return sale;
       });
 
