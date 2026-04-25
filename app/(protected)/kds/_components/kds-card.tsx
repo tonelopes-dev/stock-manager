@@ -52,7 +52,9 @@ export const KDSCard = ({
   const [minutesSince, setMinutesSince] = useState(
     differenceInMinutes(new Date(), new Date(order.createdAt)),
   );
-  const urgent = isUrgent(new Date(order.createdAt));
+  const urgent = isUrgent(new Date(order.createdAt)) && 
+    order.displayStatus !== OrderStatus.PAID && 
+    order.displayStatus !== OrderStatus.DELIVERED;
 
   useEffect(() => {
     const timer = setInterval(() => {
