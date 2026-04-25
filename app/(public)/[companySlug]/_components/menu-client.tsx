@@ -47,6 +47,7 @@ import { FloatingCartButton } from "./floating-cart-button";
 import { BottomNav } from "./bottom-nav";
 import { IdentificationDialog } from "./identification-dialog";
 import { useCartStore } from "../_store/use-cart-store";
+import { supabase } from "@/app/_lib/supabase";
 
 interface MenuClientProps {
   companyId: string;
@@ -90,6 +91,55 @@ export function MenuClient({
     birthDate: "",
   });
 
+  const [currentMenuData, setCurrentMenuData] = useState(menuData);
+
+  // Real-time synchronization
+  useEffect(() => {
+    const channel = supabase
+      .channel(`menu-sync-${companyId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "Product",
+          filter: `companyId=eq.${companyId}`,
+        },
+        (payload) => {
+          console.log("🔔 [MenuClient] Real-time event received:", payload.eventType, payload.new);
+          
+          if (payload.eventType === "UPDATE") {
+            const updatedProduct = payload.new as any;
+            
+            setCurrentMenuData((prev) => {
+              const newCategories = prev.categories.map((cat) => ({
+                ...cat,
+                products: cat.products.map((p) => 
+                  p.id === updatedProduct.id 
+                    ? { ...p, ...updatedProduct, price: Number(updatedProduct.price), promoPrice: updatedProduct.promoPrice ? Number(updatedProduct.promoPrice) : null } 
+                    : p
+                ).filter(p => p.isVisibleOnMenu && p.isActive) // Filter out if hidden
+              })).filter(cat => cat.products.length > 0);
+              
+              return { ...prev, categories: newCategories };
+            });
+          }
+          
+          router.refresh();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [companyId, router]);
+
+  // Update local state when prop changes (from router.refresh)
+  useEffect(() => {
+    setCurrentMenuData(menuData);
+  }, [menuData]);
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -98,9 +148,9 @@ export function MenuClient({
   };
 
   const filteredCategories = useMemo(() => {
-    if (!search) return menuData.categories;
+    if (!search) return currentMenuData.categories;
     const searchLower = search.toLowerCase();
-    return menuData.categories
+    return currentMenuData.categories
       .map((category: any) => ({
         ...category,
         products: category.products.filter(
@@ -110,14 +160,14 @@ export function MenuClient({
         ),
       }))
       .filter((category: any) => category.products.length > 0);
-  }, [search, menuData.categories]);
+  }, [search, currentMenuData.categories]);
 
   const highlights = useMemo(() => {
-    return menuData.categories
+    return currentMenuData.categories
       .flatMap((c: any) => c.products)
       .filter((p: any) => p.isFeatured)
       .slice(0, 8);
-  }, [menuData.categories]);
+  }, [currentMenuData.categories]);
 
   const status = useMemo(() => {
     return { isOpen: true, label: "Aberto agora" };
@@ -241,7 +291,7 @@ export function MenuClient({
   return (
     <div className="relative mx-auto flex min-h-screen max-w-md flex-col bg-white font-sans shadow-2xl">
       <MenuHeader
-        menuData={menuData}
+        menuData={currentMenuData}
         status={status}
         customer={customer}
         handleLogout={handleLogout}
@@ -308,7 +358,7 @@ export function MenuClient({
       )}
 
       <CategoryNav
-        categories={menuData.categories}
+        categories={currentMenuData.categories}
         selectedCategoryId={selectedCategoryId}
         onCategorySelect={scrollToCategory}
       />
@@ -342,7 +392,7 @@ export function MenuClient({
       <FloatingCartButton companyId={companyId} />
 
       {/* Bottom Navigation Bar */}
-      <BottomNav companySlug={menuData.slug} />
+      <BottomNav companySlug={currentMenuData.slug} />
 
       {/* Customer Identification Dialog */}
       <IdentificationDialog
@@ -386,21 +436,21 @@ export function MenuClient({
               <div className="flex flex-col items-center gap-6 text-center">
                 <div className="relative h-28 w-28 overflow-hidden rounded-[2rem] border-4 border-gray-50 bg-white shadow-xl">
                   <Image
-                    src={menuData.logoUrl || "/logo/logo-kipo.png"}
+                    src={currentMenuData.logoUrl || "/logo/logo-kipo.png"}
                     alt="Logo"
                     fill
                     className="object-cover"
                   />
                 </div>
                 <p className="text-sm leading-relaxed text-gray-600 font-medium px-2">
-                  {menuData.description || "Bem-vindo à nossa loja! Oferecemos os melhores produtos com qualidade e carinho."}
+                  {currentMenuData.description || "Bem-vindo à nossa loja! Oferecemos os melhores produtos com qualidade e carinho."}
                 </p>
               </div>
 
               {/* Instagram Link */}
-              {menuData.instagramUrl && (
+              {currentMenuData.instagramUrl && (
                 <a 
-                  href={`https://instagram.com/${menuData.instagramUrl.replace('@', '')}`}
+                  href={`https://instagram.com/${currentMenuData.instagramUrl.replace('@', '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-purple-50 to-pink-50 border border-pink-100/50 hover:scale-[1.02] transition-transform"
@@ -408,7 +458,7 @@ export function MenuClient({
                   <div className="p-2.5 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-white">
                     <Instagram size={20} />
                   </div>
-                  <span className="text-sm font-bold text-gray-800">@{menuData.instagramUrl.replace('@', '')}</span>
+                  <span className="text-sm font-bold text-gray-800">@{currentMenuData.instagramUrl.replace('@', '')}</span>
                 </a>
               )}
 
@@ -416,9 +466,9 @@ export function MenuClient({
               <div className="space-y-4">
                 <h3 className="text-sm font-black uppercase tracking-wider text-gray-900">Contato</h3>
                 <div className="grid grid-cols-1 gap-3">
-                  {menuData.whatsappNumber && (
+                  {currentMenuData.whatsappNumber && (
                     <a 
-                      href={`https://wa.me/${menuData.whatsappNumber.replace(/\D/g, '')}`}
+                      href={`https://wa.me/${currentMenuData.whatsappNumber.replace(/\D/g, '')}`}
                       target="_blank"
                       className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 bg-white hover:border-green-200 hover:bg-green-50/30 transition-all group"
                     >
@@ -426,7 +476,7 @@ export function MenuClient({
                         <MessageCircle className="text-green-500" size={20} />
                         <span className="text-sm font-bold text-gray-700">WhatsApp</span>
                       </div>
-                      <span className="text-sm font-black text-gray-900">{menuData.whatsappNumber}</span>
+                      <span className="text-sm font-black text-gray-900">{currentMenuData.whatsappNumber}</span>
                     </a>
                   )}
                   {/* Phone */}
@@ -435,7 +485,7 @@ export function MenuClient({
                       <Phone className="text-gray-400" size={20} />
                       <span className="text-sm font-bold text-gray-700">Telefone</span>
                     </div>
-                    <span className="text-sm font-black text-gray-900">{menuData.whatsappNumber || "(84) 99999-9999"}</span>
+                    <span className="text-sm font-black text-gray-900">{currentMenuData.whatsappNumber || "(84) 99999-9999"}</span>
                   </div>
                 </div>
               </div>
@@ -448,7 +498,7 @@ export function MenuClient({
                     <MapPin className="text-gray-400" size={20} />
                   </div>
                   <p className="text-sm leading-relaxed text-gray-600 font-medium">
-                    {menuData.address || "Endereço não cadastrado"}
+                    {currentMenuData.address || "Endereço não cadastrado"}
                   </p>
                 </div>
               </div>
@@ -461,7 +511,7 @@ export function MenuClient({
               </div>
 
               <div className="space-y-1">
-                {(menuData.operatingHours || DEFAULT_HOURS).map((item: any) => {
+                {(currentMenuData.operatingHours || DEFAULT_HOURS).map((item: any) => {
                   const today = new Date().toLocaleDateString("pt-BR", { weekday: "long" }).toLowerCase();
                   const isToday = item.day.toLowerCase() === today;
                   

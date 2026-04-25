@@ -51,6 +51,7 @@ export const MenuProductCard = ({ product }: MenuProductCardProps) => {
   return (
     <TooltipProvider>
       <div
+        data-testid={`menu-product-card-${product.id}`}
         className={cn(
           "group relative flex items-center gap-4 rounded-xl border px-4 py-3 transition-all",
           product.isVisibleOnMenu
@@ -116,7 +117,7 @@ export const MenuProductCard = ({ product }: MenuProductCardProps) => {
             )}
           </div>
           <div className="flex items-center gap-2">
-            {product.promoPrice ? (
+            {product.promoPrice && product.promoActive ? (
               <>
                 <p className="text-sm font-black text-primary">
                   {formatPrice(product.promoPrice)}
@@ -146,6 +147,7 @@ export const MenuProductCard = ({ product }: MenuProductCardProps) => {
                     <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
                   )}
                   <Switch
+                    data-testid={`visibility-switch-${product.id}`}
                     checked={product.isVisibleOnMenu}
                     disabled={isTogglingVisibility}
                     onCheckedChange={() =>
@@ -167,6 +169,7 @@ export const MenuProductCard = ({ product }: MenuProductCardProps) => {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
+                data-testid={`open-promotion-modal-${product.id}`}
                 variant="outline"
                 size="icon"
                 className={cn(

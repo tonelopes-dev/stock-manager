@@ -159,7 +159,13 @@ export const MenuAppearanceSettings = ({ initialData }: MenuAppearanceSettingsPr
                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 backdrop-blur-sm">
                             <label className="cursor-pointer p-4 rounded-full bg-white text-gray-900 hover:scale-110 transition-transform shadow-xl">
                               <ImagePlus size={24} />
-                              <input type="file" className="hidden" onChange={(e) => handleImageUpload(e, "banner")} disabled={isUploadingBanner} />
+                              <input 
+                                data-testid="upload-banner-input"
+                                type="file" 
+                                className="hidden" 
+                                onChange={(e) => handleImageUpload(e, "banner")} 
+                                disabled={isUploadingBanner} 
+                              />
                             </label>
                             <Button 
                               type="button"
@@ -187,7 +193,13 @@ export const MenuAppearanceSettings = ({ initialData }: MenuAppearanceSettingsPr
                               <span className="text-xs font-black uppercase tracking-widest">Upload do Banner</span>
                             </div>
                           )}
-                          <input type="file" className="hidden" onChange={(e) => handleImageUpload(e, "banner")} disabled={isUploadingBanner} />
+                          <input 
+                            data-testid="upload-banner-input"
+                            type="file" 
+                            className="hidden" 
+                            onChange={(e) => handleImageUpload(e, "banner")} 
+                            disabled={isUploadingBanner} 
+                          />
                         </label>
                       )}
                     </div>
@@ -213,7 +225,13 @@ export const MenuAppearanceSettings = ({ initialData }: MenuAppearanceSettingsPr
                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
                             <label className="cursor-pointer p-2 rounded-full bg-white text-gray-900 shadow-lg hover:scale-110 transition-transform">
                               <ImagePlus size={16} />
-                              <input type="file" className="hidden" onChange={(e) => handleImageUpload(e, "logo")} disabled={isUploadingLogo} />
+                              <input 
+                                data-testid="upload-logo-input"
+                                type="file" 
+                                className="hidden" 
+                                onChange={(e) => handleImageUpload(e, "logo")} 
+                                disabled={isUploadingLogo} 
+                              />
                             </label>
                             <Button 
                               type="button"
@@ -233,7 +251,13 @@ export const MenuAppearanceSettings = ({ initialData }: MenuAppearanceSettingsPr
                         <label className="cursor-pointer flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-colors w-full h-full justify-center">
                           {isUploadingLogo ? <Loader2 size={24} className="animate-spin text-primary" /> : <ImagePlus size={24} />}
                           <span className="text-[10px] font-bold uppercase">Logo</span>
-                          <input type="file" className="hidden" onChange={(e) => handleImageUpload(e, "logo")} disabled={isUploadingLogo} />
+                          <input 
+                            data-testid="upload-logo-input"
+                            type="file" 
+                            className="hidden" 
+                            onChange={(e) => handleImageUpload(e, "logo")} 
+                            disabled={isUploadingLogo} 
+                          />
                         </label>
                       )}
                     </div>
@@ -418,7 +442,12 @@ export const MenuAppearanceSettings = ({ initialData }: MenuAppearanceSettingsPr
             </div>
 
             <div className="flex justify-end pt-4 border-t">
-              <Button type="submit" disabled={isPending || isUploadingBanner || isUploadingLogo} className="min-w-[180px] h-12 rounded-xl font-bold shadow-lg shadow-primary/20">
+              <Button 
+                data-testid="appearance-save-button"
+                type="submit" 
+                disabled={isPending || isUploadingBanner || isUploadingLogo} 
+                className="min-w-[180px] h-12 rounded-xl font-bold shadow-lg shadow-primary/20"
+              >
                 {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

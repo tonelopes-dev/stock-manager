@@ -33,6 +33,10 @@ export interface MenuDataDto {
   categories: MenuCategoryDto[];
 }
 
+/**
+ * Busca dados da empresa e delega a busca de produtos/categorias.
+ * Otimizado para usar selects específicos e evitar sobrecarga do banco.
+ */
 export const getMenuData = async (companyId: string): Promise<MenuDataDto | null> => {
   const company = await db.company.findUnique({
     where: { id: companyId },
@@ -52,7 +56,7 @@ export const getMenuData = async (companyId: string): Promise<MenuDataDto | null
 
   if (!company) return null;
 
-  return fetchMenuDetails(company, company.id);
+  return fetchMenuDetails(company);
 };
 
 export const getMenuDataBySlug = async (slug: string): Promise<MenuDataDto | null> => {
@@ -74,14 +78,24 @@ export const getMenuDataBySlug = async (slug: string): Promise<MenuDataDto | nul
 
   if (!company) return null;
 
-  return fetchMenuDetails(company, company.id);
+  return fetchMenuDetails(company);
 };
 
-const fetchMenuDetails = async (company: any, companyId: string): Promise<MenuDataDto> => {
+/**
+ * Centraliza a busca de categorias e produtos. 
+ * Otimizado para reduzir latência removendo 'include' e usando 'select' aninhado.
+ */
+const fetchMenuDetails = async (company: any): Promise<MenuDataDto> => {
+  const companyId = company.id;
+
+  // Busca categorias e produtos vinculados em uma única query otimizada
   const categories = await db.category.findMany({
     where: { companyId },
     orderBy: { orderIndex: "asc" },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      icon: true,
       products: {
         where: {
           isVisibleOnMenu: true,
@@ -103,7 +117,7 @@ const fetchMenuDetails = async (company: any, companyId: string): Promise<MenuDa
     },
   });
 
-  // Also fetch products visible on menu but not assigned to any category
+  // Busca produtos sem categoria (Destaques/Avulsos)
   const uncategorized = await db.product.findMany({
     where: {
       companyId,
@@ -125,6 +139,7 @@ const fetchMenuDetails = async (company: any, companyId: string): Promise<MenuDa
     },
   });
 
+  // Mapeamento otimizado convertendo Decimal para Number para o DTO
   const result: MenuCategoryDto[] = categories
     .map((cat) => ({
       id: cat.id,
@@ -144,7 +159,7 @@ const fetchMenuDetails = async (company: any, companyId: string): Promise<MenuDa
     }))
     .filter((cat) => cat.products.length > 0);
 
-  // Add uncategorized as "Destaques" if any exist
+  // Adiciona produtos sem categoria no topo como "Destaques"
   if (uncategorized.length > 0) {
     result.unshift({
       id: "destaques",

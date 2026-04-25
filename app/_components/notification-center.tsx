@@ -116,10 +116,11 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
         },
         (payload) => {
           if (payload.eventType === "INSERT") {
+            const newOrder = payload.new as any;
             triggerAlert("Novo pedido recebido!");
             setNotifications((prev) => [
               {
-                id: `notif-${Date.now()}`,
+                id: `notif-order-${newOrder.id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
                 type: "order",
                 message: "Novo pedido recebido!",
                 timestamp: new Date(),
@@ -132,7 +133,7 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
             triggerAlert(`Pedido atualizado → ${updatedOrder.status || "Novo status"}`);
             setNotifications((prev) => [
               {
-                id: `notif-${Date.now()}`,
+                id: `notif-status-${updatedOrder.id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
                 type: "status",
                 message: `Pedido atualizado → ${updatedOrder.status || "Novo status"}`,
                 timestamp: new Date(),
@@ -201,7 +202,6 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
             notifications.map((notif) => {
               const content = (
                 <div
-                  key={notif.id}
                   className={`flex items-start gap-3 border-b border-border px-4 py-3 transition-colors ${
                     !notif.read ? "bg-primary/5" : "hover:bg-muted/50"
                   }`}
@@ -252,7 +252,11 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
                 );
               }
 
-              return content;
+              return (
+                <div key={notif.id}>
+                  {content}
+                </div>
+              );
             })
           )}
         </div>

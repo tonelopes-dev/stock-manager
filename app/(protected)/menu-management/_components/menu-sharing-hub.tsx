@@ -103,6 +103,7 @@ export const MenuSharingHub = ({ companyId, companySlug }: MenuSharingHubProps) 
           </Button>
 
           <Button
+            data-testid="copy-menu-link-button"
             variant="outline"
             size="sm"
             className="gap-2 rounded-xl"
@@ -185,6 +186,7 @@ export const MenuSharingHub = ({ companyId, companySlug }: MenuSharingHubProps) 
 
             <div className="flex w-full gap-2">
               <Button
+                data-testid="copy-menu-link-button"
                 variant="outline"
                 className="flex-1 gap-2 rounded-xl"
                 onClick={handleCopy}

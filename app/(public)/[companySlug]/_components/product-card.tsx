@@ -15,6 +15,7 @@ export const ProductCard = ({ product, onClick }: ProductCardProps) => {
 
   return (
     <div
+      data-testid={`public-product-card-${product.id}`}
       className="group relative flex cursor-pointer gap-4 rounded-3xl bg-white p-2 transition-all active:scale-[0.98]"
       onClick={() => onClick(product)}
     >
@@ -36,7 +37,7 @@ export const ProductCard = ({ product, onClick }: ProductCardProps) => {
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {product.promoPrice ? (
+            {product.promoPrice && product.promoActive ? (
               <>
                 <span className="text-sm font-black text-primary">
                   {formatPrice(product.promoPrice)}

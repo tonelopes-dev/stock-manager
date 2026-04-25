@@ -95,7 +95,11 @@ export const PromotionSettingsModal = ({ product, onOpenChange }: PromotionSetti
                   <FormLabel className="text-xs font-bold uppercase text-muted-foreground">Status</FormLabel>
                   <div className="flex items-center gap-2 h-10">
                     <FormControl>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                      <Switch 
+                        data-testid="promo-active-toggle"
+                        checked={field.value} 
+                        onCheckedChange={field.onChange} 
+                      />
                     </FormControl>
                     <span className="text-sm font-medium">{field.value ? "Ativa" : "Inativa"}</span>
                   </div>
@@ -111,6 +115,7 @@ export const PromotionSettingsModal = ({ product, onOpenChange }: PromotionSetti
                   <FormLabel className="text-xs font-bold uppercase text-muted-foreground">Preço Promo (R$)</FormLabel>
                   <FormControl>
                     <NumericFormat
+                      data-testid="promo-price-input"
                       customInput={Input}
                       thousandSeparator="."
                       decimalSeparator=","
@@ -225,6 +230,7 @@ export const PromotionSettingsModal = ({ product, onOpenChange }: PromotionSetti
               Cancelar
             </Button>
             <Button
+              data-testid="promo-save-button"
               type="submit"
               disabled={isPending}
               className="min-w-[140px] bg-primary hover:bg-primary/90"
