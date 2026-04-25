@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
-import { Minus, Plus, ShoppingBag, Trash2, X, User, MapPin, Loader2 } from "lucide-react";
+import { Minus, Plus, ShoppingBag, Trash2, X, User, Phone, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
+import { useEffect } from "react";
+import { cn } from "@/app/_lib/utils";
 
 import {
   Sheet,
@@ -33,34 +35,132 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId }: CartCheck
   
   // Identification state
   const [customerName, setCustomerName] = useState("");
-  const [tableNumber, setTableNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+  const [isCheckingPhone, setIsCheckingPhone] = useState(false);
+  const [customerExists, setCustomerExists] = useState(false);
+  const [tempCustomerId, setTempCustomerId] = useState<string | null>(null);
+
+  const formatPhoneNumber = (value: string) => {
+    const numbers = value.replace(/\D/g, "");
+    if (numbers.length <= 11) {
+      return numbers
+        .replace(/^(\d{2})(\d)/, "($1) $2")
+        .replace(/(\d{5})(\d)/, "$1-$2")
+        .replace(/(-\d{4})\d+?$/, "$1");
+    }
+    return numbers.substring(0, 11)
+      .replace(/^(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d)/, "$1-$2");
+  };
+
+  // Load saved customer from localStorage
+  useEffect(() => {
+    if (isOpen) {
+      const savedCustomer = localStorage.getItem(`kipo-customer-${companyId}`);
+      if (savedCustomer) {
+        try {
+          const data = JSON.parse(savedCustomer);
+          setCustomerName(data.name || "");
+          setPhoneNumber(formatPhoneNumber(data.phoneNumber || ""));
+          setIsPhoneVerified(true);
+          setCustomerExists(true);
+          setTempCustomerId(data.customerId || null);
+        } catch (e) {
+          console.error("Error parsing saved customer");
+        }
+      }
+    }
+  }, [isOpen, companyId]);
+
+  const handleCheckPhone = async () => {
+    const cleanPhone = phoneNumber.replace(/\D/g, "");
+    if (!cleanPhone) {
+      toast.error("Informe o telefone primeiro.");
+      return;
+    }
+    
+    setIsCheckingPhone(true);
+    try {
+      const res = await fetch(`/api/customers/check?phone=${cleanPhone}&companyId=${companyId}`);
+      const data = await res.json();
+
+      setIsPhoneVerified(true);
+      if (data.exists) {
+        setCustomerExists(true);
+        setCustomerName(data.customer.name);
+        setTempCustomerId(data.customer.customerId);
+        toast.success(`Olá, ${data.customer.name.split(' ')[0]}!`);
+      } else {
+        setCustomerExists(false);
+        setCustomerName("");
+        setTempCustomerId(null);
+        toast.info("Não encontramos seu cadastro. Por favor, informe seu nome.");
+      }
+    } catch {
+      toast.error("Erro ao verificar telefone.");
+    } finally {
+      setIsCheckingPhone(false);
+    }
+  };
 
   const handleCheckout = async () => {
     if (items.length === 0) return;
+    if (!isPhoneVerified) {
+      toast.error("Por favor, verifique seu telefone primeiro.");
+      return;
+    }
     if (!customerName.trim()) {
-      toast.error("Por favor, informe seu nome para continuar.");
+      toast.error("Por favor, informe seu nome completo.");
       return;
     }
 
     setIsSubmitting(true);
     
     try {
+      let finalCustomerId = tempCustomerId;
+      const cleanPhone = phoneNumber.replace(/\D/g, "");
+
+      if (!customerExists || !finalCustomerId) {
+        // Register new customer
+        const regRes = await fetch("/api/customers/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            name: customerName, 
+            phoneNumber: cleanPhone, 
+            companyId 
+          }),
+        });
+        const regData = await regRes.json();
+        
+        if (regData.success) {
+          finalCustomerId = regData.customer.customerId;
+          localStorage.setItem(`kipo-customer-${companyId}`, JSON.stringify(regData.customer));
+        } else {
+          toast.error(regData.message || "Erro ao realizar cadastro.");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // 4. Create Order
       const result = await createOrderAction({
         companyId,
+        customerId: finalCustomerId,
         items: items.map(item => ({
           productId: item.productId,
           quantity: item.quantity,
           notes: item.notes
         })),
-        tableNumber: tableNumber || undefined,
-        notes: `Cliente: ${customerName}`,
+        notes: `Cliente: ${customerName} | Tel: ${cleanPhone}`,
       });
 
       if (result?.data?.success && result.data.orderId) {
         toast.success("Pedido realizado com sucesso!");
         clearCart();
         onOpenChange(false);
-        router.push(`/${companySlug}/order/${result.data.orderId}`);
+        router.push(`/${companySlug}/my-orders`);
       } else {
         toast.error(result?.serverError || "Erro ao processar pedido. Tente novamente.");
       }
@@ -72,15 +172,18 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId }: CartCheck
     }
   };
 
+  const isCheckoutDisabled = items.length === 0 || isSubmitting || !isPhoneVerified || !customerName.trim();
+
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
+        hideClose
         className="mx-auto flex h-[92vh] max-w-md flex-col rounded-t-[3rem] border-none p-0 shadow-2xl"
       >
         <SheetHeader className="px-8 pt-8">
-          <SheetTitle className="flex items-center justify-between text-2xl font-black italic tracking-tighter text-foreground">
-            SUA SACOLA
+          <SheetTitle className="flex items-center justify-between text-2xl font-black italic tracking-tighter text-foreground uppercase">
+            Sua Sacola
             <Button
               variant="ghost"
               size="icon"
@@ -176,33 +279,70 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId }: CartCheck
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 text-xs font-bold text-gray-500 ml-1">
-                      <User className="w-3 h-3" />
-                      SEU NOME *
+                      <Phone className="w-3 h-3" />
+                      TELEFONE (WHATSAPP) *
                     </label>
-                    <Input 
-                      placeholder="Como podemos te chamar?"
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      className="h-12 rounded-xl border-none bg-white shadow-sm focus-visible:ring-primary/20"
-                      disabled={isSubmitting}
-                      data-testid="checkout-customer-name"
-                    />
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="(00) 00000-0000"
+                        value={phoneNumber}
+                        onChange={(e) => {
+                          const formatted = formatPhoneNumber(e.target.value);
+                          setPhoneNumber(formatted);
+                          setIsPhoneVerified(false);
+                        }}
+                        className="h-12 rounded-xl border-none bg-white shadow-sm focus-visible:ring-primary/20"
+                        disabled={isSubmitting || isCheckingPhone}
+                        type="tel"
+                        data-testid="checkout-phone-number"
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleCheckPhone}
+                        disabled={isSubmitting || isCheckingPhone || !phoneNumber.trim()}
+                        className={cn(
+                          "h-12 w-12 shrink-0 rounded-xl transition-all",
+                          isPhoneVerified 
+                            ? "bg-emerald-500 hover:bg-emerald-600" 
+                            : "bg-primary hover:bg-primary/90 text-white"
+                        )}
+                      >
+                        {isCheckingPhone ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <Check className="h-5 w-5" strokeWidth={3} />
+                        )}
+                      </Button>
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-xs font-bold text-gray-500 ml-1">
-                      <MapPin className="w-3 h-3" />
-                      MESA (OPCIONAL)
-                    </label>
-                    <Input 
-                      placeholder="Ex: 12"
-                      value={tableNumber}
-                      onChange={(e) => setTableNumber(e.target.value)}
-                      className="h-12 rounded-xl border-none bg-white shadow-sm focus-visible:ring-primary/20"
-                      disabled={isSubmitting}
-                      data-testid="checkout-table-number"
-                    />
-                  </div>
+                  {isPhoneVerified && (
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <label className="flex items-center gap-2 text-xs font-bold text-gray-500 ml-1">
+                        <User className="w-3 h-3" />
+                        NOME E SOBRENOME *
+                      </label>
+                      <Input 
+                        placeholder="Como podemos te chamar?"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        className="h-12 rounded-xl border-none bg-white shadow-sm focus-visible:ring-primary/20"
+                        disabled={isSubmitting || (isPhoneVerified && customerExists)}
+                        data-testid="checkout-customer-name"
+                      />
+                      {customerExists && (
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => router.push(`/${companySlug}/profile`)}
+                            className="text-[10px] font-bold text-primary hover:underline px-1"
+                          >
+                            Editar Perfil
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </>
@@ -232,8 +372,11 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId }: CartCheck
           </div>
 
           <Button
-            className="h-16 w-full rounded-[2rem] bg-foreground text-lg font-black text-background shadow-xl transition-all hover:bg-foreground active:scale-[0.98] disabled:opacity-50"
-            disabled={items.length === 0 || isSubmitting}
+            className={cn(
+              "h-16 w-full rounded-[2rem] text-lg font-black italic tracking-tighter shadow-xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:grayscale",
+              isCheckoutDisabled ? "bg-muted text-muted-foreground" : "bg-primary text-white"
+            )}
+            disabled={isCheckoutDisabled}
             data-testid="checkout-submit-button"
             onClick={handleCheckout}
           >

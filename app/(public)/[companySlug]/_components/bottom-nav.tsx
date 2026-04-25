@@ -3,7 +3,8 @@
 import { Home, Tag, Receipt, User } from "lucide-react";
 import { cn } from "@/app/_lib/utils";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useUIStore } from "../_store/use-ui-store";
 
 interface BottomNavProps {
   companySlug: string;
@@ -11,6 +12,8 @@ interface BottomNavProps {
 
 export function BottomNav({ companySlug }: BottomNavProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { openPromotionsModal } = useUIStore();
 
   const tabs = [
     { 
@@ -23,7 +26,7 @@ export function BottomNav({ companySlug }: BottomNavProps) {
       id: "promotions", 
       label: "Promoções", 
       icon: Tag,
-      href: `/${companySlug}/promotions` // Not implemented yet
+      href: `/${companySlug}?openPromotions=true`
     },
     { 
       id: "orders", 
@@ -39,6 +42,17 @@ export function BottomNav({ companySlug }: BottomNavProps) {
     },
   ] as const;
 
+  const handleClick = (e: React.MouseEvent, tabId: string, href: string) => {
+    if (tabId === "promotions") {
+      e.preventDefault();
+      if (pathname === `/${companySlug}`) {
+        openPromotionsModal();
+      } else {
+        router.push(href);
+      }
+    }
+  };
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 w-full items-center border-t border-gray-100 bg-white/95 pb-safe backdrop-blur-lg">
       <div className="mx-auto flex w-full max-w-md items-center justify-around px-2">
@@ -50,6 +64,7 @@ export function BottomNav({ companySlug }: BottomNavProps) {
             <Link
               key={tab.id}
               href={tab.href}
+              onClick={(e) => handleClick(e, tab.id, tab.href)}
               className={cn(
                 "flex flex-1 flex-col items-center justify-center gap-1 py-1 transition-all active:scale-95",
                 isActive ? "text-primary" : "text-gray-400"

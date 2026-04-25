@@ -25,9 +25,15 @@ import { Button } from "@/app/_components/ui/button";
 import { OrderStatusDto } from "@/app/_data-access/order/get-order-status";
 import { getMyOrdersAction } from "@/app/_actions/order/get-my-orders";
 import { cn } from "@/app/_lib/utils";
+import { BottomNav } from "../../_components/bottom-nav";
+import { PromotionsModal } from "../../_components/promotions-modal";
+import { ProductDetailsSheet } from "../../_components/product-details-sheet";
+import { FloatingCartButton } from "../../_components/floating-cart-button";
+import { useUIStore } from "../../_store/use-ui-store";
 
 interface MyOrdersClientProps {
   companyId: string;
+  companySlug: string;
 }
 
 const statusConfig: Record<
@@ -176,40 +182,44 @@ const OrderCard = ({
             const ItemIcon = config.icon;
             
             return (
-              <div key={idx} className="flex flex-col gap-2">
+              <div key={idx} className="flex flex-col gap-3 py-2">
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-gray-900 text-[10px] font-black text-white">
-                      {item.quantity}
+                  <div className="flex flex-col gap-1 flex-1">
+                    <span className="text-sm font-black text-gray-900 leading-tight">
+                      {item.name}
                     </span>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-sm font-bold text-gray-800 leading-tight">
-                        {item.name}
+                    {item.notes && (
+                      <span className="text-[10px] italic text-gray-400 leading-tight font-medium">
+                        "{item.notes}"
                       </span>
-                      {item.notes && (
-                        <span className="text-[10px] italic text-gray-400 leading-tight">
-                          "{item.notes}"
-                        </span>
-                      )}
-                    </div>
+                    )}
                   </div>
-                  <span className="text-xs font-bold text-gray-500">
-                    {formatPrice(item.price * item.quantity)}
+                  <span className="text-xs font-bold text-gray-500 shrink-0">
+                    {formatPrice(item.price)}
                   </span>
                 </div>
                 
-                {/* Granular Item Status Badge */}
-                <div className="ml-9">
+                <div className="flex items-center justify-between gap-4">
+                  {/* Granular Item Status Badge */}
                   <Badge 
                     variant="outline" 
                     className={cn(
-                      "h-6 gap-1.5 px-2.5 text-[9px] font-black uppercase tracking-wider border",
+                      "h-6 gap-1.5 px-2.5 text-[9px] font-black uppercase tracking-wider border transition-all shrink-0",
                       config.color
                     )}
                   >
                     <ItemIcon className="h-3 w-3" />
                     {config.label}
                   </Badge>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">
+                      ({item.quantity}x) = 
+                    </span>
+                    <span className="text-xs font-black text-gray-900 bg-gray-50 px-2 py-1 rounded-lg">
+                      {formatPrice(item.price * item.quantity)}
+                    </span>
+                  </div>
                 </div>
               </div>
             );
@@ -228,11 +238,13 @@ const OrderCard = ({
   );
 };
 
-export const MyOrdersClient = ({ companyId }: MyOrdersClientProps) => {
+export const MyOrdersClient = ({ companyId, companySlug }: MyOrdersClientProps) => {
   const router = useRouter();
+  const { openPromotionsModal } = useUIStore();
   const [orders, setOrders] = useState<OrderStatusDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [customerId, setCustomerId] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
 
   const loadOrders = async (cid: string) => {
@@ -345,7 +357,7 @@ export const MyOrdersClient = ({ companyId }: MyOrdersClientProps) => {
     <div className="mx-auto flex min-h-screen max-w-md flex-col bg-gray-50/50 font-sans shadow-2xl">
       <header className="sticky top-0 z-20 bg-white/95 px-6 pb-6 pt-10 shadow-sm backdrop-blur-md">
         <Link
-          href={`/menu/${companyId}`}
+          href={`/${companySlug}`}
           className="mb-6 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-primary transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -373,7 +385,7 @@ export const MyOrdersClient = ({ companyId }: MyOrdersClientProps) => {
             <p className="mt-2 max-w-[200px] text-sm text-muted-foreground">
               Seus pedidos aparecerão aqui quando você finalizar sua compra.
             </p>
-            <Link href={`/menu/${companyId}`} className="mt-8">
+            <Link href={`/${companySlug}`} className="mt-8">
               <Button className="rounded-2xl bg-foreground px-8 text-xs font-black uppercase tracking-widest text-background shadow-xl hover:bg-foreground">
                 Ver Cardápio
               </Button>
@@ -386,14 +398,25 @@ export const MyOrdersClient = ({ companyId }: MyOrdersClientProps) => {
         )}
       </main>
 
-      <footer className="fixed bottom-0 left-1/2 z-30 w-[calc(100%-48px)] max-w-[calc(448px-48px)] -translate-x-1/2 pb-10">
-        <Link href={`/menu/${companyId}`}>
-          <Button className="h-16 w-full rounded-[2rem] bg-foreground px-8 text-lg font-black italic text-background shadow-[0_20px_50px_rgba(0,0,0,0.2)] hover:bg-foreground active:scale-95">
-            <Plus className="mr-3 h-6 w-6" />
-            NOVO PEDIDO
-          </Button>
-        </Link>
-      </footer>
+      {/* Promotions Modal */}
+      <PromotionsModal
+        companySlug={companySlug}
+        onSelectProduct={setSelectedProduct}
+      />
+
+      {/* Product Details Sheet */}
+      <ProductDetailsSheet
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+      />
+
+      {/* Floating Cart Button */}
+      <FloatingCartButton companyId={companyId} />
+
+      {/* Bottom Navigation */}
+      <BottomNav 
+        companySlug={companySlug} 
+      />
     </div>
   );
 };

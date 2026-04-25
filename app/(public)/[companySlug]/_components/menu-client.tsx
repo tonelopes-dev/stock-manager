@@ -46,7 +46,9 @@ import { ProductDetailsSheet } from "./product-details-sheet";
 import { FloatingCartButton } from "./floating-cart-button";
 import { BottomNav } from "./bottom-nav";
 import { IdentificationDialog } from "./identification-dialog";
+import { PromotionsModal } from "./promotions-modal";
 import { useCartStore } from "../_store/use-cart-store";
+import { useUIStore } from "../_store/use-ui-store";
 import { supabase } from "@/app/_lib/supabase";
 
 interface MenuClientProps {
@@ -73,6 +75,7 @@ export function MenuClient({
   tableNumber,
 }: MenuClientProps) {
   const router = useRouter();
+  const { openPromotionsModal } = useUIStore();
   const [search, setSearch] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [isStoreInfoOpen, setIsStoreInfoOpen] = useState(false);
@@ -92,6 +95,17 @@ export function MenuClient({
   });
 
   const [currentMenuData, setCurrentMenuData] = useState(menuData);
+
+  // Open promotions modal if requested via query param (e.g. from BottomNav on another page)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("openPromotions") === "true") {
+      openPromotionsModal();
+      // Clear the parameter from the URL without reloading
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [openPromotionsModal]);
 
   // Real-time synchronization
   useEffect(() => {
@@ -265,7 +279,7 @@ export function MenuClient({
         toast.success("Pedido enviado com sucesso! 🎉");
         useCartStore.getState().clearCart();
         setShowIdentifyDialog(false);
-        router.push(`/menu/${companyId}/my-orders`);
+        router.push(`/${currentMenuData.slug}/my-orders`);
       } else {
         toast.error(result?.serverError || "Erro ao enviar pedido");
       }
@@ -388,11 +402,19 @@ export function MenuClient({
         onClose={() => setSelectedProduct(null)}
       />
 
+      {/* Promotions Modal */}
+      <PromotionsModal
+        companySlug={currentMenuData.slug}
+        onSelectProduct={setSelectedProduct}
+      />
+
       {/* Floating Cart Button */}
       <FloatingCartButton companyId={companyId} />
 
       {/* Bottom Navigation Bar */}
-      <BottomNav companySlug={currentMenuData.slug} />
+      <BottomNav 
+        companySlug={currentMenuData.slug} 
+      />
 
       {/* Customer Identification Dialog */}
       <IdentificationDialog

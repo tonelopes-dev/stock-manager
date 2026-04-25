@@ -1,16 +1,17 @@
 import { notFound } from "next/navigation";
 import { getMenuDataBySlug } from "@/app/_data-access/menu/get-menu-data";
-import { MyOrdersClient } from "./_components/my-orders-client";
+import { ProfileClient } from "./_components/profile-client";
 
-interface MyOrdersPageProps {
+interface ProfilePageProps {
   params: Promise<{
     companySlug: string;
   }>;
 }
 
-export default async function MyOrdersPage({ params }: MyOrdersPageProps) {
+export default async function ProfilePage({ params }: ProfilePageProps) {
   const { companySlug } = await params;
   if (companySlug === "undefined") return notFound();
+  
   const menuData = await getMenuDataBySlug(companySlug);
 
   if (!menuData) {
@@ -18,8 +19,12 @@ export default async function MyOrdersPage({ params }: MyOrdersPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-muted">
-      <MyOrdersClient companyId={menuData.id} companySlug={menuData.slug} />
+    <div className="min-h-screen bg-white">
+      <ProfileClient 
+        companySlug={companySlug} 
+        companyId={menuData.id}
+        companyName={menuData.companyName}
+      />
     </div>
   );
 }
