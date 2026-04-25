@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { updateOrderStatusAction } from "@/app/_actions/order/update-status";
 import { updateItemStatusAction } from "@/app/_actions/order/update-item-status";
+import { updateOrderFlowAction } from "@/app/_actions/order/update-order-flow";
 import { KDSOrderDto } from "@/app/_data-access/order/get-kds-orders";
 
 interface UseKdsActionsProps {
@@ -52,15 +53,12 @@ export const useKdsActions = ({
     );
 
     try {
-      if (activeEnvId === "all") {
-        await updateOrderStatusAction({ orderId, status, companyId });
-      }
-
-      await Promise.all(
-        itemsToUpdate.map((item) =>
-          updateItemStatusAction({ itemId: item.id, status, companyId })
-        )
-      );
+      await updateOrderFlowAction({ 
+        orderId, 
+        status, 
+        companyId, 
+        environmentId: activeEnvId 
+      });
 
       toast.success(`Fluxo atualizado!`);
     } catch (error) {

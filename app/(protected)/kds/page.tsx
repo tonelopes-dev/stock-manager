@@ -9,7 +9,10 @@ import { getEnvironments } from "@/app/_data-access/product/get-environments";
 import { KDSClient } from "./_components/kds-client";
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 export default async function KDSPage() {
+
   const companyId = await getCurrentCompanyId();
   if (!companyId) redirect("/login");
 
