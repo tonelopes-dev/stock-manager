@@ -15,11 +15,29 @@ export default auth(async (req) => {
   }
 
   const publicRoutes = ["/", "/login", "/register", "/plans", "/checkout", "/checkout/success", "/termos", "/privacidade"];
+  
+  // Routes that require authentication (SaaS Dashboard)
+  const protectedRoutes = [
+    "/audit", "/cardapio", "/customers", "/dashboard", "/estoque", 
+    "/fornecedores", "/goals", "/kds", "/menu-management", 
+    "/profile", "/sales", "/settings"
+  ];
+  const isProtectedRoute = protectedRoutes.some(route => pathname === route || pathname.startsWith(`${route}/`));
+
+  // The public menu is at the root `/[companySlug]`. 
+  // Any route that isn't explicitly protected and isn't an internal route is considered a public menu route.
+  const isCompanyMenuRoute = 
+    pathname !== "/" && 
+    !isProtectedRoute && 
+    !pathname.startsWith("/api") && 
+    !pathname.startsWith("/auth") && 
+    pathname !== "/billing-required";
+
   const isPublicRoute = 
     publicRoutes.includes(pathname) || 
-    pathname.startsWith("/menu") ||
     pathname.startsWith("/prints") ||
-    pathname.startsWith("/logo");
+    pathname.startsWith("/logo") ||
+    isCompanyMenuRoute;
   const isAuthApiRoute = pathname.startsWith("/api/auth");
   const isWebhookRoute = pathname.startsWith("/api/webhooks");
   const isRestorePage = pathname === "/settings/company/restore";
