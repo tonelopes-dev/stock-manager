@@ -37,8 +37,14 @@ export async function seedCustomers(prisma: PrismaClient, companyId: string) {
   const customers: any[] = [];
   
   // Fixed Customer for E2E Tests
-  const testCustomer = await prisma.customer.create({
-    data: {
+  const testCustomer = await prisma.customer.upsert({
+    where: { email_companyId: { email: "sdet@test.com", companyId } },
+    update: {
+      name: "Cliente SDET Teste",
+      phone: "11999999999",
+      stageId: stages["Convertido"].id,
+    },
+    create: {
       name: "Cliente SDET Teste",
       email: "sdet@test.com",
       phone: "11999999999",
@@ -54,10 +60,14 @@ export async function seedCustomers(prisma: PrismaClient, companyId: string) {
   for (let i = 0; i < 20; i++) {
     const categoryName = faker.helpers.arrayElement(custCategoriesNames);
     const stageName = faker.helpers.arrayElement(stagesData).name;
-    const customer = await prisma.customer.create({
-      data: {
+    const email = faker.internet.email().toLowerCase();
+    
+    const customer = await prisma.customer.upsert({
+      where: { email_companyId: { email, companyId } },
+      update: {},
+      create: {
         name: faker.person.fullName(),
-        email: faker.internet.email(),
+        email,
         phone: faker.phone.number(),
         categories: {
           connect: { id: custCategories[categoryName].id },

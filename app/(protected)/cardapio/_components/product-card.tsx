@@ -12,7 +12,6 @@ import { UserRole } from "@prisma/client";
 import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
 import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
 import * as React from "react";
-import { ProductAvailabilityInfo } from "../../sales/_components/shared/product-availability-info";
 
 interface ProductCardProps {
   product: ProductDto;
@@ -140,25 +139,17 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
           </div>
         </div>
 
-        <div className="flex items-center justify-between min-h-[40px]">
-          <div className="space-y-1">
-            <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-tight">
-              {product.isMadeToOrder ? "Disponibilidade" : "Estoque"}
-            </span>
-            {product.isMadeToOrder ? (
-              <ProductAvailabilityInfo 
-                product={product} 
-                showDetails={false} 
-                className="mt-0.5"
-              />
-            ) : (
-              <p className="text-sm font-semibold text-foreground tabular-nums">
-                {product.stock} {product.unit}
-              </p>
-            )}
+        {!product.isMadeToOrder && (
+          <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-tight">Estoque</span>
+                  <p className="text-sm font-semibold text-foreground">
+                      {product.stock} {product.unit}
+                  </p>
+              </div>
+              <ProductStatusBadge status={product.status} />
           </div>
-          <ProductStatusBadge status={product.status} />
-        </div>
+        )}
       </CardContent>
     </Card>
   );

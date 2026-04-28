@@ -51,7 +51,7 @@ export const UpsertGoalDialogContent = ({
   products,
   onClose,
 }: UpsertGoalDialogContentProps) => {
-  const { execute: executeUpsertGoal } = useAction(upsertGoal, {
+  const { execute: executeUpsertGoal, isPending } = useAction(upsertGoal, {
     onSuccess: () => {
       const isCreate = !goal;
       toast.success(`Meta ${isCreate ? "criada" : "atualizada"} com sucesso.`);
@@ -271,10 +271,10 @@ export const UpsertGoalDialogContent = ({
             </Button>
             <Button
               type="submit"
-              disabled={form.formState.isSubmitting}
+              disabled={isPending}
               className="gap-1.5"
             >
-              {form.formState.isSubmitting && (
+              {isPending && (
                 <Loader2Icon className="animate-spin" size={16} />
               )}
               {isEditing ? "Salvar Alterações" : "Criar Meta"}

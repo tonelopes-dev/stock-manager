@@ -60,10 +60,8 @@ export const adjustIngredientStock = actionClient
           },
         });
       });
-      console.log(`[INGREDIENT_STOCK_ADJUST] Transação concluída com sucesso para o item ${id}`);
 
-      revalidatePath("/estoque", "page");
-      revalidatePath("/cardapio", "page");
+      revalidatePath("/estoque");
       revalidatePath("/cardapio");
       revalidatePath("/");
     } catch (error) {

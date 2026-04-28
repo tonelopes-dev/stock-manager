@@ -22,7 +22,9 @@ export const updateOrderStatusAction = actionClient
     try {
       await OrderService.updateStatus(orderId, companyId, status, session.user.id);
       
-      revalidatePath(`/kds`);
+      revalidatePath(`/kds`, "page");
+      revalidatePath(`/sales`, "page");
+      revalidatePath(`/menu/${companyId}/my-orders`, "page");
       
       return { success: true };
     } catch (error: any) {

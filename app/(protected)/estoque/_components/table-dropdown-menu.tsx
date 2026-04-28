@@ -33,8 +33,7 @@ import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 import Link from "next/link";
 import UpsertIngredientDialogContent from "./upsert-dialog-content";
-import AdjustStockDialogContent from "@/app/_components/adjust-stock-dialog-content";
-import { adjustIngredientStock } from "@/app/_actions/ingredient/adjust-ingredient-stock";
+import AdjustStockDialogContent from "./adjust-stock-dialog-content";
 import { IngredientDto } from "@/app/_data-access/ingredient/get-ingredients";
 import { deleteIngredient } from "@/app/_actions/ingredient/delete-ingredient";
 import { toggleProductStatus } from "@/app/_actions/product/toggle-status";
@@ -50,7 +49,7 @@ const IngredientTableDropdownMenu = ({
   const [adjustDialogOpen, setAdjustDialogIsOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogIsOpen] = useState(false);
 
-  const { execute: executeDelete } = useAction(deleteIngredient, {
+  const { execute: executeDelete, isPending: deleteIsPending } = useAction(deleteIngredient, {
     onSuccess: () => {
       toast.success("Insumo desativado com sucesso.");
       setDeleteDialogIsOpen(false);
@@ -89,20 +88,14 @@ const IngredientTableDropdownMenu = ({
           </DropdownMenuItem>
           <DropdownMenuItem
             className="gap-1.5"
-            onSelect={(e) => {
-              e.preventDefault();
-              setEditDialogIsOpen(true);
-            }}
+            onClick={() => setEditDialogIsOpen(true)}
           >
             <EditIcon size={16} />
             Editar
           </DropdownMenuItem>
           <DropdownMenuItem
             className="gap-1.5"
-            onSelect={(e) => {
-              e.preventDefault();
-              setAdjustDialogIsOpen(true);
-            }}
+            onClick={() => setAdjustDialogIsOpen(true)}
           >
             <PackagePlusIcon size={16} />
             Ajustar Estoque
@@ -111,10 +104,7 @@ const IngredientTableDropdownMenu = ({
           {ingredient.isActive ? (
             <DropdownMenuItem
               className="gap-1.5 text-destructive"
-              onSelect={(e) => {
-                e.preventDefault();
-                setDeleteDialogIsOpen(true);
-              }}
+              onClick={() => setDeleteDialogIsOpen(true)}
             >
               <TrashIcon size={16} />
               Desativar
@@ -152,12 +142,11 @@ const IngredientTableDropdownMenu = ({
       {/* Adjust Stock Dialog — completely independent */}
       <Dialog open={adjustDialogOpen} onOpenChange={setAdjustDialogIsOpen}>
         <AdjustStockDialogContent
-          itemId={ingredient.id}
-          itemName={ingredient.name}
+          ingredientId={ingredient.id}
+          ingredientName={ingredient.name}
           currentStock={ingredient.stock}
-          baseUnit={ingredient.unit}
+          unitLabel={ingredient.unit}
           setDialogIsOpen={setAdjustDialogIsOpen}
-          adjustAction={adjustIngredientStock}
         />
       </Dialog>
 
@@ -172,11 +161,12 @@ const IngredientTableDropdownMenu = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteIsPending}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => executeDelete({ id: ingredient.id })}
+              disabled={deleteIsPending}
             >
-              Desativar
+              {deleteIsPending ? "Processando..." : "Desativar"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

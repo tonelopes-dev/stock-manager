@@ -57,8 +57,8 @@ export const adjustStock = actionClient
         });
       });
 
-      revalidatePath("/cardapio", "page");
-      revalidatePath("/estoque", "page");
+      revalidatePath("/cardapio");
+      revalidatePath("/estoque");
       revalidatePath("/");
     } catch (error) {
       console.error("[STOCK_ADJUST_ERROR]", error);

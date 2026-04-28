@@ -15,8 +15,9 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   try {
     const blob = await put(filename, request.body, {
-      access: "public", // Mantendo como public pois é o esperado para imagens de produtos. 
-      // O erro indica que a store do Vercel está configurada como Private.
+      access: "public",
+      addRandomSuffix: true,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
     });
 
     return NextResponse.json(blob);
