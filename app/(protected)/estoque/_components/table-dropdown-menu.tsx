@@ -33,7 +33,8 @@ import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 import Link from "next/link";
 import UpsertIngredientDialogContent from "./upsert-dialog-content";
-import AdjustStockDialogContent from "./adjust-stock-dialog-content";
+import AdjustStockDialogContent from "@/app/_components/adjust-stock-dialog-content";
+import { adjustIngredientStock } from "@/app/_actions/ingredient/adjust-ingredient-stock";
 import { IngredientDto } from "@/app/_data-access/ingredient/get-ingredients";
 import { deleteIngredient } from "@/app/_actions/ingredient/delete-ingredient";
 import { toggleProductStatus } from "@/app/_actions/product/toggle-status";
@@ -88,14 +89,20 @@ const IngredientTableDropdownMenu = ({
           </DropdownMenuItem>
           <DropdownMenuItem
             className="gap-1.5"
-            onClick={() => setEditDialogIsOpen(true)}
+            onSelect={(e) => {
+              e.preventDefault();
+              setEditDialogIsOpen(true);
+            }}
           >
             <EditIcon size={16} />
             Editar
           </DropdownMenuItem>
           <DropdownMenuItem
             className="gap-1.5"
-            onClick={() => setAdjustDialogIsOpen(true)}
+            onSelect={(e) => {
+              e.preventDefault();
+              setAdjustDialogIsOpen(true);
+            }}
           >
             <PackagePlusIcon size={16} />
             Ajustar Estoque
@@ -104,7 +111,10 @@ const IngredientTableDropdownMenu = ({
           {ingredient.isActive ? (
             <DropdownMenuItem
               className="gap-1.5 text-destructive"
-              onClick={() => setDeleteDialogIsOpen(true)}
+              onSelect={(e) => {
+                e.preventDefault();
+                setDeleteDialogIsOpen(true);
+              }}
             >
               <TrashIcon size={16} />
               Desativar
@@ -142,11 +152,12 @@ const IngredientTableDropdownMenu = ({
       {/* Adjust Stock Dialog — completely independent */}
       <Dialog open={adjustDialogOpen} onOpenChange={setAdjustDialogIsOpen}>
         <AdjustStockDialogContent
-          ingredientId={ingredient.id}
-          ingredientName={ingredient.name}
+          itemId={ingredient.id}
+          itemName={ingredient.name}
           currentStock={ingredient.stock}
-          unitLabel={ingredient.unit}
+          baseUnit={ingredient.unit}
           setDialogIsOpen={setAdjustDialogIsOpen}
+          adjustAction={adjustIngredientStock}
         />
       </Dialog>
 

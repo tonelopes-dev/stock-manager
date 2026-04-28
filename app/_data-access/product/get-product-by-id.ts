@@ -53,6 +53,10 @@ export interface ProductDetailDto {
   updatedAt: Date;
   recipes: RecipeIngredientDto[];
   recipeCost: number;
+  virtualStock: number;
+  limitingIngredient?: string;
+  ingredients?: { name: string; availability: number }[];
+  allowNegativeStock: boolean;
 }
 
 export const getProductById = async (id: string): Promise<ProductDetailDto | null> => {
@@ -117,29 +121,60 @@ export const getProductById = async (id: string): Promise<ProductDetailDto | nul
       ? recipeCost
       : productCost;
   const price = product.price?.toNumber() ?? 0;
+  const stock = product.stock?.toNumber() ?? 0;
 
-    return {
-      id: product.id,
-      name: product.name,
-      type: product.type,
-      price,
-      cost: effectiveCost,
-      operationalCost,
-      margin: calculateMargin(price, effectiveCost + operationalCost),
-      sku: product.sku,
-      stock: product.stock?.toNumber() ?? 0,
-      minStock: product.minStock?.toNumber() ?? 0,
-      unit: product.unit,
-      categoryId: product.categoryId,
-      environmentId: product.environmentId,
-      imageUrl: product.imageUrl,
-      trackExpiration: product.trackExpiration,
-      expirationDate: product.expirationDate,
-      isActive: product.isActive,
-      isMadeToOrder: product.isMadeToOrder,
-      createdAt: product.createdAt,
-      updatedAt: product.updatedAt,
-      recipes,
-      recipeCost,
-    };
+  // Calculate Virtual Stock for MTO
+  let virtualStock = stock;
+  let limitingIngredient: string | undefined;
+  let formattedIngredients: { name: string; availability: number }[] | undefined;
+
+  if (product.isMadeToOrder && recipes.length > 0) {
+    let minCapacity = Infinity;
+    formattedIngredients = recipes.map((r) => {
+      const capacity = r.quantity > 0 ? Math.floor(r.ingredientStock / r.quantity) : Infinity;
+      if (capacity < minCapacity) {
+        minCapacity = capacity;
+        limitingIngredient = r.ingredientName;
+      }
+      return {
+        name: r.ingredientName,
+        availability: capacity === Infinity ? 0 : capacity,
+      };
+    });
+    virtualStock = Math.max(0, minCapacity);
+  }
+
+  const company = await db.company.findFirst({
+    where: { id: companyId },
+    select: { allowNegativeStock: true },
+  });
+
+  return {
+    id: product.id,
+    name: product.name,
+    type: product.type,
+    price,
+    cost: effectiveCost,
+    operationalCost,
+    margin: calculateMargin(price, effectiveCost + operationalCost),
+    sku: product.sku,
+    stock,
+    minStock: product.minStock?.toNumber() ?? 0,
+    unit: product.unit,
+    categoryId: product.categoryId,
+    environmentId: product.environmentId,
+    imageUrl: product.imageUrl,
+    trackExpiration: product.trackExpiration,
+    expirationDate: product.expirationDate,
+    isActive: product.isActive,
+    isMadeToOrder: product.isMadeToOrder,
+    createdAt: product.createdAt,
+    updatedAt: product.updatedAt,
+    recipes,
+    recipeCost,
+    virtualStock,
+    limitingIngredient,
+    ingredients: formattedIngredients,
+    allowNegativeStock: company?.allowNegativeStock ?? false,
+  };
 };

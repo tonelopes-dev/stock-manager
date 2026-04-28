@@ -29,7 +29,8 @@ import { toast } from "sonner";
 import DeleteProductDialogContent from "./delete-dialog-content";
 import UpsertProductDialogContent from "./upsert-dialog-content";
 import ToggleStatusDialogContent from "./toggle-status-dialog-content";
-import AdjustStockDialogContent from "./adjust-stock-dialog-content";
+import AdjustStockDialogContent from "@/app/_components/adjust-stock-dialog-content";
+import { adjustStock } from "@/app/_actions/product/adjust-stock";
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { toggleProductStatus } from "@/app/_actions/product/toggle-status";
 import Link from "next/link";
@@ -205,11 +206,12 @@ const ProductTableDropdownMenu = ({
         onOpenChange={setAdjustStockDialogOpen}
       >
         <AdjustStockDialogContent
-          productId={product.id}
-          productName={product.name}
+          itemId={product.id}
+          itemName={product.name}
           currentStock={product.stock}
-          unit={product.unit}
+          baseUnit={product.unit}
           setDialogIsOpen={setAdjustStockDialogOpen}
+          adjustAction={adjustStock}
         />
       </Dialog>
 
