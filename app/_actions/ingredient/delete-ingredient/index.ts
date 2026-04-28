@@ -20,7 +20,7 @@ export const deleteIngredient = actionClient
 
 
     const ingredient = await db.product.findFirst({
-      where: { id, companyId, type: "INSUMO" },
+      where: { id, companyId, type: { in: ["INSUMO", "REVENDA"] } },
     });
 
     if (!ingredient) {
