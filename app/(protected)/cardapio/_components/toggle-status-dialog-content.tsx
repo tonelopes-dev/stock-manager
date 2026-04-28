@@ -1,6 +1,5 @@
 "use client";
 import { toggleProductStatus } from "@/app/_actions/product/toggle-status";
-import { Loader2Icon } from "lucide-react";
 import {
   AlertDialogAction,
   AlertDialogCancel,
@@ -22,7 +21,7 @@ const ToggleStatusDialogContent = ({
   productId,
   isActive,
 }: ToggleStatusDialogContentProps) => {
-  const { execute: executeToggleStatus, isPending } = useAction(toggleProductStatus, {
+  const { execute: executeToggleStatus } = useAction(toggleProductStatus, {
     onSuccess: () => {
       toast.success(
         isActive
@@ -52,9 +51,8 @@ const ToggleStatusDialogContent = ({
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
-        <AlertDialogCancel disabled={isPending}>Cancelar</AlertDialogCancel>
-        <AlertDialogAction onClick={handleContinueClick} disabled={isPending}>
-          {isPending && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
+        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+        <AlertDialogAction onClick={handleContinueClick}>
           Continuar
         </AlertDialogAction>
       </AlertDialogFooter>

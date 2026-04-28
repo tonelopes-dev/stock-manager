@@ -13,49 +13,21 @@ export interface KDSOrderDto {
     productName: string;
     quantity: number;
     notes: string | null;
-    environmentId: string | null;
-    environmentName: string;
-    status: OrderStatus;
   }[];
 }
 
 export const getKDSOrders = async (companyId: string): Promise<KDSOrderDto[]> => {
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
-
   const orders = await db.order.findMany({
     where: {
       companyId,
-      OR: [
-        {
-          status: {
-            in: [OrderStatus.PENDING, OrderStatus.PREPARING, OrderStatus.READY],
-          },
-        },
-        {
-          status: OrderStatus.DELIVERED,
-          updatedAt: {
-            gte: startOfToday,
-          },
-        },
-        {
-          status: OrderStatus.PAID,
-          updatedAt: {
-            gte: startOfToday,
-          },
-        },
-      ],
+      status: {
+        in: [OrderStatus.PENDING, OrderStatus.PREPARING, OrderStatus.READY],
+      },
     },
     include: {
       orderItems: {
         include: {
-          product: { 
-            select: { 
-              name: true, 
-              environmentId: true,
-              environment: { select: { name: true } }
-            } 
-          },
+          product: { select: { name: true } },
         },
       },
     },
@@ -74,9 +46,6 @@ export const getKDSOrders = async (companyId: string): Promise<KDSOrderDto[]> =>
       productName: item.product.name,
       quantity: Number(item.quantity),
       notes: item.notes,
-      environmentId: item.product.environmentId,
-      environmentName: item.product.environment?.name || "Cozinha",
-      status: item.status,
     })),
   }));
 };

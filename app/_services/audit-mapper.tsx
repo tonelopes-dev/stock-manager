@@ -10,8 +10,7 @@ import {
   ShoppingCart, 
   CreditCard,
   AlertTriangle,
-  Info,
-  Tag
+  Info
 } from "lucide-react";
 import { ReactNode } from "react";
 
@@ -136,20 +135,6 @@ export class AuditMapper {
           description: `${actor} removeu "${String(meta.name || "Sem nome")}" do catálogo.`,
           icon: <Trash2 className="h-4 w-4" />,
           variant: "warning",
-        };
-      case AuditEventType.ORDER_CREATED:
-        return {
-          title: "Novo pedido",
-          description: `${actor} realizou um pedido no valor de R$ ${Number(meta.totalAmount || 0).toFixed(2)} (${meta.itemsCount || 0} itens).`,
-          icon: <ShoppingCart className="h-4 w-4" />,
-          variant: "info",
-        };
-      case AuditEventType.PRODUCT_PROMOTION_UPDATED:
-        return {
-          title: "Promoção atualizada",
-          description: `${actor} alterou a promoção de "${String(meta.productName || "item")}". Ativa: ${meta.promoActive ? "Sim" : "Não"}${meta.promoPrice ? ` (R$ ${Number(meta.promoPrice).toFixed(2)})` : ""}.`,
-          icon: <Tag className="h-4 w-4" />,
-          variant: "info",
         };
 
       // Billing

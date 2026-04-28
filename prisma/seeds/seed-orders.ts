@@ -19,17 +19,6 @@ export async function seedOrders(
   const sellerAdmin = users["Everton"];
   const sellerMember = users["Atendente"];
 
-  // 0. Cleanup existing orders/sales for this company to ensure idempotency
-  console.log("🧹 Cleaning up existing sales and orders data...");
-  await prisma.saleItem.deleteMany({ where: { sale: { companyId } } });
-  await prisma.stockMovement.deleteMany({ where: { companyId, type: "SALE" } });
-  await prisma.sale.deleteMany({ where: { companyId } });
-  await prisma.orderItem.deleteMany({ where: { order: { companyId } } });
-  await prisma.order.deleteMany({ where: { companyId } });
-  await prisma.productionOrder.deleteMany({ where: { companyId } });
-  await prisma.goal.deleteMany({ where: { companyId } });
-  await prisma.notification.deleteMany({ where: { companyId } });
-
   for (let i = 60; i >= 0; i--) {
     // subDays handles the calendar logic
     const currentDate = subDays(now, i);

@@ -22,9 +22,8 @@ export const upsertOrderAction = actionClient
         isEmployeeSale,
       });
 
-      revalidatePath(`/sales`, "page");
-      revalidatePath(`/kds`, "page");
-      revalidatePath(`/menu/${companyId}/my-orders`, "page");
+      revalidatePath(`/sales`);
+      revalidatePath(`/kds`);
       
       return { success: true, orderId: order.id };
     } catch (error: any) {

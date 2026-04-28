@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import SidebarButton from "./sidebar-button";
 import LogoutButton from "./logout-button";
-import { useAppMode } from "@/app/_components/app-mode-provider";
+import { useAppMode } from "./app-mode-provider";
 
 interface SidebarNavProps {
   isOwner: boolean;

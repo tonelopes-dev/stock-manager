@@ -100,165 +100,58 @@ export const recordStockMovement = async (
 };
 
 /**
- * Fetches products and their full composition tree using BFS to minimize database calls.
- * This is done BEFORE the transaction to avoid holding locks during the recursion logic.
- */
-export async function getProductsWithFullTree(productIds: string[], companyId: string) {
-  const allProducts = new Map<string, any>();
-  let idsToFetch = Array.from(new Set(productIds));
-
-  while (idsToFetch.length > 0) {
-    const products = await db.product.findMany({
-      where: {
-        id: { in: idsToFetch },
-        companyId,
-      },
-      include: {
-        parentCompositions: true,
-        company: { select: { allowNegativeStock: true } },
-      },
-    });
-
-    const nextIds: string[] = [];
-    for (const p of products) {
-      allProducts.set(p.id, p);
-      if (p.isMadeToOrder && p.parentCompositions) {
-        for (const comp of p.parentCompositions) {
-          if (!allProducts.has(comp.childId)) {
-            nextIds.push(comp.childId);
-          }
-        }
-      }
-    }
-    // Only fetch IDs that we haven't fetched yet
-    idsToFetch = nextIds.filter((id) => !allProducts.has(id));
-  }
-
-  return allProducts;
-}
-
-interface BatchMovementItem {
-  productId: string;
-  quantity: number | Decimal;
-  type: StockMovementType;
-  orderId?: string;
-  saleId?: string;
-  reason?: string;
-  forceAllowNegative?: boolean;
-  date?: Date;
-}
-
-/**
- * High-performance batch stock management engine.
- * 1. Simulations all changes in memory to validate rules.
- * 2. Prepares batch updates and creates.
- * 3. Executes everything in a single transactional block.
- */
-export async function processBatchStockMovement(
-  requestedMovements: BatchMovementItem[],
-  companyId: string,
-  userId: string | null,
-  trx: Prisma.TransactionClient,
-  preFetchedProducts?: Map<string, any>
-) {
-  // 1. Ensure we have all involved products (if not pre-fetched)
-  const productMap = preFetchedProducts || await getProductsWithFullTree(
-    requestedMovements.map(m => m.productId), 
-    companyId
-  );
-
-  // 2. Simulation State (Keep track of simulated stock during the process)
-  const simulatedStocks = new Map<string, Decimal>();
-  for (const p of productMap.values()) {
-    simulatedStocks.set(p.id, new Decimal(p.stock.toString()));
-  }
-
-  const pendingUpdates: { productId: string; delta: Decimal }[] = [];
-  const pendingMovements: Prisma.StockMovementCreateManyInput[] = [];
-
-  // 3. Recursive Simulation Logic (JS only, no DB calls)
-  const computeRecursively = (pid: string, qty: Decimal, mParams: BatchMovementItem, forceAllow?: boolean) => {
-    const product = productMap.get(pid);
-    if (!product) return;
-
-    const currentStock = simulatedStocks.get(pid)!;
-    const newStock = currentStock.plus(qty);
-
-    // Business Rules (Parity with recordStockMovement)
-    const hasIngredients = product.parentCompositions && product.parentCompositions.length > 0;
-    
-    // Logic for forceAllowNegative parity
-    const isForced = forceAllow ?? (product.isMadeToOrder && hasIngredients ? true : mParams.forceAllowNegative);
-
-    if (newStock.lt(0) && !product.company.allowNegativeStock && !isForced) {
-      throw new BusinessError(
-        `Estoque insuficiente para ${product.name}. Saldo: ${currentStock.toNumber()}, Necessário: ${qty.negated().toNumber()}`
-      );
-    }
-
-    // Update simulation state
-    simulatedStocks.set(pid, newStock);
-    pendingUpdates.push({ productId: pid, delta: qty });
-    pendingMovements.push({
-      productId: pid,
-      companyId,
-      userId,
-      type: mParams.type,
-      orderId: mParams.orderId,
-      saleId: mParams.saleId,
-      reason: mParams.reason,
-      stockBefore: currentStock,
-      stockAfter: newStock,
-      quantityDecimal: qty,
-      unit: product.unit,
-      date: mParams.date || new Date(),
-    });
-
-    // Recurse if Made-to-Order (Ficha Técnica)
-    if (product.isMadeToOrder && hasIngredients) {
-      for (const comp of product.parentCompositions) {
-        const childQty = qty.mul(new Decimal(comp.quantity.toString()));
-        // For ingredients, we typically want to respect company settings (forceAllow=false)
-        computeRecursively(comp.childId, childQty, mParams, false);
-      }
-    }
-  };
-
-  // Run simulation for all items in the request
-  for (const m of requestedMovements) {
-    computeRecursively(m.productId, new Decimal(m.quantity.toString()), m, m.forceAllowNegative);
-  }
-
-  // 4. Atomic Execution (Batch Writes)
-  // Consolidated updates by product ID
-  const consolidatedDeltas = new Map<string, Decimal>();
-  for (const up of pendingUpdates) {
-    const current = consolidatedDeltas.get(up.productId) || new Decimal(0);
-    consolidatedDeltas.set(up.productId, current.plus(up.delta));
-  }
-
-  // Execute updates (Sequential in Prisma, but no I/O in between)
-  for (const [pid, delta] of consolidatedDeltas.entries()) {
-    await trx.product.update({
-      where: { id: pid },
-      data: { stock: { increment: delta } },
-    });
-  }
-
-  // Execute movements in a single createMany (Massive performance boost)
-  if (pendingMovements.length > 0) {
-    await trx.stockMovement.createMany({ data: pendingMovements });
-  }
-}
-
-/**
  * Recursively processes stock movements for a product and its ingredients (Ficha Técnica).
- * @deprecated Use processBatchStockMovement for bulk operations.
  */
 export async function processRecursiveStockMovement(
   params: RecordStockMovementParams,
   trx: Prisma.TransactionClient
 ) {
-  // Mantido para compatibilidade, mas encaminha para o motor de lote se possível
-  return processBatchStockMovement([params], params.companyId, params.userId || null, trx);
+  const visited = new Set<string>();
+  const { productId, quantity, companyId, userId, type, saleId, orderId, forceAllowNegative } = params;
+
+    const recursive = async (pid: string, qty: Prisma.Decimal, forceAllow?: boolean) => {
+      if (visited.has(pid)) return;
+      visited.add(pid);
+
+      // Fetch product with its composition
+      const product = await trx.product.findUnique({
+        where: { id: pid },
+        include: { parentCompositions: true },
+      });
+
+      if (!product) return;
+
+      const hasIngredients = product.parentCompositions && product.parentCompositions.length > 0;
+      
+      // 1. Record movement for the product itself
+      await recordStockMovement(
+        {
+          productId: pid,
+          companyId,
+          userId,
+          type,
+          quantity: qty,
+          saleId,
+          orderId,
+          // Use provided forceAllow, or default to checking ingredients
+          forceAllowNegative: forceAllow ?? (!product.isMadeToOrder || !hasIngredients ? forceAllowNegative : true),
+        },
+        trx
+      );
+
+      // 2. If it has children (Ficha Técnica / Composition), AND it's Made-to-Order, recurse
+      if (product.isMadeToOrder && hasIngredients) {
+        for (const comp of product.parentCompositions) {
+          // The quantity of the child is: (quantity sold/moved) * (quantity in composition)
+          const childQty = qty.mul(new Prisma.Decimal(comp.quantity.toString()));
+          // For ingredients, we typically want to respect the company's negative stock setting
+          // unless the whole movement was explicitly forced (which isn't the case for regular sales)
+          await recursive(comp.childId, childQty, false);
+        }
+      }
+
+      visited.delete(pid);
+    };
+
+    await recursive(productId, new Prisma.Decimal(quantity.toString()), forceAllowNegative);
 }

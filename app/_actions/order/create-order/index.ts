@@ -11,7 +11,6 @@ const createOrderSchema = z.object({
   items: z.array(z.object({
     productId: z.string(),
     quantity: z.number().positive(),
-    notes: z.string().optional(),
   })),
   tableNumber: z.string().optional(),
   notes: z.string().optional(),
@@ -39,9 +38,7 @@ export const createOrderAction = actionClient
         isEmployeeSale,
       });
 
-      revalidatePath(`/kds`, "page");
-      revalidatePath(`/sales`, "page");
-      revalidatePath(`/menu/${companyId}/my-orders`, "page");
+      revalidatePath(`/kds`);
       
       return { success: true, orderId: order.id };
     } catch (error: any) {

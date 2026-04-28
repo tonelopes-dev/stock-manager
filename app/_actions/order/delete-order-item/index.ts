@@ -15,9 +15,8 @@ export const deleteOrderItemAction = actionClient
     try {
       await OrderService.deleteOrderItem(itemId, companyId, session.user.id);
 
-      revalidatePath(`/sales`, "page");
-      revalidatePath(`/kds`, "page");
-      revalidatePath(`/menu/${companyId}/my-orders`, "page");
+      revalidatePath(`/sales`);
+      revalidatePath(`/kds`);
 
       return { success: true };
     } catch (error: any) {

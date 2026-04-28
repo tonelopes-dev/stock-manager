@@ -64,19 +64,9 @@ export async function register(
     const trialEndDate = new Date();
     trialEndDate.setDate(trialEndDate.getDate() + 3);
 
-    const slug = name
-      .toLowerCase()
-      .trim()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/[^\w-]+/g, "")
-      .replace(/--+/g, "-");
-
     const company = await tx.company.create({
       data: {
         name: `${name}'s Company`,
-        slug: `${slug}-${Math.random().toString(36).substring(2, 7)}`,
         subscriptionStatus: "TRIALING",
         expiresAt: trialEndDate,
       },

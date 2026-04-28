@@ -1,8 +1,8 @@
 import { db } from "@/app/_lib/prisma";
-import { recordStockMovement, processRecursiveStockMovement, getProductsWithFullTree, processBatchStockMovement } from "@/app/_lib/stock";
+import { recordStockMovement, processRecursiveStockMovement } from "@/app/_lib/stock";
 import { BusinessError } from "@/app/_lib/errors";
-import { AuditEventType, OrderStatus, Prisma } from "@prisma/client";
-import { AuditService } from "./audit";
+import { OrderStatus, Prisma } from "@prisma/client";
+import { notifyKDS } from "@/app/api/kds/events/route";
 
 interface CreateOrderParams {
   companyId: string;
@@ -17,39 +17,40 @@ interface CreateOrderParams {
   items: {
     productId: string;
     quantity: number;
-    notes?: string;
   }[];
 }
 
 export const OrderService = {
   async createOrder({ companyId, customerId, tableNumber, notes, hasServiceTax, discountAmount = 0, extraAmount = 0, adjustmentReason, isEmployeeSale = false, items }: CreateOrderParams) {
     try {
-      // 1. Fetch all products AND their full composition tree BEFORE the transaction
-      const initialProductIds = items.map(i => i.productId);
-      const fullProductMap = await getProductsWithFullTree(initialProductIds, companyId);
+      return await db.$transaction(async (trx) => {
+        // 1. Validate items and stock
+        const itemsWithPrices = await Promise.all(
+          items.map(async (item) => {
+            const product = await trx.product.findUnique({
+              where: { id: item.productId, companyId },
+              select: { id: true, name: true, price: true, cost: true, operationalCost: true, stock: true, isActive: true },
+            });
 
-      const order = await db.$transaction(async (trx) => {
-        const itemsWithPrices = items.map((item) => {
-          const product = fullProductMap.get(item.productId);
+            if (!product) {
+              throw new BusinessError(`Produto não encontrado: ${item.productId}`);
+            }
 
-          if (!product) {
-            throw new BusinessError(`Produto não encontrado: ${item.productId}`);
-          }
+            if (!product.isActive) {
+              throw new BusinessError(`O produto ${product.name} está desativado.`);
+            }
 
-          if (!product.isActive) {
-            throw new BusinessError(`O produto ${product.name} está desativado.`);
-          }
+            const unitPrice = isEmployeeSale 
+              ? Number(product.cost) + Number(product.operationalCost)
+              : Number(product.price);
 
-          const unitPrice = isEmployeeSale 
-            ? Number(product.cost) + Number(product.operationalCost)
-            : Number(product.price);
-
-          return {
-            ...item,
-            unitPrice,
-            name: product.name,
-          };
-        });
+            return {
+              ...item,
+              unitPrice,
+              name: product.name,
+            };
+          })
+        );
 
         const subtotal = itemsWithPrices.reduce(
           (sum, item) => sum + item.unitPrice * item.quantity,
@@ -82,45 +83,36 @@ export const OrderService = {
                 productId: item.productId,
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
-                notes: item.notes,
-                status: OrderStatus.PENDING,
               })),
             },
           },
         });
 
-        // 3. Batch Stock Deduction (Simulation + Batch Writes)
-        await processBatchStockMovement(
-          itemsWithPrices.map(item => ({
-            productId: item.productId,
-            quantity: new Prisma.Decimal(item.quantity.toString()).negated(),
-            type: "ORDER",
-            orderId: order.id,
-          })),
-          companyId,
-          null, // userId
-          trx,
-          fullProductMap // Pass pre-fetched map to avoid new queries
-        );
+        // 3. Reserve Stock (Immediate deduction upon PENDING as per design decision)
+        // This ensures items are committed to the kitchen and prevents over-ordering.
+        for (const item of itemsWithPrices) {
+          await processRecursiveStockMovement(
+            {
+              productId: item.productId,
+              companyId,
+              userId: null, // Public menu orders have no authenticated user
+              type: "ORDER",
+              quantity: new Prisma.Decimal(item.quantity.toString()).negated(),
+              orderId: order.id,
+            },
+            trx
+          );
+        }
 
-        await AuditService.logWithTransaction(trx, {
-          type: AuditEventType.ORDER_CREATED,
-          companyId,
-          customerId,
-          entityType: "ORDER",
-          entityId: order.id,
-          metadata: {
-            totalAmount: Number(order.totalAmount),
-            itemsCount: items.length,
-          },
+        // 4. Notify KDS
+        notifyKDS(companyId, { 
+          type: "NEW_ORDER", 
+          orderId: order.id,
+          customerId: order.customerId 
         });
 
         return order;
-      }, {
-        timeout: 20000, 
       });
-
-      return order;
     } catch (error) {
       if (error instanceof BusinessError) throw error;
       console.error("Error creating order:", error);
@@ -128,65 +120,9 @@ export const OrderService = {
     }
   },
 
-  async updateOrderItemStatus(itemId: string, companyId: string, status: OrderStatus, userId: string) {
-    try {
-      const { updatedItem } = await db.$transaction(async (trx) => {
-        // 1. Update the item
-        const item = await trx.orderItem.findUnique({
-          where: { id: itemId, order: { companyId } },
-          select: { id: true, orderId: true },
-        });
-
-        if (!item) throw new BusinessError("Item não encontrado.");
-
-        const updatedItem = await trx.orderItem.update({
-          where: { id: itemId },
-          data: { status },
-        });
-
-        // 2. Sync order status based on all items
-        const allItems = await trx.orderItem.findMany({
-          where: { orderId: item.orderId },
-          select: { status: true },
-        });
-
-        let newOrderStatus: OrderStatus = OrderStatus.PENDING;
-        
-        const hasPreparing = allItems.some(i => i.status === OrderStatus.PREPARING);
-        const allReady = allItems.every(i => 
-          i.status === OrderStatus.READY || 
-          i.status === OrderStatus.DELIVERED || 
-          i.status === OrderStatus.PAID
-        );
-
-        if (allReady) {
-          newOrderStatus = OrderStatus.READY;
-        } else if (hasPreparing) {
-          newOrderStatus = OrderStatus.PREPARING;
-        } else {
-          const hasReady = allItems.some(i => i.status === OrderStatus.READY);
-          if (hasReady) newOrderStatus = OrderStatus.PREPARING;
-        }
-
-        await trx.order.update({
-          where: { id: item.orderId },
-          data: { status: newOrderStatus },
-        });
-
-        return { updatedItem };
-      });
-
-      return updatedItem;
-    } catch (error) {
-      if (error instanceof BusinessError) throw error;
-      console.error("Error updating item status:", error);
-      throw new Error("Erro ao atualizar item.");
-    }
-  },
-
   async updateStatus(orderId: string, companyId: string, status: OrderStatus, userId: string) {
     try {
-      const updatedOrder = await db.$transaction(async (trx) => {
+      return await db.$transaction(async (trx) => {
         const order = await trx.order.findUnique({
           where: { id: orderId, companyId },
           include: { orderItems: true },
@@ -196,18 +132,19 @@ export const OrderService = {
 
         // If canceling, return Reserved Stock
         if (status === OrderStatus.CANCELED && order.status !== OrderStatus.CANCELED) {
-          await processBatchStockMovement(
-            order.orderItems.map(item => ({
-              productId: item.productId,
-              quantity: new Prisma.Decimal(item.quantity.toString()),
-              type: "CANCEL",
-              orderId: order.id,
-              reason: "Cancelamento do pedido",
-            })),
-            companyId,
-            userId,
-            trx
-          );
+          for (const item of order.orderItems) {
+            await processRecursiveStockMovement(
+              {
+                productId: item.productId,
+                companyId,
+                userId,
+                type: "CANCEL",
+                quantity: new Prisma.Decimal(item.quantity.toString()),
+                orderId: order.id,
+              },
+              trx
+            );
+          }
         }
 
         const updatedOrder = await trx.order.update({
@@ -215,10 +152,16 @@ export const OrderService = {
           data: { status },
         });
 
+        // Notify KDS
+        notifyKDS(companyId, { 
+          type: "STATUS_UPDATED", 
+          orderId, 
+          status,
+          customerId: order.customerId 
+        });
+
         return updatedOrder;
       });
-
-      return updatedOrder;
     } catch (error) {
       if (error instanceof BusinessError) throw error;
       console.error("Error updating order status:", error);
@@ -226,7 +169,17 @@ export const OrderService = {
     }
   },
 
-  async convertToSale(orderId: string, companyId: string, userId: string, paymentMethod: any, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false) {
+  async convertToSale(
+    orderId: string,
+    companyId: string,
+    userId: string,
+    paymentMethod: any,
+    tipAmount: number = 0,
+    discountAmount: number = 0,
+    extraAmount: number = 0,
+    adjustmentReason?: string,
+    isEmployeeSale: boolean = false
+  ) {
     try {
       // 1. Check for existing Sale (Idempotency)
       const existingSale = await db.sale.findUnique({
@@ -240,25 +193,21 @@ export const OrderService = {
           where: { id: orderId, status: { not: OrderStatus.PAID } },
           data: { status: OrderStatus.PAID },
         });
-        await db.orderItem.updateMany({
-          where: { orderId: orderId, status: { not: OrderStatus.PAID } },
-          data: { status: OrderStatus.PAID },
-        });
         return existingSale;
       }
 
-      const sale = await db.$transaction(async (trx) => {
+      return await db.$transaction(async (trx) => {
         const order = await trx.order.findUnique({
           where: { id: orderId, companyId },
           include: { orderItems: { include: { product: true } } },
         });
 
         if (!order) throw new BusinessError("Pedido não encontrado.");
-
         if (order.status === OrderStatus.PAID) {
           throw new Error("ORDER_ALREADY_PAID_CONCURRENCY");
         }
 
+        // Calculate final amounts based on current toggles/discounts
         const subtotal = order.orderItems.reduce((acc, item) => {
           const price = isEmployeeSale 
             ? (Number(item.product.cost || 0) + Number(item.product.operationalCost || 0))
@@ -268,6 +217,7 @@ export const OrderService = {
 
         const totalWithTip = Math.max(0, subtotal + tipAmount - discountAmount + extraAmount);
 
+        // 1. Create the Sale
         const sale = await trx.sale.create({
           data: {
             companyId,
@@ -286,26 +236,28 @@ export const OrderService = {
           },
         });
 
-        await trx.saleItem.createMany({
-          data: order.orderItems.map((item) => {
-            const unitPrice = isEmployeeSale
-              ? (Number(item.product.cost || 0) + Number(item.product.operationalCost || 0))
-              : Number(item.unitPrice);
+        // 2. Create SaleItems using historical order prices OR cost depending on mode
+        for (const item of order.orderItems) {
+          const unitPrice = isEmployeeSale
+            ? (Number(item.product.cost || 0) + Number(item.product.operationalCost || 0))
+            : Number(item.unitPrice);
 
-            return {
+          await trx.saleItem.create({
+            data: {
               saleId: sale.id,
               productId: item.productId,
               quantity: item.quantity,
               unitPrice: unitPrice,
-              baseCost: item.product.cost,
-            };
-          }),
-        });
-
-        await trx.stockMovement.updateMany({
-          where: { orderId: order.id, type: "ORDER" },
-          data: { saleId: sale.id }
-        });
+              baseCost: item.product.cost, 
+            },
+          });
+          
+          // Link stock movement to sale for better traceability (optional, but good)
+          await trx.stockMovement.updateMany({
+            where: { orderId: order.id, productId: item.productId, type: "ORDER" },
+            data: { saleId: sale.id }
+          });
+        }
 
         // 3. Mark Order as PAID and complete with Concurrency Protection
         const updatedOrderCount = await trx.order.updateMany({
@@ -317,15 +269,8 @@ export const OrderService = {
            throw new Error("ORDER_ALREADY_PAID_CONCURRENCY");
         }
 
-        await trx.orderItem.updateMany({
-          where: { orderId: order.id },
-          data: { status: OrderStatus.PAID },
-        });
-
         return sale;
       });
-
-      return sale;
     } catch (error) {
       if (
         (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') ||
@@ -339,10 +284,6 @@ export const OrderService = {
             where: { id: orderId, status: { not: OrderStatus.PAID } },
             data: { status: OrderStatus.PAID },
           });
-          await db.orderItem.updateMany({
-            where: { orderId: orderId, status: { not: OrderStatus.PAID } },
-            data: { status: OrderStatus.PAID },
-          });
           return existingSale;
         }
       }
@@ -352,10 +293,20 @@ export const OrderService = {
       throw new Error("Erro ao processar pagamento do pedido.");
     }
   },
-
-  async convertItemsToSale(itemIds: string[], companyId: string, userId: string, paymentMethod: any, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false) {
+   async convertItemsToSale(
+    itemIds: string[],
+    companyId: string,
+    userId: string,
+    paymentMethod: any,
+    tipAmount: number = 0,
+    discountAmount: number = 0,
+    extraAmount: number = 0,
+    adjustmentReason?: string,
+    isEmployeeSale: boolean = false
+  ) {
     try {
-      const { sale } = await db.$transaction(async (trx) => {
+      return await db.$transaction(async (trx) => {
+        // 1. Fetch the items and their orders
         const items = await trx.orderItem.findMany({
           where: { id: { in: itemIds }, order: { companyId } },
           include: { order: true, product: { select: { cost: true, operationalCost: true } } },
@@ -373,6 +324,7 @@ export const OrderService = {
         const totalAmount = Math.max(0, subtotal + tipAmount - discountAmount + extraAmount);
         const originalOrderIds = Array.from(new Set(items.map((i) => i.orderId)));
 
+        // 2. Create the Sale
         const sale = await trx.sale.create({
           data: {
             companyId,
@@ -390,6 +342,7 @@ export const OrderService = {
           },
         });
 
+        // 3. Create SaleItems and link stock movement
         for (const item of items) {
           const unitPrice = isEmployeeSale
             ? (Number(item.product.cost || 0) + Number(item.product.operationalCost || 0))
@@ -405,20 +358,25 @@ export const OrderService = {
             },
           });
 
+          // Link the "ORDER" stock movement to this sale
           await trx.stockMovement.updateMany({
             where: { orderId: item.orderId, productId: item.productId, type: "ORDER" },
             data: { saleId: sale.id },
           });
 
+          // Delete the OrderItem
           await trx.orderItem.delete({ where: { id: item.id } });
         }
 
+        // 4. Update order totals and cleanup empty orders
         for (const orderId of originalOrderIds) {
           const remainingItems = await trx.orderItem.findMany({ where: { orderId } });
           
           if (remainingItems.length === 0) {
+            // No items left, delete the order (it's fully paid)
             await trx.order.delete({ where: { id: orderId } });
           } else {
+            // Update totalAmount of the order
             const newTotal = remainingItems.reduce((sum, item) => sum + Number(item.unitPrice) * Number(item.quantity), 0);
             await trx.order.update({
               where: { id: orderId },
@@ -427,10 +385,8 @@ export const OrderService = {
           }
         }
 
-        return { sale };
+        return sale;
       });
-
-      return sale;
     } catch (error) {
       if (error instanceof BusinessError) throw error;
       console.error("Error converting items to sale:", error);
@@ -440,7 +396,7 @@ export const OrderService = {
 
   async deleteOrderItem(itemId: string, companyId: string, userId: string) {
     try {
-      await db.$transaction(async (trx) => {
+      return await db.$transaction(async (trx) => {
         const item = await trx.orderItem.findUnique({
           where: { id: itemId, order: { companyId } },
           include: { order: true },
@@ -448,6 +404,7 @@ export const OrderService = {
 
         if (!item) throw new BusinessError("Item não encontrado.");
 
+        // 1. Return stock
         await processRecursiveStockMovement(
           {
             productId: item.productId,
@@ -461,8 +418,10 @@ export const OrderService = {
           trx
         );
 
+        // 2. Delete the item
         await trx.orderItem.delete({ where: { id: itemId } });
 
+        // 3. Update order total or cleanup
         const remainingItems = await trx.orderItem.findMany({
           where: { orderId: item.orderId },
         });
@@ -479,9 +438,9 @@ export const OrderService = {
             data: { totalAmount: newTotal },
           });
         }
-      });
 
-      return { success: true };
+        return { success: true };
+      });
     } catch (error) {
       if (error instanceof BusinessError) throw error;
       console.error("Error deleting order item:", error);

@@ -10,7 +10,6 @@ export default defineConfig({
     sequence: {
       concurrent: false,
     },
-    fileParallelism: false,
     include: ["tests/**/*.test.ts"],
     exclude: ["e2e/**", "node_modules/**"],
   },
