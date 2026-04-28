@@ -1,17 +1,17 @@
-import Sidebar from "@/app/_components/sidebar";
-import { auth } from "@/app/_lib/auth";
+import Sidebar from "../_components/sidebar";
+import { auth } from "../_lib/auth";
 import { redirect } from "next/navigation";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { getCurrentCompanyId } from "../_lib/get-current-company";
 
-import { getUserSecurityStatus } from "@/app/_data-access/user/get-user-security-status";
+import { getUserSecurityStatus } from "../_data-access/user/get-user-security-status";
 import { PasswordResetModal } from "./_components/password-reset-modal";
-import { getCompanyPlan } from "@/app/_data-access/company/get-company-plan";
+import { getCompanyPlan } from "../_data-access/company/get-company-plan";
 import { headers } from "next/headers";
 import { getSubscriptionStatus } from "@/lib/subscription";
-import { SubscriptionBanner } from "@/app/_components/SubscriptionBanner";
-import { GlobalHeader } from "@/app/_components/global-header";
-import { AppModeProvider } from "@/app/_components/app-mode-provider";
-import { SubscriptionProvider } from "@/app/_components/SubscriptionContext";
+import { SubscriptionBanner } from "../_components/SubscriptionBanner";
+import { GlobalHeader } from "../_components/global-header";
+import { AppModeProvider } from "../_components/app-mode-provider";
+import { SubscriptionProvider } from "../_components/SubscriptionContext";
 
 export default async function ProtectedLayout({
   children,

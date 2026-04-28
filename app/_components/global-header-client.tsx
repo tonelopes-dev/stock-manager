@@ -1,9 +1,9 @@
 "use client";
 
-import { ContextSwitcher } from "@/app/_components/context-switcher";
-import { QuickActions } from "@/app/_components/quick-actions";
-import { NotificationCenter } from "@/app/_components/notification-center";
-import { SubscriptionStatusIcon } from "@/app/_components/SubscriptionStatusIcon";
+import { ContextSwitcher } from "./context-switcher";
+import { QuickActions } from "./quick-actions";
+import { NotificationCenter } from "./notification-center";
+import { SubscriptionStatusIcon } from "./SubscriptionStatusIcon";
 
 interface GlobalHeaderClientProps {
   companyId: string;

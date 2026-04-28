@@ -19,8 +19,8 @@ async function seedRestaurant(prisma: PrismaClient, companyId: string, userId: s
   // 1. Company and Categories
   await prisma.company.upsert({
     where: { id: companyId },
-    update: { name: "Kipo Restaurante", plan: "ENTERPRISE", slug: "kipo-restaurante" },
-    create: { id: companyId, name: "Kipo Restaurante", plan: "ENTERPRISE", slug: "kipo-restaurante" },
+    update: { name: "Kipo Restaurante", plan: "ENTERPRISE" },
+    create: { id: companyId, name: "Kipo Restaurante", plan: "ENTERPRISE" },
   });
 
   const categories = ["Pratos Principais", "Sobremesas", "Bebidas", "Insumos de Cozinha"];
@@ -98,8 +98,8 @@ async function seedCoworking(prisma: PrismaClient, companyId: string, userId: st
   // 1. Company and Categories
   await prisma.company.upsert({
     where: { id: companyId },
-    update: { name: "Kipo Coworking", plan: "PRO", slug: "kipo-coworking" },
-    create: { id: companyId, name: "Kipo Coworking", plan: "PRO", slug: "kipo-coworking" },
+    update: { name: "Kipo Coworking", plan: "PRO" },
+    create: { id: companyId, name: "Kipo Coworking", plan: "PRO" },
   });
 
   const categories = ["Planos de Acesso", "Salas de Reunião", "Lanchonete"];

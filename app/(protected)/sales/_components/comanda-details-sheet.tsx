@@ -408,21 +408,6 @@ export const ComandaDetailsSheet = ({
                   </div>
                 </div>
 
-                {/* General Order Notes */}
-                {comanda.orders.some(o => o.notes) && (
-                  <div className="space-y-2 rounded-2xl border border-orange-200 bg-orange-50 p-4 shadow-sm">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-orange-600">Observações da Comanda</span>
-                    <div className="space-y-2">
-                      {comanda.orders.map(order => order.notes && (
-                        <div key={order.id} className="flex gap-2 text-xs font-bold italic text-orange-700">
-                          <span className="shrink-0">#{order.orderNumber}:</span>
-                          <p>{order.notes}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 {/* Employee Mode Toggle */}
                 <div className="rounded-xl border border-border bg-background p-3 shadow-sm">
                   <div className="flex items-center justify-between">
@@ -772,21 +757,12 @@ export const ComandaDetailsSheet = ({
                             {item.productName || item.name}
                           </span>
                           {!isGrouped && (
-                            <>
-                              <span className="text-[10px] italic text-muted-foreground">
-                                Pedido há{" "}
-                                {formatDistanceToNow(new Date(item.createdAt), {
-                                  locale: ptBR,
-                                })}
-                              </span>
-                              {item.notes && (
-                                <div className="mt-1 rounded-lg bg-destructive/10 px-2 py-1 border border-destructive/20">
-                                  <p className="text-[10px] font-bold uppercase italic text-destructive">
-                                    OBS: {item.notes}
-                                  </p>
-                                </div>
-                              )}
-                            </>
+                            <span className="text-[10px] italic text-muted-foreground">
+                              Pedido há{" "}
+                              {formatDistanceToNow(new Date(item.createdAt), {
+                                locale: ptBR,
+                              })}
+                            </span>
                           )}
                         </div>
                       </div>

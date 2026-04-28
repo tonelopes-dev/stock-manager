@@ -27,19 +27,9 @@ export async function getCurrentCompanyId(): Promise<string> {
   }
 
   // Auto-create company for user if missing
-  const slug = (session.user.name || "user")
-    .toLowerCase()
-    .trim()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/[^\w-]+/g, "")
-    .replace(/--+/g, "-");
-
   const company = await db.company.create({
     data: {
       name: `${session.user.name || "User"}'s Company`,
-      slug: `${slug}-${Math.random().toString(36).substring(2, 7)}`,
     },
   });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useAppMode, AppMode } from "@/app/_components/app-mode-provider";
+import { useAppMode, AppMode } from "./app-mode-provider";
 import { LayoutGrid, UtensilsCrossed } from "lucide-react";
 
 const modes: { value: AppMode; label: string; icon: React.ReactNode }[] = [
