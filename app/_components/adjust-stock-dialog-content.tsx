@@ -1,10 +1,5 @@
 "use client";
 
-import { adjustStock } from "@/app/_actions/product/adjust-stock";
-import {
-  adjustStockSchema,
-  AdjustStockSchema,
-} from "@/app/_actions/product/adjust-stock/schema";
 import { Button } from "@/app/_components/ui/button";
 import {
   DialogClose,
@@ -26,10 +21,12 @@ import { Input } from "@/app/_components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { formatQuantity } from "@/app/_lib/format-quantity";
+import { z } from "zod";
+import { useRouter } from "next/navigation";
 
 import {
   Select,
@@ -38,40 +35,73 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/_components/ui/select";
-import { useState, useMemo } from "react";
+
+// Generic schema since both actions use the same structure
+const adjustSchema = z.object({
+  id: z.string().uuid(),
+  quantity: z.number().refine((val) => val !== 0, {
+    message: "A quantidade deve ser diferente de zero.",
+  }),
+  reason: z.string().trim().min(3, {
+    message: "O motivo deve ter pelo menos 3 caracteres.",
+  }),
+});
+
+type AdjustSchema = z.infer<typeof adjustSchema>;
 
 interface AdjustStockDialogContentProps {
-  productId: string;
-  productName: string;
+  itemId: string;
+  itemName: string;
   currentStock: number;
-  unit: string; // Base unit (G, KG, ML, L, UN)
+  baseUnit: string;
   setDialogIsOpen: Dispatch<SetStateAction<boolean>>;
+  adjustAction: any; // The server action
 }
 
+const UNIT_LABELS: Record<string, string> = {
+  G: "g",
+  KG: "kg",
+  ML: "ml",
+  L: "L",
+  UN: "Un",
+  PCT: "pct",
+  MC: "mç",
+};
+
 const AdjustStockDialogContent = ({
-  productId,
-  productName,
+  itemId,
+  itemName,
   currentStock,
-  unit: baseUnit,
+  baseUnit,
   setDialogIsOpen,
+  adjustAction,
 }: AdjustStockDialogContentProps) => {
+  const router = useRouter();
   const [displayUnit, setDisplayUnit] = useState(baseUnit);
 
-  const { execute: executeAdjust, isPending } = useAction(adjustStock, {
+  // Sync display unit when baseUnit changes (e.g., dialog opens for different product)
+  useEffect(() => {
+    if (baseUnit) {
+      setDisplayUnit(baseUnit);
+    }
+  }, [baseUnit]);
+
+  const { execute: executeAdjust, isPending } = useAction(adjustAction, {
     onSuccess: () => {
       toast.success("Estoque ajustado com sucesso.");
+      router.refresh();
       setDialogIsOpen(false);
     },
     onError: ({ error: { serverError, validationErrors } }) => {
-      const firstError = validationErrors?._errors?.[0] || serverError;
+      const firstError = (validationErrors as any)?._errors?.[0] || serverError;
       toast.error(firstError || "Ocorreu um erro ao ajustar o estoque.");
     },
   });
 
-  const form = useForm<AdjustStockSchema>({
-    resolver: zodResolver(adjustStockSchema),
+  const form = useForm<AdjustSchema>({
+    resolver: zodResolver(adjustSchema),
     defaultValues: {
-      id: productId,
+      id: itemId,
       quantity: 0,
       reason: "",
     },
@@ -79,7 +109,6 @@ const AdjustStockDialogContent = ({
 
   const watchValue = form.watch("quantity");
 
-  // Multiplier logic based on baseUnit and selected displayUnit
   const multiplier = useMemo(() => {
     if (baseUnit === "G" && displayUnit === "KG") return 1000;
     if (baseUnit === "ML" && displayUnit === "L") return 1000;
@@ -104,22 +133,14 @@ const AdjustStockDialogContent = ({
         { value: "L", label: "Litros (L)" },
       ];
     }
-    return [{ value: "UN", label: "Unidades (un)" }];
+    return [{ value: baseUnit, label: `${UNIT_LABELS[baseUnit] || baseUnit}` }];
   }, [baseUnit]);
 
-  const onSubmit = (data: AdjustStockSchema) => {
+  const onSubmit = (data: AdjustSchema) => {
     executeAdjust({
       ...data,
       quantity: data.quantity * multiplier,
     });
-  };
-
-  const UNIT_LABELS: Record<string, string> = {
-    G: "g",
-    KG: "kg",
-    ML: "ml",
-    L: "L",
-    UN: "un",
   };
 
   return (
@@ -129,7 +150,7 @@ const AdjustStockDialogContent = ({
           <DialogHeader>
             <DialogTitle>Ajustar Estoque</DialogTitle>
             <DialogDescription>
-              Ajuste o estoque de <strong>{productName}</strong>
+              Ajuste o estoque de <strong>{itemName}</strong>
             </DialogDescription>
           </DialogHeader>
 
