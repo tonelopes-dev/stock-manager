@@ -181,6 +181,16 @@ export const OrderService = {
     isEmployeeSale: boolean = false
   ) {
     try {
+      // 1. Check for existing Sale (Idempotency)
+      const existingSale = await db.sale.findUnique({
+        where: { orderId },
+      });
+      
+      if (existingSale) {
+        console.warn(`Sale already exists for order ${orderId}. Returning existing sale.`);
+        return existingSale;
+      }
+
       return await db.$transaction(async (trx) => {
         const order = await trx.order.findUnique({
           where: { id: orderId, companyId },
@@ -188,7 +198,9 @@ export const OrderService = {
         });
 
         if (!order) throw new BusinessError("Pedido não encontrado.");
-        if (order.status === OrderStatus.PAID) throw new BusinessError("Este pedido já foi pago.");
+        if (order.status === OrderStatus.PAID) {
+          throw new Error("ORDER_ALREADY_PAID_CONCURRENCY");
+        }
 
         // Calculate final amounts based on current toggles/discounts
         const subtotal = order.orderItems.reduce((acc, item) => {
@@ -242,15 +254,28 @@ export const OrderService = {
           });
         }
 
-        // 3. Mark Order as PAID and complete
-        await trx.order.update({
-          where: { id: orderId },
+        // 3. Mark Order as PAID and complete with Concurrency Protection
+        const updatedOrderCount = await trx.order.updateMany({
+          where: { id: orderId, status: { not: OrderStatus.PAID } },
           data: { status: OrderStatus.PAID },
         });
+
+        if (updatedOrderCount.count === 0) {
+           throw new Error("ORDER_ALREADY_PAID_CONCURRENCY");
+        }
 
         return sale;
       });
     } catch (error) {
+      if (
+        (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') ||
+        (error instanceof Error && error.message === 'ORDER_ALREADY_PAID_CONCURRENCY')
+      ) {
+        console.warn(`[convertToSale] Race condition avoided for order ${orderId}`);
+        const existingSale = await db.sale.findUnique({ where: { orderId } });
+        if (existingSale) return existingSale;
+      }
+
       if (error instanceof BusinessError) throw error;
       console.error("Error converting order to sale:", error);
       throw new Error("Erro ao processar pagamento do pedido.");
