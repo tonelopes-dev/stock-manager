@@ -188,6 +188,11 @@ export const OrderService = {
       
       if (existingSale) {
         console.warn(`Sale already exists for order ${orderId}. Returning existing sale.`);
+        // Ensure order is marked as PAID to fix stuck comandas
+        await db.order.updateMany({
+          where: { id: orderId, status: { not: OrderStatus.PAID } },
+          data: { status: OrderStatus.PAID },
+        });
         return existingSale;
       }
 
@@ -273,7 +278,14 @@ export const OrderService = {
       ) {
         console.warn(`[convertToSale] Race condition avoided for order ${orderId}`);
         const existingSale = await db.sale.findUnique({ where: { orderId } });
-        if (existingSale) return existingSale;
+        if (existingSale) {
+          // Ensure order is marked as PAID to fix stuck comandas
+          await db.order.updateMany({
+            where: { id: orderId, status: { not: OrderStatus.PAID } },
+            data: { status: OrderStatus.PAID },
+          });
+          return existingSale;
+        }
       }
 
       if (error instanceof BusinessError) throw error;
