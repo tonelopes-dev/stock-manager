@@ -176,9 +176,7 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
           <InlineProductImage product={serializedProduct as any} />
 
           {/* Stock Status Block (Inline Editable) */}
-          {!serializedProduct.isMadeToOrder && (
-            <InlineStockStatus product={serializedProduct as any} />
-          )}
+          <InlineStockStatus product={serializedProduct as any} />
 
           {/* Additional Info Block (Inline Editable) */}
           <InlineAdditionalInfo 

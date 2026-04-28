@@ -9,6 +9,7 @@ import { useAction } from "next-safe-action/hooks";
 import { upsertProduct } from "@/app/_actions/product/upsert-product";
 import { toast } from "sonner";
 import { cn } from "@/app/_lib/utils";
+import { ProductAvailabilityInfo } from "../../../sales/_components/shared/product-availability-info";
 
 interface InlineStockStatusProps {
   product: {
@@ -81,11 +82,11 @@ export default function InlineStockStatus({ product }: InlineStockStatusProps) {
             Status do Estoque
           </CardTitle>
         </div>
-        {!isEditing ? (
+        {!isEditing && !product.isMadeToOrder ? (
           <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)} className="h-8 w-8 text-muted-foreground/40 hover:text-primary hover:bg-primary/5 transition-colors rounded-lg" aria-label="Editar Estoque">
             <EditIcon size={14} />
           </Button>
-        ) : (
+        ) : isEditing ? (
           <div className="flex gap-1 p-1 bg-muted/40 rounded-xl">
             <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)} disabled={isPending} className="h-7 w-7 text-muted-foreground hover:bg-white rounded-lg" aria-label="Cancelar">
               <XIcon size={14} />
@@ -94,7 +95,7 @@ export default function InlineStockStatus({ product }: InlineStockStatusProps) {
               {isPending ? <Loader2Icon size={14} className="animate-spin" /> : <CheckIcon size={14} />}
             </Button>
           </div>
-        )}
+        ) : null}
       </CardHeader>
       <CardContent className="p-6 pt-2 space-y-6">
         <div className="relative overflow-hidden rounded-3xl bg-slate-50/50 p-6">
@@ -112,12 +113,23 @@ export default function InlineStockStatus({ product }: InlineStockStatusProps) {
                 <span className={cn(
                   "text-5xl font-black tracking-tighter tabular-nums",
                   isLowStock ? "text-amber-600" : "text-slate-900"
-                )}>{(stock ?? 0).toString()}</span>
+                )}>{(product.isMadeToOrder ? product.virtualStock : stock ?? 0).toString()}</span>
               )}
               <span className="text-sm font-black text-muted-foreground/30 uppercase tracking-widest">{product.unit}</span>
             </div>
-            <p className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest mt-1">Disponível em Estoque</p>
+            <p className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest mt-1">
+              {product.isMadeToOrder ? "Produção Disponível" : "Disponível em Estoque"}
+            </p>
           </div>
+          
+          {product.isMadeToOrder && (
+            <div className="mt-6 pt-6 border-t border-slate-100">
+               <ProductAvailabilityInfo 
+                 product={product as any} 
+                 showDetails={true}
+               />
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between rounded-2xl bg-slate-100/40 p-5">

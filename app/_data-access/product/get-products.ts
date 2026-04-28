@@ -111,13 +111,6 @@ export const getProducts = async (
     const cost = product.cost.toNumber();
     const operationalCost = product.operationalCost.toNumber();
 
-    const isOutOfStock = stock <= 0;
-    const isLowStock = stock <= minStock;
-    const isSlowMoving = product.saleItems.length === 0 && !isOutOfStock;
-
-    // The cost is now persisted in the DB and updated by the action
-    const effectiveCost = cost;
-
     let virtualStock = stock;
     let limitingIngredient: string | undefined;
     let ingredients: { name: string; availability: number }[] | undefined;
@@ -141,6 +134,11 @@ export const getProducts = async (
       });
       virtualStock = Math.max(0, minCapacity);
     }
+
+    const effectiveStockForStatus = product.isMadeToOrder ? virtualStock : stock;
+    const isOutOfStock = effectiveStockForStatus <= 0;
+    const isLowStock = effectiveStockForStatus <= minStock;
+    const isSlowMoving = product.saleItems.length === 0 && !isOutOfStock;
 
     return {
       id: product.id,
