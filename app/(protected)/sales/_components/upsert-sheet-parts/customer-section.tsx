@@ -33,6 +33,7 @@ export const CustomerSection = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* ... existing combobox and badge ... */}
           <div className="flex-1">
             <Combobox
               options={customerOptions}
@@ -60,6 +61,36 @@ export const CustomerSection = ({
             )}
             Venda Avulsa {!customerId && "Ativa"}
           </Badge>
+        </div>
+
+        {/* Identification & Notes */}
+        <div className="grid grid-cols-2 gap-3 pt-2">
+          <div className="space-y-1.5">
+            <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/80">
+              Número da Mesa
+            </label>
+            <input
+              type="text"
+              placeholder="Ex: 12"
+              value={watch("tableNumber") || ""}
+              onChange={(e) => setValue("tableNumber", e.target.value)}
+              className="flex h-9 w-full rounded-xl border border-border bg-background/50 px-3 py-1 text-xs font-bold placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isReadOnly}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/80">
+              Obs. Geral
+            </label>
+            <input
+              type="text"
+              placeholder="Notas do pedido..."
+              value={watch("notes") || ""}
+              onChange={(e) => setValue("notes", e.target.value)}
+              className="flex h-9 w-full rounded-xl border border-border bg-background/50 px-3 py-1 text-xs font-bold placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isReadOnly}
+            />
+          </div>
         </div>
       </div>
     </div>

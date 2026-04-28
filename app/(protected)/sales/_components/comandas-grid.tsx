@@ -13,6 +13,8 @@ import { ComandaDetailsSheet } from "./comanda-details-sheet";
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
 import { cn } from "@/app/_lib/utils";
+import { supabase } from "@/app/_lib/supabase";
+
 
 interface ComandasGridProps {
   initialComandas: ComandaDto[];
@@ -73,26 +75,24 @@ export const ComandasGrid = ({
     }
   }, [searchParams, initialComandas]);
   
-  // Real-time Updates via SSE
+  // Supabase Realtime - Native Postgres Changes
   useEffect(() => {
-    const eventSource = new EventSource(
-      `/api/kds/events?companyId=${companyId}`,
-    );
+    const channel = supabase
+      .channel("sales-grid-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "Order" },
+        (payload) => {
+          console.log("[SUPABASE REALTIME] Mudança detectada no grid de vendas:", payload.eventType);
+          router.refresh();
+        }
+      )
+      .subscribe();
 
-    eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.companyId === companyId) {
-        router.refresh();
-      }
+    return () => {
+      supabase.removeChannel(channel);
     };
-
-    eventSource.onerror = (error) => {
-      console.error("SSE Connection Error:", error);
-      eventSource.close();
-    };
-
-    return () => eventSource.close();
-  }, [companyId, router]);
+  }, [router]);
 
   const handleCloseSheet = () => {
     setSelectedComanda(null);

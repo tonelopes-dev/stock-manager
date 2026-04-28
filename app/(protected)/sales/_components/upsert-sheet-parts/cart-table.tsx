@@ -2,6 +2,7 @@
 
 import { TrashIcon, ShoppingCartIcon } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
+import { CartItemNotesDialog } from "./cart-item-notes-dialog";
 import {
   Table,
   TableBody,
@@ -29,6 +30,11 @@ export const CartTable = ({
   const handleUpdateQuantity = (index: number, quantity: number) => {
     const item = fields[index];
     update(index, { ...item, quantity });
+  };
+
+  const handleUpdateNotes = (index: number, notes: string) => {
+    const item = fields[index];
+    update(index, { ...item, notes });
   };
 
   if (fields.length === 0) {
@@ -59,7 +65,7 @@ export const CartTable = ({
             <TableHead className="h-8 px-2 text-right text-[9px] font-black uppercase text-muted-foreground">
               Total
             </TableHead>
-            {!isReadOnly && <TableHead className="h-8 w-8 text-center text-[9px] font-black uppercase text-muted-foreground"></TableHead>}
+            {!isReadOnly && <TableHead className="h-8 w-[70px] text-center text-[9px] font-black uppercase text-muted-foreground"></TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -86,17 +92,24 @@ export const CartTable = ({
                 {formatCurrency(field.price * field.quantity)}
               </TableCell>
               {!isReadOnly && (
-                <TableCell className="px-2 py-2 text-center">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    type="button"
-                    data-testid="remove-item-button"
-                    onClick={() => remove(index)}
-                    className="h-8 w-8 rounded-lg text-rose-500 opacity-0 transition-opacity hover:bg-rose-50 hover:text-rose-600 group-hover:opacity-100"
-                  >
-                    <TrashIcon size={16} />
-                  </Button>
+                <TableCell className="px-2 py-2">
+                  <div className="flex items-center justify-center gap-1">
+                    <CartItemNotesDialog 
+                      notes={field.notes} 
+                      onSave={(notes) => handleUpdateNotes(index, notes)} 
+                      isReadOnly={isReadOnly}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      type="button"
+                      data-testid="remove-item-button"
+                      onClick={() => remove(index)}
+                      className="h-8 w-8 rounded-lg text-rose-500 opacity-0 transition-opacity hover:bg-rose-50 hover:text-rose-600 group-hover:opacity-100"
+                    >
+                      <TrashIcon size={16} />
+                    </Button>
+                  </div>
                 </TableCell>
               )}
             </TableRow>

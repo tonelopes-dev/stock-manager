@@ -50,6 +50,7 @@ const itemSchema = z.object({
   operationalCost: z.coerce.number(),
   quantity: z.coerce.number().int().positive(),
   stock: z.coerce.number(),
+  notes: z.string().optional(),
 });
 
 const formSchema = z.object({
@@ -62,6 +63,8 @@ const formSchema = z.object({
   discountAmount: z.coerce.number().min(0),
   extraAmount: z.coerce.number().min(0),
   adjustmentReason: z.string().optional(),
+  tableNumber: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 type FormSchema = z.infer<typeof formSchema>;
@@ -205,16 +208,18 @@ const UpsertSheetContent = ({
     executeCreateOrder({
       companyId,
       customerId: values.customerId,
-      items: values.items.map((p) => ({
-        productId: p.productId,
-        quantity: p.quantity,
-      })),
-      notes: "Painel de Gestão",
+      notes: values.notes || "Venda ERP",
+      tableNumber: values.tableNumber || undefined,
       hasServiceTax: values.applyServiceCharge,
       discountAmount: totals.effectiveDiscount,
       extraAmount: totals.extraAmount,
       adjustmentReason: values.adjustmentReason || undefined,
       isEmployeeSale: values.isEmployeeSale,
+      items: values.items.map((p) => ({
+        productId: p.productId,
+        quantity: p.quantity,
+        notes: p.notes,
+      })),
     });
   };
 

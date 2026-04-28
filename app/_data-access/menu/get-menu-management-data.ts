@@ -9,9 +9,12 @@ export interface MenuManagementProduct {
   price: number;
   imageUrl: string | null;
   isVisibleOnMenu: boolean;
-  isPromotion: boolean;
+  promoActive: boolean;
   isActive: boolean;
   stock: number;
+  promoPrice: number | null;
+  promoSchedule: any;
+  isFeatured: boolean;
 }
 
 export interface MenuManagementCategory {
@@ -22,12 +25,42 @@ export interface MenuManagementCategory {
   products: MenuManagementProduct[];
 }
 
+export interface CompanyBranding {
+  name: string;
+  slug: string;
+  bannerUrl: string | null;
+  logoUrl: string | null;
+  address: string | null;
+  description: string | null;
+  whatsappNumber: string | null;
+  instagramUrl: string | null;
+  operatingHours: any;
+  requireSelfieOnCheckout: boolean;
+}
+
 export const getMenuManagementData = async (): Promise<{
   categories: MenuManagementCategory[];
   companyId: string;
+  company: CompanyBranding | null;
 }> => {
   const companyId = await getCurrentCompanyId();
-  if (!companyId) return { categories: [], companyId: "" };
+  if (!companyId) return { categories: [], companyId: "", company: null };
+
+  const company = await db.company.findUnique({
+    where: { id: companyId },
+    select: {
+      name: true,
+      slug: true,
+      bannerUrl: true,
+      logoUrl: true,
+      address: true,
+      description: true,
+      whatsappNumber: true,
+      instagramUrl: true,
+      operatingHours: true,
+      requireSelfieOnCheckout: true,
+    },
+  });
 
   const categories = await db.category.findMany({
     where: { companyId },
@@ -42,9 +75,12 @@ export const getMenuManagementData = async (): Promise<{
           price: true,
           imageUrl: true,
           isVisibleOnMenu: true,
-          isPromotion: true,
+          promoActive: true,
           isActive: true,
           stock: true,
+          promoPrice: true,
+          promoSchedule: true,
+          isFeatured: true,
         },
       },
     },
@@ -64,9 +100,12 @@ export const getMenuManagementData = async (): Promise<{
       price: true,
       imageUrl: true,
       isVisibleOnMenu: true,
-      isPromotion: true,
+      promoActive: true,
       isActive: true,
       stock: true,
+      promoPrice: true,
+      promoSchedule: true,
+      isFeatured: true,
     },
   });
 
@@ -77,8 +116,12 @@ export const getMenuManagementData = async (): Promise<{
     orderIndex: cat.orderIndex,
     products: cat.products.map((p) => ({
       ...p,
-      price: Number(p.price),
-      stock: Number(p.stock),
+      price: p.price.toNumber(),
+      stock: p.stock.toNumber(),
+      promoPrice: p.promoPrice ? p.promoPrice.toNumber() : null,
+      promoActive: p.promoActive,
+      promoSchedule: p.promoSchedule,
+      isFeatured: p.isFeatured,
     })),
   }));
 
@@ -90,11 +133,15 @@ export const getMenuManagementData = async (): Promise<{
       orderIndex: 9999,
       products: uncategorized.map((p) => ({
         ...p,
-        price: Number(p.price),
-        stock: Number(p.stock),
+        price: p.price.toNumber(),
+        stock: p.stock.toNumber(),
+        promoPrice: p.promoPrice ? p.promoPrice.toNumber() : null,
+        promoActive: p.promoActive,
+        promoSchedule: p.promoSchedule,
+        isFeatured: p.isFeatured,
       })),
     });
   }
 
-  return { categories: result, companyId };
+  return { categories: result, companyId, company };
 };
