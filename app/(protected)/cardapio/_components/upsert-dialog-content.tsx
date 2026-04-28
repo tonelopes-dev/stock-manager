@@ -143,13 +143,19 @@ const UpsertProductDialogContent = ({
       stock: 0,
       minStock: 0,
       trackExpiration: false,
-      isMadeToOrder: true,
+      isMadeToOrder: false,
     },
   });
 
   const productType = form.watch("type");
   const isCompositionType =
     productType === "COMBO" || productType === "PRODUCAO_PROPRIA";
+
+  React.useEffect(() => {
+    if (!isCompositionType) {
+      form.setValue("isMadeToOrder", false);
+    }
+  }, [isCompositionType, form]);
 
   const onSubmit = (data: UpsertProductSchema) => {
     executeUpsertProduct({ ...data, id: defaultValues?.id });
@@ -329,44 +335,46 @@ const UpsertProductDialogContent = ({
                 />
               </div>
             
-            <div className="md:col-span-4 rounded-2xl border-2 border-primary/10 bg-primary/5 p-4 space-y-3">
-              <div className="flex items-center justify-between gap-4">
-                <div className="space-y-0.5 flex-1">
-                  <Label className="text-sm font-bold flex items-center gap-2">
-                    Modelo de Baixa de Estoque
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <InfoIcon size={14} className="text-primary/60" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-[250px]">
-                          <p className="text-[10px]">Define se o sistema deve baixar os ingredientes automaticamente na venda ou se exige a produção manual de lotes.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </Label>
-                  <p className="text-[11px] text-muted-foreground leading-tight">
-                    {form.watch("isMadeToOrder") 
-                      ? "Feito na hora: Baixa os insumos diretamente na venda (ideal para Drinks e Lanches)."
-                      : "Pré-produzido: Exige produção de lote prévia e baixa o produto final (ideal para Bolos e Salgados/Sucos em jarra)."}
-                  </p>
+            {isCompositionType && (
+              <div className="md:col-span-4 rounded-2xl border-2 border-primary/10 bg-primary/5 p-4 space-y-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="space-y-0.5 flex-1">
+                    <Label className="text-sm font-bold flex items-center gap-2">
+                      Modelo de Baixa de Estoque
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon size={14} className="text-primary/60" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-[250px]">
+                            <p className="text-[10px]">Define se o sistema deve baixar os ingredientes automaticamente na venda ou se exige a produção manual de lotes.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </Label>
+                    <p className="text-[11px] text-muted-foreground leading-tight">
+                      {form.watch("isMadeToOrder") 
+                        ? "Feito na hora: Baixa os insumos diretamente na venda (ideal para Drinks e Lanches)."
+                        : "Pré-produzido: Exige produção de lote prévia e baixa o produto final (ideal para Bolos e Salgados/Sucos em jarra)."}
+                    </p>
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="isMadeToOrder"
+                    render={({ field }) => (
+                      <FormControl>
+                        <Switch
+                          id="is-made-to-order-switch"
+                          aria-label="Como o estoque deste produto funciona"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    )}
+                  />
                 </div>
-                <FormField
-                  control={form.control}
-                  name="isMadeToOrder"
-                  render={({ field }) => (
-                    <FormControl>
-                      <Switch
-                        id="is-made-to-order-switch"
-                        aria-label="Como o estoque deste produto funciona"
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  )}
-                />
               </div>
-            </div>
+            )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
