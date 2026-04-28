@@ -35,6 +35,7 @@ export interface CompanyBranding {
   whatsappNumber: string | null;
   instagramUrl: string | null;
   operatingHours: any;
+  requireSelfieOnCheckout: boolean;
 }
 
 export const getMenuManagementData = async (): Promise<{
@@ -57,6 +58,7 @@ export const getMenuManagementData = async (): Promise<{
       whatsappNumber: true,
       instagramUrl: true,
       operatingHours: true,
+      requireSelfieOnCheckout: true,
     },
   });
 
