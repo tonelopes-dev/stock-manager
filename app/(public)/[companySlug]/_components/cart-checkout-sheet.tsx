@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Minus, Plus, ShoppingBag, Trash2, X, User, Phone, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect } from "react";
-import { cn } from "@/app/_lib/utils";
+import { cn, formatPhoneNumber } from "@/app/_lib/utils";
 
 import {
   Sheet,
@@ -45,19 +45,6 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelf
   const [tempCustomerId, setTempCustomerId] = useState<string | null>(null);
   const [customerImageUrl, setCustomerImageUrl] = useState<string | null>(null);
   const [checkoutStep, setCheckoutStep] = useState<"DETAILS" | "SELFIE">("DETAILS");
-
-  const formatPhoneNumber = (value: string) => {
-    const numbers = value.replace(/\D/g, "");
-    if (numbers.length <= 11) {
-      return numbers
-        .replace(/^(\d{2})(\d)/, "($1) $2")
-        .replace(/(\d{5})(\d)/, "$1-$2")
-        .replace(/(-\d{4})\d+?$/, "$1");
-    }
-    return numbers.substring(0, 11)
-      .replace(/^(\d{2})(\d)/, "($1) $2")
-      .replace(/(\d{5})(\d)/, "$1-$2");
-  };
 
   // Load saved customer from localStorage
   useEffect(() => {

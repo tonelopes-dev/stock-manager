@@ -18,13 +18,16 @@ import {
   Plus,
   Loader2,
   Utensils,
-  Check
+  Check,
+  Phone
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/app/_components/ui/button";
+import { Input } from "@/app/_components/ui/input";
 import { OrderStatusDto } from "@/app/_data-access/order/get-order-status";
 import { getMyOrdersAction } from "@/app/_actions/order/get-my-orders";
-import { cn } from "@/app/_lib/utils";
+import { cn, formatPhoneNumber } from "@/app/_lib/utils";
+import { toast } from "sonner";
 import { BottomNav } from "../../_components/bottom-nav";
 import { PromotionsModal } from "../../_components/promotions-modal";
 import { ProductDetailsSheet } from "../../_components/product-details-sheet";
@@ -246,6 +249,11 @@ export const MyOrdersClient = ({ companyId, companySlug }: MyOrdersClientProps) 
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
+  // Login flow state
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loginPhone, setLoginPhone] = useState("");
+  const [isCheckingPhone, setIsCheckingPhone] = useState(false);
+
 
   const loadOrders = async (cid: string) => {
     try {
@@ -274,11 +282,40 @@ export const MyOrdersClient = ({ companyId, companySlug }: MyOrdersClientProps) 
     try {
       const customer = JSON.parse(savedCustomer);
       setCustomerId(customer.customerId);
+      setIsLoggedIn(true);
       loadOrders(customer.customerId);
     } catch (e) {
       setLoading(false);
     }
   }, [companyId]);
+
+  const handleLoginContinue = async () => {
+    const cleanPhone = loginPhone.replace(/\D/g, "");
+    if (!cleanPhone || cleanPhone.length < 10) {
+      toast.error("Informe um telefone válido.");
+      return;
+    }
+
+    setIsCheckingPhone(true);
+    try {
+      const res = await fetch(`/api/customers/check?phone=${cleanPhone}&companyId=${companyId}`);
+      const data = await res.json();
+
+      if (data.exists) {
+        localStorage.setItem(`kipo-customer-${companyId}`, JSON.stringify(data.customer));
+        setCustomerId(data.customer.customerId);
+        setIsLoggedIn(true);
+        toast.success(`Bem-vindo(a) de volta, ${data.customer.name.split(' ')[0]}!`);
+        loadOrders(data.customer.customerId);
+      } else {
+        toast.info("Não encontramos pedidos para este telefone. Se deseja criar uma conta, acesse o Perfil ou faça seu primeiro pedido!");
+      }
+    } catch {
+      toast.error("Erro ao buscar histórico.");
+    } finally {
+      setIsCheckingPhone(false);
+    }
+  };
 
   // Supabase Realtime - Native Postgres Changes
   useEffect(() => {
@@ -374,7 +411,44 @@ export const MyOrdersClient = ({ companyId, companySlug }: MyOrdersClientProps) 
       </header>
 
       <main className="flex-1 space-y-6 px-6 py-8 pb-32">
-        {orders.length === 0 ? (
+        {!isLoggedIn ? (
+          <div className="space-y-6 rounded-[2rem] bg-white p-6 shadow-sm border border-gray-100 mt-12">
+            <h3 className="text-sm font-black uppercase tracking-widest text-gray-400 text-center mb-6">
+              Acesse com seu telefone
+            </h3>
+            
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
+                  Telefone (WhatsApp)
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <Input
+                    value={loginPhone}
+                    onChange={(e) => setLoginPhone(formatPhoneNumber(e.target.value))}
+                    placeholder="(00) 00000-0000"
+                    type="tel"
+                    disabled={isCheckingPhone}
+                    className="h-14 rounded-2xl border-none bg-gray-50 pl-12 text-sm shadow-inner focus-visible:ring-primary/20"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleLoginContinue}
+              disabled={isCheckingPhone || !loginPhone}
+              className="mt-8 h-16 w-full rounded-[2rem] bg-primary text-white shadow-xl shadow-primary/20 text-sm font-black uppercase tracking-widest hover:bg-primary/90"
+            >
+              {isCheckingPhone ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                "Ver meus pedidos"
+              )}
+            </Button>
+          </div>
+        ) : orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-background shadow-xl shadow-slate-200/50">
               <Utensils className="h-10 w-10 text-muted-foreground" />
