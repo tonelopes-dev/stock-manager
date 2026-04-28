@@ -102,7 +102,7 @@ export const upsertProduct = actionClient
         trackExpiration,
         imageUrl,
         operationalCost,
-        isMadeToOrder,
+        isMadeToOrder: (type === "REVENDA" || type === "INSUMO") ? false : isMadeToOrder,
         // If it's a combo/production, we'll calculate cost later
         cost: (type === "COMBO" || type === "PRODUCAO_PROPRIA") ? undefined : cost
       };

@@ -60,7 +60,13 @@ export const getIngredients = async (
   // Build where clause
   const where: any = {
     companyId,
-    type: { in: ["INSUMO", "REVENDA"] },
+    OR: [
+      { type: { in: ["INSUMO", "REVENDA"] } },
+      { 
+        type: "PRODUCAO_PROPRIA",
+        isMadeToOrder: false
+      }
+    ]
   };
 
   if (status === "ACTIVE") {
