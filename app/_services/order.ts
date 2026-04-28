@@ -228,6 +228,25 @@ export const OrderService = {
 
   async convertToSale(orderId: string, companyId: string, userId: string, paymentMethod: any, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false) {
     try {
+      // 1. Check for existing Sale (Idempotency)
+      const existingSale = await db.sale.findUnique({
+        where: { orderId },
+      });
+      
+      if (existingSale) {
+        console.warn(`Sale already exists for order ${orderId}. Returning existing sale.`);
+        // Ensure order is marked as PAID to fix stuck comandas
+        await db.order.updateMany({
+          where: { id: orderId, status: { not: OrderStatus.PAID } },
+          data: { status: OrderStatus.PAID },
+        });
+        await db.orderItem.updateMany({
+          where: { orderId: orderId, status: { not: OrderStatus.PAID } },
+          data: { status: OrderStatus.PAID },
+        });
+        return existingSale;
+      }
+
       const sale = await db.$transaction(async (trx) => {
         const order = await trx.order.findUnique({
           where: { id: orderId, companyId },
@@ -235,22 +254,10 @@ export const OrderService = {
         });
 
         if (!order) throw new BusinessError("Pedido não encontrado.");
-        
-        const existingSale = await trx.sale.findUnique({
-          where: { orderId }
-        });
 
-        if (existingSale) {
-          if (order.status !== OrderStatus.PAID) {
-            await trx.order.update({
-              where: { id: orderId },
-              data: { status: OrderStatus.PAID }
-            });
-          }
-          return existingSale;
+        if (order.status === OrderStatus.PAID) {
+          throw new Error("ORDER_ALREADY_PAID_CONCURRENCY");
         }
-
-        if (order.status === OrderStatus.PAID) throw new BusinessError("Este pedido já foi pago.");
 
         const subtotal = order.orderItems.reduce((acc, item) => {
           const price = isEmployeeSale 
@@ -300,10 +307,15 @@ export const OrderService = {
           data: { saleId: sale.id }
         });
 
-        await trx.order.update({
-          where: { id: orderId },
+        // 3. Mark Order as PAID and complete with Concurrency Protection
+        const updatedOrderCount = await trx.order.updateMany({
+          where: { id: orderId, status: { not: OrderStatus.PAID } },
           data: { status: OrderStatus.PAID },
         });
+
+        if (updatedOrderCount.count === 0) {
+           throw new Error("ORDER_ALREADY_PAID_CONCURRENCY");
+        }
 
         await trx.orderItem.updateMany({
           where: { orderId: order.id },
@@ -315,6 +327,26 @@ export const OrderService = {
 
       return sale;
     } catch (error) {
+      if (
+        (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') ||
+        (error instanceof Error && error.message === 'ORDER_ALREADY_PAID_CONCURRENCY')
+      ) {
+        console.warn(`[convertToSale] Race condition avoided for order ${orderId}`);
+        const existingSale = await db.sale.findUnique({ where: { orderId } });
+        if (existingSale) {
+          // Ensure order is marked as PAID to fix stuck comandas
+          await db.order.updateMany({
+            where: { id: orderId, status: { not: OrderStatus.PAID } },
+            data: { status: OrderStatus.PAID },
+          });
+          await db.orderItem.updateMany({
+            where: { orderId: orderId, status: { not: OrderStatus.PAID } },
+            data: { status: OrderStatus.PAID },
+          });
+          return existingSale;
+        }
+      }
+
       if (error instanceof BusinessError) throw error;
       console.error("Error converting order to sale:", error);
       throw new Error("Erro ao processar pagamento do pedido.");
