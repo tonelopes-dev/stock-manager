@@ -18,9 +18,9 @@ export const ProductSection = ({
     <section id={id} className="scroll-mt-32 space-y-6">
       <h2 className="text-xl font-black tracking-tight text-gray-900">{title}</h2>
       <div className="grid gap-6">
-        {products.map((product) => (
+        {products.map((product, idx) => (
           <ProductCard
-            key={product.id}
+            key={`${id}-${product.id}-${idx}`}
             product={product}
             onClick={onProductClick}
           />

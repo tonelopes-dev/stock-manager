@@ -8,6 +8,7 @@ export const updateCompanySchema = z.object({
   allowNegativeStock: z.boolean().default(false),
   estimatedMonthlyVolume: z.number().int().min(1).default(1000),
   enableOverheadInjection: z.boolean().default(true),
+  enableServiceTax: z.boolean().default(true),
   bannerUrl: z.string().optional(),
   logoUrl: z.string().optional(),
   address: z.string().optional(),

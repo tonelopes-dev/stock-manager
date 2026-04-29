@@ -37,21 +37,23 @@ export const useCartStore = create<CartStore>()(
         const entryId = `${newItem.productId}-${newItem.notes || ""}`;
         const existingItemIndex = currentItems.findIndex((item) => item.id === entryId);
 
-        let updatedItems = [...currentItems];
         const allowNegative = get().allowNegativeStock;
 
+        // Calculate total quantity of THIS product ID already in cart
+        const totalInCart = currentItems
+          .filter((item) => item.productId === newItem.productId)
+          .reduce((acc, item) => acc + item.quantity, 0);
+
+        const newTotalQuantity = totalInCart + newItem.quantity;
+
+        if (!allowNegative && newTotalQuantity > newItem.maxQuantity) {
+          return false;
+        }
+
+        let updatedItems = [...currentItems];
         if (existingItemIndex > -1) {
-          const newQuantity = updatedItems[existingItemIndex].quantity + newItem.quantity;
-          
-          if (!allowNegative && newQuantity > newItem.maxQuantity) {
-            return false;
-          }
-          
-          updatedItems[existingItemIndex].quantity = newQuantity;
+          updatedItems[existingItemIndex].quantity += newItem.quantity;
         } else {
-          if (!allowNegative && newItem.quantity > newItem.maxQuantity) {
-            return false;
-          }
           updatedItems.push({ ...newItem, id: entryId } as CartItem);
         }
 
@@ -76,14 +78,24 @@ export const useCartStore = create<CartStore>()(
           return true;
         }
 
-        const item = get().items.find((i) => i.id === id);
+        const currentItems = get().items;
+        const item = currentItems.find((i) => i.id === id);
         const allowNegative = get().allowNegativeStock;
 
-        if (!item || (!allowNegative && quantity > item.maxQuantity)) {
+        if (!item) return false;
+
+        // Calculate total quantity of THIS product ID in OTHER cart entries
+        const totalInOtherEntries = currentItems
+          .filter((i) => i.productId === item.productId && i.id !== id)
+          .reduce((acc, i) => acc + i.quantity, 0);
+
+        const newTotalQuantity = totalInOtherEntries + quantity;
+
+        if (!allowNegative && newTotalQuantity > item.maxQuantity) {
           return false;
         }
 
-        const updatedItems = get().items.map((item) =>
+        const updatedItems = currentItems.map((item) =>
           item.id === id ? { ...item, quantity } : item
         );
 

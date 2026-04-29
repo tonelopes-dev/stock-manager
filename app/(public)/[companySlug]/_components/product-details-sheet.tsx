@@ -14,6 +14,7 @@ import { Button } from "@/app/_components/ui/button";
 import { Textarea } from "@/app/_components/ui/textarea";
 import { MenuProductDto } from "@/app/_data-access/menu/get-menu-data";
 import { useCartStore } from "../_store/use-cart-store";
+import { cn } from "@/app/_lib/utils";
 
 interface ProductDetailsSheetProps {
   product: MenuProductDto | null;
@@ -26,9 +27,13 @@ export const ProductDetailsSheet = ({
 }: ProductDetailsSheetProps) => {
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState("");
-  const addItem = useCartStore((state) => state.addItem);
+  const { items, addItem, allowNegativeStock } = useCartStore();
 
   if (!product) return null;
+
+  const totalInCart = items
+    .filter((i) => i.productId === product.id)
+    .reduce((acc, i) => acc + i.quantity, 0);
 
   const formatPrice = (price: number) =>
     Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -37,8 +42,8 @@ export const ProductDetailsSheet = ({
 
   const activePrice = product.promoPrice || product.price;
 
-  const allowNegativeStock = useCartStore((state) => state.allowNegativeStock);
   const isOutOfStock = product.availability <= 0 && !allowNegativeStock;
+  const isMaxQuantityReached = !allowNegativeStock && (quantity + totalInCart) >= product.availability;
 
   const handleAddToCart = () => {
     const success = addItem({
@@ -123,6 +128,15 @@ export const ProductDetailsSheet = ({
                     {formatPrice(product.price)}
                   </span>
                 )}
+                {/* Availability Badge */}
+                <div className={cn(
+                  "mt-1 rounded-lg px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-white shadow-sm",
+                  product.availability > 10 ? "bg-emerald-500" : 
+                  product.availability > 0 ? "bg-amber-500" : 
+                  allowNegativeStock ? "bg-sky-500" : "bg-rose-500"
+                )}>
+                  {product.availability} {product.isMadeToOrder ? "Disponíveis" : "Em Estoque"}
+                </div>
               </div>
             </div>
             <p className="text-sm leading-relaxed text-gray-500">
@@ -168,7 +182,7 @@ export const ProductDetailsSheet = ({
                 variant="ghost"
                 size="icon"
                 className="h-10 w-10 rounded-xl"
-                disabled={!allowNegativeStock && quantity >= product.availability}
+                disabled={isMaxQuantityReached}
                 onClick={() => setQuantity(quantity + 1)}
               >
                 <Plus className="h-4 w-4" />

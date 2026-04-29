@@ -418,6 +418,7 @@ export function MenuClient({
       <FloatingCartButton 
         companyId={companyId} 
         requireSelfieOnCheckout={currentMenuData.requireSelfieOnCheckout}
+        enableServiceTax={currentMenuData.enableServiceTax}
       />
 
       {/* Bottom Navigation Bar */}

@@ -252,22 +252,18 @@ export const ComandaDetailsSheet = ({
     startTransition(async () => {
       try {
         if (selectedItemIds.size === 0) {
-          // PAY EVERYTHING (Standard logic)
-          for (let i = 0; i < comanda.orders.length; i++) {
-            const order = comanda.orders[i];
-            const result = await convertOrderToSaleAction({
-              orderId: order.id,
-              companyId,
-              paymentMethod: paymentMethod as any,
-              tipAmount: i === 0 ? totals.serviceChargeAmount : 0,
-              discountAmount: i === 0 ? totals.effectiveDiscount : 0,
-              extraAmount: i === 0 ? totals.extraAmount : 0,
-              adjustmentReason:
-                i === 0 && adjustmentReason ? adjustmentReason : undefined,
-              isEmployeeSale: isEmployeeSale,
-            });
-            if (result?.serverError) throw new Error(result.serverError);
-          }
+          // PAY EVERYTHING (Consolidated logic)
+          const result = await convertOrderToSaleAction({
+            orderIds: comanda.orders.map(o => o.id),
+            companyId,
+            paymentMethod: paymentMethod as any,
+            tipAmount: totals.serviceChargeAmount,
+            discountAmount: totals.effectiveDiscount,
+            extraAmount: totals.extraAmount,
+            adjustmentReason: adjustmentReason || undefined,
+            isEmployeeSale: isEmployeeSale,
+          });
+          if (result?.serverError) throw new Error(result.serverError);
         } else {
           // PARTIAL PAYMENT
           const result = await convertItemsToSaleAction({
@@ -308,6 +304,7 @@ export const ComandaDetailsSheet = ({
           extraAmount: totals.extraAmount,
           adjustmentReason: adjustmentReason || undefined,
           isEmployeeSale,
+          hasServiceTax: applyServiceCharge,
         });
 
         if (result?.serverError) throw new Error(result.serverError);

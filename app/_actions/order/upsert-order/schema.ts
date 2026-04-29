@@ -13,6 +13,7 @@ export const upsertOrderSchema = z.object({
   extraAmount: z.number().min(0).default(0),
   adjustmentReason: z.string().optional().nullable(),
   isEmployeeSale: z.boolean().default(false),
+  hasServiceTax: z.boolean().optional(),
 });
 
 export type UpsertOrderSchema = z.infer<typeof upsertOrderSchema>;

@@ -83,7 +83,7 @@ export const PendingOrdersBanner = ({
     setLoadingOrderId(orderId);
     try {
       const result = await convertOrderToSaleAction({
-        orderId,
+        orderIds: [orderId],
         companyId,
         paymentMethod: method as any,
       });

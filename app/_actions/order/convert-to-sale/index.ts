@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/app/_lib/auth";
 
 const convertOrderToSaleSchema = z.object({
-  orderId: z.string(),
+  orderIds: z.array(z.string()),
   companyId: z.string(),
   paymentMethod: z.enum(["CASH", "CREDIT_CARD", "DEBIT_CARD", "PIX", "OTHER"]),
   tipAmount: z.number().min(0).default(0),
@@ -19,13 +19,13 @@ const convertOrderToSaleSchema = z.object({
 
 export const convertOrderToSaleAction = actionClient
   .schema(convertOrderToSaleSchema)
-  .action(async ({ parsedInput: { orderId, companyId, paymentMethod, tipAmount, discountAmount, extraAmount, adjustmentReason, isEmployeeSale } }) => {
+  .action(async ({ parsedInput: { orderIds, companyId, paymentMethod, tipAmount, discountAmount, extraAmount, adjustmentReason, isEmployeeSale } }) => {
     const session = await auth();
     if (!session?.user?.id) throw new Error("Não autorizado");
 
     try {
       const sale = await OrderService.convertToSale(
-        orderId,
+        orderIds,
         companyId,
         session.user.id,
         paymentMethod,
@@ -43,6 +43,6 @@ export const convertOrderToSaleAction = actionClient
       return { success: true, saleId: sale.id };
     } catch (error: any) {
       console.error("Convert Order to Sale Error:", error);
-      throw new Error(error.message || "Falha ao converter pedido em venda.");
+      throw new Error(error.message || "Falha ao converter pedido(s) em venda.");
     }
   });

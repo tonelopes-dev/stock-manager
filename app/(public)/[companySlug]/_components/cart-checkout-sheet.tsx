@@ -26,9 +26,10 @@ interface CartCheckoutSheetProps {
   onOpenChange: (open: boolean) => void;
   companyId: string;
   requireSelfieOnCheckout?: boolean;
+  enableServiceTax?: boolean;
 }
 
-export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelfieOnCheckout = false }: CartCheckoutSheetProps) {
+export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelfieOnCheckout = false, enableServiceTax = true }: CartCheckoutSheetProps) {
   const router = useRouter();
   const params = useParams();
   const companySlug = params.companySlug as string;
@@ -195,6 +196,7 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelf
           notes: item.notes
         })),
         notes: `Cliente: ${customerName} | Tel: ${cleanPhone}`,
+        hasServiceTax: enableServiceTax,
       });
 
       if (result?.data?.success && result.data.orderId) {
@@ -422,13 +424,26 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelf
                   }).format(totalAmount)}
                 </span>
               </div>
-              <div className="mt-1 flex items-center justify-between text-lg font-black text-foreground">
+              
+              {enableServiceTax && (
+                <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-muted-foreground border-t border-dashed border-border/50 pt-2 mt-1">
+                  <span>Taxa de Serviço (10%)</span>
+                  <span>
+                    {new Intl.NumberFormat("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    }).format(totalAmount * 0.1)}
+                  </span>
+                </div>
+              )}
+
+              <div className="mt-2 flex items-center justify-between text-lg font-black text-foreground pt-2 border-t border-border/50">
                 <span>Total</span>
                 <span className="text-primary">
                   {new Intl.NumberFormat("pt-BR", {
                     style: "currency",
                     currency: "BRL",
-                  }).format(totalAmount)}
+                  }).format(enableServiceTax ? totalAmount * 1.1 : totalAmount)}
                 </span>
               </div>
             </div>

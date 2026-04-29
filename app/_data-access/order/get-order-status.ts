@@ -8,6 +8,7 @@ export interface OrderStatusDto {
   orderNumber: number;
   status: OrderStatus;
   totalAmount: number;
+  hasServiceTax: boolean;
   tableNumber: string | null;
   createdAt: Date;
   items: {
@@ -44,6 +45,7 @@ export const getOrderStatus = async (
     orderNumber: order.orderNumber,
     status: order.status,
     totalAmount: Number(order.totalAmount),
+    hasServiceTax: order.hasServiceTax,
     tableNumber: order.tableNumber,
     createdAt: order.createdAt,
     items: order.orderItems.map((item) => ({

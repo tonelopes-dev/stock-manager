@@ -43,6 +43,7 @@ export const getMyOrdersAction = actionClient
       orderNumber: order.orderNumber,
       status: order.status,
       totalAmount: Number(order.totalAmount),
+      hasServiceTax: order.hasServiceTax,
       tableNumber: order.tableNumber,
       createdAt: order.createdAt,
       items: order.orderItems.map((item) => ({

@@ -35,6 +35,7 @@ export default async function CompanySettingsPage() {
       subscriptionStatus: true,
       estimatedMonthlyVolume: true,
       enableOverheadInjection: true,
+      enableServiceTax: true,
       fixedExpenses: true,
     },
   });
@@ -100,6 +101,7 @@ export default async function CompanySettingsPage() {
                   allowNegativeStock: company.allowNegativeStock,
                   estimatedMonthlyVolume: company.estimatedMonthlyVolume,
                   enableOverheadInjection: company.enableOverheadInjection,
+                  enableServiceTax: company.enableServiceTax,
                 }}
               />
             </CardContent>

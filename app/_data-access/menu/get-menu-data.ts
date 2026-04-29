@@ -34,6 +34,7 @@ export interface MenuDataDto {
   operatingHours: any;
   requireSelfieOnCheckout: boolean;
   allowNegativeStock: boolean;
+  enableServiceTax: boolean;
   categories: MenuCategoryDto[];
 }
 
@@ -57,6 +58,7 @@ export const getMenuData = async (companyId: string): Promise<MenuDataDto | null
       operatingHours: true,
       requireSelfieOnCheckout: true,
       allowNegativeStock: true,
+      enableServiceTax: true,
     },
   });
 
@@ -81,6 +83,7 @@ export const getMenuDataBySlug = async (slug: string): Promise<MenuDataDto | nul
       operatingHours: true,
       requireSelfieOnCheckout: true,
       allowNegativeStock: true,
+      enableServiceTax: true,
     },
   });
 
@@ -254,6 +257,7 @@ const fetchMenuDetails = async (company: any): Promise<MenuDataDto> => {
     operatingHours: company.operatingHours,
     requireSelfieOnCheckout: company.requireSelfieOnCheckout,
     allowNegativeStock: company.allowNegativeStock,
+    enableServiceTax: company.enableServiceTax,
     categories: result,
   };
 };
