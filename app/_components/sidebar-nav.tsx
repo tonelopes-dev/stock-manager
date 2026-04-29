@@ -27,7 +27,7 @@ interface SidebarNavProps {
 }
 
 const gestaoItems = [
-  { href: "/sales", icon: ShoppingBasketIcon, label: "Vendas" },
+  { href: "/sales", icon: ShoppingBasketIcon, label: "PDV / Vendas" },
   { href: "/customers", icon: UsersIcon, label: "CRM" },
   { href: "/cardapio", icon: Utensils, label: "Cardápio" },
   { href: "/estoque", icon: Boxes, label: "Estoque" },
