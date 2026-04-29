@@ -6,6 +6,7 @@ import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
 import { z } from "zod";
+import { deleteOldImage } from "@/app/_lib/storage";
 
 const deleteCustomerSchema = z.object({
   id: z.string().cuid(),
@@ -17,10 +18,10 @@ export const deleteCustomer = actionClient
     const companyId = await getCurrentCompanyId();
     await assertRole(ADMIN_AND_OWNER);
 
-    // Verify customer belongs to this company
+    // Verify customer belongs to this company and get imageUrl
     const customer = await db.customer.findFirst({
       where: { id, companyId },
-      include: { _count: { select: { sales: true } } },
+      select: { id: true, stageId: true, position: true, imageUrl: true }
     });
 
     if (!customer) {
@@ -28,11 +29,7 @@ export const deleteCustomer = actionClient
     }
 
     await db.$transaction(async (tx) => {
-      // 1. Manually cleanup related data if not cascading in schema 
-      // (Sales usually should not be deleted, but if requested we handle it)
-      // For now, only delete if no sales as per current check.
-      
-      // 2. Adjust positions in the same column
+      // 1. Adjust positions in the same column
       await tx.customer.updateMany({
         where: {
           companyId,
@@ -42,11 +39,16 @@ export const deleteCustomer = actionClient
         data: { position: { decrement: 1 } },
       });
 
-      // 3. Delete the customer
+      // 2. Delete the customer
       await tx.customer.delete({
         where: { id, companyId },
       });
     });
+
+    // 3. Cleanup old image AFTER successful transaction
+    if (customer.imageUrl) {
+      await deleteOldImage(customer.imageUrl);
+    }
 
     revalidatePath("/customers", "page");
   });

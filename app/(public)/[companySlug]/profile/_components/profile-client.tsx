@@ -21,6 +21,7 @@ import { SelfieCamera } from "../../_components/selfie-camera";
 import { useUIStore } from "../../_store/use-ui-store";
 import { formatPhoneNumber } from "@/app/_lib/utils";
 import { updateCustomerSelfie } from "@/app/_actions/customer/update-customer-selfie";
+import { updateCustomerProfile } from "@/app/_actions/customer/update-customer-profile";
 
 interface ProfileClientProps {
   companySlug: string;
@@ -205,22 +206,30 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
       return;
     }
 
+    if (!customerId) {
+      toast.error("Erro de autenticação: Identificador do cliente não encontrado.");
+      return;
+    }
+
     setIsSaving(true);
     try {
-      const response = await fetch("/api/customers/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, phoneNumber: cleanPhone, companyId }),
+      const result = await updateCustomerProfile({
+        customerId,
+        name: form.name,
+        email: form.email,
+        phoneNumber: cleanPhone,
+        birthDate: form.birthDate,
+        companyId,
       });
-      const data = await response.json();
 
-      if (data.success) {
-        localStorage.setItem(`kipo-customer-${companyId}`, JSON.stringify(data.customer));
+      if (result.success) {
+        localStorage.setItem(`kipo-customer-${companyId}`, JSON.stringify(result.customer));
         toast.success("Perfil atualizado com sucesso!");
       } else {
-        toast.error(data.message || "Erro ao atualizar perfil");
+        toast.error(result.message || "Erro ao atualizar perfil");
       }
-    } catch {
+    } catch (error) {
+      console.error("Error saving profile:", error);
       toast.error("Erro inesperado ao salvar perfil");
     } finally {
       setIsSaving(false);
