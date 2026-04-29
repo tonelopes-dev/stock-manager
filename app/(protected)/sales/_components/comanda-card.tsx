@@ -94,11 +94,7 @@ export const ComandaCard = ({ comanda, onClick }: ComandaCardProps) => {
               Consumo
             </span>
             <p className="text-lg font-black tracking-tighter text-primary">
-              {formatCurrency(
-                comanda.hasServiceTax
-                  ? Math.round(comanda.totalAmount * 1.1 * 100) / 100
-                  : comanda.totalAmount
-              )}
+              {formatCurrency(comanda.totalAmount)}
             </p>
             {comanda.hasServiceTax && (
               <p className="text-[9px] font-bold text-muted-foreground">

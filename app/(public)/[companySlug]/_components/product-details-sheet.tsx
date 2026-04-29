@@ -37,15 +37,28 @@ export const ProductDetailsSheet = ({
 
   const activePrice = product.promoPrice || product.price;
 
+  const allowNegativeStock = useCartStore((state) => state.allowNegativeStock);
+  const isOutOfStock = product.availability <= 0 && !allowNegativeStock;
+
   const handleAddToCart = () => {
-    addItem({
+    const success = addItem({
       productId: product.id,
       name: product.name,
       price: activePrice,
       quantity,
+      maxQuantity: product.availability,
       image: product.imageUrl || undefined,
       notes,
     });
+
+    if (!success) {
+      toast.error("Quantidade indisponível no estoque!", {
+        description: allowNegativeStock 
+          ? "Erro inesperado ao adicionar." 
+          : `O limite para este item é de ${product.availability} unidades.`,
+      });
+      return;
+    }
 
     toast.success(`${product.name} adicionado à sacola!`, {
       description: `${quantity}x por ${formatPrice(activePrice * quantity)}`,
@@ -155,6 +168,7 @@ export const ProductDetailsSheet = ({
                 variant="ghost"
                 size="icon"
                 className="h-10 w-10 rounded-xl"
+                disabled={!allowNegativeStock && quantity >= product.availability}
                 onClick={() => setQuantity(quantity + 1)}
               >
                 <Plus className="h-4 w-4" />
@@ -163,11 +177,15 @@ export const ProductDetailsSheet = ({
           </div>
 
           <Button
-            className="h-16 w-full rounded-[2rem] bg-gray-900 text-lg font-black text-white shadow-xl transition-all active:scale-[0.98] hover:bg-gray-800"
+            className="h-16 w-full rounded-[2rem] bg-gray-900 text-lg font-black text-white shadow-xl transition-all active:scale-[0.98] hover:bg-gray-800 disabled:bg-gray-300"
             onClick={handleAddToCart}
+            disabled={isOutOfStock}
             data-testid="product-details-add-button"
           >
-            ADICIONAR À SACOLA • {formatPrice(activePrice * quantity)}
+            {isOutOfStock 
+              ? "ESGOTADO" 
+              : `ADICIONAR À SACOLA • ${formatPrice(activePrice * quantity)}`
+            }
           </Button>
         </div>
       </SheetContent>

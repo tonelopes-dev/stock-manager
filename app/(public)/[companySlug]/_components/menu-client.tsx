@@ -96,6 +96,12 @@ export function MenuClient({
 
   const [currentMenuData, setCurrentMenuData] = useState(menuData);
 
+  const setSettings = useCartStore((state) => state.setSettings);
+
+  useEffect(() => {
+    setSettings({ allowNegativeStock: currentMenuData.allowNegativeStock });
+  }, [currentMenuData.allowNegativeStock, setSettings]);
+
   // Open promotions modal if requested via query param (e.g. from BottomNav on another page)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

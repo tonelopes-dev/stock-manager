@@ -10,6 +10,8 @@ export interface MenuProductDto {
   promoPrice: number | null;
   promoSchedule: any;
   isFeatured: boolean;
+  availability: number;
+  isMadeToOrder: boolean;
 }
 
 export interface MenuCategoryDto {
@@ -31,6 +33,7 @@ export interface MenuDataDto {
   instagramUrl: string | null;
   operatingHours: any;
   requireSelfieOnCheckout: boolean;
+  allowNegativeStock: boolean;
   categories: MenuCategoryDto[];
 }
 
@@ -53,6 +56,7 @@ export const getMenuData = async (companyId: string): Promise<MenuDataDto | null
       instagramUrl: true,
       operatingHours: true,
       requireSelfieOnCheckout: true,
+      allowNegativeStock: true,
     },
   });
 
@@ -76,6 +80,7 @@ export const getMenuDataBySlug = async (slug: string): Promise<MenuDataDto | nul
       instagramUrl: true,
       operatingHours: true,
       requireSelfieOnCheckout: true,
+      allowNegativeStock: true,
     },
   });
 
@@ -115,6 +120,19 @@ const fetchMenuDetails = async (company: any): Promise<MenuDataDto> => {
           promoPrice: true,
           promoSchedule: true,
           isFeatured: true,
+          stock: true,
+          isMadeToOrder: true,
+          type: true,
+          parentCompositions: {
+            select: {
+              quantity: true,
+              child: {
+                select: {
+                  stock: true
+                }
+              }
+            }
+          }
         },
       },
     },
@@ -139,6 +157,19 @@ const fetchMenuDetails = async (company: any): Promise<MenuDataDto> => {
       promoPrice: true,
       promoSchedule: true,
       isFeatured: true,
+      stock: true,
+      isMadeToOrder: true,
+      type: true,
+      parentCompositions: {
+        select: {
+          quantity: true,
+          child: {
+            select: {
+              stock: true
+            }
+          }
+        }
+      }
     },
   });
 
@@ -148,17 +179,31 @@ const fetchMenuDetails = async (company: any): Promise<MenuDataDto> => {
       id: cat.id,
       name: cat.name,
       icon: cat.icon,
-      products: cat.products.map((p) => ({
-        id: p.id,
-        name: p.name,
-        description: p.description,
-        imageUrl: p.imageUrl,
-        price: Number(p.price),
-        promoActive: p.promoActive,
-        promoPrice: p.promoPrice ? Number(p.promoPrice) : null,
-        promoSchedule: p.promoSchedule,
-        isFeatured: p.isFeatured,
-      })),
+      products: cat.products.map((p) => {
+        let availability = Number(p.stock);
+        if (p.isMadeToOrder && p.parentCompositions.length > 0) {
+          const ingredientAvailabilities = p.parentCompositions.map((comp: any) => {
+            const childStock = Number(comp.child.stock);
+            const qtyRequired = Number(comp.quantity);
+            return qtyRequired > 0 ? Math.floor(childStock / qtyRequired) : Infinity;
+          });
+          availability = Math.min(...ingredientAvailabilities);
+        }
+
+        return {
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          imageUrl: p.imageUrl,
+          price: Number(p.price),
+          promoActive: p.promoActive,
+          promoPrice: p.promoPrice ? Number(p.promoPrice) : null,
+          promoSchedule: p.promoSchedule,
+          isFeatured: p.isFeatured,
+          isMadeToOrder: p.isMadeToOrder,
+          availability: Math.max(0, availability),
+        };
+      }),
     }))
     .filter((cat) => cat.products.length > 0);
 
@@ -168,17 +213,31 @@ const fetchMenuDetails = async (company: any): Promise<MenuDataDto> => {
       id: "destaques",
       name: "Destaques",
       icon: "⭐",
-      products: uncategorized.map((p) => ({
-        id: p.id,
-        name: p.name,
-        description: p.description,
-        imageUrl: p.imageUrl,
-        price: Number(p.price),
-        promoActive: p.promoActive,
-        promoPrice: p.promoPrice ? Number(p.promoPrice) : null,
-        promoSchedule: p.promoSchedule,
-        isFeatured: p.isFeatured,
-      })),
+      products: uncategorized.map((p) => {
+        let availability = Number(p.stock);
+        if (p.isMadeToOrder && p.parentCompositions.length > 0) {
+          const ingredientAvailabilities = p.parentCompositions.map((comp: any) => {
+            const childStock = Number(comp.child.stock);
+            const qtyRequired = Number(comp.quantity);
+            return qtyRequired > 0 ? Math.floor(childStock / qtyRequired) : Infinity;
+          });
+          availability = Math.min(...ingredientAvailabilities);
+        }
+
+        return {
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          imageUrl: p.imageUrl,
+          price: Number(p.price),
+          promoActive: p.promoActive,
+          promoPrice: p.promoPrice ? Number(p.promoPrice) : null,
+          promoSchedule: p.promoSchedule,
+          isFeatured: p.isFeatured,
+          isMadeToOrder: p.isMadeToOrder,
+          availability: Math.max(0, availability),
+        };
+      }),
     });
   }
 
@@ -194,6 +253,7 @@ const fetchMenuDetails = async (company: any): Promise<MenuDataDto> => {
     instagramUrl: company.instagramUrl,
     operatingHours: company.operatingHours,
     requireSelfieOnCheckout: company.requireSelfieOnCheckout,
+    allowNegativeStock: company.allowNegativeStock,
     categories: result,
   };
 };

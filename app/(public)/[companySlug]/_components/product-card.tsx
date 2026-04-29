@@ -1,6 +1,8 @@
 import Image from "next/image";
 import { Plus, Utensils } from "lucide-react";
 import { MenuProductDto } from "@/app/_data-access/menu/get-menu-data";
+import { cn } from "@/app/_lib/utils";
+import { useCartStore } from "../_store/use-cart-store";
 
 interface ProductCardProps {
   product: MenuProductDto;
@@ -8,6 +10,9 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ product, onClick }: ProductCardProps) => {
+  const allowNegativeStock = useCartStore((state) => state.allowNegativeStock);
+  const isOutOfStock = product.availability <= 0 && !allowNegativeStock;
+
   const formatPrice = (price: number) =>
     Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
       price,
@@ -16,9 +21,19 @@ export const ProductCard = ({ product, onClick }: ProductCardProps) => {
   return (
     <div
       data-testid={`public-product-card-${product.id}`}
-      className="group relative flex cursor-pointer gap-4 rounded-3xl bg-white p-2 transition-all active:scale-[0.98]"
+      className={cn(
+        "group relative flex cursor-pointer gap-4 rounded-3xl bg-white p-2 transition-all active:scale-[0.98]",
+        isOutOfStock && "opacity-60 grayscale"
+      )}
       onClick={() => onClick(product)}
     >
+      {isOutOfStock && (
+        <div className="absolute left-0 top-0 z-10 flex h-full w-full items-center justify-center">
+          <span className="rounded-lg bg-black/80 px-2 py-1 text-[8px] font-black uppercase tracking-widest text-white backdrop-blur-sm">
+            Esgotado
+          </span>
+        </div>
+      )}
       <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-muted shadow-sm">
         {product.imageUrl ? (
           <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />

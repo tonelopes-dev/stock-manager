@@ -33,7 +33,7 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelf
   const params = useParams();
   const companySlug = params.companySlug as string;
   
-  const { items, totalAmount, updateQuantity, clearCart } = useCartStore();
+  const { items, totalAmount, updateQuantity, clearCart, allowNegativeStock } = useCartStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Identification state
@@ -304,8 +304,13 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelf
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 rounded-xl text-muted-foreground transition-colors hover:text-primary"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          disabled={isSubmitting}
+                          onClick={() => {
+                            const success = updateQuantity(item.id, item.quantity + 1);
+                            if (!success) {
+                              toast.error("Limite de estoque atingido!");
+                            }
+                          }}
+                          disabled={isSubmitting || (!allowNegativeStock && item.quantity >= item.maxQuantity)}
                         >
                           <Plus className="h-3 w-3" />
                         </Button>
