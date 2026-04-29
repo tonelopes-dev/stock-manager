@@ -60,10 +60,10 @@ export const KanbanCard = memo(
     );
 
     const calculateHeight = () => {
-      let height = 85;
-      if (customer.notes) height += 32;
-      if (customer.categories && customer.categories.length > 0) height += 24;
-      if (totalItems > 0) height += 40;
+      let height = 75;
+      if (customer.notes) height += 30;
+      if (customer.categories && customer.categories.length > 0) height += 22;
+      if (totalItems > 0) height += 38;
       return height;
     };
 
@@ -86,9 +86,9 @@ export const KanbanCard = memo(
         onClick={onClick}
         className="group cursor-grab border-border transition-colors hover:border-primary active:cursor-grabbing"
       >
-        <CardContent className="space-y-2 p-3">
+        <CardContent className="space-y-1.5 p-2">
           <div className="flex items-start justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <span className="line-clamp-1 pr-1 text-sm font-black uppercase italic tracking-tighter text-foreground">
                 {customer.name}
               </span>

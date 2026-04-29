@@ -52,7 +52,6 @@ export const getCustomers = async (
   journey: "all" | "with" | "without" = "all",
 ): Promise<{ data: CustomerDto[]; total: number }> => {
   const companyId = await getCurrentCompanyId();
-
   const sanitizedCategoryId = sanitizeUUID(categoryId);
 
   const where: Prisma.CustomerWhereInput = {
@@ -86,16 +85,34 @@ export const getCustomers = async (
     ];
   }
 
-  const [customers, total] = await Promise.all([
+  // 1. Fetch customers and basic related data
+  const [customers, total, salesAgg] = await Promise.all([
     db.customer.findMany({
       where,
       skip: (page - 1) * pageSize,
       take: pageSize,
-      include: {
+      select: {
+        id: true,
+        name: true,
+        notes: true,
+        imageUrl: true,
+        stageId: true,
+        position: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+        // Only fetch non-minimal fields if needed
+        ...(minimal 
+          ? {} 
+          : {
+              email: true,
+              phone: true,
+              birthday: true,
+              source: true,
+            }
+        ),
         _count: {
-          select: {
-            sales: true,
-          },
+          select: { sales: true },
         },
         categories: {
           select: { id: true, name: true, color: true },
@@ -103,32 +120,28 @@ export const getCustomers = async (
         stage: {
           select: { name: true },
         },
-        sales: {
-          where: { status: "ACTIVE" },
-          select: {
-            totalAmount: true,
-            date: true,
-            ...(minimal
-              ? {}
-              : {
-                  saleItems: {
-                    select: {
-                      quantity: true,
-                      product: {
-                        select: { name: true },
-                      },
-                    },
-                  },
-                }),
-          },
-          orderBy: { date: "desc" },
-        },
         checklists: {
-          include: {
+          select: {
+            id: true,
+            title: true,
             items: {
+              select: {
+                id: true,
+                title: true,
+                isChecked: true,
+                order: true,
+                dueDate: true,
+              },
               orderBy: { order: "asc" },
             },
           },
+        },
+        // Fetch only the latest sale date
+        sales: {
+          where: { status: "ACTIVE" },
+          select: { date: true },
+          orderBy: { date: "desc" },
+          take: 1,
         },
       },
       orderBy: [
@@ -138,29 +151,38 @@ export const getCustomers = async (
       ],
     }),
     db.customer.count({ where }),
+    // 2. Fetch total spent per customer efficiently using groupBy
+    db.sale.groupBy({
+      by: ["customerId"],
+      where: { 
+        companyId, 
+        status: "ACTIVE",
+        customerId: { not: null }
+      },
+      _sum: { totalAmount: true },
+    }),
   ]);
 
+  // Create a map for quick access to total spent
+  const totalSpentMap = new Map(
+    salesAgg.map((s) => [s.customerId, Number(s._sum.totalAmount || 0)])
+  );
 
   const data = customers.map((customer: any) => {
-    const totalSpent = customer.sales?.reduce(
-      (acc: number, sale: any) => acc + Number(sale.totalAmount),
-      0,
-    ) || Number(customer.totalSpent ?? 0);
-
-    const lastSaleDate =
-      customer.sales && customer.sales.length > 0 ? (customer.sales[0] as any).date : null;
+    const totalSpent = totalSpentMap.get(customer.id) || 0;
+    const lastSaleDate = customer.sales?.[0]?.date || null;
 
     return {
       id: customer.id,
       name: customer.name,
-      email: customer.email,
-      phoneNumber: customer.phone,
+      email: customer.email ?? null,
+      phoneNumber: customer.phone ?? null,
       imageUrl: customer.imageUrl,
       categories: customer.categories,
       stageId: customer.stageId,
       stage: customer.stage,
-      source: customer.source,
-      birthDate: customer.birthday,
+      source: customer.source ?? "CRM",
+      birthDate: customer.birthday ?? null,
       notes: customer.notes,
       isActive: customer.isActive,
       position: customer.position,
@@ -169,19 +191,10 @@ export const getCustomers = async (
       _count: customer._count,
       totalSpent,
       lastSaleDate,
-      sales: customer.sales?.map((sale: any) => ({
-        totalAmount: Number(sale.totalAmount),
-        date: sale.date,
-        products: sale.saleItems?.map((item: any) => ({
-          name: item.product.name,
-          quantity: Number(item.quantity),
-        })) || [],
-      })) || [],
+      sales: [], // We don't return all sales in the list anymore
       checklists: customer.checklists || [],
     };
   });
-
-
 
   return { data, total };
 };

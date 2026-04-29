@@ -37,7 +37,7 @@ export const CustomerPageClient = ({
     userRole === UserRole.OWNER || userRole === UserRole.ADMIN;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Header>
         <HeaderLeft>
           <HeaderSubtitle>Gestão de CRM</HeaderSubtitle>

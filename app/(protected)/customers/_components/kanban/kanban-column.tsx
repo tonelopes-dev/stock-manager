@@ -59,25 +59,24 @@ export const KanbanColumn = memo(
         const customer = customers[index];
         if (!customer) return 0;
 
-        let height = 85;
-
+        let height = 75;
         const hasNotes = !!customer.notes;
         const hasCategories =
           customer.categories && customer.categories.length > 0;
         const hasJornada =
           customer.checklists && customer.checklists.length > 0;
 
-        if (hasNotes) height += 32;
-        if (hasCategories) height += 24;
-        if (hasJornada) height += 40;
+        if (hasNotes) height += 30;
+        if (hasCategories) height += 22;
+        if (hasJornada) height += 38;
 
-        return height + 12;
+        return height + 10;
       },
       [customers],
     );
 
     return (
-      <div className="flex h-[calc(100vh-180px)] w-[300px] min-w-[300px] flex-col gap-4 rounded-xl border border-border bg-muted/50 p-3">
+      <div className="flex h-[calc(100vh-280px)] w-[280px] min-w-[260px] flex-shrink-0 flex-col gap-3 rounded-xl border border-border bg-muted/50 p-2">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-xs font-black uppercase italic tracking-tighter text-muted-foreground">
             {stage.name}

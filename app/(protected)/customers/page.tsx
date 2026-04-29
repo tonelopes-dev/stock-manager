@@ -45,13 +45,13 @@ const CustomersPage = async ({ searchParams }: CustomersPageProps) => {
     categoryId,
     search,
     isTable ? page : 1,
-    isTable ? pageSize : 1000,
+    isTable ? pageSize : 200,
     !isTable,
     journey as any,
   );
 
   return (
-    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-background p-8">
+    <div className="m-2 space-y-2 overflow-x-auto overflow-y-hidden rounded-lg bg-background p-4 lg:m-4 lg:p-6">
       <CustomerPageClient
         categories={categories}
         stages={stages}
