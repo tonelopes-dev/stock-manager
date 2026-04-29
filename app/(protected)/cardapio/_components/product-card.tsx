@@ -56,45 +56,62 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
 
   return (
     <Card 
-      className="overflow-hidden cursor-pointer hover:shadow-lg transition-all border-none bg-muted/50"
+      className="overflow-hidden cursor-pointer hover:shadow-lg transition-all border-none bg-muted/50 flex flex-row h-[180px]"
       onClick={handleClick}
       data-testid="product-card"
     >
-      <div className="relative aspect-square bg-muted flex items-center justify-center overflow-hidden">
+      <div className="relative w-44 shrink-0 bg-muted flex items-center justify-center overflow-hidden border-r border-border/50">
         {product.imageUrl && !hasError ? (
           <Image 
             src={product.imageUrl} 
             alt={product.name} 
             fill 
             className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            sizes="200px"
             quality={80}
             onError={() => setHasError(true)}
           />
         ) : (
           <div className="flex flex-col items-center gap-2 text-muted-foreground">
-            <ImageIcon className="w-10 h-10" />
-            <span className="text-[10px] font-bold uppercase tracking-tight">
-              {hasError ? "Imagem indisponível" : "Sem imagem"}
+            <ImageIcon className="w-8 h-8 opacity-50" />
+            <span className="text-[8px] font-bold uppercase tracking-tight">
+              {hasError ? "Erro" : "Sem foto"}
             </span>
           </div>
         )}
         
-        <div className="absolute top-3 left-3 flex flex-col gap-2">
+        <div className="absolute top-2 left-2 flex flex-col gap-1.5">
           <Badge 
             variant={typeConfig.variant as any} 
-            className="shadow-sm border-none backdrop-blur-md bg-background/80 text-foreground"
+            className="shadow-sm border-none backdrop-blur-md bg-background/80 text-[10px] py-0 px-2 h-5 flex items-center justify-center"
           >
             {typeConfig.label}
           </Badge>
           {!product.isActive && (
-            <Badge variant="destructive" className="shadow-sm border-none backdrop-blur-md opacity-90">
+            <Badge variant="destructive" className="shadow-sm border-none backdrop-blur-md opacity-90 text-[10px] py-0 px-2 h-5">
               Inativo
             </Badge>
           )}
         </div>
+      </div>
 
-        <div className="absolute top-2 right-2">
+      <CardContent className="p-4 flex flex-col flex-1 min-w-0 justify-between">
+        <div className="flex justify-between items-start gap-2">
+          <div className="min-w-0">
+            <h3 className="font-bold text-base text-foreground truncate" title={product.name}>
+              {product.name}
+            </h3>
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-0.5 truncate">
+                {product.category?.name || "Sem categoria"}
+                {product.environment && (
+                  <>
+                    <span className="mx-1.5 opacity-50">|</span>
+                    <span className="text-primary/70">{product.environment.name}</span>
+                  </>
+                )}
+            </p>
+          </div>
+          <div className="shrink-0">
             <ProductTableDropdownMenu 
                 product={product} 
                 userRole={userRole} 
@@ -102,50 +119,34 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
                 environments={environments}
                 overheadSettings={overheadSettings}
             />
-        </div>
-      </div>
-
-      <CardContent className="p-5 space-y-4">
-        <div>
-            <h3 className="font-bold text-base text-foreground line-clamp-1" title={product.name}>
-            {product.name}
-            </h3>
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1">
-                {product.category?.name || "Sem categoria"}
-                {product.environment && (
-                  <>
-                    <span className="mx-2 text-muted-foreground">|</span>
-                    <span className="text-primary/70">{product.environment.name}</span>
-                  </>
-                )}
-            </p>
+          </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-4 pb-2 border-b border-border">
-          <div className="space-y-1">
-            <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-tight">Valor Unitário</span>
-            <p className="font-bold text-foreground">
+        <div className="grid grid-cols-2 gap-3 py-2 border-y border-border/50">
+          <div className="space-y-0.5">
+            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-tight">Venda</span>
+            <p className="font-bold text-sm text-foreground">
               {Intl.NumberFormat("pt-BR", {
                 style: "currency",
                 currency: "BRL",
               }).format(product.price)}
             </p>
           </div>
-          <div className="space-y-1">
-            <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-tight">Margem</span>
-            <p className="font-bold text-emerald-600">
+          <div className="space-y-0.5">
+            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-tight">Margem</span>
+            <p className="font-bold text-sm text-emerald-600">
                 {product.margin}%
             </p>
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
-            <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-tight">
-                  {product.isMadeToOrder ? "Produção Virtual" : "Estoque"}
+        <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center gap-2">
+                <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-tight">
+                  {product.isMadeToOrder ? "Virtual" : "Estoque"}:
                 </span>
-                <p className="text-sm font-semibold text-foreground">
-                    {product.isMadeToOrder ? product.virtualStock : product.stock} {product.unit}
+                <p className="text-sm font-bold text-foreground">
+                    {product.isMadeToOrder ? product.virtualStock : product.stock} <span className="text-[10px] text-muted-foreground font-medium uppercase">{product.unit}</span>
                 </p>
             </div>
             {!product.isMadeToOrder && (

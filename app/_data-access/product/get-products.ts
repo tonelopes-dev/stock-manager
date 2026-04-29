@@ -6,6 +6,7 @@ import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { calculateMargin } from "@/app/_lib/pricing";
 import { subDays } from "date-fns";
 import { sanitizeUUID } from "@/app/_lib/uuid";
+import { calculateProductAvailability } from "./calculate-product-availability";
 
 export type ProductStatusDto = "IN_STOCK" | "OUT_OF_STOCK" | "LOW_STOCK" | "SLOW_MOVING";
 
@@ -107,7 +108,7 @@ export const getProducts = async (
     }
   });
 
-  return products.map((product) => {
+  return Promise.all(products.map(async (product) => {
     const stock = product.stock.toNumber();
     const minStock = product.minStock.toNumber();
     const price = product.price.toNumber();
@@ -118,14 +119,13 @@ export const getProducts = async (
     const isLowStock = stock <= minStock;
     const isSlowMoving = product.saleItems.length === 0 && !isOutOfStock;
 
-    // The cost is now persisted in the DB and updated by the action
-    const effectiveCost = cost;
-
-    let virtualStock = stock;
+    // Recursive calculation for virtual stock
+    const virtualStock = await calculateProductAvailability(product.id);
     let limitingIngredient: string | undefined;
     let ingredients: { name: string; availability: number }[] | undefined;
 
     if (product.isMadeToOrder && product.parentCompositions.length > 0) {
+      // For limiting ingredient, we still look at immediate children
       let minCapacity = Infinity;
       ingredients = product.parentCompositions.map(comp => {
         const childStock = comp.child.stock.toNumber();
@@ -142,7 +142,6 @@ export const getProducts = async (
           availability: capacity === Infinity ? 0 : capacity
         };
       });
-      virtualStock = Math.max(0, minCapacity);
     }
 
     return {
@@ -189,7 +188,7 @@ export const getProducts = async (
       promoSchedule: product.promoSchedule,
       isFeatured: product.isFeatured,
     };
-  });
+  }));
 };
 
 export const getProductsForCombobox = async (): Promise<{ id: string; name: string; price: number }[]> => {
@@ -233,13 +232,13 @@ export const getProductsForSale = async (): Promise<ProductDto[]> => {
     orderBy: { name: "asc" },
   });
 
-  return products.map((product) => {
+  return Promise.all(products.map(async (product) => {
     const stock = product.stock.toNumber();
     const price = product.price.toNumber();
     const cost = product.cost.toNumber();
     const operationalCost = product.operationalCost.toNumber();
 
-    let virtualStock = stock;
+    const virtualStock = await calculateProductAvailability(product.id);
     let limitingIngredient: string | undefined;
     let ingredients: { name: string; availability: number }[] | undefined;
 
@@ -260,7 +259,6 @@ export const getProductsForSale = async (): Promise<ProductDto[]> => {
           availability: capacity === Infinity ? 0 : capacity
         };
       });
-      virtualStock = Math.max(0, minCapacity);
     }
 
     return {
@@ -281,5 +279,5 @@ export const getProductsForSale = async (): Promise<ProductDto[]> => {
       margin: calculateMargin(price, cost + operationalCost),
       status: "IN_STOCK", // Not strictly needed for the sheet
     } as ProductDto;
-  });
+  }));
 };

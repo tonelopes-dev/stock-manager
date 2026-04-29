@@ -43,6 +43,7 @@ export interface GetIngredientsParams {
   status?: "ACTIVE" | "INACTIVE" | "ALL";
   page?: number;
   pageSize?: number;
+  types?: ProductType[];
 }
 
 export interface GetIngredientsResponse {
@@ -54,13 +55,13 @@ export const getIngredients = async (
   params: GetIngredientsParams = {}
 ): Promise<GetIngredientsResponse> => {
   const companyId = await getCurrentCompanyId();
-  const { search, supplierId, stockStatus, status = "ACTIVE", page = 1, pageSize = 10 } = params;
+  const { search, supplierId, stockStatus, status = "ACTIVE", page = 1, pageSize = 10, types } = params;
   const skip = (page - 1) * pageSize;
 
   // Build where clause
   const where: any = {
     companyId,
-    type: { in: ["INSUMO", "REVENDA"] },
+    type: types ? { in: types } : { in: ["INSUMO", "REVENDA"] },
   };
 
   if (status === "ACTIVE") {

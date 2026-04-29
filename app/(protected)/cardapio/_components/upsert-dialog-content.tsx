@@ -43,6 +43,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectSeparator,
 } from "@/app/_components/ui/select";
 import {
   Popover,
@@ -66,7 +67,6 @@ import { cn } from "@/app/_lib/utils";
 import { Calendar } from "@/app/_components/ui/calendar";
 import { upsertCategory } from "@/app/_actions/product/upsert-category";
 import { QuickEnvironmentDialog } from "./quick-environment-dialog";
-import { SelectSeparator } from "@/app/_components/ui/select";
 import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { NumericFormat } from "react-number-format";
@@ -154,6 +154,13 @@ const UpsertProductDialogContent = ({
   const isCompositionType =
     productType === "COMBO" || productType === "PRODUCAO_PROPRIA";
 
+  // Force isMadeToOrder to true for Combos
+  React.useEffect(() => {
+    if (productType === "COMBO") {
+      form.setValue("isMadeToOrder", true);
+    }
+  }, [productType, form]);
+
   const onSubmit = (data: UpsertProductSchema) => {
     executeUpsertProduct({ ...data, id: defaultValues?.id });
   };
@@ -186,7 +193,7 @@ const UpsertProductDialogContent = ({
   };
 
   return (
-    <DialogContent data-testid="upsert-product-dialog" data-ready={isReady} className="max-w-2xl max-h-[90vh] flex flex-col p-6">
+    <DialogContent data-testid="upsert-product-dialog" data-ready={isReady} className="max-w-4xl max-h-[95vh] flex flex-col p-8">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -308,10 +315,22 @@ const UpsertProductDialogContent = ({
                     control={form.control}
                     name="isMadeToOrder"
                     render={({ field }) => (
-                      <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                      <FormControl>
+                        <Switch 
+                          checked={field.value} 
+                          onCheckedChange={field.onChange} 
+                          disabled={productType === "COMBO"}
+                        />
+                      </FormControl>
                     )}
                   />
                 </div>
+                {productType === "COMBO" && (
+                  <p className="mt-2 text-[10px] font-bold text-primary flex items-center gap-1">
+                    <Star size={10} fill="currentColor" />
+                    Estoque calculado dinamicamente via Ficha Técnica.
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -366,10 +385,15 @@ const UpsertProductDialogContent = ({
                 render={({ field }) => (
                   <FormItem className="md:col-span-1">
                     <FormLabel className="text-[11px] uppercase font-bold text-muted-foreground">Categoria</FormLabel>
-                    <div className="flex gap-1.5">
-                      <Select onValueChange={field.onChange} value={field.value || undefined}><FormControl><SelectTrigger><SelectValue placeholder="..." /></SelectTrigger></FormControl><SelectContent>{categories.map(cat => <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>)}</SelectContent></Select>
-                      <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => setIsAddingCategory(true)}><PlusIcon size={16} /></Button>
-                    </div>
+                    <Select onValueChange={(val) => val === "create" ? setIsAddingCategory(true) : field.onChange(val === "none" ? null : val)} value={field.value || "none"}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Sem categoria" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">Sem categoria</SelectItem>
+                        {categories.map(cat => <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>)}
+                        <SelectSeparator />
+                        <SelectItem value="create" className="text-primary font-bold">Novo...</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </FormItem>
                 )}
               />
@@ -392,7 +416,7 @@ const UpsertProductDialogContent = ({
               />
             </div>
 
-            {!form.watch("isMadeToOrder") && (
+            {(!form.watch("isMadeToOrder") && productType !== "COMBO") && (
               <div className="pt-2 border-t">
                 <FormField
                   control={form.control}
@@ -432,6 +456,11 @@ const UpsertProductDialogContent = ({
           </SubDialogFooter>
         </SubDialogContent>
       </Dialog>
+
+      <QuickEnvironmentDialog 
+        open={isEnvironmentDialogOpen} 
+        onOpenChange={setIsEnvironmentDialogOpen} 
+      />
     </DialogContent>
   );
 };

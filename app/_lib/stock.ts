@@ -122,7 +122,8 @@ export async function getProductsWithFullTree(productIds: string[], companyId: s
     const nextIds: string[] = [];
     for (const p of products) {
       allProducts.set(p.id, p);
-      if (p.isMadeToOrder && p.parentCompositions) {
+      const isRecursive = p.isMadeToOrder || p.type === "COMBO";
+      if (isRecursive && p.parentCompositions) {
         for (const comp of p.parentCompositions) {
           if (!allProducts.has(comp.childId)) {
             nextIds.push(comp.childId);
@@ -214,8 +215,9 @@ export async function processBatchStockMovement(
       date: mParams.date || new Date(),
     });
 
-    // Recurse if Made-to-Order (Ficha Técnica)
-    if (product.isMadeToOrder && hasIngredients) {
+    // Recurse if Made-to-Order or COMBO (Ficha Técnica)
+    const shouldRecurse = (product.isMadeToOrder || product.type === "COMBO") && hasIngredients;
+    if (shouldRecurse) {
       for (const comp of product.parentCompositions) {
         const childQty = qty.mul(new Decimal(comp.quantity.toString()));
         // For ingredients, we typically want to respect company settings (forceAllow=false)

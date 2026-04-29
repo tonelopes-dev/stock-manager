@@ -5,6 +5,7 @@ import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { calculateMargin } from "@/app/_lib/pricing";
 import { calculateRealCost, calculateStockDeduction } from "@/app/_lib/units";
 import { UnitType } from "@prisma/client";
+import { calculateProductAvailability } from "@/app/_data-access/product/calculate-product-availability";
 
 const UNIT_LABELS: Record<string, string> = {
   KG: "Kg",
@@ -78,22 +79,17 @@ export const getProductById = async (id: string): Promise<ProductDetailDto | nul
 
   if (!product) return null;
 
-  let minCapacity = Infinity;
-  let limitingIngredient: string | undefined;
-  const recipes: RecipeIngredientDto[] = product.parentCompositions.map((recipe) => {
+  const virtualStock = await calculateProductAvailability(product.id);
+
+  const recipesWithAvailability = await Promise.all(product.parentCompositions.map(async (recipe) => {
     let partialCost = 0;
     let consumptionPerUnit = 0;
 
     const childCost = recipe.child.cost?.toNumber() ?? 0;
     const recipeQuantity = recipe.quantity?.toNumber() ?? 0;
-    const childStock = recipe.child.stock?.toNumber() ?? 0;
-
-    // Calculate capacity for virtual stock
-    const capacity = recipeQuantity > 0 ? Math.floor(childStock / recipeQuantity) : Infinity;
-    if (capacity < minCapacity) {
-      minCapacity = capacity;
-      limitingIngredient = recipe.child.name;
-    }
+    
+    // Use recursive calculation for the child as well
+    const childAvailability = await calculateProductAvailability(recipe.childId);
 
     try {
       partialCost = Number(
@@ -111,21 +107,39 @@ export const getProductById = async (id: string): Promise<ProductDetailDto | nul
     }
 
     return {
-      id: recipe.id,
-      ingredientId: recipe.childId,
-      ingredientName: recipe.child.name,
-      quantity: recipeQuantity,
-      unit: recipe.child.unit,
-      unitLabel: UNIT_LABELS[recipe.child.unit] || recipe.child.unit,
-      ingredientCost: childCost,
-      ingredientUnit: recipe.child.unit,
-      ingredientUnitLabel: UNIT_LABELS[recipe.child.unit] || recipe.child.unit,
-      ingredientStock: childStock,
-      partialCost: recipeQuantity * childCost, 
-      consumptionPerUnit,
+      recipe: {
+        id: recipe.id,
+        ingredientId: recipe.childId,
+        ingredientName: recipe.child.name,
+        quantity: recipeQuantity,
+        unit: recipe.child.unit,
+        unitLabel: UNIT_LABELS[recipe.child.unit] || recipe.child.unit,
+        ingredientCost: childCost,
+        ingredientUnit: recipe.child.unit,
+        ingredientUnitLabel: UNIT_LABELS[recipe.child.unit] || recipe.child.unit,
+        ingredientStock: recipe.child.stock?.toNumber() ?? 0,
+        partialCost: recipeQuantity * childCost, 
+        consumptionPerUnit,
+      },
+      availability: recipeQuantity > 0 ? Math.floor(childAvailability / recipeQuantity) : Infinity
     };
-  });
+  }));
 
+  const recipes = recipesWithAvailability.map(r => r.recipe);
+  const ingredientAvailability = recipesWithAvailability.map(r => ({
+    name: r.recipe.ingredientName,
+    availability: r.availability === Infinity ? 0 : r.availability
+  }));
+
+  // Find limiting ingredient based on virtual availability
+  let limitingIngredient: string | undefined;
+  let minAvail = Infinity;
+  recipesWithAvailability.forEach(r => {
+    if (r.availability < minAvail) {
+      minAvail = r.availability;
+      limitingIngredient = r.recipe.ingredientName;
+    }
+  });
   const recipeCost = recipes.reduce((sum, r) => sum + r.partialCost, 0);
   const productCost = product.cost?.toNumber() ?? 0;
   const operationalCost = product.operationalCost?.toNumber() ?? 0;
@@ -135,10 +149,6 @@ export const getProductById = async (id: string): Promise<ProductDetailDto | nul
       : productCost;
   const price = product.price?.toNumber() ?? 0;
   const stock = product.stock?.toNumber() ?? 0;
-
-  const virtualStock = product.isMadeToOrder && recipes.length > 0
-    ? Math.max(0, minCapacity === Infinity ? 0 : minCapacity)
-    : stock;
 
     return {
       id: product.id,
@@ -165,10 +175,7 @@ export const getProductById = async (id: string): Promise<ProductDetailDto | nul
       recipeCost,
       virtualStock,
       limitingIngredient,
-      ingredients: recipes.map(r => ({
-        name: r.ingredientName,
-        availability: r.quantity > 0 ? Math.floor(r.ingredientStock / r.quantity) : 0
-      })),
+      ingredients: ingredientAvailability,
       allowNegativeStock: product.company.allowNegativeStock,
     };
 };

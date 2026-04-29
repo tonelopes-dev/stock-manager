@@ -59,7 +59,10 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
   const { id } = await params;
   const [product, ingredientsResponse, categories, environments, overheadSettings, stockEntriesRaw] = await Promise.all([
     getProductById(id),
-    getIngredients({ pageSize: 500 }), // Fetch balanced subset for technical sheet
+    getIngredients({ 
+      pageSize: 500, 
+      types: ["INSUMO", "REVENDA", "PRODUCAO_PROPRIA", "COMBO"] 
+    }), // Fetch all relevant types for technical sheet
     getProductCategories(),
     getEnvironments(),
     getOverheadSettings(),
