@@ -25,7 +25,7 @@ export const AggregatedSalesTable = ({ data }: AggregatedSalesTableProps) => {
           Detalhamento por Produto
         </CardTitle>
         <CardDescription className="text-xs font-semibold uppercase text-muted-foreground">
-          Visão agregada de itens vendidos e estoque remanescente
+          Visão agregada de itens vendidos, custos e lucratividade
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -45,40 +45,69 @@ export const AggregatedSalesTable = ({ data }: AggregatedSalesTableProps) => {
                 <TableHead className="text-right font-black uppercase tracking-widest text-[10px] text-muted-foreground italic h-10">
                   Total Gerado
                 </TableHead>
+                <TableHead className="text-right font-black uppercase tracking-widest text-[10px] text-muted-foreground italic h-10">
+                  Custo Total
+                </TableHead>
+                <TableHead className="text-right font-black uppercase tracking-widest text-[10px] text-muted-foreground italic h-10">
+                  Lucro Bruto
+                </TableHead>
+                <TableHead className="text-right font-black uppercase tracking-widest text-[10px] text-muted-foreground italic h-10">
+                  Margem %
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {data.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground font-medium italic">
+                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground font-medium italic">
                     Nenhuma venda registrada no período selecionado.
                   </TableCell>
                 </TableRow>
               ) : (
-                data.map((item) => (
-                  <TableRow key={item.productId} className="hover:bg-muted/30 transition-colors">
-                    <TableCell className="py-3">
-                      <span className="font-black text-sm text-foreground tracking-tight italic uppercase">
-                        {item.productName}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right py-3">
-                      <Badge variant="secondary" className="font-black text-xs text-primary px-3 py-0.5 rounded-full bg-muted border-none ring-1 ring-border/50">
-                        {item.qtySold}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right py-3">
-                      <span className={`font-black text-xs tracking-tighter italic uppercase ${Number(item.currentStock) <= 10 ? 'text-red-500' : 'text-muted-foreground'}`}>
-                        {item.currentStock} und
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right py-3">
-                      <span className="font-black text-sm text-foreground tracking-tighter italic uppercase">
-                        {formatCurrency(item.totalRevenue)}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))
+                data.map((item) => {
+                  const profit = item.totalRevenue - item.totalCost;
+                  const margin = item.totalRevenue > 0 ? (profit / item.totalRevenue) * 100 : 0;
+
+                  return (
+                    <TableRow key={item.productId} className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="py-3">
+                        <span className="font-black text-sm text-foreground tracking-tight italic uppercase">
+                          {item.productName}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right py-3">
+                        <Badge variant="secondary" className="font-black text-xs text-primary px-3 py-0.5 rounded-full bg-muted border-none ring-1 ring-border/50">
+                          {item.qtySold}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right py-3">
+                        <span className={`font-black text-xs tracking-tighter italic uppercase ${Number(item.currentStock) <= 10 ? 'text-red-500' : 'text-muted-foreground'}`}>
+                          {item.currentStock} und
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right py-3">
+                        <span className="font-black text-sm text-foreground tracking-tighter italic uppercase">
+                          {formatCurrency(item.totalRevenue)}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right py-3">
+                        <span className="font-bold text-xs text-muted-foreground tracking-tighter uppercase">
+                          {formatCurrency(item.totalCost)}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right py-3">
+                        <span className={`font-black text-sm tracking-tighter italic uppercase ${profit >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                          {formatCurrency(profit)}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right py-3">
+                        <Badge variant="outline" className={`font-black text-[10px] px-2 py-0 border-none ring-1 ${margin >= 20 ? 'text-emerald-500 ring-emerald-500/30 bg-emerald-500/10' : 'text-orange-500 ring-orange-500/30 bg-orange-500/10'}`}>
+                          {margin.toFixed(1)}%
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
