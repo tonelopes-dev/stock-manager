@@ -10,6 +10,13 @@ import { upsertProduct } from "@/app/_actions/product/upsert-product";
 import { toast } from "sonner";
 import { cn } from "@/app/_lib/utils";
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/app/_components/ui/tooltip";
+
 interface InlineStockStatusProps {
   product: {
     id: string;
@@ -77,7 +84,7 @@ export default function InlineStockStatus({ product }: InlineStockStatusProps) {
           )}>
             <BoxIcon size={18} />
           </div>
-          <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 leading-none mt-1">
+          <CardTitle className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 leading-none mt-1">
             {product.isMadeToOrder ? "Disponibilidade" : "Status do Estoque"}
           </CardTitle>
         </div>
@@ -116,7 +123,7 @@ export default function InlineStockStatus({ product }: InlineStockStatusProps) {
               )}
               <span className="text-sm font-black text-muted-foreground/30 uppercase tracking-widest">{product.unit}</span>
             </div>
-            <p className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest mt-1">
+            <p className="text-[11px] font-black text-muted-foreground/40 uppercase tracking-widest mt-1">
               {product.isMadeToOrder ? "Produção Possível (Virtual)" : "Disponível em Estoque"}
             </p>
           </div>
@@ -126,41 +133,64 @@ export default function InlineStockStatus({ product }: InlineStockStatusProps) {
         {product.isMadeToOrder && product.ingredients && product.ingredients.length > 0 && (
           <div className="space-y-2 rounded-2xl border border-dashed border-slate-200 p-4 bg-slate-50/30">
             <div className="flex items-center justify-between">
-              <h5 className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">
+              <h2 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
                 Disponibilidade por Insumo
-              </h5>
+              </h2>
             </div>
             
-            <div className="grid grid-cols-1 gap-1.5">
-              {product.ingredients.map((ing: any) => {
-                const isLimiting = product.limitingIngredient === ing.name;
-                return (
-                  <div key={ing.name} className="flex items-center justify-between gap-2">
-                    <span className={cn(
-                      "text-[10px] truncate max-w-[120px] uppercase tracking-tight", 
-                      isLimiting ? "font-black text-rose-600" : "font-bold text-slate-500"
-                    )}>
-                      {ing.name}
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      <span className={cn(
-                        "text-[10px] font-black tabular-nums shrink-0", 
-                        isLimiting ? "text-rose-600" : "text-slate-700"
-                      )}>
-                        {ing.availability}
-                      </span>
-                      <span className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-tighter">un</span>
+            <div className="grid grid-cols-1 gap-2">
+              <TooltipProvider>
+                {product.ingredients.map((ing: any) => {
+                  const isLimiting = product.limitingIngredient === ing.name;
+                  const content = (
+                    <div className={cn("flex items-center justify-between gap-2", isLimiting && "cursor-help")}>
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className={cn(
+                          "text-xs truncate max-w-[150px] uppercase tracking-tight", 
+                          isLimiting ? "font-black text-rose-600" : "font-bold text-slate-600"
+                        )}>
+                          {ing.name}
+                        </span>
+                        {isLimiting && <AlertCircleIcon size={12} className="text-rose-600 animate-pulse shrink-0" />}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "text-xs font-black tabular-nums shrink-0", 
+                          isLimiting ? "text-rose-600" : "text-slate-700"
+                        )}>
+                          {ing.availability}
+                        </span>
+                        <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-tighter">{product.unit}</span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+
+                  if (!isLimiting) return <div key={ing.name} className="py-0.5">{content}</div>;
+
+                  return (
+                    <Tooltip key={ing.name}>
+                      <TooltipTrigger asChild>
+                        <div className="py-0.5">{content}</div>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="bg-rose-600 text-white border-none shadow-xl p-4 max-w-[240px]">
+                        <div className="space-y-1.5">
+                          <p className="text-xs font-black uppercase tracking-widest leading-none">Gargalo de Produção</p>
+                          <p className="text-[11px] font-medium leading-normal opacity-95">
+                            Este ingrediente é o que está limitando a produção total. Reponha o estoque de <strong>{ing.name}</strong> para aumentar a disponibilidade virtual.
+                          </p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })}
+              </TooltipProvider>
             </div>
           </div>
         )}
 
         <div className="flex items-center justify-between rounded-2xl bg-slate-100/40 p-5">
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] text-muted-foreground/60 font-black uppercase tracking-widest leading-none">Estoque Mínimo</span>
+            <span className="text-[11px] text-muted-foreground/60 font-black uppercase tracking-widest leading-none">Estoque Mínimo</span>
             <span className="text-[10px] text-muted-foreground font-medium opacity-50">Alerta de reposição ativado</span>
           </div>
           {isEditing ? (

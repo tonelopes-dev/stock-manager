@@ -3,7 +3,7 @@
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { Card, CardContent } from "@/app/_components/ui/card";
 import { Badge } from "@/app/_components/ui/badge";
-import { ImageIcon } from "lucide-react";
+import { ImageIcon, InfoIcon, MoreHorizontal } from "lucide-react";
 import ProductStatusBadge from "@/app/_components/product-status-badge";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -12,6 +12,12 @@ import { UserRole } from "@prisma/client";
 import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
 import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
 import * as React from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/app/_components/ui/tooltip";
 
 interface ProductCardProps {
   product: ProductDto;
@@ -38,9 +44,7 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
   const router = useRouter();
   const [hasError, setHasError] = React.useState(false);
   
-  const typeConfig = PRODUCT_TYPE_LABELS[product.type] || PRODUCT_TYPE_LABELS.REVENDA;
-
-  const handleClick = (e: React.MouseEvent) => {
+  const typeConfig = PRODUCT_TYPE_LABELS[product.type] || PRODUCT_TYPE_LABELS.REVENDA;  const handleClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
     if (
       target.closest("button") || 
@@ -53,6 +57,10 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
     
     router.push(`/cardapio/${product.id}`);
   };
+
+  const profit = product.price - product.cost;
+  const currentStock = product.isMadeToOrder ? product.virtualStock : product.stock;
+  const totalStockValue = product.cost * currentStock;
 
   return (
     <Card 
@@ -83,7 +91,7 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
         <div className="absolute top-2 left-2 flex flex-col gap-1.5">
           <Badge 
             variant={typeConfig.variant as any} 
-            className="shadow-sm border-none backdrop-blur-md bg-background/80 text-[10px] py-0 px-2 h-5 flex items-center justify-center"
+            className="shadow-sm border border-border/50 backdrop-blur-md font-bold text-[9px] py-0 px-2 h-5 flex items-center justify-center uppercase tracking-tight"
           >
             {typeConfig.label}
           </Badge>
@@ -122,20 +130,29 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
           </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-3 py-2 border-y border-border/50">
+        <div className="grid grid-cols-4 gap-2 py-2 border-y border-border/50">
           <div className="space-y-0.5">
-            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-tight">Venda</span>
-            <p className="font-bold text-sm text-foreground">
-              {Intl.NumberFormat("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              }).format(product.price)}
+            <span className="text-[8px] uppercase font-bold text-muted-foreground/60 tracking-tight">Venda</span>
+            <p className="font-bold text-[11px] text-foreground whitespace-nowrap">
+              {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(product.price)}
             </p>
           </div>
           <div className="space-y-0.5">
-            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-tight">Margem</span>
-            <p className="font-bold text-sm text-emerald-600">
+            <span className="text-[8px] uppercase font-bold text-muted-foreground/60 tracking-tight">Custo</span>
+            <p className="font-bold text-[11px] text-slate-600 whitespace-nowrap">
+              {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(product.cost)}
+            </p>
+          </div>
+          <div className="space-y-0.5">
+            <span className="text-[8px] uppercase font-bold text-muted-foreground/60 tracking-tight">Margem</span>
+            <p className="font-bold text-[11px] text-emerald-600">
                 {product.margin}%
+            </p>
+          </div>
+          <div className="space-y-0.5">
+            <span className="text-[8px] uppercase font-bold text-muted-foreground/60 tracking-tight">Lucro</span>
+            <p className="font-bold text-[11px] text-primary whitespace-nowrap">
+                {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(profit)}
             </p>
           </div>
         </div>
@@ -146,14 +163,50 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
                   {product.isMadeToOrder ? "Virtual" : "Estoque"}:
                 </span>
                 <p className="text-sm font-bold text-foreground">
-                    {product.isMadeToOrder ? product.virtualStock : product.stock} <span className="text-[10px] text-muted-foreground font-medium uppercase">{product.unit}</span>
+                    {currentStock} <span className="text-[10px] text-muted-foreground font-medium uppercase">{product.unit}</span>
                 </p>
+                {product.isMadeToOrder && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <InfoIcon size={12} className="text-primary/50 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-slate-900 text-white border-none p-3 max-w-[200px]">
+                        <p className="text-[9px] leading-relaxed">
+                          <strong>Estoque Virtual:</strong> Calculado com base na disponibilidade dos seus insumos.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
             </div>
-            {!product.isMadeToOrder && (
-              <ProductStatusBadge status={product.status} />
-            )}
+            
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex flex-col items-end cursor-help group">
+                    <span className="text-[8px] uppercase font-black text-muted-foreground/40 tracking-tighter group-hover:text-primary transition-colors">Custo em Estoque</span>
+                    <p className="text-[11px] font-black text-foreground/80 tracking-tight group-hover:text-foreground transition-colors">
+                        {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(totalStockValue)}
+                    </p>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" align="end" className="max-w-[220px] p-3 bg-slate-900 text-white border-none shadow-2xl">
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-primary">Análise de Investimento</p>
+                    <p className="text-[9px] leading-relaxed">
+                      {product.isMadeToOrder 
+                        ? "Este valor representa o custo total dos insumos que você tem disponíveis para produzir este item. Lembre-se que estes insumos são compartilhados com outros produtos da ficha técnica."
+                        : "Valor total investido neste produto atualmente em estoque físico (Custo Unitário x Quantidade)."}
+                    </p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
         </div>
       </CardContent>
     </Card>
   );
 };
+
+
