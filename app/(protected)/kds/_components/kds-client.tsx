@@ -160,7 +160,7 @@ export const KDSClient = ({
   ];
 
   return (
-    <div className="flex h-[calc(100vh-150px)] flex-col overflow-hidden bg-slate-50/30">
+    <div className="flex h-full flex-col overflow-hidden bg-slate-50/30">
       <div className="flex items-center justify-between border-b bg-background px-8 py-3">
         <div className="flex items-center gap-6">
           <div className="flex flex-col">
