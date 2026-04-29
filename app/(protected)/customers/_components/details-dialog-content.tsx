@@ -104,6 +104,32 @@ const getSafeDate = (dateInput: string | Date | null | undefined): Date | undefi
   );
 };
 
+// Helper to format phone number to (99) 99999-9999
+const formatPhoneNumber = (value: string) => {
+  if (!value) return "";
+  const phoneNumber = value.replace(/[^\d]/g, "");
+  const phoneNumberLength = phoneNumber.length;
+  
+  if (phoneNumberLength <= 2) return phoneNumber;
+  if (phoneNumberLength <= 7) {
+    return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2)}`;
+  }
+  return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(
+    2,
+    7
+  )}-${phoneNumber.slice(7, 11)}`;
+};
+
+// Helper to validate email format
+const validateEmail = (email: string) => {
+  if (!email) return true; // Empty email is handled by the backend if required
+  return String(email)
+    .toLowerCase()
+    .match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
+};
+
 interface CustomerDetailsDialogContentProps {
   customer: any;
   categories: { id: string; name: string }[];
@@ -183,6 +209,17 @@ export const CustomerDetailsDialogContent = ({
   };
 
   const handleSave = () => {
+    // Basic validation
+    if (formData.email && !validateEmail(formData.email)) {
+      toast.error("Por favor, informe um e-mail válido.");
+      return;
+    }
+
+    if (!formData.name.trim()) {
+      toast.error("O nome do cliente é obrigatório.");
+      return;
+    }
+
     startTransition(async () => {
       const result = await upsertCustomer({
         id: customer.id,
@@ -227,12 +264,26 @@ export const CustomerDetailsDialogContent = ({
 
   return (
     <>
-      <DialogContent className="max-h-[85vh] max-w-xl overflow-y-auto border-none bg-background p-0 shadow-2xl">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/80 px-6 py-4 backdrop-blur-md">
+      <DialogContent className="flex max-h-[90vh] max-w-6xl flex-col border-none bg-background p-0 shadow-2xl">
+        {/* Fixed Header */}
+        <div className="flex items-center justify-between border-b border-border bg-background px-6 py-4 pr-14">
           <DialogHeader className="p-0">
             <DialogTitle className="flex items-center gap-3 text-xl font-black uppercase italic tracking-tighter">
-              <User className="h-6 w-6 text-primary" />
-              {isEditing ? "Editar Cliente" : customer.name}
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 border border-primary/5">
+                {customer.imageUrl ? (
+                  <img 
+                    src={customer.imageUrl} 
+                    alt={customer.name} 
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <User className="h-5 w-5 text-primary" />
+                )}
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Detalhes do Cliente</span>
+                {isEditing ? "Editar Registro" : customer.name}
+              </div>
             </DialogTitle>
           </DialogHeader>
           <div className="flex items-center gap-2">
@@ -249,333 +300,338 @@ export const CustomerDetailsDialogContent = ({
                       <Pencil className="h-3 w-3" /> Editar
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent side="bottom">
                     <p>Editar informações do cliente</p>
                   </TooltipContent>
                 </Tooltip>
               ) : (
                 <div className="flex gap-2">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setIsEditing(false)}
-                        disabled={isPending}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Cancelar edição</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setIsEditing(false)}
+                    disabled={isPending}
+                  >
+                    <X className="mr-2 h-4 w-4" /> Cancelar
+                  </Button>
                   
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button size="sm" onClick={handleSave} disabled={isPending}>
-                        <Save className="mr-2 h-3 w-3" /> Salvar
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Salvar alterações</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <Button size="sm" onClick={handleSave} disabled={isPending}>
+                    <Save className="mr-2 h-3 w-3" /> Salvar Alterações
+                  </Button>
                 </div>
               )}
             </TooltipProvider>
           </div>
         </div>
 
-        <div className="p-6">
-          <div className="grid grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  <Mail className="h-3 w-3" /> Informações Básicas
-                </span>
-                {isEditing ? (
-                  <div className="space-y-3">
-                    <Input
-                      placeholder="Nome"
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                    />
-                    <Input
-                      placeholder="E-mail"
-                      value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                    />
-                    <Input
-                      placeholder="Telefone"
-                      value={formData.phoneNumber}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          phoneNumber: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <p className="text-sm font-semibold text-foreground">
-                      {customer.name}
-                    </p>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      {customer.email || "Sem e-mail"}
-                    </p>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      {customer.phoneNumber || "Sem telefone"}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-4">
-                <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  <Tag className="h-3 w-3" /> CRM & Pipeline
-                </span>
-                {isEditing ? (
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                        Categorias
-                      </label>
-                      <MultiSelect
-                        options={categories}
-                        selected={formData.categoryIds}
-                        onChange={(ids) =>
-                          setFormData({ ...formData, categoryIds: ids })
-                        }
-                        placeholder="Categorias"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                        Estágio
-                      </label>
-                      <Select
-                        value={formData.stageId}
-                        onValueChange={(v) =>
-                          setFormData({ ...formData, stageId: v })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Estágio" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="NONE">Nenhum</SelectItem>
-                          {stages.map((s) => (
-                            <SelectItem key={s.id} value={s.id}>
-                              {s.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {customer.categories && customer.categories.length > 0 ? (
-                      customer.categories.map((c: any) => (
-                        <Badge
-                          key={c.id}
-                          variant="secondary"
-                          style={
-                            c.color
-                              ? {
-                                  backgroundColor: `${c.color}20`,
-                                  color: c.color,
-                                }
-                              : undefined
+        {/* Scrollable Content Area */}
+        <div className="flex flex-1 overflow-hidden">
+          <div className="grid flex-1 grid-cols-1 lg:grid-cols-12">
+            {/* Left Column: Basic Info & Details (Independent Scroll) */}
+            <div className="h-full overflow-y-auto border-r border-border/50 bg-muted/5 p-6 lg:col-span-4">
+              <div className="space-y-8">
+                {/* Basic Info Section */}
+                <div className="space-y-4">
+                  <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    <Mail className="h-3 w-3 text-primary" /> Informações de Contato
+                  </span>
+                  {isEditing ? (
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold uppercase text-muted-foreground">Nome Completo</label>
+                        <Input
+                          placeholder="Nome Completo"
+                          value={formData.name}
+                          onChange={(e) =>
+                            setFormData({ ...formData, name: e.target.value })
                           }
-                          className="text-[10px] font-black uppercase"
-                        >
-                          {c.name}
-                        </Badge>
-                      ))
-                    ) : (
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] font-bold text-muted-foreground"
-                      >
-                        Sem Categoria
-                      </Badge>
-                    )}
-                    {customer.stage ? (
-                      <Badge
-                        variant="outline"
-                        className="border-primary/20 text-[10px] font-black uppercase text-primary"
-                      >
-                        {customer.stage.name}
-                      </Badge>
-                    ) : (
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] font-bold text-muted-foreground"
-                      >
-                        Sem Estágio
-                      </Badge>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold uppercase text-muted-foreground">E-mail</label>
+                        <Input
+                          placeholder="exemplo@email.com"
+                          value={formData.email}
+                          onChange={(e) =>
+                            setFormData({ ...formData, email: e.target.value })
+                          }
+                          className={formData.email && !validateEmail(formData.email) ? "border-destructive focus-visible:ring-destructive" : ""}
+                        />
+                        {formData.email && !validateEmail(formData.email) && (
+                          <p className="text-[10px] font-medium text-destructive">Formato de e-mail inválido</p>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold uppercase text-muted-foreground">WhatsApp / Celular</label>
+                        <Input
+                          placeholder="(00) 00000-0000"
+                          value={formData.phoneNumber}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              phoneNumber: formatPhoneNumber(e.target.value),
+                            })
+                          }
+                          maxLength={15}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 rounded-xl border border-border/50 bg-muted/30 p-3">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase text-muted-foreground">Nome</p>
+                        <p className="text-sm font-semibold">{customer.name}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase text-muted-foreground">E-mail</p>
+                        <p className="text-sm font-medium">{customer.email || "—"}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase text-muted-foreground">WhatsApp</p>
+                        <p className="text-sm font-medium">{customer.phoneNumber || "—"}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  <Calendar className="h-3 w-3" /> Outros Detalhes
-                </span>
-                {isEditing ? (
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                      Aniversário
-                    </label>
-                    <DatePicker
-                      value={getSafeDate(formData.birthDate)}
-                      onChange={(date) =>
-                        setFormData({
-                          ...formData,
-                          birthDate: date ? format(date, "yyyy-MM-dd") : "",
-                        })
+                {/* CRM Section */}
+                <div className="space-y-4">
+                  <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    <Tag className="h-3 w-3 text-primary" /> CRM & Funil
+                  </span>
+                  {isEditing ? (
+                    <div className="space-y-4">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold uppercase text-muted-foreground">Categorias</label>
+                        <MultiSelect
+                          options={categories}
+                          selected={formData.categoryIds}
+                          onChange={(ids) =>
+                            setFormData({ ...formData, categoryIds: ids })
+                          }
+                          placeholder="Selecionar categorias..."
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold uppercase text-muted-foreground">Estágio Atual</label>
+                        <Select
+                          value={formData.stageId}
+                          onValueChange={(v) =>
+                            setFormData({ ...formData, stageId: v })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Estágio" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="NONE">Nenhum</SelectItem>
+                            {stages.map((s) => (
+                              <SelectItem key={s.id} value={s.id}>
+                                {s.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {customer.categories && customer.categories.length > 0 ? (
+                        customer.categories.map((c: any) => (
+                          <Badge
+                            key={c.id}
+                            variant="secondary"
+                            style={
+                              c.color
+                                ? {
+                                    backgroundColor: `${c.color}20`,
+                                    color: c.color,
+                                  }
+                                : undefined
+                            }
+                            className="text-[10px] font-black uppercase"
+                          >
+                            {c.name}
+                          </Badge>
+                        ))
+                      ) : (
+                        <Badge variant="outline" className="text-[10px] font-bold text-muted-foreground">Sem Categoria</Badge>
+                      )}
+                      {customer.stage && (
+                        <Badge variant="outline" className="border-primary/20 text-[10px] font-black uppercase text-primary">
+                          {customer.stage.name}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Important Dates */}
+                <div className="space-y-4">
+                  <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    <Calendar className="h-3 w-3 text-primary" /> Datas Importantes
+                  </span>
+                  {isEditing ? (
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold uppercase text-muted-foreground">Data de Aniversário</label>
+                        <DatePicker
+                          value={getSafeDate(formData.birthDate)}
+                          onChange={(date) =>
+                            setFormData({
+                              ...formData,
+                              birthDate: date ? format(date, "yyyy-MM-dd") : "",
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 p-3">
+                        <span className="text-[10px] font-bold uppercase text-muted-foreground">Data de Cadastro</span>
+                        <span className="text-xs font-semibold">
+                          {customer.createdAt
+                            ? format(new Date(customer.createdAt), "dd/MM/yyyy", { locale: ptBR })
+                            : "—"}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold uppercase text-muted-foreground">Aniversário</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium">
+                            {customer.birthDate
+                              ? format(getSafeDate(customer.birthDate)!, "dd/MM", { locale: ptBR })
+                              : "—"}
+                          </p>
+                          <CustomerBirthdayReminder 
+                            customer={customer} 
+                            onUpdate={fetchFullCustomer} 
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold uppercase text-muted-foreground">Cadastro</p>
+                        <p className="text-sm font-medium">
+                          {customer.createdAt
+                            ? format(new Date(customer.createdAt), "dd/MM/yyyy", { locale: ptBR })
+                            : "—"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Notes Section */}
+                <div className="space-y-4">
+                  <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    <Notebook className="h-3 w-3 text-primary" /> Observações Internas
+                  </span>
+                  {isEditing ? (
+                    <Textarea
+                      placeholder="Notas internas sobre este cliente..."
+                      className="min-h-[100px] resize-none text-sm"
+                      value={formData.notes}
+                      onChange={(e) =>
+                        setFormData({ ...formData, notes: e.target.value })
                       }
                     />
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold uppercase text-muted-foreground">
-                        Aniversário
-                      </p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {customer.birthDate
-                          ? format(getSafeDate(customer.birthDate)!, "dd/MM/yyyy", {
-                              locale: ptBR,
-                            })
-                          : "Não informado"}
-                      </p>
-                      <CustomerBirthdayReminder 
-                        customer={customer} 
-                        onUpdate={fetchFullCustomer} 
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold uppercase text-muted-foreground">
-                        Data de Cadastro
-                      </p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {customer.createdAt
-                          ? format(new Date(customer.createdAt), "dd/MM/yyyy", {
-                              locale: ptBR,
-                            })
-                          : "Não informado"}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-4">
-                <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  <Notebook className="h-3 w-3" /> Observações
-                </span>
-                {isEditing ? (
-                  <Textarea
-                    placeholder="Notas internas sobre o cliente..."
-                    className="min-h-[120px] resize-none text-sm"
-                    value={formData.notes}
-                    onChange={(e) =>
-                      setFormData({ ...formData, notes: e.target.value })
-                    }
-                  />
-                ) : (
-                  <p className="whitespace-pre-wrap text-sm font-medium italic leading-relaxed text-muted-foreground">
-                    {customer.notes || "Sem observações adicionais."}
-                  </p>
-                )}
+                  ) : (
+                    <p className="rounded-lg border border-border/50 bg-muted/30 p-3 text-xs font-medium italic leading-relaxed text-muted-foreground">
+                      {customer.notes || "Nenhuma observação interna registrada."}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="mt-12 border-t border-border pt-8">
-            <div className="mb-6 flex items-center justify-between">
-              <h3 className="flex items-center gap-2 text-xs font-black uppercase italic tracking-tighter text-foreground">
-                <ListChecks className="h-4 w-4" /> Jornada do Cliente
-              </h3>
+            {/* Right Column: Journey & Sales (Independent Scroll) */}
+            <div className="h-full overflow-y-auto p-6 lg:col-span-8">
+              <div className="space-y-10">
+                {/* Journey Section */}
+                <div>
+                  <div className="mb-6 flex items-center justify-between">
+                    <h3 className="flex items-center gap-2 text-sm font-black uppercase italic tracking-tighter text-foreground">
+                      <ListChecks className="h-4 w-4 text-primary" /> Jornada de Sucesso
+                    </h3>
 
-              {checklistTemplates.length > 0 ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 gap-1.5 border-primary/20 bg-primary/5 text-[10px] font-black uppercase text-primary hover:bg-primary/10"
-                      disabled={isPending}
-                    >
-                      <Plus className="h-3 w-3" /> Iniciar Jornada
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    {checklistTemplates.map((t) => (
-                      <DropdownMenuItem
-                        key={t.id}
-                        className="gap-2 text-xs font-medium"
-                        onClick={() => handleApplyTemplate(t.id)}
+                    {checklistTemplates.length > 0 ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 gap-1.5 border-primary/20 bg-primary/5 text-[10px] font-black uppercase text-primary hover:bg-primary/10"
+                            disabled={isPending}
+                          >
+                            <Plus className="h-3 w-3" /> Nova Etapa
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56">
+                          <div className="px-2 py-1.5 text-[10px] font-black uppercase text-muted-foreground">Aplicar Template</div>
+                          {checklistTemplates.map((t) => (
+                            <DropdownMenuItem
+                              key={t.id}
+                              className="gap-2 text-xs font-medium"
+                              onClick={() => handleApplyTemplate(t.id)}
+                            >
+                              <Sparkles className="h-3 w-3 text-primary" />
+                              {t.name}
+                            </DropdownMenuItem>
+                          ))}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="gap-2 text-xs font-medium italic"
+                            onClick={handleCreateManualChecklist}
+                          >
+                            <Plus className="h-3 w-3" /> Iniciar Customizada
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 gap-1.5 border-primary/20 bg-primary/5 text-[10px] font-black uppercase text-primary hover:bg-primary/10"
+                        disabled={isPending}
+                        onClick={handleCreateManualChecklist}
                       >
-                        <Sparkles className="h-3 w-3 text-primary" />
-                        {t.name}
-                      </DropdownMenuItem>
-                    ))}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="gap-2 text-xs font-medium italic"
-                      onClick={handleCreateManualChecklist}
-                    >
-                      <Plus className="h-3 w-3" /> Jornada Personalizada
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-7 gap-1.5 border-primary/20 bg-primary/5 text-[10px] font-black uppercase text-primary hover:bg-primary/10"
-                  disabled={isPending}
-                  onClick={handleCreateManualChecklist}
-                >
-                  <Plus className="h-3 w-3" /> Iniciar Jornada
-                </Button>
-              )}
-            </div>
-            <CustomerChecklist
-              customerId={customer.id}
-              checklists={fullCustomer.checklists || []}
-              templates={checklistTemplates}
-              refreshData={fetchFullCustomer}
-            />
-          </div>
+                        <Plus className="h-3 w-3" /> Iniciar Jornada
+                      </Button>
+                    )}
+                  </div>
+                  <div className="rounded-xl border border-border/50 bg-muted/10 p-4">
+                    <CustomerChecklist
+                      customerId={customer.id}
+                      checklists={fullCustomer.checklists || []}
+                      templates={checklistTemplates}
+                      refreshData={fetchFullCustomer}
+                    />
+                  </div>
+                </div>
 
-          <div className="mt-12 border-t border-border pt-8">
-            <h3 className="mb-6 flex items-center gap-2 text-xs font-black uppercase italic tracking-tighter text-foreground">
-              <ShoppingBag className="h-4 w-4" /> Histórico de Compras
-            </h3>
-            {isLoadingFull ? (
-              <div className="flex items-center justify-center py-10">
-                <Loader2Icon className="h-6 w-6 animate-spin text-muted-foreground" />
+                {/* Sales Section */}
+                <div className="pt-4">
+                  <h3 className="mb-6 flex items-center gap-2 text-sm font-black uppercase italic tracking-tighter text-foreground">
+                    <ShoppingBag className="h-4 w-4 text-primary" /> Histórico de Vendas
+                  </h3>
+                  <div className="rounded-xl border border-border/50 bg-muted/10 p-4">
+                    {isLoadingFull ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2Icon className="h-6 w-6 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : (
+                      <SalesTimeline sales={fullCustomer.sales || []} />
+                    )}
+                  </div>
+                </div>
               </div>
-            ) : (
-              <SalesTimeline sales={fullCustomer.sales || []} />
-            )}
+            </div>
           </div>
         </div>
 
-        <div className="sticky bottom-0 z-10 flex items-center justify-between border-t border-border bg-background/80 px-6 py-4 backdrop-blur-md">
+        {/* Fixed Footer */}
+        <div className="flex items-center justify-between border-t border-border bg-background px-6 py-4">
           <div>
             {!isEditing && (
               <TooltipProvider>
@@ -584,14 +640,14 @@ export const CustomerDetailsDialogContent = ({
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      className="h-9 w-9 p-0 text-destructive hover:bg-destructive/10"
                       onClick={() => setShowDeleteConfirm(true)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Excluir este cliente</p>
+                  <TooltipContent side="top">
+                    <p>Excluir cliente</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -599,7 +655,7 @@ export const CustomerDetailsDialogContent = ({
           </div>
           <DialogClose asChild>
             <Button size="sm" variant="outline" className="border-border">
-              Fechar
+              Fechar Detalhes
             </Button>
           </DialogClose>
         </div>
