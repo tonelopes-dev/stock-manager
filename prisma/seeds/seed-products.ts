@@ -1,17 +1,32 @@
 import { PrismaClient, ProductType, UnitType } from "@prisma/client";
-import { addDays } from "date-fns";
 
 export async function seedProducts(prisma: PrismaClient, companyId: string) {
-  console.log("🥬 Seeding products and categories...");
+  console.log("🥬 Seeding environments, products and categories...");
 
-  // 1. Categories
+  // 1. Environments (Ambientes de Produção)
+  const environmentsData = [
+    { name: "Cozinha", orderIndex: 0 },
+    { name: "Bar", orderIndex: 1 },
+  ];
+
+  const environments: Record<string, any> = {};
+  for (const env of environmentsData) {
+    const environment = await prisma.environment.upsert({
+      where: { name_companyId: { name: env.name, companyId } },
+      update: { orderIndex: env.orderIndex },
+      create: { name: env.name, orderIndex: env.orderIndex, companyId },
+    });
+    environments[env.name] = environment;
+  }
+
+  // 2. Categories
   const prodCategoriesData = [
-    { name: "Bebidas", icon: "GlassWater" },
-    { name: "Salgados", icon: "Utensils" },
-    { name: "Cafeteria", icon: "Coffee" },
-    { name: "Sobremesas", icon: "IceCream" },
-    { name: "Insumos", icon: "Package" },
-    { name: "Combos", icon: "Layers" },
+    { name: "Bebidas", icon: "GlassWater", environment: "Bar" },
+    { name: "Salgados", icon: "Utensils", environment: "Cozinha" },
+    { name: "Cafeteria", icon: "Coffee", environment: "Bar" },
+    { name: "Sobremesas", icon: "IceCream", environment: "Cozinha" },
+    { name: "Insumos", icon: "Package", environment: null },
+    { name: "Combos", icon: "Layers", environment: "Cozinha" }, // Defaulting to kitchen
   ];
 
   const productCategories: Record<string, any> = {};
@@ -21,17 +36,20 @@ export async function seedProducts(prisma: PrismaClient, companyId: string) {
       update: { icon: cat.icon },
       create: { name: cat.name, icon: cat.icon, companyId },
     });
-    productCategories[cat.name] = category;
+    productCategories[cat.name] = { 
+      ...category, 
+      environmentId: cat.environment ? environments[cat.environment].id : null 
+    };
   }
 
-  // 2. Insumos (Raw Materials)
+  // 3. Insumos (Raw Materials)
   const insumosData = [
     { name: "Farinha de Trigo", unit: UnitType.KG, cost: 4.5, stock: 50, minStock: 10 },
     { name: "Peito de Frango", unit: UnitType.KG, cost: 22.0, stock: 15, minStock: 8 },
     { name: "Requeijão", unit: UnitType.KG, cost: 35.0, stock: 10, minStock: 3 },
     { name: "Gin", unit: UnitType.UN, cost: 85.0, stock: 12, minStock: 3 },
     { name: "Tônica", unit: UnitType.L, cost: 12.0, stock: 24, minStock: 6 },
-    { name: "Croissant Massa", unit: UnitType.UN, cost: 3.5, stock: 0, minStock: 10 }, // For exhausted batch test
+    { name: "Croissant Massa", unit: UnitType.UN, cost: 3.5, stock: 0, minStock: 10 },
     { name: "Pão de Hambúrguer", unit: UnitType.UN, cost: 1.2, stock: 200, minStock: 40 },
     { name: "Carne Bovina (Blend)", unit: UnitType.KG, cost: 38.0, stock: 20, minStock: 5 },
     { name: "Queijo Cheddar", unit: UnitType.KG, cost: 42.0, stock: 8, minStock: 2 },
@@ -59,10 +77,10 @@ export async function seedProducts(prisma: PrismaClient, companyId: string) {
     insumos[iData.name] = product;
   }
 
-  // 3. Resale Products
+  // 4. Resale Products
   const resellData = [
     { name: "Coca-Cola 350ml", price: 7.0, cost: 2.50, stock: 150, minStock: 24, category: "Bebidas", isLow: false },
-    { name: "Cerveja Heineken", price: 15.0, cost: 6.80, stock: 2, minStock: 12, category: "Bebidas", isLow: true }, // Low stock test
+    { name: "Cerveja Heineken", price: 15.0, cost: 6.80, stock: 2, minStock: 12, category: "Bebidas", isLow: true },
   ];
 
   const products: Record<string, any> = {};
@@ -70,7 +88,12 @@ export async function seedProducts(prisma: PrismaClient, companyId: string) {
     const sku = p.name.toLowerCase().replace(/ /g, "-");
     const product = await prisma.product.upsert({
       where: { sku_companyId: { sku, companyId } },
-      update: { price: p.price, cost: p.cost, categoryId: productCategories[p.category].id },
+      update: { 
+        price: p.price, 
+        cost: p.cost, 
+        categoryId: productCategories[p.category].id,
+        environmentId: productCategories[p.category].environmentId
+      },
       create: {
         name: p.name,
         price: p.price,
@@ -81,19 +104,20 @@ export async function seedProducts(prisma: PrismaClient, companyId: string) {
         type: ProductType.REVENDA,
         companyId,
         categoryId: productCategories[p.category].id,
+        environmentId: productCategories[p.category].environmentId
       },
     });
     products[p.name] = product;
   }
 
-  // 4. Production Products
+  // 5. Production Products
   const productionData = [
     {
       name: "Gin Tônica Clássica",
       price: 32.0,
       cost: 10.5,
       stock: 0, 
-      isMadeToOrder: true, // MTO
+      isMadeToOrder: true,
       category: "Bebidas",
       composition: [
         { insumo: "Gin", qty: 0.05 },
@@ -104,8 +128,8 @@ export async function seedProducts(prisma: PrismaClient, companyId: string) {
       name: "Croissant de Frango",
       price: 18.0,
       cost: 6.5,
-      stock: 0, // Exhausted Batch
-      isMadeToOrder: false, // BATCH
+      stock: 0, 
+      isMadeToOrder: false,
       category: "Salgados",
       composition: [
         { insumo: "Croissant Massa", qty: 1 },
@@ -116,7 +140,7 @@ export async function seedProducts(prisma: PrismaClient, companyId: string) {
       name: "Hambúrguer Caseiro",
       price: 28.0,
       cost: 12.0,
-      stock: 20, // Farto Batch
+      stock: 20, 
       isMadeToOrder: false,
       category: "Salgados",
       composition: [
@@ -135,7 +159,8 @@ export async function seedProducts(prisma: PrismaClient, companyId: string) {
         price: p.price, 
         cost: p.cost, 
         isMadeToOrder: p.isMadeToOrder,
-        type: ProductType.PRODUCAO_PROPRIA 
+        type: ProductType.PRODUCAO_PROPRIA,
+        environmentId: productCategories[p.category].environmentId
       } as any,
       create: {
         name: p.name,
@@ -148,6 +173,7 @@ export async function seedProducts(prisma: PrismaClient, companyId: string) {
         type: ProductType.PRODUCAO_PROPRIA,
         companyId,
         categoryId: productCategories[p.category].id,
+        environmentId: productCategories[p.category].environmentId
       } as any,
     });
 
@@ -164,11 +190,14 @@ export async function seedProducts(prisma: PrismaClient, companyId: string) {
     products[p.name] = product;
   }
 
-  // 5. Combos
+  // 6. Combos
   const comboSku = "combo-burger-coca";
   const comboProduct = await prisma.product.upsert({
     where: { sku_companyId: { sku: comboSku, companyId } },
-    update: { type: ProductType.COMBO },
+    update: { 
+      type: ProductType.COMBO,
+      environmentId: productCategories["Combos"].environmentId
+    },
     create: {
       name: "Combo Burger + Coca",
       price: 32.0,
@@ -178,6 +207,7 @@ export async function seedProducts(prisma: PrismaClient, companyId: string) {
       type: ProductType.COMBO,
       companyId,
       categoryId: productCategories["Combos"].id,
+      environmentId: productCategories["Combos"].environmentId
     },
   });
 
@@ -198,5 +228,5 @@ export async function seedProducts(prisma: PrismaClient, companyId: string) {
   }
   products[comboProduct.name] = comboProduct;
 
-  return { categories: productCategories, insumos, products };
+  return { categories: productCategories, insumos, products, environments };
 }
