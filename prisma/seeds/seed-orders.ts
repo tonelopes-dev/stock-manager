@@ -9,7 +9,7 @@ export async function seedOrders(
   products: Record<string, Product>,
   customers: Customer[]
 ) {
-  console.log("📊 Generating atemporal 60-day demo history (SP Timezone)...");
+  console.log("📊 Generating atemporal 15-day demo history (SP Timezone)...");
 
   const now = new Date();
   
