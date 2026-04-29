@@ -226,40 +226,43 @@ export const OrderService = {
     }
   },
 
-  async convertToSale(orderId: string, companyId: string, userId: string, paymentMethod: any, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false) {
+  async convertToSale(orderIds: string[], companyId: string, userId: string, paymentMethod: any, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false) {
     try {
-      // 1. Check for existing Sale (Idempotency)
-      const existingSale = await db.sale.findUnique({
-        where: { orderId },
+      // 1. Check for existing Sale (Idempotency) - Check if any of the orders already has a sale
+      const existingSale = await db.sale.findFirst({
+        where: { orderId: { in: orderIds } },
       });
       
       if (existingSale) {
-        console.warn(`Sale already exists for order ${orderId}. Returning existing sale.`);
-        // Ensure order is marked as PAID to fix stuck comandas
+        console.warn(`Sale already exists for some of the orders: ${orderIds}. Returning existing sale.`);
+        // Ensure orders are marked as PAID to fix stuck comandas
         await db.order.updateMany({
-          where: { id: orderId, status: { not: OrderStatus.PAID } },
+          where: { id: { in: orderIds }, status: { not: OrderStatus.PAID } },
           data: { status: OrderStatus.PAID },
         });
         await db.orderItem.updateMany({
-          where: { orderId: orderId, status: { not: OrderStatus.PAID } },
+          where: { orderId: { in: orderIds }, status: { not: OrderStatus.PAID } },
           data: { status: OrderStatus.PAID },
         });
         return existingSale;
       }
 
       const sale = await db.$transaction(async (trx) => {
-        const order = await trx.order.findUnique({
-          where: { id: orderId, companyId },
+        const orders = await trx.order.findMany({
+          where: { id: { in: orderIds }, companyId },
           include: { orderItems: { include: { product: true } } },
         });
 
-        if (!order) throw new BusinessError("Pedido não encontrado.");
+        if (orders.length === 0) throw new BusinessError("Pedidos não encontrados.");
 
-        if (order.status === OrderStatus.PAID) {
+        // Check if any order is already paid
+        if (orders.some(o => o.status === OrderStatus.PAID)) {
           throw new Error("ORDER_ALREADY_PAID_CONCURRENCY");
         }
 
-        const subtotal = order.orderItems.reduce((acc, item) => {
+        const allItems = orders.flatMap(o => o.orderItems);
+
+        const subtotal = allItems.reduce((acc, item) => {
           const price = isEmployeeSale 
             ? (Number(item.product.cost || 0) + Number(item.product.operationalCost || 0))
             : Number(item.unitPrice);
@@ -268,12 +271,14 @@ export const OrderService = {
 
         const totalWithTip = Math.max(0, subtotal + tipAmount - discountAmount + extraAmount);
 
+        // We associate the sale with the first order ID for the 'orderId' unique field
+        // This is a limitation of the current schema but satisfies requirements for grouping.
         const sale = await trx.sale.create({
           data: {
             companyId,
             userId,
-            customerId: order.customerId,
-            orderId: order.id,
+            customerId: orders[0].customerId,
+            orderId: orders[0].id, 
             paymentMethod,
             totalAmount: totalWithTip,
             discountAmount,
@@ -287,7 +292,7 @@ export const OrderService = {
         });
 
         await trx.saleItem.createMany({
-          data: order.orderItems.map((item) => {
+          data: allItems.map((item) => {
             const unitPrice = isEmployeeSale
               ? (Number(item.product.cost || 0) + Number(item.product.operationalCost || 0))
               : Number(item.unitPrice);
@@ -303,13 +308,13 @@ export const OrderService = {
         });
 
         await trx.stockMovement.updateMany({
-          where: { orderId: order.id, type: "ORDER" },
+          where: { orderId: { in: orderIds }, type: "ORDER" },
           data: { saleId: sale.id }
         });
 
-        // 3. Mark Order as PAID and complete with Concurrency Protection
+        // 3. Mark Orders as PAID and complete with Concurrency Protection
         const updatedOrderCount = await trx.order.updateMany({
-          where: { id: orderId, status: { not: OrderStatus.PAID } },
+          where: { id: { in: orderIds }, status: { not: OrderStatus.PAID } },
           data: { status: OrderStatus.PAID },
         });
 
@@ -318,7 +323,7 @@ export const OrderService = {
         }
 
         await trx.orderItem.updateMany({
-          where: { orderId: order.id },
+          where: { orderId: { in: orderIds } },
           data: { status: OrderStatus.PAID },
         });
 
@@ -331,16 +336,16 @@ export const OrderService = {
         (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') ||
         (error instanceof Error && error.message === 'ORDER_ALREADY_PAID_CONCURRENCY')
       ) {
-        console.warn(`[convertToSale] Race condition avoided for order ${orderId}`);
-        const existingSale = await db.sale.findUnique({ where: { orderId } });
+        console.warn(`[convertToSale] Race condition avoided for orders ${orderIds}`);
+        const existingSale = await db.sale.findFirst({ where: { orderId: { in: orderIds } } });
         if (existingSale) {
-          // Ensure order is marked as PAID to fix stuck comandas
+          // Ensure orders are marked as PAID to fix stuck comandas
           await db.order.updateMany({
-            where: { id: orderId, status: { not: OrderStatus.PAID } },
+            where: { id: { in: orderIds }, status: { not: OrderStatus.PAID } },
             data: { status: OrderStatus.PAID },
           });
           await db.orderItem.updateMany({
-            where: { orderId: orderId, status: { not: OrderStatus.PAID } },
+            where: { orderId: { in: orderIds }, status: { not: OrderStatus.PAID } },
             data: { status: OrderStatus.PAID },
           });
           return existingSale;
@@ -348,7 +353,7 @@ export const OrderService = {
       }
 
       if (error instanceof BusinessError) throw error;
-      console.error("Error converting order to sale:", error);
+      console.error("Error converting orders to sale:", error);
       throw new Error("Erro ao processar pagamento do pedido.");
     }
   },
@@ -419,7 +424,10 @@ export const OrderService = {
           if (remainingItems.length === 0) {
             await trx.order.delete({ where: { id: orderId } });
           } else {
-            const newTotal = remainingItems.reduce((sum, item) => sum + Number(item.unitPrice) * Number(item.quantity), 0);
+            const subtotal = remainingItems.reduce((sum, item) => sum + Number(item.unitPrice) * Number(item.quantity), 0);
+            const serviceTax = items[0].order.hasServiceTax ? Math.round(subtotal * 0.1 * 100) / 100 : 0;
+            const newTotal = subtotal + serviceTax;
+            
             await trx.order.update({
               where: { id: orderId },
               data: { totalAmount: newTotal },
@@ -470,10 +478,13 @@ export const OrderService = {
         if (remainingItems.length === 0) {
           await trx.order.delete({ where: { id: item.orderId } });
         } else {
-          const newTotal = remainingItems.reduce(
+          const subtotal = remainingItems.reduce(
             (sum, i) => sum + Number(i.unitPrice) * Number(i.quantity),
             0
           );
+          const serviceTax = item.order.hasServiceTax ? Math.round(subtotal * 0.1 * 100) / 100 : 0;
+          const newTotal = subtotal + serviceTax;
+
           await trx.order.update({
             where: { id: item.orderId },
             data: { totalAmount: newTotal },

@@ -1,5 +1,5 @@
 import { PrismaClient, SaleStatus, StockMovementType, PaymentMethod, GoalType, User, Product, Customer } from "@prisma/client";
-import { subDays, addHours, isWeekend, startOfDay, addDays } from "date-fns";
+import { subDays, addHours, isWeekend, startOfDay } from "date-fns";
 import { fakerPT_BR as faker } from "@faker-js/faker";
 
 export async function seedOrders(
@@ -9,10 +9,8 @@ export async function seedOrders(
   products: Record<string, Product>,
   customers: Customer[]
 ) {
-  console.log("📊 Generating atemporal 60-day demo history (SP Timezone)...");
+  console.log("📊 Generating atemporal 15-day demo history (SP Timezone)...");
 
-  // Anchor to real today -03:00 (America/Sao_Paulo)
-  // We use current system time as the base
   const now = new Date();
   
   const sellableProducts = Object.values(products);
@@ -20,24 +18,24 @@ export async function seedOrders(
   const sellerMember = users["Atendente"];
 
   // 0. Cleanup existing orders/sales for this company to ensure idempotency
-  console.log("🧹 Cleaning up existing sales and orders data...");
+  console.log("🧹 Cleaning up existing operational data...");
+  await prisma.stockMovement.deleteMany({ where: { companyId } });
+  await prisma.stockEntry.deleteMany({ where: { companyId } });
   await prisma.saleItem.deleteMany({ where: { sale: { companyId } } });
-  await prisma.stockMovement.deleteMany({ where: { companyId, type: "SALE" } });
   await prisma.sale.deleteMany({ where: { companyId } });
   await prisma.orderItem.deleteMany({ where: { order: { companyId } } });
   await prisma.order.deleteMany({ where: { companyId } });
   await prisma.productionOrder.deleteMany({ where: { companyId } });
   await prisma.goal.deleteMany({ where: { companyId } });
   await prisma.notification.deleteMany({ where: { companyId } });
+  await prisma.fixedExpense.deleteMany({ where: { companyId } });
 
-  for (let i = 60; i >= 0; i--) {
-    // subDays handles the calendar logic
+  for (let i = 15; i >= 0; i--) {
     const currentDate = subDays(now, i);
     const isWknd = isWeekend(currentDate);
 
     // 1. Production Orders (Batch)
-    // Only if product is NOT MTO
-    const batchProduct = products["Coxinha Especial"] || products["Hambúrguer Caseiro"];
+    const batchProduct = products["Hambúrguer Caseiro"] || products["Croissant de Frango"];
     if (batchProduct) {
         const productionQty = isWknd ? faker.number.int({ min: 30, max: 50 }) : faker.number.int({ min: 10, max: 20 });
         await prisma.productionOrder.create({
@@ -47,7 +45,7 @@ export async function seedOrders(
             quantity: productionQty,
             totalCost: Number(batchProduct.cost) * productionQty,
             createdById: sellerAdmin.id,
-            createdAt: addHours(startOfDay(currentDate), 8), // Morning production
+            createdAt: addHours(startOfDay(currentDate), 8),
           },
         });
     }
@@ -56,7 +54,6 @@ export async function seedOrders(
     const dailySalesCount = isWknd ? faker.number.int({ min: 15, max: 25 }) : faker.number.int({ min: 5, max: 12 });
 
     for (let s = 0; s < dailySalesCount; s++) {
-      // Spread sales throughout the day (10h to 22h)
       const saleDate = addHours(startOfDay(currentDate), faker.number.int({ min: 10, max: 22 }));
       const seller = s % 3 === 0 ? sellerMember : sellerAdmin;
 
@@ -84,7 +81,7 @@ export async function seedOrders(
 
       for (let it = 0; it < itemCount; it++) {
         const product = faker.helpers.arrayElement(sellableProducts) as Product;
-        if (product.type === "INSUMO") continue; // Don't sell raw materials directly
+        if (product.type === "INSUMO") continue; 
 
         const qty = faker.number.int({ min: 1, max: 2 });
 
@@ -103,8 +100,6 @@ export async function seedOrders(
         totalAmount += Number(product.price) * qty;
         totalCost += Number(product.cost) * qty;
 
-        // Log Stock Movement for the sale
-        // (Recursive logic usually handled by service, but in seed we log the primary item)
         await prisma.stockMovement.create({
           data: {
             type: StockMovementType.SALE,
@@ -112,7 +107,7 @@ export async function seedOrders(
             companyId,
             userId: seller.id,
             saleId: sale.id,
-            stockBefore: 100, // Dummy value
+            stockBefore: 100, 
             stockAfter: 100 - qty,
             quantityDecimal: qty,
             createdAt: saleDate,
@@ -127,12 +122,12 @@ export async function seedOrders(
     }
   }
 
-  // 3. Open Orders (Comandas) - For testing POS view
+  // 3. Open Orders (Comandas) - For testing POS and KDS
   console.log("📝 Seeding dynamic open orders (comandas)...");
   const openOrderScenarios = [
     { customer: customers[0], hoursAgo: 0.5, items: ["Coca-Cola 350ml", "Hambúrguer Caseiro"] },
     { customer: customers[1], hoursAgo: 1.5, items: ["Gin Tônica Clássica", "Croissant de Frango"] },
-    { customer: null, hoursAgo: 2, items: ["Cerveja Heineken"] }, // Counter sale/unknown customer
+    { customer: null, hoursAgo: 2, items: ["Cerveja Heineken"] },
   ];
 
   for (const scenario of openOrderScenarios) {

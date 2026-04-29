@@ -11,6 +11,7 @@ export interface AggregatedSaleDto {
   qtySold: number;
   currentStock: number;
   totalRevenue: number;
+  totalCost: number;
 }
 
 export interface AggregatedSalesResponse {
@@ -36,7 +37,8 @@ export const getAggregatedSales = async (
         p.name as "productName",
         p.stock::float as "currentStock",
         SUM(si.quantity)::float as "qtySold",
-        SUM(si."totalAmount")::float as "totalRevenue"
+        SUM(si."totalAmount")::float as "totalRevenue",
+        SUM(si."totalCost")::float as "totalCost"
     FROM "SaleProduct" si
     JOIN "Product" p ON p.id = si."productId"
     JOIN "Sale" s ON s.id = si."saleId"
@@ -71,6 +73,7 @@ export const getAggregatedSales = async (
       qtySold: item.qtySold,
       currentStock: item.currentStock,
       totalRevenue: item.totalRevenue,
+      totalCost: item.totalCost,
     })),
     totalTips: Number(totals._sum.tipAmount || 0),
     totalRevenue: Number(totals._sum.totalAmount || 0),

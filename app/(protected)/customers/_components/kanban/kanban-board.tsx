@@ -249,7 +249,7 @@ export const KanbanBoard = ({
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="scrollbar-hide flex min-h-[600px] items-start gap-6 overflow-x-auto px-4 pb-6">
+        <div className="scrollbar-hide flex min-h-[400px] items-start gap-4 overflow-x-auto px-2 pb-2">
           {stages.map((stage) => {
             const displayItems = columnMap[stage.id] || [];
             

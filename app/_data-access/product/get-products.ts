@@ -6,6 +6,7 @@ import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { calculateMargin } from "@/app/_lib/pricing";
 import { subDays } from "date-fns";
 import { sanitizeUUID } from "@/app/_lib/uuid";
+import { calculateProductAvailability } from "./calculate-product-availability";
 
 export type ProductStatusDto = "IN_STOCK" | "OUT_OF_STOCK" | "LOW_STOCK" | "SLOW_MOVING";
 
@@ -107,7 +108,7 @@ export const getProducts = async (
     }
   });
 
-  return products.map((product) => {
+  return Promise.all(products.map(async (product) => {
     const stock = product.stock.toNumber();
     const minStock = product.minStock.toNumber();
     const price = product.price.toNumber();
@@ -118,14 +119,13 @@ export const getProducts = async (
     const isLowStock = stock <= minStock;
     const isSlowMoving = product.saleItems.length === 0 && !isOutOfStock;
 
-    // The cost is now persisted in the DB and updated by the action
-    const effectiveCost = cost;
-
-    let virtualStock = stock;
+    // Recursive calculation for virtual stock
+    const virtualStock = await calculateProductAvailability(product.id);
     let limitingIngredient: string | undefined;
     let ingredients: { name: string; availability: number }[] | undefined;
 
     if (product.isMadeToOrder && product.parentCompositions.length > 0) {
+      // For limiting ingredient, we still look at immediate children
       let minCapacity = Infinity;
       ingredients = product.parentCompositions.map(comp => {
         const childStock = comp.child.stock.toNumber();
@@ -142,7 +142,6 @@ export const getProducts = async (
           availability: capacity === Infinity ? 0 : capacity
         };
       });
-      virtualStock = Math.max(0, minCapacity);
     }
 
     return {
@@ -189,5 +188,96 @@ export const getProducts = async (
       promoSchedule: product.promoSchedule,
       isFeatured: product.isFeatured,
     };
+  }));
+};
+
+export const getProductsForCombobox = async (): Promise<{ id: string; name: string; price: number }[]> => {
+  const companyId = await getCurrentCompanyId();
+  if (!companyId) return [];
+
+  const products = await db.product.findMany({
+    where: { companyId, isActive: true },
+    select: {
+      id: true,
+      name: true,
+      price: true,
+    },
+    orderBy: { name: "asc" },
   });
+
+  return products.map((p) => ({
+    ...p,
+    price: p.price.toNumber(),
+  }));
+};
+
+export const getProductsForSale = async (): Promise<ProductDto[]> => {
+  const companyId = await getCurrentCompanyId();
+  if (!companyId) return [];
+
+  const products = await db.product.findMany({
+    where: { companyId, isActive: true },
+    include: {
+      parentCompositions: {
+        include: {
+          child: {
+            select: { id: true, name: true, stock: true }
+          },
+        },
+      },
+      company: {
+        select: { allowNegativeStock: true },
+      },
+    },
+    orderBy: { name: "asc" },
+  });
+
+  return Promise.all(products.map(async (product) => {
+    const stock = product.stock.toNumber();
+    const price = product.price.toNumber();
+    const cost = product.cost.toNumber();
+    const operationalCost = product.operationalCost.toNumber();
+
+    const virtualStock = await calculateProductAvailability(product.id);
+    let limitingIngredient: string | undefined;
+    let ingredients: { name: string; availability: number }[] | undefined;
+
+    if (product.isMadeToOrder && product.parentCompositions.length > 0) {
+      let minCapacity = Infinity;
+      ingredients = product.parentCompositions.map(comp => {
+        const childStock = comp.child.stock.toNumber();
+        const qtyRequired = comp.quantity.toNumber();
+        const capacity = qtyRequired > 0 ? Math.floor(childStock / qtyRequired) : Infinity;
+        
+        if (capacity < minCapacity) {
+          minCapacity = capacity;
+          limitingIngredient = comp.child.name;
+        }
+
+        return {
+          name: comp.child.name,
+          availability: capacity === Infinity ? 0 : capacity
+        };
+      });
+    }
+
+    return {
+      id: product.id,
+      name: product.name,
+      price,
+      cost,
+      operationalCost,
+      stock,
+      isMadeToOrder: product.isMadeToOrder,
+      virtualStock,
+      limitingIngredient,
+      ingredients,
+      allowNegativeStock: product.company.allowNegativeStock,
+      // Minimal DTO fields to satisfy ProductDto (or we could use a partial type)
+      type: product.type,
+      isActive: product.isActive,
+      margin: calculateMargin(price, cost + operationalCost),
+      status: "IN_STOCK", // Not strictly needed for the sheet
+    } as ProductDto;
+  }));
 };

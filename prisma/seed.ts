@@ -3,6 +3,7 @@ import { seedUsers } from "./seeds/seed-users";
 import { seedProducts } from "./seeds/seed-products";
 import { seedCustomers } from "./seeds/seed-customers";
 import { seedOrders } from "./seeds/seed-orders";
+import { seedFinances } from "./seeds/seed-finances";
 
 const prisma = new PrismaClient();
 
@@ -21,6 +22,9 @@ async function main() {
 
     // 4. Sales History & Operations (Generates the 60-day atemporal data)
     await seedOrders(prisma, company.id, users, products, customers);
+
+    // 5. Finances (Suppliers & Fixed Expenses)
+    await seedFinances(prisma, company.id);
 
     console.log("✅ Modular Seeding Completed Successfully.");
     console.log("   🚀 Company: Rota 360");

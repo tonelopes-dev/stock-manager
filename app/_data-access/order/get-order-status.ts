@@ -8,7 +8,10 @@ export interface OrderStatusDto {
   orderNumber: number;
   status: OrderStatus;
   totalAmount: number;
+  hasServiceTax: boolean;
   tableNumber: string | null;
+  customerName?: string | null;
+  customerPhone?: string | null;
   createdAt: Date;
   items: {
     id: string;
@@ -27,6 +30,12 @@ export const getOrderStatus = async (
   const order = await db.order.findUnique({
     where: { id: orderId, companyId },
     include: {
+      customer: {
+        select: {
+          name: true,
+          phone: true,
+        },
+      },
       orderItems: {
         include: {
           product: {
@@ -44,7 +53,10 @@ export const getOrderStatus = async (
     orderNumber: order.orderNumber,
     status: order.status,
     totalAmount: Number(order.totalAmount),
+    hasServiceTax: order.hasServiceTax,
     tableNumber: order.tableNumber,
+    customerName: order.customer?.name,
+    customerPhone: order.customer?.phone,
     createdAt: order.createdAt,
     items: order.orderItems.map((item) => ({
       id: item.id,

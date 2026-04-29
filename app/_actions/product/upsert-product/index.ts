@@ -10,6 +10,7 @@ import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
 import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
 import { AuditService } from "@/app/_services/audit";
 import { AuditEventType, Prisma } from "@prisma/client";
+import { deleteOldImage } from "@/app/_lib/storage";
 
 /**
  * Re-calculates the cost of a product based on its composition (recursive).
@@ -110,12 +111,19 @@ export const upsertProduct = actionClient
 
       let productId = id;
 
+      let oldImageUrl: string | null = null;
+
       if (id) {
-        // 1. Fetch current for stock diff
+        // 1. Fetch current for stock diff and image cleanup
         const currentProduct = await trx.product.findUniqueOrThrow({
           where: { id, companyId },
-          select: { stock: true },
+          select: { stock: true, imageUrl: true },
         });
+
+        // Store old image for cleanup AFTER transaction succeeds
+        if (imageUrl !== undefined && imageUrl !== currentProduct.imageUrl) {
+          oldImageUrl = currentProduct.imageUrl;
+        }
 
         const updatedProduct = await trx.product.update({
           where: { id, companyId },
@@ -198,11 +206,16 @@ export const upsertProduct = actionClient
         },
       });
 
-      return productId;
+      return { productId, oldImageUrl };
     });
+
+    // Cleanup old image AFTER successful transaction
+    if (result.oldImageUrl) {
+      await deleteOldImage(result.oldImageUrl, data.imageUrl);
+    }
 
     revalidatePath("/cardapio");
     revalidatePath("/estoque");
     
-    return result;
+    return result.productId;
   });

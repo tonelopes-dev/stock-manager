@@ -12,6 +12,7 @@ import { SubscriptionBanner } from "@/app/_components/SubscriptionBanner";
 import { GlobalHeader } from "@/app/_components/global-header";
 import { AppModeProvider } from "@/app/_components/app-mode-provider";
 import { SubscriptionProvider } from "@/app/_components/SubscriptionContext";
+import { AuthProvider } from "@/app/_components/auth/auth-provider";
 
 export default async function ProtectedLayout({
   children,
@@ -55,30 +56,32 @@ export default async function ProtectedLayout({
   const subscriptionStatus = getSubscriptionStatus(expiresAt);
 
   return (
-    <SubscriptionProvider
-      subscriptionLevel={subscriptionStatus.level}
-      daysRemaining={subscriptionStatus.daysRemaining}
-      expiresAt={expiresAt}
-    >
-      <AppModeProvider>
-        <div className="fixed inset-0 flex flex-col overflow-hidden">
-          {/* Omni-Header */}
-          <GlobalHeader />
-
-          {/* Subscription Alert Banner */}
-          <SubscriptionBanner />
-
-          {/* Sidebar + Content */}
-          <div className="flex flex-1 overflow-hidden">
+    <AuthProvider>
+      <SubscriptionProvider
+        subscriptionLevel={subscriptionStatus.level}
+        daysRemaining={subscriptionStatus.daysRemaining}
+        expiresAt={expiresAt}
+      >
+        <AppModeProvider>
+          <div className="fixed inset-0 flex overflow-hidden">
             <Sidebar />
-            <main className="flex-1 overflow-y-auto bg-muted">
-              {children}
-            </main>
-          </div>
+            
+            <div className="flex flex-1 flex-col overflow-hidden">
+              {/* Omni-Header */}
+              <GlobalHeader />
 
-          <PasswordResetModal isOpen={needsPasswordChange} />
-        </div>
-      </AppModeProvider>
-    </SubscriptionProvider>
+              {/* Subscription Alert Banner */}
+              <SubscriptionBanner />
+
+              <main className="flex-1 overflow-y-auto bg-muted">
+                {children}
+              </main>
+            </div>
+
+            <PasswordResetModal isOpen={needsPasswordChange} />
+          </div>
+        </AppModeProvider>
+      </SubscriptionProvider>
+    </AuthProvider>
   );
 }

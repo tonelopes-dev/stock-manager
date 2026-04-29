@@ -59,15 +59,16 @@ export const softDeleteCompany = actionClient
         });
       });
 
-      // Redirect to a specific "Goodbye/Restore" page or logout
       // Since it's soft deleted, middleware will now handle subsequent requests.
       revalidatePath("/", "layout");
-      redirect("/login?reason=company_deactivated");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Erro ao desativar empresa.";
       console.error("Soft Delete Error:", error);
       throw new Error(message);
     }
+
+    // Redirect to a specific "Goodbye/Restore" page or logout
+    redirect("/login?reason=company_deactivated");
   });
 
 const restoreCompanySchema = z.object({});

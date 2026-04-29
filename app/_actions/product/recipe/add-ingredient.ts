@@ -45,9 +45,8 @@ export const addRecipeIngredient = actionClient
       throw new Error("Item a ser adicionado não encontrado.");
     }
 
-    if (child.type === ProductType.COMBO) {
-      throw new Error("Combos não podem fazer parte de uma ficha técnica para evitar loops infinitos.");
-    }
+    // Note: Deep circularity check is handled by the recursive logic or user responsibility 
+    // for now. Direct circularity is checked at line 18.
 
     // Check unit compatibility (assuming composition quantity unit matches child's natural unit)
     if (!isUnitCompatible(unit as UnitType, child.unit)) {

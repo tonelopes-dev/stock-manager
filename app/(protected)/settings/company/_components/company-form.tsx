@@ -19,15 +19,17 @@ import { Input } from "@/app/_components/ui/input";
 import { Button } from "@/app/_components/ui/button";
 import { Switch } from "@/app/_components/ui/switch";
 import { toast } from "sonner";
-import { Loader2Icon, SaveIcon, TrendingUpIcon, TargetIcon, Wand2Icon } from "lucide-react";
+import { Loader2Icon, SaveIcon, TrendingUpIcon, TargetIcon, Wand2Icon, LinkIcon, CreditCardIcon } from "lucide-react";
 import { NumericFormat } from "react-number-format";
 
 interface CompanyFormProps {
   initialData: {
+    slug: string;
     name: string;
     allowNegativeStock: boolean;
     estimatedMonthlyVolume: number;
     enableOverheadInjection: boolean;
+    enableServiceTax: boolean;
   };
 }
 
@@ -163,6 +165,32 @@ export const CompanyForm = ({ initialData }: CompanyFormProps) => {
                   </div>
                   <FormDescription className="text-[10px]">
                     Preenche o Custo Operacional automaticamente em novos produtos.
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="enableServiceTax"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border p-4 bg-muted/50">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <CreditCardIcon size={16} className="text-primary" />
+                    <FormLabel className="text-sm font-bold text-foreground">
+                      Cobrar Taxa de Serviço (10%)
+                    </FormLabel>
+                  </div>
+                  <FormDescription className="text-[10px]">
+                    Aplica 10% sobre o subtotal nos pedidos do cardápio digital.
                   </FormDescription>
                 </div>
                 <FormControl>

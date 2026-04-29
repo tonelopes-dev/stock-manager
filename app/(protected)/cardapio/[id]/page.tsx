@@ -59,7 +59,10 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
   const { id } = await params;
   const [product, ingredientsResponse, categories, environments, overheadSettings, stockEntriesRaw] = await Promise.all([
     getProductById(id),
-    getIngredients({ pageSize: 500 }), // Fetch balanced subset for technical sheet
+    getIngredients({ 
+      pageSize: 500, 
+      types: ["INSUMO", "REVENDA", "PRODUCAO_PROPRIA", "COMBO"] 
+    }), // Fetch all relevant types for technical sheet
     getProductCategories(),
     getEnvironments(),
     getOverheadSettings(),
@@ -176,9 +179,7 @@ const ProductDetailsPage = async ({ params }: ProductDetailsPageProps) => {
           <InlineProductImage product={serializedProduct as any} />
 
           {/* Stock Status Block (Inline Editable) */}
-          {!serializedProduct.isMadeToOrder && (
-            <InlineStockStatus product={serializedProduct as any} />
-          )}
+          <InlineStockStatus product={serializedProduct as any} />
 
           {/* Additional Info Block (Inline Editable) */}
           <InlineAdditionalInfo 

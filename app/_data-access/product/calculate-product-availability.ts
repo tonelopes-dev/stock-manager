@@ -8,7 +8,10 @@ import { ProductType } from "@prisma/client";
  * For MTO (PRODUCAO_PROPRIA) products, it looks at the technical sheet (ProductComposition).
  * For Resale (REVENDA) products, it returns the current physical stock.
  */
-export async function calculateProductAvailability(productId: string): Promise<number> {
+export async function calculateProductAvailability(productId: string, depth = 0): Promise<number> {
+  // Safety break for circular dependencies
+  if (depth > 10) return 0;
+
   const product = await db.product.findUnique({
     where: { id: productId },
     include: {
@@ -22,29 +25,42 @@ export async function calculateProductAvailability(productId: string): Promise<n
 
   if (!product) return 0;
 
-  // If it's a resale product or not MTO, return physical stock
-  if (product.type === ProductType.REVENDA || !product.isMadeToOrder) {
-    return product.stock.toNumber();
+  // Base Case: If it's a resale product or NOT a composition type (MTO or COMBO), return physical stock
+  const isCompositionType = product.type === ProductType.PRODUCAO_PROPRIA || product.type === ProductType.COMBO;
+  
+  if (!isCompositionType || !product.isMadeToOrder) {
+    return Number(product.stock || 0);
   }
 
-  // If it's MTO but has no technical sheet, return 0 or actual stock?
-  // User context implies availability depends on sheet. If no sheet, availability is 0.
+  // If it's a composition type but has no technical sheet, availability is 0
   if (product.parentCompositions.length === 0) {
     return 0;
   }
 
-  const availabilityPerIngredient = product.parentCompositions.map((composition) => {
-    const childStock = composition.child.stock.toNumber();
-    const qtyRequired = composition.quantity.toNumber();
+  const availabilityPerIngredient = await Promise.all(
+    product.parentCompositions.map(async (composition) => {
+      const qtyRequired = Number(composition.quantity || 0);
+      if (qtyRequired <= 0) return Infinity;
 
-    if (qtyRequired <= 0) return Infinity;
-    
-    // Calculate how many units can be made with this specific ingredient
-    return Math.floor(childStock / qtyRequired);
-  });
+      // RECURSION: If the child is ALSO a composition type, we calculate its virtual stock
+      const childIsComposition = 
+        composition.child.type === ProductType.PRODUCAO_PROPRIA || 
+        composition.child.type === ProductType.COMBO;
+
+      let childAvailableStock: number;
+      
+      if (childIsComposition && composition.child.isMadeToOrder) {
+        // Recursive call with incremented depth
+        childAvailableStock = await calculateProductAvailability(composition.childId, depth + 1);
+      } else {
+        // Base case for the child: just its physical stock
+        childAvailableStock = Number(composition.child.stock || 0);
+      }
+
+      return Math.floor(childAvailableStock / qtyRequired);
+    })
+  );
 
   const virtualStock = Math.min(...availabilityPerIngredient);
-
-  // Ensure we don't return negative values if some logic quirk happens
   return Math.max(0, virtualStock);
 }

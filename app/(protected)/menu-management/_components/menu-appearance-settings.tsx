@@ -85,7 +85,7 @@ export const MenuAppearanceSettings = ({ initialData }: MenuAppearanceSettingsPr
         maxWidthOrHeight: 1200,
       });
 
-      const response = await fetch(`/api/upload?filename=${compressedFile.name}`, {
+      const response = await fetch(`/api/upload?filename=${encodeURIComponent(compressedFile.name)}&category=branding&v=${Date.now()}`, {
         method: "POST",
         body: compressedFile,
       });

@@ -14,6 +14,7 @@ import { Button } from "@/app/_components/ui/button";
 import { Textarea } from "@/app/_components/ui/textarea";
 import { MenuProductDto } from "@/app/_data-access/menu/get-menu-data";
 import { useCartStore } from "../_store/use-cart-store";
+import { cn } from "@/app/_lib/utils";
 
 interface ProductDetailsSheetProps {
   product: MenuProductDto | null;
@@ -26,9 +27,13 @@ export const ProductDetailsSheet = ({
 }: ProductDetailsSheetProps) => {
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState("");
-  const addItem = useCartStore((state) => state.addItem);
+  const { items, addItem, allowNegativeStock } = useCartStore();
 
   if (!product) return null;
+
+  const totalInCart = items
+    .filter((i) => i.productId === product.id)
+    .reduce((acc, i) => acc + i.quantity, 0);
 
   const formatPrice = (price: number) =>
     Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -37,15 +42,28 @@ export const ProductDetailsSheet = ({
 
   const activePrice = product.promoPrice || product.price;
 
+  const isOutOfStock = product.availability <= 0 && !allowNegativeStock;
+  const isMaxQuantityReached = !allowNegativeStock && (quantity + totalInCart) >= product.availability;
+
   const handleAddToCart = () => {
-    addItem({
+    const success = addItem({
       productId: product.id,
       name: product.name,
       price: activePrice,
       quantity,
+      maxQuantity: product.availability,
       image: product.imageUrl || undefined,
       notes,
     });
+
+    if (!success) {
+      toast.error("Quantidade indisponível no estoque!", {
+        description: allowNegativeStock 
+          ? "Erro inesperado ao adicionar." 
+          : `O limite para este item é de ${product.availability} unidades.`,
+      });
+      return;
+    }
 
     toast.success(`${product.name} adicionado à sacola!`, {
       description: `${quantity}x por ${formatPrice(activePrice * quantity)}`,
@@ -86,7 +104,7 @@ export const ProductDetailsSheet = ({
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-6 top-6 h-10 w-10 rounded-full bg-black/20 text-white backdrop-blur-md hover:bg-black/40"
+            className="absolute right-6 top-6 z-20 h-10 w-10 rounded-full bg-black/20 text-white backdrop-blur-md hover:bg-black/40"
             onClick={onClose}
           >
             <X className="h-5 w-5" />
@@ -109,6 +127,17 @@ export const ProductDetailsSheet = ({
                   <span className="text-xs font-bold text-gray-400 line-through">
                     {formatPrice(product.price)}
                   </span>
+                )}
+                {/* Availability Badge - Only shown when limit reached */}
+                {isMaxQuantityReached && (
+                  <div className={cn(
+                    "mt-1 rounded-lg px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-white shadow-sm animate-in fade-in zoom-in duration-300",
+                    product.availability > 10 ? "bg-emerald-500" : 
+                    product.availability > 0 ? "bg-amber-500" : 
+                    allowNegativeStock ? "bg-sky-500" : "bg-rose-500"
+                  )}>
+                    {product.availability} {product.isMadeToOrder ? "Disponíveis" : "Em Estoque"}
+                  </div>
                 )}
               </div>
             </div>
@@ -155,6 +184,7 @@ export const ProductDetailsSheet = ({
                 variant="ghost"
                 size="icon"
                 className="h-10 w-10 rounded-xl"
+                disabled={isMaxQuantityReached}
                 onClick={() => setQuantity(quantity + 1)}
               >
                 <Plus className="h-4 w-4" />
@@ -163,11 +193,15 @@ export const ProductDetailsSheet = ({
           </div>
 
           <Button
-            className="h-16 w-full rounded-[2rem] bg-gray-900 text-lg font-black text-white shadow-xl transition-all active:scale-[0.98] hover:bg-gray-800"
+            className="h-16 w-full rounded-[2rem] bg-gray-900 text-lg font-black text-white shadow-xl transition-all active:scale-[0.98] hover:bg-gray-800 disabled:bg-gray-300"
             onClick={handleAddToCart}
+            disabled={isOutOfStock}
             data-testid="product-details-add-button"
           >
-            ADICIONAR À SACOLA • {formatPrice(activePrice * quantity)}
+            {isOutOfStock 
+              ? "ESGOTADO" 
+              : `ADICIONAR À SACOLA • ${formatPrice(activePrice * quantity)}`
+            }
           </Button>
         </div>
       </SheetContent>

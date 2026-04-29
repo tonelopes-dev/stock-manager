@@ -59,6 +59,7 @@ export const getCustomerById = async (id: string): Promise<CustomerDto | null> =
     name: customer.name,
     email: customer.email,
     phoneNumber: customer.phone,
+    imageUrl: customer.imageUrl,
     categories: customer.categories,
     stageId: customer.stageId,
     stage: customer.stage,

@@ -23,19 +23,6 @@ export default async function KDSPage() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-muted">
-      <Header className="shrink-0 border-b border-border bg-background px-8 py-4">
-        <HeaderLeft>
-          <div className="flex flex-col">
-            <HeaderSubtitle>Monitoramento de Cozinha</HeaderSubtitle>
-            <div className="text-2xl font-black italic tracking-tighter">
-              <HeaderTitle>
-                KDS<span className="text-primary">.</span>
-              </HeaderTitle>
-            </div>
-          </div>
-        </HeaderLeft>
-      </Header>
-
       <main className="flex-1 overflow-hidden">
         <KDSClient 
           initialOrders={initialOrders} 

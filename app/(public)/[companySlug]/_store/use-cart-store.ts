@@ -7,19 +7,21 @@ export interface CartItem {
   name: string;
   price: number;
   quantity: number;
+  maxQuantity: number;
   image?: string;
   notes?: string;
-  // Future: options/subitems would go here
 }
 
 interface CartStore {
   items: CartItem[];
   totalAmount: number;
   totalItems: number;
-  addItem: (item: Omit<CartItem, "id">) => void;
+  allowNegativeStock: boolean;
+  addItem: (item: Omit<CartItem, "id">) => boolean;
   removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
+  updateQuantity: (id: string, quantity: number) => boolean;
   clearCart: () => void;
+  setSettings: (settings: { allowNegativeStock: boolean }) => void;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -28,14 +30,27 @@ export const useCartStore = create<CartStore>()(
       items: [] as CartItem[],
       totalAmount: 0,
       totalItems: 0,
+      allowNegativeStock: false,
 
       addItem: (newItem) => {
         const currentItems = get().items;
         const entryId = `${newItem.productId}-${newItem.notes || ""}`;
         const existingItemIndex = currentItems.findIndex((item) => item.id === entryId);
 
-        let updatedItems = [...currentItems];
+        const allowNegative = get().allowNegativeStock;
 
+        // Calculate total quantity of THIS product ID already in cart
+        const totalInCart = currentItems
+          .filter((item) => item.productId === newItem.productId)
+          .reduce((acc, item) => acc + item.quantity, 0);
+
+        const newTotalQuantity = totalInCart + newItem.quantity;
+
+        if (!allowNegative && newTotalQuantity > newItem.maxQuantity) {
+          return false;
+        }
+
+        let updatedItems = [...currentItems];
         if (existingItemIndex > -1) {
           updatedItems[existingItemIndex].quantity += newItem.quantity;
         } else {
@@ -46,6 +61,7 @@ export const useCartStore = create<CartStore>()(
         const totalAmount = updatedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
         set({ items: updatedItems, totalItems, totalAmount });
+        return true;
       },
 
       removeItem: (id) => {
@@ -59,10 +75,27 @@ export const useCartStore = create<CartStore>()(
       updateQuantity: (id, quantity) => {
         if (quantity <= 0) {
           get().removeItem(id);
-          return;
+          return true;
         }
 
-        const updatedItems = get().items.map((item) =>
+        const currentItems = get().items;
+        const item = currentItems.find((i) => i.id === id);
+        const allowNegative = get().allowNegativeStock;
+
+        if (!item) return false;
+
+        // Calculate total quantity of THIS product ID in OTHER cart entries
+        const totalInOtherEntries = currentItems
+          .filter((i) => i.productId === item.productId && i.id !== id)
+          .reduce((acc, i) => acc + i.quantity, 0);
+
+        const newTotalQuantity = totalInOtherEntries + quantity;
+
+        if (!allowNegative && newTotalQuantity > item.maxQuantity) {
+          return false;
+        }
+
+        const updatedItems = currentItems.map((item) =>
           item.id === id ? { ...item, quantity } : item
         );
 
@@ -70,9 +103,11 @@ export const useCartStore = create<CartStore>()(
         const totalAmount = updatedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
         set({ items: updatedItems, totalItems, totalAmount });
+        return true;
       },
 
       clearCart: () => set({ items: [] as CartItem[], totalAmount: 0, totalItems: 0 }),
+      setSettings: (settings) => set({ allowNegativeStock: settings.allowNegativeStock }),
     }),
     {
       name: "kipo-cart-storage",

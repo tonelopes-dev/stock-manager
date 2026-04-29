@@ -120,10 +120,15 @@ const OrderCard = ({
       {/* Header: Order # and Icon */}
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h3 className="text-xl font-black tracking-tighter text-gray-900">
+          <h3 className="text-xl font-black tracking-tighter text-gray-900 uppercase">
             PEDIDO #{order.orderNumber}
           </h3>
-          <div className="mt-1 flex items-center gap-2 text-xs font-bold text-gray-400">
+          {order.customerName && (
+            <p className="text-[10px] font-black uppercase tracking-widest text-primary/80 mb-1">
+              {order.customerName}
+            </p>
+          )}
+          <div className="flex items-center gap-2 text-xs font-bold text-gray-400">
             <span>
               {new Date(order.createdAt).toLocaleTimeString("pt-BR", {
                 hour: "2-digit",
@@ -230,11 +235,21 @@ const OrderCard = ({
         </div>
 
         {/* Total Footer */}
-        <div className="flex items-center justify-between border-t border-gray-50 pt-4 mt-2">
-          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Total Pago</span>
-          <span className="text-lg font-black text-primary">
-            {formatPrice(order.totalAmount)}
-          </span>
+        <div className="mt-6 space-y-2 border-t border-gray-50 pt-4">
+          {order.hasServiceTax && (
+            <div className="flex items-center justify-between text-[10px] font-bold text-gray-400">
+              <span className="uppercase tracking-widest">Taxa de Serviço (10%)</span>
+              <span>
+                {formatPrice(order.items.reduce((acc, i) => acc + i.price * i.quantity, 0) * 0.1)}
+              </span>
+            </div>
+          )}
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Total Pago</span>
+            <span className="text-lg font-black text-primary">
+              {formatPrice(order.totalAmount)}
+            </span>
+          </div>
         </div>
       </div>
     </Card>
@@ -317,60 +332,23 @@ export const MyOrdersClient = ({ companyId, companySlug }: MyOrdersClientProps) 
     }
   };
 
-  // Supabase Realtime - Native Postgres Changes
+  // Supabase Realtime - Sync order status in real-time
   useEffect(() => {
+    if (!companyId || !customerId) return;
+
     const channel = supabase
-      .channel("customer-order-updates")
+      .channel(`my-orders-${customerId}`)
       .on(
         "postgres_changes",
         { 
           event: "*", 
           schema: "public", 
-          table: "Order" 
+          table: "Order",
+          filter: `customerId=eq.${customerId}`
         },
-        (payload) => {
-          if (payload.eventType === "UPDATE") {
-            const updatedOrder = payload.new as any;
-            setOrders((prev) =>
-              prev.map((order) =>
-                order.id === updatedOrder.id ? { ...order, status: updatedOrder.status } : order
-              )
-            );
-          }
-          router.refresh();
-        }
-      )
-      .on(
-        "postgres_changes",
-        { 
-          event: "*", 
-          schema: "public", 
-          table: "OrderItem" 
-        },
-        (payload) => {
-          if (payload.eventType === "UPDATE") {
-            const updatedItem = payload.new as any;
-            setOrders((prev) =>
-              prev.map((order) => {
-                if (order.id !== updatedItem.orderId) return order;
-                return {
-                  ...order,
-                  items: order.items.map((item) =>
-                    item.id === updatedItem.id ? { ...item, status: updatedItem.status } : item
-                  ),
-                };
-              })
-            );
-          }
-          if (payload.eventType === "DELETE") {
-            const oldItem = payload.old as any;
-            setOrders((prev) =>
-              prev.map((order) => ({
-                ...order,
-                items: order.items.filter((item) => item.id !== oldItem.id),
-              })).filter((order) => order.items.length > 0)
-            );
-          }
+        () => {
+          // Quando o status do pedido muda no banco, atualizamos a tela
+          loadOrders(customerId);
           router.refresh();
         }
       )
@@ -379,7 +357,7 @@ export const MyOrdersClient = ({ companyId, companySlug }: MyOrdersClientProps) 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [router]);
+  }, [companyId, customerId, router]);
 
 
   if (loading) {

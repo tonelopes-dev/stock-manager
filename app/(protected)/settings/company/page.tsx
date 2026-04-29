@@ -28,11 +28,14 @@ export default async function CompanySettingsPage() {
   const company = await db.company.findUnique({
     where: { id: companyId },
     select: {
+      id: true,
+      slug: true,
       name: true,
       allowNegativeStock: true,
       subscriptionStatus: true,
       estimatedMonthlyVolume: true,
       enableOverheadInjection: true,
+      enableServiceTax: true,
       fixedExpenses: true,
     },
   });
@@ -93,10 +96,12 @@ export default async function CompanySettingsPage() {
             <CardContent>
               <CompanyForm
                 initialData={{
+                  slug: company.slug,
                   name: company.name,
                   allowNegativeStock: company.allowNegativeStock,
                   estimatedMonthlyVolume: company.estimatedMonthlyVolume,
                   enableOverheadInjection: company.enableOverheadInjection,
+                  enableServiceTax: company.enableServiceTax,
                 }}
               />
             </CardContent>

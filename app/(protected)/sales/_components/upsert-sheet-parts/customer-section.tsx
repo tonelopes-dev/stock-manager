@@ -5,6 +5,9 @@ import { UsersIcon, CheckIcon } from "lucide-react";
 import { Combobox, ComboboxOption } from "@/app/_components/ui/combobox";
 import { Badge } from "@/app/_components/ui/badge";
 import { cn } from "@/app/_lib/utils";
+import Image from "next/image";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/app/_components/ui/dialog";
+import { useState } from "react";
 
 interface CustomerSectionProps {
   customerOptions: ComboboxOption[];
@@ -19,15 +22,49 @@ export const CustomerSection = ({
 }: CustomerSectionProps) => {
   const { watch, setValue } = useFormContext();
   const customerId = watch("customerId");
+  const [isImageOpen, setIsImageOpen] = useState(false);
+
+  const selectedCustomer = customerOptions.find(opt => opt.value === customerId);
+  const customerImageUrl = selectedCustomer?.imageUrl;
 
   return (
     <div className="space-y-4 rounded-xl border border-border/40 bg-background/50 p-3 shadow-sm transition-all hover:shadow-md">
-      <div className="space-y-2.5">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary/80">
-            <div className="rounded-md bg-primary/10 p-1">
-              <UsersIcon size={12} className="text-primary" />
-            </div>
+          <label className="flex items-center gap-3 text-xs font-black uppercase tracking-widest text-primary/80">
+            <Dialog open={isImageOpen} onOpenChange={setIsImageOpen}>
+              <DialogTrigger asChild>
+                <div className={cn(
+                  "relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-primary/5 transition-all shadow-sm",
+                  "border-2 border-primary/20 hover:border-primary/40",
+                  customerImageUrl && "cursor-pointer hover:scale-105 active:scale-95 hover:shadow-md"
+                )}>
+                  {customerImageUrl ? (
+                    <Image
+                      src={customerImageUrl}
+                      alt={selectedCustomer?.label || "Cliente"}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <UsersIcon size={20} className="text-primary/60" />
+                  )}
+                </div>
+              </DialogTrigger>
+              {customerImageUrl && (
+                <DialogContent className="border-none bg-transparent p-0 shadow-none sm:max-w-[400px]">
+                  <DialogTitle className="sr-only">Foto do Cliente</DialogTitle>
+                  <div className="relative aspect-square w-full overflow-hidden rounded-[2rem] bg-white shadow-2xl">
+                    <Image
+                      src={customerImageUrl}
+                      alt={selectedCustomer?.label || "Cliente"}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                </DialogContent>
+              )}
+            </Dialog>
             Cliente
           </label>
         </div>

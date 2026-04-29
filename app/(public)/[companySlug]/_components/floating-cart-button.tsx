@@ -8,9 +8,10 @@ import { CartCheckoutSheet } from "@/app/(public)/[companySlug]/_components/cart
 interface FloatingCartButtonProps {
   companyId: string;
   requireSelfieOnCheckout?: boolean;
+  enableServiceTax?: boolean;
 }
 
-export function FloatingCartButton({ companyId, requireSelfieOnCheckout = false }: FloatingCartButtonProps) {
+export function FloatingCartButton({ companyId, requireSelfieOnCheckout = false, enableServiceTax = true }: FloatingCartButtonProps) {
   const { totalItems, totalAmount } = useCartStore();
   const [isMounted, setIsMounted] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -54,6 +55,7 @@ export function FloatingCartButton({ companyId, requireSelfieOnCheckout = false 
         onOpenChange={setIsSheetOpen}
         companyId={companyId}
         requireSelfieOnCheckout={requireSelfieOnCheckout}
+        enableServiceTax={enableServiceTax}
       />
     </>
   );

@@ -1,17 +1,27 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ArrowLeft, User, Phone, Mail, Calendar, LogOut, Save, Loader2, Check } from "lucide-react";
+import { ArrowLeft, User, Phone, Mail, Calendar, LogOut, Save, Loader2, Check, Camera } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
 import { Input } from "@/app/_components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/app/_components/ui/dialog";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { BottomNav } from "../../_components/bottom-nav";
 import { PromotionsModal } from "../../_components/promotions-modal";
 import { ProductDetailsSheet } from "../../_components/product-details-sheet";
 import { FloatingCartButton } from "../../_components/floating-cart-button";
+import { SelfieCamera } from "../../_components/selfie-camera";
 import { useUIStore } from "../../_store/use-ui-store";
 import { formatPhoneNumber } from "@/app/_lib/utils";
+import { updateCustomerSelfie } from "@/app/_actions/customer/update-customer-selfie";
+import { updateCustomerProfile } from "@/app/_actions/customer/update-customer-profile";
 
 interface ProfileClientProps {
   companySlug: string;
@@ -28,12 +38,15 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [customerId, setCustomerId] = useState<string | null>(null);
   
   const [form, setForm] = useState({
     name: "",
     phoneNumber: "",
     email: "",
     birthDate: "",
+    imageUrl: "",
   });
 
   // Login flow state
@@ -47,11 +60,13 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
     if (savedCustomer) {
       try {
         const customer = JSON.parse(savedCustomer);
+        setCustomerId(customer.customerId || customer.id || null);
         setForm({
           name: customer.name || "",
           phoneNumber: customer.phoneNumber ? formatPhoneNumber(customer.phoneNumber) : "",
           email: customer.email || "",
           birthDate: customer.birthDate ? new Date(customer.birthDate).toISOString().split('T')[0] : "",
+          imageUrl: customer.imageUrl || "",
         });
         setIsLoggedIn(true);
       } catch (e) {
@@ -104,6 +119,7 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
             phoneNumber: regData.customer.phoneNumber ? formatPhoneNumber(regData.customer.phoneNumber) : "",
             email: regData.customer.email || "",
             birthDate: regData.customer.birthDate ? new Date(regData.customer.birthDate).toISOString().split('T')[0] : "",
+            imageUrl: regData.customer.imageUrl || "",
           });
           setIsLoggedIn(true);
           toast.success(`Bem-vindo(a), ${regData.customer.name.split(' ')[0]}!`);
@@ -121,6 +137,7 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
             phoneNumber: data.customer.phoneNumber ? formatPhoneNumber(data.customer.phoneNumber) : "",
             email: data.customer.email || "",
             birthDate: data.customer.birthDate ? new Date(data.customer.birthDate).toISOString().split('T')[0] : "",
+            imageUrl: data.customer.imageUrl || "",
           });
           setIsLoggedIn(true);
           toast.success(`Olá novamente, ${data.customer.name.split(' ')[0]}!`);
@@ -136,6 +153,52 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
     }
   };
 
+  const handlePhotoCapture = async (blob: Blob) => {
+    if (!customerId) {
+      toast.error("Identificação do cliente não encontrada.");
+      return;
+    }
+
+    const toastId = toast.loading("Enviando foto...");
+    setIsCameraOpen(false);
+
+    try {
+      // 1. Upload to Vercel Blob
+      const filename = `customer-${customerId}-${Date.now()}.jpg`;
+      const response = await fetch(`/api/upload?filename=${filename}&category=customers&companySlug=${companySlug}`, {
+        method: "POST",
+        body: blob,
+      });
+
+      if (!response.ok) throw new Error("Falha no upload");
+      
+      const blobData = await response.json();
+      const imageUrl = blobData.url;
+
+      // 2. Update DB
+      const result = await updateCustomerSelfie(customerId, imageUrl);
+      
+      if (result.success) {
+        // 3. Update state and localStorage
+        setForm(prev => ({ ...prev, imageUrl }));
+        
+        const savedCustomer = localStorage.getItem(`kipo-customer-${companyId}`);
+        if (savedCustomer) {
+          const customerData = JSON.parse(savedCustomer);
+          customerData.imageUrl = imageUrl;
+          localStorage.setItem(`kipo-customer-${companyId}`, JSON.stringify(customerData));
+        }
+        
+        toast.success("Foto atualizada com sucesso!", { id: toastId });
+      } else {
+        throw new Error(result.error || "Falha ao salvar no banco");
+      }
+    } catch (error) {
+      console.error("Error updating photo:", error);
+      toast.error("Erro ao atualizar foto. Tente novamente.", { id: toastId });
+    }
+  };
+
   const handleSave = async () => {
     const cleanPhone = form.phoneNumber.replace(/\D/g, "");
     if (!form.name || !cleanPhone) {
@@ -143,22 +206,30 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
       return;
     }
 
+    if (!customerId) {
+      toast.error("Erro de autenticação: Identificador do cliente não encontrado.");
+      return;
+    }
+
     setIsSaving(true);
     try {
-      const response = await fetch("/api/customers/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, phoneNumber: cleanPhone, companyId }),
+      const result = await updateCustomerProfile({
+        customerId,
+        name: form.name,
+        email: form.email,
+        phoneNumber: cleanPhone,
+        birthDate: form.birthDate,
+        companyId,
       });
-      const data = await response.json();
 
-      if (data.success) {
-        localStorage.setItem(`kipo-customer-${companyId}`, JSON.stringify(data.customer));
+      if (result.success) {
+        localStorage.setItem(`kipo-customer-${companyId}`, JSON.stringify(result.customer));
         toast.success("Perfil atualizado com sucesso!");
       } else {
-        toast.error(data.message || "Erro ao atualizar perfil");
+        toast.error(result.message || "Erro ao atualizar perfil");
       }
-    } catch {
+    } catch (error) {
+      console.error("Error saving profile:", error);
       toast.error("Erro inesperado ao salvar perfil");
     } finally {
       setIsSaving(false);
@@ -192,8 +263,30 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
               {companyName}
             </p>
           </div>
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-900 text-white shadow-xl shadow-gray-200">
-            <User size={24} />
+          <div className="relative">
+            <div className="flex h-[88px] w-[88px] items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/60 p-[4px] shadow-xl shadow-primary/10">
+              <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-gray-900 text-white">
+                {form.imageUrl ? (
+                  <Image
+                    src={form.imageUrl}
+                    alt={form.name}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <User size={32} />
+                )}
+              </div>
+            </div>
+            
+            {/* Camera Overlay Button */}
+            <button
+              onClick={() => setIsCameraOpen(true)}
+              className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-white text-primary shadow-lg ring-4 ring-white hover:scale-110 transition-transform active:scale-95"
+              title="Atualizar foto"
+            >
+              <Camera size={16} strokeWidth={3} />
+            </button>
           </div>
         </div>
       </header>
@@ -361,6 +454,20 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
           </div>
         )}
       </main>
+
+      {/* Camera Modal */}
+      <Dialog open={isCameraOpen} onOpenChange={setIsCameraOpen}>
+        <DialogContent className="sm:max-w-md rounded-[2.5rem] border-none p-0 overflow-hidden bg-white max-h-[90vh]">
+          <DialogHeader className="p-6 pb-2">
+            <DialogTitle className="text-xl font-black uppercase tracking-tight text-center">
+              Atualizar Foto
+            </DialogTitle>
+          </DialogHeader>
+          <div className="px-6 pb-8">
+            <SelfieCamera onCapture={handlePhotoCapture} />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Promotions Modal */}
       <PromotionsModal

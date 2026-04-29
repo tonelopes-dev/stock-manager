@@ -84,36 +84,29 @@ export const getSalesAnalytics = async (
         return Math.round(((current - previous) / previous) * 100);
     };
 
-    // 3. Time Series for Selected Period
-    const sales = await db.sale.findMany({
-        where: {
-            companyId,
-            status: "ACTIVE",
-            date: { gte: startOfSelected, lte: endOfSelected }
-        },
-        include: {
-            saleItems: true
-        }
-    });
+    // 3. Time Series for Selected Period (Optimized via SQL Group By)
+    const timeSeriesRaw = await db.$queryRaw<{ date: Date; revenue: number }[]>`
+        SELECT 
+            DATE_TRUNC('day', "date") as date,
+            COALESCE(SUM("unitPrice" * "quantity"), 0)::float as revenue
+        FROM "Sale"
+        JOIN "SaleProduct" ON "Sale"."id" = "SaleProduct"."saleId"
+        WHERE "Sale"."companyId" = ${companyId}
+            AND "Sale"."status"::text = 'ACTIVE'
+            AND "Sale"."date" >= ${startOfSelected}
+            AND "Sale"."date" < ${endOfSelected}
+        GROUP BY DATE_TRUNC('day', "date")
+        ORDER BY date ASC
+    `;
 
-    const salesMap = new Map();
-    sales.forEach(sale => {
-        const key = new Date(sale.date).toISOString().split("T")[0];
-        if (!salesMap.has(key)) salesMap.set(key, []);
-        salesMap.get(key).push(sale);
-    });
-
-    const days = eachDayOfInterval({ start: startOfSelected, end: startOfSelected.getTime() > endOfSelected.getTime() ? startOfSelected : addDays(endOfSelected, -1) });
+    const timeSeriesMap = new Map(timeSeriesRaw.map(item => [new Date(item.date).toISOString().split("T")[0], item.revenue]));
+    
+    const days = eachDayOfInterval({ start: startOfSelected, end: addDays(endOfSelected, -1) });
     const timeSeries = days.map(day => {
         const key = day.toISOString().split("T")[0];
-        const daySales = salesMap.get(key) || [];
-        const dayRevenue = daySales.reduce((acc: number, sale: any) => {
-            return acc + sale.saleItems.reduce((sum: number, si: any) => sum + (Number(si.unitPrice) * Number(si.quantity)), 0);
-        }, 0);
-
         return {
             date: format(day, "dd/MM"),
-            revenue: dayRevenue
+            revenue: timeSeriesMap.get(key) || 0
         };
     });
 

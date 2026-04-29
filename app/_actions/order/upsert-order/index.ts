@@ -7,7 +7,7 @@ import { upsertOrderSchema } from "./schema";
 
 export const upsertOrderAction = actionClient
   .schema(upsertOrderSchema)
-  .action(async ({ parsedInput: { companyId, customerId, items, tableNumber, notes, discountAmount, extraAmount, adjustmentReason, isEmployeeSale } }) => {
+  .action(async ({ parsedInput: { companyId, customerId, items, tableNumber, notes, discountAmount, extraAmount, adjustmentReason, isEmployeeSale, hasServiceTax } }) => {
     try {
       // Reusing createOrder which effectively "upserts" into the customer's comanda (aggregate of pending orders)
       const order = await OrderService.createOrder({
@@ -20,6 +20,7 @@ export const upsertOrderAction = actionClient
         extraAmount,
         adjustmentReason: adjustmentReason || undefined,
         isEmployeeSale,
+        hasServiceTax,
       });
 
       revalidatePath(`/sales`, "page");

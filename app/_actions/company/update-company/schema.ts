@@ -1,10 +1,14 @@
 import { z } from "zod";
 
 export const updateCompanySchema = z.object({
+  slug: z.string()
+    .min(3, "O slug deve ter pelo menos 3 caracteres")
+    .regex(/^[a-z0-9-]+$/, "O slug deve conter apenas letras minúsculas, números e hífens"),
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
   allowNegativeStock: z.boolean().default(false),
   estimatedMonthlyVolume: z.number().int().min(1).default(1000),
   enableOverheadInjection: z.boolean().default(true),
+  enableServiceTax: z.boolean().default(true),
   bannerUrl: z.string().optional(),
   logoUrl: z.string().optional(),
   address: z.string().optional(),

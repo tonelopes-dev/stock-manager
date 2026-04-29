@@ -23,19 +23,30 @@ export const updateCustomerPosition = actionClient
     const oldPosition = customer.position;
 
     await db.$transaction(async (tx) => {
-      // 1. Get all customers from affected columns
       const affectedStages =
         oldStageId === newStageId ? [oldStageId] : [oldStageId, newStageId];
+      const stageIds = affectedStages.filter((s): s is string => !!s);
 
+      // 1. Lock rows to prevent deadlocks (Row Level Locking)
+      // Using raw query because Prisma findMany doesn't support FOR UPDATE natively in all versions/contexts easily
+      if (stageIds.length > 0) {
+        await tx.$executeRawUnsafe(
+          `SELECT id FROM "Customer" WHERE "companyId" = $1 AND "stageId" IN (${stageIds.map((_, i) => `$${i + 2}`).join(",")}) FOR UPDATE`,
+          companyId,
+          ...stageIds
+        );
+      }
+
+      // 2. Get all customers from affected columns
       const allAffectedCustomers = await tx.customer.findMany({
         where: {
           companyId,
-          stageId: { in: affectedStages.filter((s): s is string => !!s) },
+          stageId: { in: stageIds },
         },
         orderBy: { position: "asc" },
       });
 
-      // 2. Separate into columns
+      // 3. Separate into columns
       const columns: Record<string, any[]> = {};
       affectedStages.forEach((s) => {
         if (s) columns[s] = [];
@@ -46,7 +57,7 @@ export const updateCustomerPosition = actionClient
         }
       });
 
-      // 3. Apply the move in-memory
+      // 4. Apply the move in-memory
       if (oldStageId === newStageId) {
         const colId = oldStageId!;
         const items = columns[colId];
@@ -77,21 +88,24 @@ export const updateCustomerPosition = actionClient
         }
       }
 
-      // 4. Persist all changes with sequential positions
+      // 5. Persist all changes sequentially to avoid race conditions and deadlocks
       for (const stageId of affectedStages) {
         if (!stageId || !columns[stageId]) continue;
         const items = columns[stageId];
-        await Promise.all(
-          items.map((item, index) =>
-            tx.customer.update({
+        
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          // Only update if position or stageId changed (simple optimization)
+          if (item.position !== i || item.stageId !== stageId) {
+            await tx.customer.update({
               where: { id: item.id },
               data: {
                 stageId,
-                position: index,
+                position: i,
               },
-            }),
-          ),
-        );
+            });
+          }
+        }
       }
     });
 
