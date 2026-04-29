@@ -129,29 +129,28 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
             />
           </div>
         </div>
-        
-        <div className="grid grid-cols-4 gap-2 py-2 border-y border-border/50">
+               <div className="grid grid-cols-4 gap-2 py-2 border-y border-border/50">
           <div className="space-y-0.5">
-            <span className="text-[8px] uppercase font-bold text-muted-foreground/60 tracking-tight">Venda</span>
-            <p className="font-bold text-[11px] text-foreground whitespace-nowrap">
+            <span className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-tight">Venda</span>
+            <p className="font-bold text-xs text-foreground whitespace-nowrap">
               {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(product.price)}
             </p>
           </div>
           <div className="space-y-0.5">
-            <span className="text-[8px] uppercase font-bold text-muted-foreground/60 tracking-tight">Custo</span>
-            <p className="font-bold text-[11px] text-slate-600 whitespace-nowrap">
+            <span className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-tight">Custo</span>
+            <p className="font-bold text-xs text-slate-600 whitespace-nowrap">
               {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(product.cost)}
             </p>
           </div>
           <div className="space-y-0.5">
-            <span className="text-[8px] uppercase font-bold text-muted-foreground/60 tracking-tight">Margem</span>
-            <p className="font-bold text-[11px] text-emerald-600">
+            <span className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-tight">Margem</span>
+            <p className="font-bold text-xs text-emerald-600">
                 {product.margin}%
             </p>
           </div>
           <div className="space-y-0.5">
-            <span className="text-[8px] uppercase font-bold text-muted-foreground/60 tracking-tight">Lucro</span>
-            <p className="font-bold text-[11px] text-primary whitespace-nowrap">
+            <span className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-tight">Lucro</span>
+            <p className="font-bold text-xs text-primary whitespace-nowrap">
                 {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(profit)}
             </p>
           </div>
@@ -159,11 +158,11 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
 
         <div className="flex items-center justify-between pt-1">
             <div className="flex items-center gap-2">
-                <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-tight">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-tight">
                   {product.isMadeToOrder ? "Virtual" : "Estoque"}:
                 </span>
                 <p className="text-sm font-bold text-foreground">
-                    {currentStock} <span className="text-[10px] text-muted-foreground font-medium uppercase">{product.unit}</span>
+                    {currentStock} <span className="text-[11px] text-muted-foreground font-medium uppercase">{product.unit}</span>
                 </p>
                 {product.isMadeToOrder && (
                   <TooltipProvider>
@@ -172,7 +171,7 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
                         <InfoIcon size={12} className="text-primary/50 cursor-help" />
                       </TooltipTrigger>
                       <TooltipContent className="bg-slate-900 text-white border-none p-3 max-w-[200px]">
-                        <p className="text-[9px] leading-relaxed">
+                        <p className="text-[10px] leading-relaxed">
                           <strong>Estoque Virtual:</strong> Calculado com base na disponibilidade dos seus insumos.
                         </p>
                       </TooltipContent>
@@ -185,8 +184,8 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="flex flex-col items-end cursor-help group">
-                    <span className="text-[8px] uppercase font-black text-muted-foreground/40 tracking-tighter group-hover:text-primary transition-colors">Custo em Estoque</span>
-                    <p className="text-[11px] font-black text-foreground/80 tracking-tight group-hover:text-foreground transition-colors">
+                    <span className="text-[9px] uppercase font-black text-muted-foreground/40 tracking-tighter group-hover:text-primary transition-colors">Custo em Estoque</span>
+                    <p className="text-xs font-black text-foreground/80 tracking-tight group-hover:text-foreground transition-colors">
                         {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(totalStockValue)}
                     </p>
                   </div>
@@ -194,7 +193,7 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
                 <TooltipContent side="top" align="end" className="max-w-[220px] p-3 bg-slate-900 text-white border-none shadow-2xl">
                   <div className="space-y-1.5">
                     <p className="text-[10px] font-black uppercase tracking-widest text-primary">Análise de Investimento</p>
-                    <p className="text-[9px] leading-relaxed">
+                    <p className="text-[11px] leading-relaxed">
                       {product.isMadeToOrder 
                         ? "Este valor representa o custo total dos insumos que você tem disponíveis para produzir este item. Lembre-se que estes insumos são compartilhados com outros produtos da ficha técnica."
                         : "Valor total investido neste produto atualmente em estoque físico (Custo Unitário x Quantidade)."}
