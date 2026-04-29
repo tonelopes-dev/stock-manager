@@ -19,11 +19,12 @@ import { Input } from "@/app/_components/ui/input";
 import { Button } from "@/app/_components/ui/button";
 import { Switch } from "@/app/_components/ui/switch";
 import { toast } from "sonner";
-import { Loader2Icon, SaveIcon, TrendingUpIcon, TargetIcon, Wand2Icon } from "lucide-react";
+import { Loader2Icon, SaveIcon, TrendingUpIcon, TargetIcon, Wand2Icon, LinkIcon } from "lucide-react";
 import { NumericFormat } from "react-number-format";
 
 interface CompanyFormProps {
   initialData: {
+    slug: string;
     name: string;
     allowNegativeStock: boolean;
     estimatedMonthlyVolume: number;
@@ -63,6 +64,31 @@ export const CompanyForm = ({ initialData }: CompanyFormProps) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="slug"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="font-bold text-foreground">Slug da Empresa (URL do Cardápio)</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <LinkIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input 
+                    placeholder="ex: minha-empresa" 
+                    {...field} 
+                    className="pl-10 font-mono text-sm"
+                    onChange={(e) => field.onChange(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
+                  />
+                </div>
+              </FormControl>
+              <FormDescription className="text-[10px]">
+                URL do seu cardápio: <span className="font-bold text-primary italic">usekipo.com.br/menu/{field.value || "..."}</span>
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="name"

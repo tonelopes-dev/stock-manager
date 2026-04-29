@@ -10,6 +10,7 @@ import { assertRole, OWNER_ONLY } from "@/app/_lib/rbac";
 export const updateCompany = actionClient
   .schema(updateCompanySchema)
   .action(async ({ parsedInput: { 
+    slug,
     name, 
     allowNegativeStock, 
     estimatedMonthlyVolume, 
@@ -22,15 +23,29 @@ export const updateCompany = actionClient
     instagramUrl,
     operatingHours
   } }) => {
-    console.log("UPDATING COMPANY WITH:", { bannerUrl, logoUrl });
     const companyId = await getCurrentCompanyId();
     
     // Layer 2: Action Guard
     await assertRole(OWNER_ONLY);
 
+    // Check slug uniqueness if changed
+    if (slug) {
+      const existingCompany = await db.company.findFirst({
+        where: {
+          slug,
+          NOT: { id: companyId }
+        }
+      });
+
+      if (existingCompany) {
+        throw new Error("Este slug já está em uso por outra empresa.");
+      }
+    }
+
     await db.company.update({
       where: { id: companyId },
       data: {
+        slug,
         name,
         allowNegativeStock,
         estimatedMonthlyVolume,

@@ -14,7 +14,10 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const blob = await put(filename, request.body, {
+    const folder = searchParams.get("folder");
+    const path = folder ? `${folder}/${filename}` : filename;
+
+    const blob = await put(path, request.body, {
       access: "public",
       addRandomSuffix: true,
       token: process.env.BLOB_READ_WRITE_TOKEN,

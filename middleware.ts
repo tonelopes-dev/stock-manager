@@ -14,7 +14,18 @@ export default auth(async (req) => {
     return NextResponse.next();
   }
 
-  const publicRoutes = ["/", "/login", "/register", "/plans", "/checkout", "/checkout/success", "/termos", "/privacidade"];
+  const publicRoutes = [
+    "/", 
+    "/login", 
+    "/register", 
+    "/plans", 
+    "/checkout", 
+    "/checkout/success", 
+    "/termos", 
+    "/privacidade",
+    "/auth/forgot-password",
+    "/auth/reset-password"
+  ];
   
   // Routes that require authentication (SaaS Dashboard)
   const protectedRoutes = [
