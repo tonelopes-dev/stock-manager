@@ -21,12 +21,12 @@ export async function seedProducts(prisma: PrismaClient, companyId: string) {
 
   // 2. Categories
   const prodCategoriesData = [
-    { name: "Bebidas", icon: "GlassWater", environment: "Bar" },
-    { name: "Salgados", icon: "Utensils", environment: "Cozinha" },
-    { name: "Cafeteria", icon: "Coffee", environment: "Bar" },
-    { name: "Sobremesas", icon: "IceCream", environment: "Cozinha" },
-    { name: "Insumos", icon: "Package", environment: null },
-    { name: "Combos", icon: "Layers", environment: "Cozinha" }, // Defaulting to kitchen
+    { name: "Bebidas", icon: "🥤", environment: "Bar" },
+    { name: "Salgados", icon: "🍕", environment: "Cozinha" },
+    { name: "Cafeteria", icon: "☕", environment: "Bar" },
+    { name: "Sobremesas", icon: "🍨", environment: "Cozinha" },
+    { name: "Insumos", icon: "📦", environment: null },
+    { name: "Combos", icon: "🍔", environment: "Cozinha" }, // Defaulting to kitchen
   ];
 
   const productCategories: Record<string, any> = {};

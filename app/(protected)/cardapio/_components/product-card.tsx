@@ -139,17 +139,19 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
           </div>
         </div>
 
-        {!product.isMadeToOrder && (
-          <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-tight">Estoque</span>
-                  <p className="text-sm font-semibold text-foreground">
-                      {product.stock} {product.unit}
-                  </p>
-              </div>
+        <div className="flex items-center justify-between">
+            <div className="space-y-1">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-tight">
+                  {product.isMadeToOrder ? "Produção Virtual" : "Estoque"}
+                </span>
+                <p className="text-sm font-semibold text-foreground">
+                    {product.isMadeToOrder ? product.virtualStock : product.stock} {product.unit}
+                </p>
+            </div>
+            {!product.isMadeToOrder && (
               <ProductStatusBadge status={product.status} />
-          </div>
-        )}
+            )}
+        </div>
       </CardContent>
     </Card>
   );
