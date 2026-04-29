@@ -106,7 +106,7 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelf
       // 1. Upload the image - following the pattern from estoque
       const file = new File([blob], `selfie_${Date.now()}.jpg`, { type: "image/jpeg" });
       
-      const uploadRes = await fetch(`/api/upload?filename=${file.name}`, {
+      const uploadRes = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}&category=customers&companySlug=${companySlug}&v=${Date.now()}`, {
         method: "POST",
         body: file,
       });

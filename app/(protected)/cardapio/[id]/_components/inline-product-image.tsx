@@ -41,7 +41,7 @@ export default function InlineProductImage({ product }: InlineProductImageProps)
         maxSizeMB: 0.8,
         maxWidthOrHeight: 800,
       });
-      const response = await fetch(`/api/upload?filename=${compressedFile.name}`, {
+      const response = await fetch(`/api/upload?filename=${encodeURIComponent(compressedFile.name)}&category=products&v=${Date.now()}`, {
         method: "POST",
         body: compressedFile,
       });

@@ -171,7 +171,7 @@ const UpsertProductDialogContent = ({
         maxWidthOrHeight: 1200,
       });
       const response = await fetch(
-        `/api/upload?filename=${compressedFile.name}`,
+        `/api/upload?filename=${encodeURIComponent(compressedFile.name)}&category=products&v=${Date.now()}`,
         { method: "POST", body: compressedFile }
       );
       if (!response.ok) throw new Error("Upload failed");

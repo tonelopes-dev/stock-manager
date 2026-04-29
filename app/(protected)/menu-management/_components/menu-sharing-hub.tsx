@@ -18,7 +18,7 @@ import {
   QrCode,
   Share2,
   MessageCircle,
-  Loader2 as Loader2Icon,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { MenuSlugEditor } from "./menu-slug-editor";
@@ -177,7 +177,7 @@ export const MenuSharingHub = ({ companyId, companySlug }: MenuSharingHubProps) 
                 />
               ) : (
                 <div className="flex flex-col items-center gap-2">
-                  <Loader2Icon className="h-8 w-8 animate-spin text-primary/30" />
+                  <Loader2 className="h-8 w-8 animate-spin text-primary/30" />
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Gerando...</span>
                 </div>
               )}
