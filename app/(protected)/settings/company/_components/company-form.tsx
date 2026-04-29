@@ -66,31 +66,6 @@ export const CompanyForm = ({ initialData }: CompanyFormProps) => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
-          name="slug"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="font-bold text-foreground">Slug da Empresa (URL do Cardápio)</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <LinkIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input 
-                    placeholder="ex: minha-empresa" 
-                    {...field} 
-                    className="pl-10 font-mono text-sm"
-                    onChange={(e) => field.onChange(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
-                  />
-                </div>
-              </FormControl>
-              <FormDescription className="text-[10px]">
-                URL do seu cardápio: <span className="font-bold text-primary italic">usekipo.com.br/menu/{field.value || "..."}</span>
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>

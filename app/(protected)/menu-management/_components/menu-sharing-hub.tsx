@@ -18,8 +18,10 @@ import {
   QrCode,
   Share2,
   MessageCircle,
+  Loader2 as Loader2Icon,
 } from "lucide-react";
 import { toast } from "sonner";
+import { MenuSlugEditor } from "./menu-slug-editor";
 
 interface MenuSharingHubProps {
   companyId: string;
@@ -30,7 +32,7 @@ export const MenuSharingHub = ({ companyId, companySlug }: MenuSharingHubProps) 
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [tableNumber, setTableNumber] = useState("");
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState("");
   const [baseUrl, setBaseUrl] = useState("");
 
   useEffect(() => {
@@ -42,15 +44,15 @@ export const MenuSharingHub = ({ companyId, companySlug }: MenuSharingHubProps) 
   const menuUrl = tableNumber ? `${baseUrl}?table=${tableNumber}` : baseUrl;
 
   useEffect(() => {
-    if (qrModalOpen && canvasRef.current && baseUrl) {
-      QRCode.toCanvas(canvasRef.current, menuUrl, {
-        width: 280,
+    if (qrModalOpen && baseUrl) {
+      QRCode.toDataURL(menuUrl, {
+        width: 600,
         margin: 2,
         color: {
           dark: "#1e293b",
           light: "#ffffff",
         },
-      });
+      }).then(url => setQrCodeDataUrl(url));
     }
   }, [qrModalOpen, menuUrl, baseUrl]);
 
@@ -62,10 +64,10 @@ export const MenuSharingHub = ({ companyId, companySlug }: MenuSharingHubProps) 
   };
 
   const handleDownload = () => {
-    if (!canvasRef.current) return;
+    if (!qrCodeDataUrl) return;
     const link = document.createElement("a");
     link.download = `qrcode-cardapio${tableNumber ? `-mesa-${tableNumber}` : ""}.png`;
-    link.href = canvasRef.current.toDataURL("image/png");
+    link.href = qrCodeDataUrl;
     link.click();
     toast.success("QR Code salvo!");
   };
@@ -142,11 +144,14 @@ export const MenuSharingHub = ({ companyId, companySlug }: MenuSharingHubProps) 
           </Button>
         </div>
 
+
         <div className="mt-3 flex items-center gap-2 rounded-lg bg-muted px-3 py-2">
           <code className="flex-1 truncate text-xs text-muted-foreground">
             {menuUrl}
           </code>
         </div>
+
+        <MenuSlugEditor initialSlug={companySlug} />
       </div>
 
       {/* QR Code Modal */}
@@ -163,8 +168,19 @@ export const MenuSharingHub = ({ companyId, companySlug }: MenuSharingHubProps) 
           </DialogHeader>
 
           <div className="flex flex-col items-center gap-4 py-4">
-            <div className="rounded-2xl border-2 border-dashed border-border p-4">
-              <canvas ref={canvasRef} />
+            <div className="relative flex aspect-square w-full max-w-[240px] items-center justify-center rounded-2xl border-2 border-dashed border-border p-4 bg-white">
+              {qrCodeDataUrl ? (
+                <img 
+                  src={qrCodeDataUrl} 
+                  alt="QR Code do Cardápio" 
+                  className="h-full w-full object-contain animate-in fade-in duration-300"
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2Icon className="h-8 w-8 animate-spin text-primary/30" />
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Gerando...</span>
+                </div>
+              )}
             </div>
 
             {/* Table Number (future-ready) */}
