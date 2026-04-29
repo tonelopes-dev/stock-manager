@@ -5,11 +5,12 @@ import { Plus } from "lucide-react";
 import { HeaderSubtitle, HeaderTitle } from "../../_components/header";
 import { ComboboxOption } from "../../_components/ui/combobox";
 import {
-  getProducts,
+  getProductsForCombobox,
+  getProductsForSale,
   ProductDto,
 } from "../../_data-access/product/get-products";
-import { getCustomers } from "../../_data-access/customer/get-customers";
-import { getSales, getSaleById, SaleDto } from "../../_data-access/sale/get-sales";
+import { getCustomers, getCustomersForCombobox } from "../../_data-access/customer/get-customers";
+import { getSales, getSaleById, getSalesForTips, SaleDto } from "../../_data-access/sale/get-sales";
 import { getCRMStages } from "@/app/_data-access/crm/get-crm-stages";
 import { getCustomerCategories } from "@/app/_data-access/customer/get-customer-categories";
 import UpsertSaleButton from "./_components/create-sale-button";
@@ -57,66 +58,65 @@ interface HomeProps {
 
 const SalesPage = async ({ searchParams }: HomeProps) => {
   const resolvedSearchParams = await searchParams;
-  const products = await getProducts();
+  const view = resolvedSearchParams.view || "gestao";
+  const companyId = await getCurrentCompanyId();
+  
+  // 1. Parallelize core metadata fetches (using optimized combobox versions)
+  const [products, customersRaw, role, onboardingStats, stages, categories] = await Promise.all([
+    getProductsForSale(),
+    getCustomersForCombobox(),
+    getCurrentUserRole(),
+    getOnboardingStats(),
+    getCRMStages(),
+    getCustomerCategories(),
+  ]);
+
   const productOptions: ComboboxOption[] = products.map((product) => ({
     label: `${product.name} - ${Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(product.price))}`,
     value: product.id,
   }));
 
-  const { data: customers } = await getCustomers(undefined, undefined, 1, 1000);
-  const customerOptions: ComboboxOption[] = customers.map((customer) => ({
-    label: `${customer.name} ${customer.phoneNumber ? `(${customer.phoneNumber})` : ""}`,
+  const customerOptions: ComboboxOption[] = customersRaw.map((customer) => ({
+    label: `${customer.name} ${customer.phone ? `(${customer.phone})` : ""}`,
     value: customer.id,
     imageUrl: customer.imageUrl,
   }));
 
-  const view = resolvedSearchParams.view || "gestao";
-  const role = await getCurrentUserRole();
-  const onboardingStats = await getOnboardingStats();
   const currentPage = Number(resolvedSearchParams.page) || 1;
-  const pageSize = Number(resolvedSearchParams.pageSize) || 12; // User requested 12 items as default
+  const pageSize = Number(resolvedSearchParams.pageSize) || 12;
 
-  // Standardize filter periods
-  // If no date range is provided, we don't force 'today' for the Gestao view history query
   const from = resolvedSearchParams.from;
   const to = resolvedSearchParams.to;
   
-  // But for analytics and inteligência, we still need a default range to avoid performance issues
   const today = new Date().toISOString().split("T")[0];
   const analyticsFrom = from || today;
   const analyticsTo = to || today;
 
-  const analytics = await getSalesAnalytics(
-    analyticsFrom,
-    analyticsTo,
-    resolvedSearchParams.monthA,
-    resolvedSearchParams.monthB,
-  );
-  
-  const aggregatedData = view === "inteligencia" 
-    ? await getAggregatedSales(analyticsFrom, analyticsTo)
-    : { items: [], totalTips: 0, totalRevenue: 0 };
+  // 2. Fetch business data in parallel (conditionally)
+  const [analytics, aggregatedData, activeComandas, salesResult, preFetchedSale] = await Promise.all([
+    // Only fetch analytics if needed
+    (view === "inteligencia" || view === "gorjetas") 
+      ? getSalesAnalytics(analyticsFrom, analyticsTo, resolvedSearchParams.monthA, resolvedSearchParams.monthB)
+      : Promise.resolve(null),
+    
+    // Only fetch aggregated if in inteligencia view
+    view === "inteligencia"
+      ? getAggregatedSales(analyticsFrom, analyticsTo)
+      : Promise.resolve({ items: [], totalTips: 0, totalRevenue: 0 }),
+      
+    companyId ? getActiveComandas() : Promise.resolve([]),
+    
+    getSales({
+      from: from || undefined,
+      to: to || undefined,
+      page: currentPage,
+      pageSize: pageSize,
+    }),
 
-  const stages = await getCRMStages();
-  const categories = await getCustomerCategories();
+    resolvedSearchParams.saleId ? getSaleById(resolvedSearchParams.saleId) : Promise.resolve(null)
+  ]);
 
-  const companyId = await getCurrentCompanyId();
-  const activeComandas = companyId ? await getActiveComandas() : [];
-  
-  // Fetch closed sales with PAGINATION and OPTIONAL date filters
-  const { data: closedSales, total: totalClosedSales } = await getSales({
-    from: from || undefined,
-    to: to || undefined,
-    query: undefined,
-    page: currentPage,
-    pageSize: pageSize,
-  });
-
-  // Server-side pre-fetching for deep-linked sale
-  let preFetchedSale: SaleDto | null = null;
-  if (resolvedSearchParams.saleId) {
-    preFetchedSale = await getSaleById(resolvedSearchParams.saleId);
-  }
+  const { data: closedSales, total: totalClosedSales } = salesResult;
 
   return (
     <div className="m-8 space-y-8 overflow-auto rounded-lg bg-background p-8">
@@ -164,12 +164,14 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
                </Card>
             </div>
             <div className="md:col-span-2 lg:col-span-4">
-               <SalesSummary 
-                  totalRevenue={analytics.totalRevenue}
-                  totalProfit={analytics.totalProfit}
-                  averageTicket={analytics.averageTicket}
-                  totalSales={analytics.totalSales}
-               />
+               {analytics && (
+                 <SalesSummary 
+                    totalRevenue={analytics.totalRevenue}
+                    totalProfit={analytics.totalProfit}
+                    averageTicket={analytics.averageTicket}
+                    totalSales={analytics.totalSales}
+                 />
+               )}
             </div>
           </div>
 
@@ -219,6 +221,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
             <TipsReportWrapper
               from={analyticsFrom}
               to={analyticsTo}
+              analytics={analytics}
             />
           </Suspense>
         </div>
@@ -231,12 +234,15 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
 const TipsReportWrapper = async ({
   from,
   to,
+  analytics,
 }: {
   from?: string;
   to?: string;
+  analytics: any; // Using already fetched analytics
 }) => {
-  const { data: sales } = await getSales({ from, to, page: 1, pageSize: 1000 }); // Large page size to see all tips
-  const analytics = await getSalesAnalytics(from, to);
+  const sales = await getSalesForTips({ from, to });
+
+  if (!analytics) return null;
 
   return <TipsReport sales={sales} totalTips={analytics.totalTips.value} />;
 };

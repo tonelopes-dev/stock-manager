@@ -185,3 +185,19 @@ export const getCustomers = async (
 
   return { data, total };
 };
+
+export const getCustomersForCombobox = async (): Promise<{ id: string; name: string; phone: string | null; imageUrl: string | null }[]> => {
+  const companyId = await getCurrentCompanyId();
+  if (!companyId) return [];
+
+  return db.customer.findMany({
+    where: { companyId },
+    select: {
+      id: true,
+      name: true,
+      phone: true,
+      imageUrl: true,
+    },
+    orderBy: { name: "asc" },
+  });
+};

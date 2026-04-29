@@ -63,16 +63,16 @@ export default async function ProtectedLayout({
         expiresAt={expiresAt}
       >
         <AppModeProvider>
-          <div className="fixed inset-0 flex flex-col overflow-hidden">
-            {/* Omni-Header */}
-            <GlobalHeader />
+          <div className="fixed inset-0 flex overflow-hidden">
+            <Sidebar />
+            
+            <div className="flex flex-1 flex-col overflow-hidden">
+              {/* Omni-Header */}
+              <GlobalHeader />
 
-            {/* Subscription Alert Banner */}
-            <SubscriptionBanner />
+              {/* Subscription Alert Banner */}
+              <SubscriptionBanner />
 
-            {/* Sidebar + Content */}
-            <div className="flex flex-1 overflow-hidden">
-              <Sidebar />
               <main className="flex-1 overflow-y-auto bg-muted">
                 {children}
               </main>

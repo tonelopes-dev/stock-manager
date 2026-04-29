@@ -77,10 +77,10 @@ export const Logotipo = ({ className }: LogoProps) => (
 );
 
 export const KipoLogo = ({ className }: LogoProps) => (
-  <div
-    className={`group flex items-center gap-2 transition-all hover:grayscale-0 ${className}`}
-  >
-    <Logomarca className="h-14 w-16" />
-    <Logotipo className="h-16 w-32" />
+  <div className={`flex items-center gap-0 transition-all group-hover/sidebar:gap-2 ${className}`}>
+    <Logomarca className="h-9 w-9 shrink-0" />
+    <div className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-24 group-hover/sidebar:opacity-100">
+      <Logotipo className="h-12 w-24" />
+    </div>
   </div>
 );

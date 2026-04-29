@@ -8,11 +8,7 @@ export const GlobalHeader = async () => {
   const companyId = await getCurrentCompanyId();
 
   return (
-    <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center border-b border-border bg-background/95 backdrop-blur-md">
-      {/* Left Area: Logo (Matches Sidebar Width) */}
-      <div className="flex h-full w-56 shrink-0 border-r border-border">
-        <KipoLogo className="h-16 w-32 pl-6" />
-      </div>
+    <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center border-b border-border bg-background/95 backdrop-blur-md px-6">
 
       {/* Middle Area: Absolutely Centered Search */}
       <div className="pointer-events-none absolute left-1/2 flex -translate-x-10 items-center justify-center">

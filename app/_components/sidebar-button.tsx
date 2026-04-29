@@ -16,7 +16,7 @@ const SidebarButton = ({ href, children }: SidebarButtonProps) => {
   return (
     <Button
       variant="ghost"
-      className={`w-full justify-start gap-3 rounded-xl transition-all duration-200 
+      className={`w-full justify-center px-0 gap-0 transition-all duration-300 group-hover/sidebar:justify-start group-hover/sidebar:px-4 group-hover/sidebar:gap-3 
         ${isActive 
           ? "bg-primary/10 text-primary font-bold hover:bg-orange-500/10 hover:text-primary" 
           : "text-foreground hover:bg-orange-500/10 hover:text-primary"

@@ -210,3 +210,62 @@ export const getSaleById = async (id: string): Promise<SaleDto | null> => {
     })) as SaleItemDto[],
   };
 };
+
+export const getSalesForTips = async ({
+  from,
+  to,
+}: {
+  from?: string;
+  to?: string;
+}): Promise<
+  {
+    id: string;
+    date: Date;
+    totalAmount: number;
+    tipAmount: number;
+    customerName: string | null;
+    paymentMethod: PaymentMethod | null;
+  }[]
+> => {
+  const companyId = await getCurrentCompanyId();
+  if (!companyId) return [];
+
+  const where: Prisma.SaleWhereInput = {
+    companyId,
+    status: SaleStatus.ACTIVE,
+    tipAmount: { gt: 0 },
+  };
+
+  if (from || to) {
+    where.date = {
+      ...(from && { gte: new Date(from) }),
+      ...(to && { lte: new Date(to + "T23:59:59.999Z") }),
+    };
+  }
+
+  const sales = await db.sale.findMany({
+    where,
+    select: {
+      id: true,
+      date: true,
+      totalAmount: true,
+      tipAmount: true,
+      paymentMethod: true,
+      customer: {
+        select: {
+          name: true,
+        },
+      },
+    },
+    orderBy: { date: "desc" },
+  });
+
+  return sales.map((s) => ({
+    id: s.id,
+    date: s.date,
+    totalAmount: Number(s.totalAmount),
+    tipAmount: Number(s.tipAmount),
+    customerName: s.customer?.name || null,
+    paymentMethod: s.paymentMethod,
+  }));
+};

@@ -15,6 +15,7 @@ import {
   Truck,
   Utensils,
   Boxes,
+  Monitor,
 } from "lucide-react";
 import SidebarButton from "./sidebar-button";
 import LogoutButton from "./logout-button";
@@ -37,7 +38,7 @@ const gestaoItems = [
 
 const operacaoItems = [
   { href: "/sales", icon: ShoppingBasketIcon, label: "PDV / Vendas" },
-  { href: "/kds", icon: ChefHat, label: "Monitor Cozinha" },
+  { href: "/kds", icon: Monitor, label: "Monitores" },
   { href: "/menu-management", icon: QrCode, label: "Cardápio Digital" },
   { href: "/cardapio", icon: Utensils, label: "Cardápio" },
 ];
@@ -51,14 +52,16 @@ export const SidebarNav = ({ isOwner, isAdminOrOwner }: SidebarNavProps) => {
     <div className="flex h-full flex-col">
       {/* Navigation */}
       <div className="flex flex-1 flex-col gap-1 p-4 pt-4">
-        <p className="mb-2 px-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+        <p className="mb-2 w-0 overflow-hidden px-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
           {mode === "gestao" ? "Gestão" : "Operação"}
         </p>
 
         {navItems.map((item) => (
           <SidebarButton key={`${mode}-${item.href}`} href={item.href}>
-            <item.icon size={18} />
-            {item.label}
+            <item.icon size={18} className="shrink-0" />
+            <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
+              {item.label}
+            </span>
           </SidebarButton>
         ))}
       </div>
@@ -68,28 +71,36 @@ export const SidebarNav = ({ isOwner, isAdminOrOwner }: SidebarNavProps) => {
       {/* Settings (always visible) */}
       {isAdminOrOwner && (
         <SidebarButton href="/settings/team">
-          <UsersIcon size={18} />
-          Equipe
+          <UsersIcon size={18} className="shrink-0" />
+          <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
+            Equipe
+          </span>
         </SidebarButton>
       )}
 
       {isOwner && (
         <SidebarButton href="/plans">
-          <CreditCardIcon size={18} />
-          Assinatura
+          <CreditCardIcon size={18} className="shrink-0" />
+          <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
+            Assinatura
+          </span>
         </SidebarButton>
       )}
 
       {isAdminOrOwner && (
         <SidebarButton href="/audit">
-          <HistoryIcon size={18} />
-          Auditoria
+          <HistoryIcon size={18} className="shrink-0" />
+          <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
+            Auditoria
+          </span>
         </SidebarButton>
       )}
       {isOwner && (
         <SidebarButton href="/settings/company">
-          <SettingsIcon size={18} />
-          Empresa
+          <SettingsIcon size={18} className="shrink-0" />
+          <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
+            Empresa
+          </span>
         </SidebarButton>
       )}
 

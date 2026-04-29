@@ -191,3 +191,95 @@ export const getProducts = async (
     };
   });
 };
+
+export const getProductsForCombobox = async (): Promise<{ id: string; name: string; price: number }[]> => {
+  const companyId = await getCurrentCompanyId();
+  if (!companyId) return [];
+
+  const products = await db.product.findMany({
+    where: { companyId, isActive: true },
+    select: {
+      id: true,
+      name: true,
+      price: true,
+    },
+    orderBy: { name: "asc" },
+  });
+
+  return products.map((p) => ({
+    ...p,
+    price: p.price.toNumber(),
+  }));
+};
+
+export const getProductsForSale = async (): Promise<ProductDto[]> => {
+  const companyId = await getCurrentCompanyId();
+  if (!companyId) return [];
+
+  const products = await db.product.findMany({
+    where: { companyId, isActive: true },
+    include: {
+      parentCompositions: {
+        include: {
+          child: {
+            select: { id: true, name: true, stock: true }
+          },
+        },
+      },
+      company: {
+        select: { allowNegativeStock: true },
+      },
+    },
+    orderBy: { name: "asc" },
+  });
+
+  return products.map((product) => {
+    const stock = product.stock.toNumber();
+    const price = product.price.toNumber();
+    const cost = product.cost.toNumber();
+    const operationalCost = product.operationalCost.toNumber();
+
+    let virtualStock = stock;
+    let limitingIngredient: string | undefined;
+    let ingredients: { name: string; availability: number }[] | undefined;
+
+    if (product.isMadeToOrder && product.parentCompositions.length > 0) {
+      let minCapacity = Infinity;
+      ingredients = product.parentCompositions.map(comp => {
+        const childStock = comp.child.stock.toNumber();
+        const qtyRequired = comp.quantity.toNumber();
+        const capacity = qtyRequired > 0 ? Math.floor(childStock / qtyRequired) : Infinity;
+        
+        if (capacity < minCapacity) {
+          minCapacity = capacity;
+          limitingIngredient = comp.child.name;
+        }
+
+        return {
+          name: comp.child.name,
+          availability: capacity === Infinity ? 0 : capacity
+        };
+      });
+      virtualStock = Math.max(0, minCapacity);
+    }
+
+    return {
+      id: product.id,
+      name: product.name,
+      price,
+      cost,
+      operationalCost,
+      stock,
+      isMadeToOrder: product.isMadeToOrder,
+      virtualStock,
+      limitingIngredient,
+      ingredients,
+      allowNegativeStock: product.company.allowNegativeStock,
+      // Minimal DTO fields to satisfy ProductDto (or we could use a partial type)
+      type: product.type,
+      isActive: product.isActive,
+      margin: calculateMargin(price, cost + operationalCost),
+      status: "IN_STOCK", // Not strictly needed for the sheet
+    } as ProductDto;
+  });
+};
