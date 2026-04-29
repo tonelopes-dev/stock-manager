@@ -67,6 +67,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
   const customerOptions: ComboboxOption[] = customers.map((customer) => ({
     label: `${customer.name} ${customer.phoneNumber ? `(${customer.phoneNumber})` : ""}`,
     value: customer.id,
+    imageUrl: customer.imageUrl,
   }));
 
   const view = resolvedSearchParams.view || "gestao";

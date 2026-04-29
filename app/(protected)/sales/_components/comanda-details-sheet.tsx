@@ -60,6 +60,8 @@ import { Label } from "@/app/_components/ui/label";
 import { Input } from "@/app/_components/ui/input";
 import { Switch } from "@/app/_components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
+import Image from "next/image";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/app/_components/ui/dialog";
 
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
@@ -111,6 +113,7 @@ export const ComandaDetailsSheet = ({
   );
   const [isEmployeeSale, setIsEmployeeSale] = useState<boolean>(false);
   const [now, setNow] = useState(new Date());
+  const [isImageOpen, setIsImageOpen] = useState(false);
 
   // Add Item State
   const [selectedProductId, setSelectedProductId] = useState<string>("");
@@ -356,11 +359,37 @@ export const ComandaDetailsSheet = ({
           <UISheetHeader className="border-b border-border p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-sm">
-                  <ShoppingCart size={24} />
-                </div>
+                <Dialog open={isImageOpen} onOpenChange={setIsImageOpen}>
+                  <DialogTrigger asChild>
+                    <div className="relative flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-2xl bg-primary/10 text-primary shadow-sm transition-all hover:scale-110 active:scale-95">
+                      {comanda.customerImageUrl ? (
+                        <Image
+                          src={comanda.customerImageUrl}
+                          alt={comanda.customerName}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <ShoppingCart size={24} />
+                      )}
+                    </div>
+                  </DialogTrigger>
+                  {comanda.customerImageUrl && (
+                    <DialogContent className="border-none bg-transparent p-0 shadow-none sm:max-w-[500px]">
+                      <DialogTitle className="sr-only">Foto do Cliente: {comanda.customerName}</DialogTitle>
+                      <div className="relative aspect-square w-full overflow-hidden rounded-[2.5rem] bg-white shadow-2xl">
+                        <Image
+                          src={comanda.customerImageUrl}
+                          alt={comanda.customerName}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    </DialogContent>
+                  )}
+                </Dialog>
                 <div className="flex flex-col text-left">
-                  <UISheetTitle className="text-xl font-black uppercase italic leading-tight tracking-tighter text-foreground">
+                  <UISheetTitle className="line-clamp-1 pr-2 text-xl font-black uppercase italic leading-tight tracking-tighter text-foreground">
                     {comanda.customerName}
                   </UISheetTitle>
                   <UISheetDescription className="text-xs font-bold text-muted-foreground">

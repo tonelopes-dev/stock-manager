@@ -120,10 +120,15 @@ const OrderCard = ({
       {/* Header: Order # and Icon */}
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h3 className="text-xl font-black tracking-tighter text-gray-900">
+          <h3 className="text-xl font-black tracking-tighter text-gray-900 uppercase">
             PEDIDO #{order.orderNumber}
           </h3>
-          <div className="mt-1 flex items-center gap-2 text-xs font-bold text-gray-400">
+          {order.customerName && (
+            <p className="text-[10px] font-black uppercase tracking-widest text-primary/80 mb-1">
+              {order.customerName}
+            </p>
+          )}
+          <div className="flex items-center gap-2 text-xs font-bold text-gray-400">
             <span>
               {new Date(order.createdAt).toLocaleTimeString("pt-BR", {
                 hour: "2-digit",
@@ -327,35 +332,22 @@ export const MyOrdersClient = ({ companyId, companySlug }: MyOrdersClientProps) 
     }
   };
 
-  // Supabase Realtime - Native Postgres Changes
+  // Supabase Realtime - Sync order status in real-time
   useEffect(() => {
     if (!companyId || !customerId) return;
 
     const channel = supabase
-      .channel(`customer-order-updates-${companyId}-${customerId}`)
+      .channel(`my-orders-${customerId}`)
       .on(
         "postgres_changes",
         { 
           event: "*", 
           schema: "public", 
           table: "Order",
-          filter: `companyId=eq.${companyId}`
+          filter: `customerId=eq.${customerId}`
         },
-        (payload) => {
-          console.log("Order update received:", payload);
-          loadOrders(customerId);
-          router.refresh();
-        }
-      )
-      .on(
-        "postgres_changes",
-        { 
-          event: "*", 
-          schema: "public", 
-          table: "OrderItem"
-        },
-        (payload) => {
-          console.log("OrderItem update received:", payload);
+        () => {
+          // Quando o status do pedido muda no banco, atualizamos a tela
           loadOrders(customerId);
           router.refresh();
         }

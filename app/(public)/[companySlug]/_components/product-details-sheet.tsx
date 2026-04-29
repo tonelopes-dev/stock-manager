@@ -104,7 +104,7 @@ export const ProductDetailsSheet = ({
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-6 top-6 h-10 w-10 rounded-full bg-black/20 text-white backdrop-blur-md hover:bg-black/40"
+            className="absolute right-6 top-6 z-20 h-10 w-10 rounded-full bg-black/20 text-white backdrop-blur-md hover:bg-black/40"
             onClick={onClose}
           >
             <X className="h-5 w-5" />
@@ -128,15 +128,17 @@ export const ProductDetailsSheet = ({
                     {formatPrice(product.price)}
                   </span>
                 )}
-                {/* Availability Badge */}
-                <div className={cn(
-                  "mt-1 rounded-lg px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-white shadow-sm",
-                  product.availability > 10 ? "bg-emerald-500" : 
-                  product.availability > 0 ? "bg-amber-500" : 
-                  allowNegativeStock ? "bg-sky-500" : "bg-rose-500"
-                )}>
-                  {product.availability} {product.isMadeToOrder ? "Disponíveis" : "Em Estoque"}
-                </div>
+                {/* Availability Badge - Only shown when limit reached */}
+                {isMaxQuantityReached && (
+                  <div className={cn(
+                    "mt-1 rounded-lg px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-white shadow-sm animate-in fade-in zoom-in duration-300",
+                    product.availability > 10 ? "bg-emerald-500" : 
+                    product.availability > 0 ? "bg-amber-500" : 
+                    allowNegativeStock ? "bg-sky-500" : "bg-rose-500"
+                  )}>
+                    {product.availability} {product.isMadeToOrder ? "Disponíveis" : "Em Estoque"}
+                  </div>
+                )}
               </div>
             </div>
             <p className="text-sm leading-relaxed text-gray-500">

@@ -42,16 +42,6 @@ export const ProductCard = ({ product, onClick }: ProductCardProps) => {
             <Utensils className="h-6 w-6 text-gray-200" />
           </div>
         )}
-        
-        {/* Availability Badge */}
-        <div className={cn(
-          "absolute bottom-2 left-2 rounded-lg px-2 py-0.5 text-[8px] font-black uppercase tracking-tight text-white shadow-lg backdrop-blur-md",
-          product.availability > 10 ? "bg-emerald-500/80" : 
-          product.availability > 0 ? "bg-amber-500/80" : 
-          allowNegativeStock ? "bg-sky-500/80" : "bg-rose-500/80"
-        )}>
-          {product.availability} {product.isMadeToOrder ? "Disponíveis" : "Estoque"}
-        </div>
       </div>
       <div className="flex flex-1 flex-col justify-between py-1 pr-2">
         <div className="space-y-1">

@@ -19,6 +19,7 @@ export interface ComboboxOption {
   value: string;
   label: string;
   unit?: string;
+  imageUrl?: string | null;
 }
 
 interface ComboboxProps extends Omit<React.ComponentPropsWithoutRef<typeof Button>, "onChange"> {

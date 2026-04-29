@@ -6,6 +6,7 @@ export interface ComandaDto {
   customerId: string;
   customerName: string;
   customerPhone?: string | null;
+  customerImageUrl?: string | null;
   totalAmount: number;
   orderCount: number;
   hasServiceTax: boolean;
@@ -78,6 +79,7 @@ export const getActiveComandas = async (): Promise<ComandaDto[]> => {
         customerId,
         customerName: order.customer?.name || "Cliente sem Nome",
         customerPhone: order.customer?.phone,
+        customerImageUrl: order.customer?.imageUrl,
         totalAmount: 0,
         orderCount: 0,
         hasServiceTax: (order as any).hasServiceTax,

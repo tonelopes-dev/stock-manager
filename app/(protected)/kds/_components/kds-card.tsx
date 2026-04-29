@@ -11,6 +11,8 @@ import {
   Play,
   Info,
   Check,
+  User,
+  Phone,
   AlertTriangle,
   AlertCircle,
   RotateCcw,
@@ -19,6 +21,7 @@ import { differenceInMinutes } from "date-fns";
 import { useState, useEffect } from "react";
 import { cn } from "@/app/_lib/utils";
 import { isUrgent } from "../_hooks/kds-engine";
+import Image from "next/image";
 
 interface KDSCardProps {
   order: KDSOrderDto & { 
@@ -269,7 +272,41 @@ export const KDSCard = ({
           ))}
         </div>
 
-        {order.notes && (
+        {/* Customer Info Badge */}
+        {(order.customerName || order.customerPhone) && (
+          <div className="flex items-center gap-3 rounded-2xl border border-primary/10 bg-primary/5 p-4 text-[11px] text-primary">
+            <div className="relative h-6 w-6 shrink-0 overflow-hidden rounded-lg bg-primary/20">
+              {order.customerImageUrl ? (
+                <Image
+                  src={order.customerImageUrl}
+                  alt={order.customerName || "Cliente"}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center">
+                  <User size={14} />
+                </div>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span className="font-black uppercase tracking-wider">
+                Cliente: {order.customerName || "Não informado"}
+              </span>
+              {order.customerPhone && (
+                <>
+                  <span className="hidden opacity-30 md:inline">|</span>
+                  <div className="flex items-center gap-1">
+                    <Phone className="h-3 w-3 opacity-70" />
+                    <span className="font-bold">{order.customerPhone}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {order.notes && !order.notes.startsWith("Cliente:") && (
           <div className="flex items-start gap-3 rounded-2xl border border-orange-500/20 bg-orange-500/5 p-4 text-[11px] text-orange-600">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <p className="font-bold italic">{order.notes}</p>

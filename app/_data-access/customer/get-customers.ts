@@ -10,6 +10,7 @@ export interface CustomerDto {
   name: string;
   email: string | null;
   phoneNumber: string | null;
+  imageUrl: string | null;
   categories: { id: string; name: string; color: string | null }[];
   stageId: string | null;
   stage: { name: string } | null;
@@ -154,6 +155,7 @@ export const getCustomers = async (
       name: customer.name,
       email: customer.email,
       phoneNumber: customer.phone,
+      imageUrl: customer.imageUrl,
       categories: customer.categories,
       stageId: customer.stageId,
       stage: customer.stage,

@@ -7,6 +7,9 @@ export interface KDSOrderDto {
   status: OrderStatus;
   tableNumber: string | null;
   notes: string | null;
+  customerName?: string | null;
+  customerPhone?: string | null;
+  customerImageUrl?: string | null;
   createdAt: Date;
   items: {
     id: string;
@@ -47,6 +50,13 @@ export const getKDSOrders = async (companyId: string): Promise<KDSOrderDto[]> =>
       ],
     },
     include: {
+      customer: {
+        select: {
+          name: true,
+          phone: true,
+          imageUrl: true,
+        },
+      },
       orderItems: {
         include: {
           product: { 
@@ -68,6 +78,9 @@ export const getKDSOrders = async (companyId: string): Promise<KDSOrderDto[]> =>
     status: order.status,
     tableNumber: order.tableNumber,
     notes: order.notes,
+    customerName: order.customer?.name,
+    customerPhone: order.customer?.phone,
+    customerImageUrl: order.customer?.imageUrl,
     createdAt: order.createdAt,
     items: order.orderItems.map((item) => ({
       id: item.id,
