@@ -101,16 +101,10 @@ export const getCustomers = async (
         isActive: true,
         createdAt: true,
         updatedAt: true,
-        // Only fetch non-minimal fields if needed
-        ...(minimal 
-          ? {} 
-          : {
-              email: true,
-              phone: true,
-              birthday: true,
-              source: true,
-            }
-        ),
+        email: true,
+        phone: true,
+        birthday: true,
+        source: true,
         _count: {
           select: { sales: true },
         },

@@ -1,4 +1,4 @@
-"use client";
+"use client"; // Re-compile trigger
 
 import React from "react";
 import Link from "next/link";

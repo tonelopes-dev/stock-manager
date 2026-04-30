@@ -34,6 +34,23 @@ export const getCustomerById = async (id: string): Promise<CustomerDto | null> =
         },
         orderBy: { date: "desc" },
       },
+      orders: {
+        where: { 
+          status: { 
+            in: ["PENDING", "PREPARING", "READY", "DELIVERED"] 
+          } 
+        },
+        include: {
+          orderItems: {
+            include: {
+              product: {
+                select: { name: true }
+              }
+            }
+          }
+        },
+        orderBy: { createdAt: "desc" }
+      },
       checklists: {
         include: {
           items: {
@@ -73,14 +90,28 @@ export const getCustomerById = async (id: string): Promise<CustomerDto | null> =
     _count: customer._count,
     totalSpent,
     lastSaleDate,
-    sales: customer.sales?.map((sale: any) => ({
-      totalAmount: Number(sale.totalAmount),
-      date: sale.date,
-      products: sale.saleItems?.map((item: any) => ({
-        name: item.product.name,
-        quantity: Number(item.quantity),
-      })) || [],
-    })) || [],
+    sales: [
+      ...(customer.sales?.map((sale: any) => ({
+        id: sale.id,
+        totalAmount: Number(sale.totalAmount),
+        date: sale.date,
+        status: "PAID",
+        products: sale.saleItems?.map((item: any) => ({
+          name: item.product.name,
+          quantity: Number(item.quantity),
+        })) || [],
+      })) || []),
+      ...(customer.orders?.map((order: any) => ({
+        id: order.id,
+        totalAmount: Number(order.totalAmount),
+        date: order.createdAt,
+        status: order.status,
+        products: order.orderItems?.map((item: any) => ({
+          name: item.product.name,
+          quantity: Number(item.quantity),
+        })) || [],
+      })) || [])
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
     checklists: (customer as any).checklists || [],
   };
 };

@@ -7,8 +7,10 @@ import { formatCurrency } from "@/app/_lib/utils";
 
 interface SalesTimelineProps {
   sales: {
+    id: string;
     totalAmount: number;
     date: Date;
+    status: string;
     products: { name: string; quantity: number }[];
   }[];
 }
@@ -23,34 +25,35 @@ export const SalesTimeline = ({ sales }: SalesTimelineProps) => {
     );
   }
 
-  // Agrupar vendas por data (mesmo dia) para evitar fragmentação de comandas
-  const groupedSales = sales.reduce((acc, sale) => {
-    const dateKey = format(new Date(sale.date), "yyyy-MM-dd");
+  // Agrupar por ID de transação e timestamp exato para evitar fragmentação de itens do mesmo pedido
+  const groupedTransactions = sales.reduce((acc, curr) => {
+    const eventKey = `${curr.id}-${new Date(curr.date).getTime()}`;
     
-    if (!acc[dateKey]) {
-      acc[dateKey] = {
-        totalAmount: 0,
-        date: new Date(sale.date),
-        products: [] as { name: string; quantity: number }[],
+    if (!acc[eventKey]) {
+      acc[eventKey] = {
+        ...curr,
+        products: [...curr.products]
       };
+    } else {
+      acc[eventKey].totalAmount += curr.totalAmount;
+      curr.products.forEach((newP) => {
+        const existingP = acc[eventKey].products.find((p: { name: string }) => p.name === newP.name);
+        if (existingP) {
+          existingP.quantity += newP.quantity;
+        } else {
+          acc[eventKey].products.push(newP);
+        }
+      });
     }
-    
-    acc[dateKey].totalAmount += sale.totalAmount;
-    
-    // Agrupar produtos iguais somando as quantidades
-    sale.products.forEach(product => {
-      const existingProduct = acc[dateKey].products.find(p => p.name === product.name);
-      if (existingProduct) {
-        existingProduct.quantity += product.quantity;
-      } else {
-        acc[dateKey].products.push({ ...product });
-      }
-    });
-    
     return acc;
-  }, {} as Record<string, { totalAmount: number; date: Date; products: { name: string; quantity: number }[] }>);
+  }, {} as Record<string, any>);
 
-  const displaySales = Object.values(groupedSales).sort((a, b) => b.date.getTime() - a.date.getTime());
+  const displaySales = Object.values(groupedTransactions)
+    .map(s => ({
+      ...s,
+      isOrder: s.status !== "PAID"
+    }))
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <div className="relative space-y-6 before:absolute before:bottom-2 before:left-2.5 before:top-2 before:w-px before:bg-muted">
@@ -60,18 +63,18 @@ export const SalesTimeline = ({ sales }: SalesTimelineProps) => {
             <div className="h-1.5 w-1.5 rounded-full bg-muted group-hover:bg-background" />
           </div>
 
-          <div className="flex flex-col gap-1 rounded-lg border border-border bg-background p-3 shadow-sm transition-colors group-hover:border-primary/20">
+          <div className={`flex flex-col gap-1 rounded-lg border p-3 shadow-sm transition-colors ${sale.isOrder ? 'border-primary/40 bg-primary/5 group-hover:border-primary/60' : 'border-border bg-background group-hover:border-primary/20'}`}>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-black uppercase italic tracking-tighter text-foreground">
-                Venda Realizada
+              <span className={`text-sm font-black uppercase italic tracking-tighter ${sale.isOrder ? 'text-primary' : 'text-foreground'}`}>
+                {sale.isOrder ? 'Comanda Aberta' : 'Venda Realizada'}
               </span>
-              <span className="text-xs font-black text-primary">
+              <span className={`text-xs font-black ${sale.isOrder ? 'text-primary/80' : 'text-primary'}`}>
                 {formatCurrency(Number(sale.totalAmount))}
               </span>
             </div>
 
             <div className="flex flex-wrap gap-x-2 gap-y-1">
-              {sale.products.map((product, pIndex) => (
+              {sale.products.map((product: { name: string; quantity: number }, pIndex: number) => (
                 <span
                   key={pIndex}
                   className="text-[10px] font-bold text-muted-foreground"

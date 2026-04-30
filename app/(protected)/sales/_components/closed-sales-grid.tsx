@@ -51,8 +51,8 @@ export const ClosedSalesGrid = ({
 
   const filteredSales = sales.filter(
     (s) =>
-      s.customerName?.toLowerCase().includes(search.toLowerCase()) ||
-      s.productNames.toLowerCase().includes(search.toLowerCase()),
+      (s.customerName?.toLowerCase() || "venda balcão").includes(search.toLowerCase()) ||
+      (s.productNames?.toLowerCase() || "").includes(search.toLowerCase()),
   );
 
   const handleOpenSale = (sale: SaleDto) => {

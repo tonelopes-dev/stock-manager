@@ -13,17 +13,12 @@ const schema = z.object({
 export const getMyOrdersAction = actionClient
   .schema(schema)
   .action(async ({ parsedInput: { companyId, customerId } }) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     const orders = await db.order.findMany({
       where: {
         customerId,
         companyId,
-        createdAt: {
-          gte: today,
-        },
       },
+      take: 100,
       include: {
         customer: {
           select: {

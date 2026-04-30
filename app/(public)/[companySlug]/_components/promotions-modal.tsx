@@ -13,6 +13,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { getPromotionsAction } from "@/app/_actions/menu/get-promotions";
 import { useUIStore } from "../_store/use-ui-store";
+import { isPromotionActive } from "@/app/_lib/promotion";
 
 interface PromotionsModalProps {
   companySlug: string;
@@ -32,7 +33,9 @@ export function PromotionsModal({
       setLoading(true);
       getPromotionsAction(companySlug).then((res) => {
         if (res.success) {
-          setProducts(res.products);
+          // Filter products with active promotion schedule
+          const activePromotions = res.products.filter(p => isPromotionActive(p));
+          setProducts(activePromotions);
         }
         setLoading(false);
       });

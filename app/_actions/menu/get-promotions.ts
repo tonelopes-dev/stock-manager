@@ -26,6 +26,8 @@ export async function getPromotionsAction(companySlug: string) {
         imageUrl: true,
         price: true,
         promoPrice: true,
+        promoActive: true,
+        promoSchedule: true,
         isFeatured: true,
       },
       orderBy: { name: "asc" }

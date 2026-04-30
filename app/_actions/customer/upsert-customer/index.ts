@@ -17,11 +17,12 @@ export const upsertCustomer = actionClient
     await requireActiveSubscription(companyId);
 
     const { categoryIds, ...otherData } = data;
+    const normalizedPhone = otherData.phoneNumber ? otherData.phoneNumber.replace(/\D/g, "") : null;
 
     const customerData: any = {
       name: otherData.name,
       email: otherData.email || null,
-      phone: otherData.phoneNumber || null,
+      phone: normalizedPhone,
       stageId: otherData.stageId || null,
       notes: otherData.notes || null,
       birthday: birthDate ? new Date(birthDate) : null,
