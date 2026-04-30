@@ -171,6 +171,7 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelf
           body: JSON.stringify({ 
             name: customerName, 
             phoneNumber: cleanPhone, 
+            imageUrl: forcedImageUrl || customerImageUrl,
             companyId 
           }),
         });
