@@ -29,7 +29,10 @@ export const getMyOrdersAction = actionClient
         orderItems: {
           include: {
             product: {
-              select: { name: true },
+              select: { 
+                name: true,
+                price: true,
+              },
             },
           },
         },
@@ -54,6 +57,7 @@ export const getMyOrdersAction = actionClient
         name: item.product.name,
         quantity: Number(item.quantity),
         price: Number(item.unitPrice),
+        basePrice: Number(item.product.price),
         notes: item.notes,
         status: item.status,
       })),

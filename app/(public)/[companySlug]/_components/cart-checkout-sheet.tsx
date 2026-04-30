@@ -36,6 +36,15 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelf
   
   const { items, totalAmount, updateQuantity, clearCart, allowNegativeStock } = useCartStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const totalDiscount = items.reduce((acc, item) => {
+    if (item.basePrice && item.basePrice > item.price) {
+      return acc + (item.basePrice - item.price) * item.quantity;
+    }
+    return acc;
+  }, 0);
+
+  const subtotalWithDiscounts = totalAmount + totalDiscount;
   
   // Identification state
   const [customerName, setCustomerName] = useState("");
@@ -278,12 +287,22 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelf
                             "{item.notes}"
                           </p>
                         )}
-                        <p className="text-xs font-black text-primary mt-1">
-                          {new Intl.NumberFormat("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          }).format(item.price)}
-                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-xs font-black text-primary">
+                            {new Intl.NumberFormat("pt-BR", {
+                              style: "currency",
+                              currency: "BRL",
+                            }).format(item.price)}
+                          </p>
+                          {item.basePrice && item.basePrice > item.price && (
+                            <span className="text-[10px] font-bold text-gray-400 line-through">
+                              {new Intl.NumberFormat("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                              }).format(item.basePrice)}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-1 rounded-2xl border border-border bg-muted p-1">
@@ -422,9 +441,21 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelf
                   {new Intl.NumberFormat("pt-BR", {
                     style: "currency",
                     currency: "BRL",
-                  }).format(totalAmount)}
+                  }).format(subtotalWithDiscounts)}
                 </span>
               </div>
+
+              {totalDiscount > 0 && (
+                <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-emerald-600">
+                  <span>Descontos</span>
+                  <span>
+                    -{new Intl.NumberFormat("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    }).format(totalDiscount)}
+                  </span>
+                </div>
+              )}
               
               {enableServiceTax && (
                 <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-muted-foreground border-t border-dashed border-border/50 pt-2 mt-1">

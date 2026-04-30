@@ -52,6 +52,7 @@ export const ProductDetailsSheet = ({
       productId: product.id,
       name: product.name,
       price: activePrice,
+      basePrice: Number(product.price),
       quantity,
       maxQuantity: product.availability,
       image: product.imageUrl || undefined,

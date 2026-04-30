@@ -18,6 +18,7 @@ export interface OrderStatusDto {
     name: string;
     quantity: number;
     price: number;
+    basePrice?: number;
     notes: string | null;
     status: OrderStatus;
   }[];
@@ -39,7 +40,10 @@ export const getOrderStatus = async (
       orderItems: {
         include: {
           product: {
-            select: { name: true },
+            select: { 
+              name: true,
+              price: true,
+            },
           },
         },
       },
@@ -63,6 +67,7 @@ export const getOrderStatus = async (
       name: item.product.name,
       quantity: Number(item.quantity),
       price: Number(item.unitPrice),
+      basePrice: Number(item.product.price),
       notes: item.notes,
       status: item.status,
     })),
