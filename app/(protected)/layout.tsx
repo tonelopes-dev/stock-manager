@@ -13,6 +13,7 @@ import { GlobalHeader } from "@/app/_components/global-header";
 import { AppModeProvider } from "@/app/_components/app-mode-provider";
 import { SubscriptionProvider } from "@/app/_components/SubscriptionContext";
 import { AuthProvider } from "@/app/_components/auth/auth-provider";
+import { TooltipProvider } from "@/app/_components/ui/tooltip";
 
 export default async function ProtectedLayout({
   children,
@@ -57,31 +58,33 @@ export default async function ProtectedLayout({
 
   return (
     <AuthProvider>
-      <SubscriptionProvider
-        subscriptionLevel={subscriptionStatus.level}
-        daysRemaining={subscriptionStatus.daysRemaining}
-        expiresAt={expiresAt}
-      >
-        <AppModeProvider>
-          <div className="fixed inset-0 flex overflow-hidden">
-            <Sidebar />
-            
-            <div className="flex flex-1 flex-col overflow-hidden">
-              {/* Omni-Header */}
-              <GlobalHeader />
+      <TooltipProvider delayDuration={500}>
+        <SubscriptionProvider
+          subscriptionLevel={subscriptionStatus.level}
+          daysRemaining={subscriptionStatus.daysRemaining}
+          expiresAt={expiresAt}
+        >
+          <AppModeProvider>
+            <div className="fixed inset-0 flex overflow-hidden">
+              <Sidebar />
+              
+              <div className="flex flex-1 flex-col overflow-hidden">
+                {/* Omni-Header */}
+                <GlobalHeader />
 
-              {/* Subscription Alert Banner */}
-              <SubscriptionBanner />
+                {/* Subscription Alert Banner */}
+                <SubscriptionBanner />
 
-              <main className="flex-1 overflow-y-auto bg-muted">
-                {children}
-              </main>
+                <main className="flex-1 overflow-y-auto bg-muted">
+                  {children}
+                </main>
+              </div>
+
+              <PasswordResetModal isOpen={needsPasswordChange} />
             </div>
-
-            <PasswordResetModal isOpen={needsPasswordChange} />
-          </div>
-        </AppModeProvider>
-      </SubscriptionProvider>
+          </AppModeProvider>
+        </SubscriptionProvider>
+      </TooltipProvider>
     </AuthProvider>
   );
 }
