@@ -2,11 +2,13 @@
 
 import { useState, useTransition, useEffect, useCallback } from "react";
 import {
+  Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
   DialogClose,
+  DialogTrigger,
 } from "@/app/_components/ui/dialog";
 import {
   DropdownMenu,
@@ -161,6 +163,7 @@ export const CustomerDetailsDialogContent = ({
       ? format(new Date(customer.birthDate), "yyyy-MM-dd")
       : "",
   });
+  const [isImageOpen, setIsImageOpen] = useState(false);
 
   const [fullCustomer, setFullCustomer] = useState(customer);
   const [isLoadingFull, setIsLoadingFull] = useState(false);
@@ -269,17 +272,33 @@ export const CustomerDetailsDialogContent = ({
         <div className="flex items-center justify-between border-b border-border bg-background px-6 py-4 pr-14">
           <DialogHeader className="p-0">
             <DialogTitle className="flex items-center gap-3 text-xl font-black uppercase italic tracking-tighter">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 border border-primary/5">
-                {customer.imageUrl ? (
-                  <img 
-                    src={customer.imageUrl} 
-                    alt={customer.name} 
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <User className="h-5 w-5 text-primary" />
+              <Dialog open={isImageOpen} onOpenChange={setIsImageOpen}>
+                <DialogTrigger asChild>
+                  <div className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-primary/10 border border-primary/5 transition-all hover:scale-110 active:scale-95 shadow-sm">
+                    {customer.imageUrl ? (
+                      <img 
+                        src={customer.imageUrl} 
+                        alt={customer.name} 
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <User className="h-5 w-5 text-primary" />
+                    )}
+                  </div>
+                </DialogTrigger>
+                {customer.imageUrl && (
+                  <DialogContent className="border-none bg-transparent p-0 shadow-none sm:max-w-[500px] [&>button]:text-white [&>button]:bg-black/20 [&>button]:backdrop-blur-sm [&>button]:rounded-full [&>button]:p-1 [&>button]:hover:bg-black/40 [&>button]:border [&>button]:border-white/20 [&>button]:transition-all">
+                    <DialogTitle className="sr-only">Foto do Cliente: {customer.name}</DialogTitle>
+                    <div className="relative aspect-square w-full overflow-hidden rounded-[2.5rem] bg-white shadow-2xl">
+                      <img
+                        src={customer.imageUrl}
+                        alt={customer.name}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  </DialogContent>
                 )}
-              </div>
+              </Dialog>
               <div className="flex flex-col text-left">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Detalhes do Cliente</span>
                 {isEditing ? "Editar Registro" : customer.name}

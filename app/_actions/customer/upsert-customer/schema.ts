@@ -1,16 +1,22 @@
 import { z } from "zod";
 
 export const upsertCustomerSchema = z.object({
-  id: z.string().cuid().optional(),
+  id: z.string().cuid().optional().or(z.literal("")),
   name: z.string().trim().min(1, {
-    message: "O nome do cliente é obrigatório.",
+    message: "Obrigatório",
   }),
   email: z.string().email({ message: "E-mail inválido." }).nullable().optional().or(z.literal("")),
-  phoneNumber: z.string().trim().nullable().optional().or(z.literal("")),
-  categoryIds: z.array(z.string()).nullable().optional(),
-  stageId: z.string().cuid().nullable().optional(),
+  phoneNumber: z.string().trim().min(1, {
+    message: "Obrigatório",
+  }),
+  categoryIds: z.array(z.string()).min(1, {
+    message: "Obrigatório",
+  }),
+  stageId: z.string().min(1, {
+    message: "Obrigatório",
+  }),
   birthDate: z.string().nullable().optional(), // ISO date string from the form
-  notes: z.string().trim().nullable().optional().or(z.literal("")),
+  notes: z.string().nullish().or(z.literal("")),
 });
 
 export type UpsertCustomerSchema = z.infer<typeof upsertCustomerSchema>;

@@ -23,9 +23,38 @@ export const SalesTimeline = ({ sales }: SalesTimelineProps) => {
     );
   }
 
+  // Agrupar vendas por data (mesmo dia) para evitar fragmentação de comandas
+  const groupedSales = sales.reduce((acc, sale) => {
+    const dateKey = format(new Date(sale.date), "yyyy-MM-dd");
+    
+    if (!acc[dateKey]) {
+      acc[dateKey] = {
+        totalAmount: 0,
+        date: new Date(sale.date),
+        products: [] as { name: string; quantity: number }[],
+      };
+    }
+    
+    acc[dateKey].totalAmount += sale.totalAmount;
+    
+    // Agrupar produtos iguais somando as quantidades
+    sale.products.forEach(product => {
+      const existingProduct = acc[dateKey].products.find(p => p.name === product.name);
+      if (existingProduct) {
+        existingProduct.quantity += product.quantity;
+      } else {
+        acc[dateKey].products.push({ ...product });
+      }
+    });
+    
+    return acc;
+  }, {} as Record<string, { totalAmount: number; date: Date; products: { name: string; quantity: number }[] }>);
+
+  const displaySales = Object.values(groupedSales).sort((a, b) => b.date.getTime() - a.date.getTime());
+
   return (
     <div className="relative space-y-6 before:absolute before:bottom-2 before:left-2.5 before:top-2 before:w-px before:bg-muted">
-      {sales.map((sale, index) => (
+      {displaySales.map((sale, index) => (
         <div key={index} className="group relative pl-8">
           <div className="absolute left-0 top-1.5 z-10 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-muted transition-all group-hover:scale-110 group-hover:bg-primary">
             <div className="h-1.5 w-1.5 rounded-full bg-muted group-hover:bg-background" />

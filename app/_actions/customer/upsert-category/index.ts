@@ -11,16 +11,15 @@ export const upsertCustomerCategory = actionClient
   .action(async ({ parsedInput: { id, name } }) => {
     const companyId = await getCurrentCompanyId();
 
-    if (id) {
-      await db.customerCategory.update({
-        where: { id, companyId },
-        data: { name },
-      });
-    } else {
-      await db.customerCategory.create({
-        data: { name, companyId },
-      });
-    }
+    const result = id
+      ? await db.customerCategory.update({
+          where: { id, companyId },
+          data: { name },
+        })
+      : await db.customerCategory.create({
+          data: { name, companyId },
+        });
 
     revalidatePath("/customers");
+    return result;
   });

@@ -11,8 +11,9 @@ export const upsertCRMStage = actionClient
   .action(async ({ parsedInput: { id, name } }) => {
     const companyId = await getCurrentCompanyId();
 
+    let result;
     if (id) {
-      await db.cRMStage.update({
+      result = await db.cRMStage.update({
         where: { id, companyId },
         data: { name },
       });
@@ -23,7 +24,7 @@ export const upsertCRMStage = actionClient
         orderBy: { order: "desc" },
       });
 
-      await db.cRMStage.create({
+      result = await db.cRMStage.create({
         data: {
           name,
           companyId,
@@ -33,4 +34,5 @@ export const upsertCRMStage = actionClient
     }
 
     revalidatePath("/customers");
+    return result;
   });
