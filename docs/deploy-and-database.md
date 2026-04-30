@@ -58,3 +58,23 @@ Commit de Migrations: Nunca ignore a pasta prisma/migrations. Ela deve ser envia
 Ambientes de Preview: Sempre utilize as branches de Preview da Vercel para testar se a migration rodou com sucesso antes de fazer o merge para a main.
 
 Snapshots Financeiros: Sempre que criar uma nova regra de custo (como o Custo Operacional), certifique-se de que a informação é salva no item da venda (SaleItem), garantindo que o histórico financeiro não mude se você alterar a taxa global no futuro.
+
+📡 5. Configuração do Supabase Realtime
+Se os pedidos não estiverem atualizando em tempo real no KDS ou no rastreador, é necessário configurar o banco de dados para suportar os filtros do Realtime.
+
+Causa: Por padrão, o Postgres não envia os dados de todas as colunas em eventos de UPDATE, o que quebra os filtros do Supabase (ex: `companyId=eq.X`).
+Solução:
+
+Acesse o SQL Editor do Supabase.
+
+Execute os comandos para habilitar a identidade de réplica completa e adicionar as tabelas à publicação:
+
+SQL
+-- Habilita o envio de todos os dados nos updates (Obrigatório para filtros)
+ALTER TABLE "Order" REPLICA IDENTITY FULL;
+ALTER TABLE "OrderItem" REPLICA IDENTITY FULL;
+
+-- Garante que as tabelas estão na publicação de realtime
+ALTER PUBLICATION supabase_realtime ADD TABLE "Order";
+ALTER PUBLICATION supabase_realtime ADD TABLE "OrderItem";
+Nota: Se o comando de `ADD TABLE` der erro dizendo que a relação já existe, ignore; o passo mais importante é o `REPLICA IDENTITY FULL`.

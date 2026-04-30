@@ -97,6 +97,7 @@ export const OrderTrackerClient = ({
           filter: `id=eq.${order.id}`,
         },
         (payload: any) => {
+          console.log("🔄 Order Tracker Realtime Event:", payload.eventType, payload.new?.status);
           const newOrder = payload.new;
           setOrder((prev: any) => ({
             ...prev,
@@ -123,7 +124,17 @@ export const OrderTrackerClient = ({
           }
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === "SUBSCRIBED") {
+          console.log("✅ Order Tracker Realtime: Subscribed", { orderId: order.id });
+        }
+        if (status === "CHANNEL_ERROR") {
+          console.error("❌ Order Tracker Realtime: Channel Error:", err);
+        }
+        if (status === "TIMED_OUT") {
+          console.warn("⚠️ Order Tracker Realtime: Connection Timed Out");
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
