@@ -48,8 +48,15 @@ export const AppModeProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAppMode = () => {
   const context = useContext(AppModeContext);
+  
+  // Return a safe default if used outside the provider (e.g. in public pages or during initial load)
   if (!context) {
-    throw new Error("useAppMode must be used within AppModeProvider");
+    return {
+      mode: "gestao" as AppMode,
+      setMode: () => {},
+      toggleMode: () => {},
+    };
   }
+  
   return context;
 };

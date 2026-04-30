@@ -37,6 +37,7 @@ export const useKdsSync = ({ initialOrders, companyId }: UseKdsSyncProps) => {
         "postgres_changes",
         { event: "*", schema: "public", table: "Order", filter: `companyId=eq.${companyId}` },
         async (payload: any) => {
+          console.log("🔄 KDS Realtime (Order):", payload.eventType, payload.new?.id || payload.old?.id);
           if (payload.eventType === "INSERT") {
             playBeep();
             const { data: newOrder } = await supabase
@@ -81,6 +82,7 @@ export const useKdsSync = ({ initialOrders, companyId }: UseKdsSyncProps) => {
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "OrderItem" },
         (payload: any) => {
+          console.log("🔄 KDS Realtime (OrderItem):", payload.eventType, payload.new?.id);
           setOrders((prev) => {
             const orderOfItem = prev.find((o) => o.items.some((i) => i.id === payload.new.id));
             if (orderOfItem && pendingUpdates.current.has(orderOfItem.id)) return prev;
@@ -94,7 +96,17 @@ export const useKdsSync = ({ initialOrders, companyId }: UseKdsSyncProps) => {
           });
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === "SUBSCRIBED") {
+          console.log("✅ KDS Realtime: Subscribed to Order/OrderItem", { companyId });
+        }
+        if (status === "CHANNEL_ERROR") {
+          console.error("❌ KDS Realtime: Channel Error:", err);
+        }
+        if (status === "TIMED_OUT") {
+          console.warn("⚠️ KDS Realtime: Connection Timed Out");
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);

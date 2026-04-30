@@ -386,3 +386,32 @@ sequenceDiagram
 | `tests/unit/kds-engine.test.ts` | Testes puros das funções `getDerivedStatus`, `getStationSummary`, `getPreviousStatus`, `isUrgent` |
 
 > **Gap identificado:** Não existem testes de integração para o fluxo completo `createOrder → Realtime → KDS update`. Isso é mitigado pelo facto de o Supabase Realtime ser uma camada de infraestrutura que não depende do código da aplicação para funcionar — o trigger é nativo do PostgreSQL.
+
+---
+
+## 13. Resolução de Problemas Comuns
+
+### Pedidos não atualizam em tempo real (mas aparecem ao dar F5)
+
+**Causa provável:** Falta de `REPLICA IDENTITY FULL` no PostgreSQL.
+O Supabase Realtime usa filtros (ex: `filter: companyId=eq.X`). Por padrão, o Postgres envia apenas as colunas alteradas e a Chave Primária. Se o `companyId` não foi a coluna alterada, o Supabase não consegue aplicar o filtro e descarta o evento.
+
+**Solução:**
+```sql
+ALTER TABLE "Order" REPLICA IDENTITY FULL;
+ALTER TABLE "OrderItem" REPLICA IDENTITY FULL;
+```
+
+### Erro `CHANNEL_ERROR` ou subscrição falha
+
+**Causa provável:** As tabelas não estão na publicação do Supabase.
+**Solução:**
+```sql
+ALTER PUBLICATION supabase_realtime ADD TABLE "Order";
+ALTER PUBLICATION supabase_realtime ADD TABLE "OrderItem";
+```
+
+### Erro `useAppMode must be used within AppModeProvider`
+
+**Contexto:** Ocorre quando componentes que dependem do contexto de modo do app (Gestão vs Operação) são renderizados em rotas públicas (como o rastreador de pedidos).
+**Solução aplicada:** O hook `useAppMode` foi modificado para retornar um estado padrão (`gestao`) caso o provider não seja encontrado, evitando o crash da aplicação.

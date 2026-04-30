@@ -375,13 +375,24 @@ export const MyOrdersClient = ({ companyId, companySlug }: MyOrdersClientProps) 
           table: "Order",
           filter: `customerId=eq.${customerId}`
         },
-        () => {
+        (payload: any) => {
+          console.log("🔄 My Orders Realtime:", payload.eventType, payload.new?.id);
           // Quando o status do pedido muda no banco, atualizamos a tela
           loadOrders(customerId);
           router.refresh();
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === "SUBSCRIBED") {
+          console.log("✅ My Orders Realtime: Subscribed", { customerId });
+        }
+        if (status === "CHANNEL_ERROR") {
+          console.error("❌ My Orders Realtime: Channel Error:", err);
+        }
+        if (status === "TIMED_OUT") {
+          console.warn("⚠️ My Orders Realtime: Connection Timed Out");
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
