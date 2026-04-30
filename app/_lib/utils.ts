@@ -24,3 +24,8 @@ export const formatPhoneNumber = (value: string) => {
     .replace(/^(\d{2})(\d)/, "($1) $2")
     .replace(/(\d{5})(\d)/, "$1-$2");
 };
+
+export const normalizePhoneNumber = (value: string | null | undefined) => {
+  if (!value) return "";
+  return value.replace(/\D/g, "");
+};

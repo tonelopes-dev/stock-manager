@@ -13,17 +13,12 @@ const schema = z.object({
 export const getMyOrdersAction = actionClient
   .schema(schema)
   .action(async ({ parsedInput: { companyId, customerId } }) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     const orders = await db.order.findMany({
       where: {
         customerId,
         companyId,
-        createdAt: {
-          gte: today,
-        },
       },
+      take: 100,
       include: {
         customer: {
           select: {
@@ -34,7 +29,10 @@ export const getMyOrdersAction = actionClient
         orderItems: {
           include: {
             product: {
-              select: { name: true },
+              select: { 
+                name: true,
+                price: true,
+              },
             },
           },
         },
@@ -59,6 +57,7 @@ export const getMyOrdersAction = actionClient
         name: item.product.name,
         quantity: Number(item.quantity),
         price: Number(item.unitPrice),
+        basePrice: Number(item.product.price),
         notes: item.notes,
         status: item.status,
       })),

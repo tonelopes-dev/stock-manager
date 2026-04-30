@@ -114,6 +114,17 @@ const OrderCard = ({
     Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
       price,
     );
+  
+  const subtotal = order.items.reduce((acc, i) => acc + (i.price * i.quantity), 0);
+  
+  const totalDiscount = order.items.reduce((acc, i) => {
+    if (i.basePrice && i.basePrice > i.price) {
+      return acc + (i.basePrice - i.price) * i.quantity;
+    }
+    return acc;
+  }, 0);
+
+  const subtotalWithDiscounts = subtotal + totalDiscount;
 
   return (
     <Card className="overflow-hidden rounded-[2.5rem] border-none bg-white p-8 shadow-2xl shadow-gray-200/50 transition-all hover:shadow-gray-300/50">
@@ -202,9 +213,16 @@ const OrderCard = ({
                       </span>
                     )}
                   </div>
-                  <span className="text-xs font-bold text-gray-500 shrink-0">
-                    {formatPrice(item.price)}
-                  </span>
+                  <div className="flex flex-col items-end shrink-0">
+                    <span className="text-xs font-bold text-gray-500">
+                      {formatPrice(item.price)}
+                    </span>
+                    {item.basePrice && item.basePrice > item.price && (
+                      <span className="text-[9px] font-bold text-gray-400 line-through">
+                        {formatPrice(item.basePrice)}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="flex items-center justify-between gap-4">
@@ -221,6 +239,7 @@ const OrderCard = ({
                   </Badge>
 
                   <div className="flex items-center gap-2">
+                    {/* Potential future: item.originalPrice here */}
                     <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">
                       ({item.quantity}x) = 
                     </span>
@@ -236,11 +255,21 @@ const OrderCard = ({
 
         {/* Total Footer */}
         <div className="mt-6 space-y-2 border-t border-gray-50 pt-4">
+          <div className="flex items-center justify-between text-[10px] font-bold text-gray-400">
+            <span className="uppercase tracking-widest">Subtotal</span>
+            <span>{formatPrice(subtotalWithDiscounts)}</span>
+          </div>
+          {totalDiscount > 0 && (
+            <div className="flex items-center justify-between text-[10px] font-bold text-emerald-600">
+              <span className="uppercase tracking-widest">Descontos</span>
+              <span>-{formatPrice(totalDiscount)}</span>
+            </div>
+          )}
           {order.hasServiceTax && (
             <div className="flex items-center justify-between text-[10px] font-bold text-gray-400">
               <span className="uppercase tracking-widest">Taxa de Serviço (10%)</span>
               <span>
-                {formatPrice(order.items.reduce((acc, i) => acc + i.price * i.quantity, 0) * 0.1)}
+                {formatPrice(subtotal * 0.1)}
               </span>
             </div>
           )}

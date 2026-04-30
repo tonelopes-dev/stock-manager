@@ -2,6 +2,7 @@ import { db } from "@/app/_lib/prisma";
 import { recordStockMovement, processRecursiveStockMovement, getProductsWithFullTree, processBatchStockMovement } from "@/app/_lib/stock";
 import { BusinessError } from "@/app/_lib/errors";
 import { AuditEventType, OrderStatus, Prisma } from "@prisma/client";
+import { isPromotionActive } from "@/app/_lib/promotion";
 import { AuditService } from "./audit";
 
 interface CreateOrderParams {
@@ -40,9 +41,11 @@ export const OrderService = {
             throw new BusinessError(`O produto ${product.name} está desativado.`);
           }
 
+          const promoActive = isPromotionActive(product);
+          
           const unitPrice = isEmployeeSale 
             ? Number(product.cost) + Number(product.operationalCost)
-            : Number(product.price);
+            : (promoActive && product.promoPrice ? Number(product.promoPrice) : Number(product.price));
 
           return {
             ...item,

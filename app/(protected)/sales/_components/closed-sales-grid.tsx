@@ -51,8 +51,8 @@ export const ClosedSalesGrid = ({
 
   const filteredSales = sales.filter(
     (s) =>
-      s.customerName?.toLowerCase().includes(search.toLowerCase()) ||
-      s.productNames.toLowerCase().includes(search.toLowerCase()),
+      (s.customerName?.toLowerCase() || "venda balcão").includes(search.toLowerCase()) ||
+      (s.productNames?.toLowerCase() || "").includes(search.toLowerCase()),
   );
 
   const handleOpenSale = (sale: SaleDto) => {
@@ -143,8 +143,14 @@ export const ClosedSalesGrid = ({
       />
 
       {/* Edit/View Sheet for Closed Sales */}
-      {selectedSale && (
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+      <Sheet 
+        open={isSheetOpen} 
+        onOpenChange={(open) => {
+          setIsSheetOpen(open);
+          if (!open) setSelectedSale(null);
+        }}
+      >
+        {selectedSale && (
           <UpsertSheetContent
             saleId={selectedSale.id}
             saleDate={selectedSale.date}
@@ -177,8 +183,8 @@ export const ClosedSalesGrid = ({
               };
             })}
           />
-        </Sheet>
-      )}
+        )}
+      </Sheet>
     </div>
   );
 };

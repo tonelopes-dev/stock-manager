@@ -72,8 +72,8 @@ export const getSales = async ({
     
   if (from || to) {
     where.date = {
-      ...(from && { gte: new Date(from) }),
-      ...(to && { lte: new Date(to + "T23:59:59.999Z") }),
+      ...(from && { gte: new Date(from + "T00:00:00-03:00") }),
+      ...(to && { lte: new Date(to + "T23:59:59-03:00") }),
     };
   }
 
@@ -238,8 +238,8 @@ export const getSalesForTips = async ({
 
   if (from || to) {
     where.date = {
-      ...(from && { gte: new Date(from) }),
-      ...(to && { lte: new Date(to + "T23:59:59.999Z") }),
+      ...(from && { gte: new Date(from + "T00:00:00-03:00") }),
+      ...(to && { lte: new Date(to + "T23:59:59-03:00") }),
     };
   }
 

@@ -275,10 +275,10 @@ export const CustomerDetailsDialogContent = ({
               <Dialog open={isImageOpen} onOpenChange={setIsImageOpen}>
                 <DialogTrigger asChild>
                   <div className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-primary/10 border border-primary/5 transition-all hover:scale-110 active:scale-95 shadow-sm">
-                    {customer.imageUrl ? (
+                    {fullCustomer.imageUrl ? (
                       <img 
-                        src={customer.imageUrl} 
-                        alt={customer.name} 
+                        src={fullCustomer.imageUrl} 
+                        alt={fullCustomer.name} 
                         className="h-full w-full object-cover"
                       />
                     ) : (
@@ -301,7 +301,7 @@ export const CustomerDetailsDialogContent = ({
               </Dialog>
               <div className="flex flex-col text-left">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Detalhes do Cliente</span>
-                {isEditing ? "Editar Registro" : customer.name}
+                {isEditing ? "Editar Registro" : fullCustomer.name}
               </div>
             </DialogTitle>
           </DialogHeader>
@@ -399,15 +399,15 @@ export const CustomerDetailsDialogContent = ({
                     <div className="space-y-3 rounded-xl border border-border/50 bg-muted/30 p-3">
                       <div>
                         <p className="text-[10px] font-bold uppercase text-muted-foreground">Nome</p>
-                        <p className="text-sm font-semibold">{customer.name}</p>
+                        <p className="text-sm font-semibold">{fullCustomer.name}</p>
                       </div>
                       <div>
                         <p className="text-[10px] font-bold uppercase text-muted-foreground">E-mail</p>
-                        <p className="text-sm font-medium">{customer.email || "—"}</p>
+                        <p className="text-sm font-medium">{fullCustomer.email || "—"}</p>
                       </div>
                       <div>
                         <p className="text-[10px] font-bold uppercase text-muted-foreground">WhatsApp</p>
-                        <p className="text-sm font-medium">{customer.phoneNumber || "—"}</p>
+                        <p className="text-sm font-medium">{fullCustomer.phoneNumber || "—"}</p>
                       </div>
                     </div>
                   )}
@@ -455,8 +455,8 @@ export const CustomerDetailsDialogContent = ({
                     </div>
                   ) : (
                     <div className="flex flex-wrap gap-2">
-                      {customer.categories && customer.categories.length > 0 ? (
-                        customer.categories.map((c: any) => (
+                      {fullCustomer.categories && fullCustomer.categories.length > 0 ? (
+                        fullCustomer.categories.map((c: any) => (
                           <Badge
                             key={c.id}
                             variant="secondary"
@@ -476,9 +476,9 @@ export const CustomerDetailsDialogContent = ({
                       ) : (
                         <Badge variant="outline" className="text-[10px] font-bold text-muted-foreground">Sem Categoria</Badge>
                       )}
-                      {customer.stage && (
+                      {fullCustomer.stage && (
                         <Badge variant="outline" className="border-primary/20 text-[10px] font-black uppercase text-primary">
-                          {customer.stage.name}
+                          {fullCustomer.stage.name}
                         </Badge>
                       )}
                     </div>
@@ -519,12 +519,12 @@ export const CustomerDetailsDialogContent = ({
                         <p className="text-[10px] font-bold uppercase text-muted-foreground">Aniversário</p>
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-medium">
-                            {customer.birthDate
-                              ? format(getSafeDate(customer.birthDate)!, "dd/MM", { locale: ptBR })
+                            {fullCustomer.birthDate
+                              ? format(getSafeDate(fullCustomer.birthDate)!, "dd/MM", { locale: ptBR })
                               : "—"}
                           </p>
                           <CustomerBirthdayReminder 
-                            customer={customer} 
+                            customer={fullCustomer} 
                             onUpdate={fetchFullCustomer} 
                           />
                         </div>
@@ -532,8 +532,8 @@ export const CustomerDetailsDialogContent = ({
                       <div className="space-y-1">
                         <p className="text-[10px] font-bold uppercase text-muted-foreground">Cadastro</p>
                         <p className="text-sm font-medium">
-                          {customer.createdAt
-                            ? format(new Date(customer.createdAt), "dd/MM/yyyy", { locale: ptBR })
+                          {fullCustomer.createdAt
+                            ? format(new Date(fullCustomer.createdAt), "dd/MM/yyyy", { locale: ptBR })
                             : "—"}
                         </p>
                       </div>
@@ -557,7 +557,7 @@ export const CustomerDetailsDialogContent = ({
                     />
                   ) : (
                     <p className="rounded-lg border border-border/50 bg-muted/30 p-3 text-xs font-medium italic leading-relaxed text-muted-foreground">
-                      {customer.notes || "Nenhuma observação interna registrada."}
+                      {fullCustomer.notes || "Nenhuma observação interna registrada."}
                     </p>
                   )}
                 </div>

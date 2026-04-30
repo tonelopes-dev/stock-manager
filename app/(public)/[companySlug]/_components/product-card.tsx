@@ -3,6 +3,7 @@ import { Plus, Utensils } from "lucide-react";
 import { MenuProductDto } from "@/app/_data-access/menu/get-menu-data";
 import { cn } from "@/app/_lib/utils";
 import { useCartStore } from "../_store/use-cart-store";
+import { isPromotionActive } from "@/app/_lib/promotion";
 
 interface ProductCardProps {
   product: MenuProductDto;
@@ -12,6 +13,7 @@ interface ProductCardProps {
 export const ProductCard = ({ product, onClick }: ProductCardProps) => {
   const allowNegativeStock = useCartStore((state) => state.allowNegativeStock);
   const isOutOfStock = product.availability <= 0 && !allowNegativeStock;
+  const hasActivePromotion = isPromotionActive(product);
 
   const formatPrice = (price: number) =>
     Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -52,7 +54,7 @@ export const ProductCard = ({ product, onClick }: ProductCardProps) => {
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {product.promoPrice && product.promoActive ? (
+            {product.promoPrice && hasActivePromotion ? (
               <>
                 <span className="text-sm font-black text-primary">
                   {formatPrice(product.promoPrice)}

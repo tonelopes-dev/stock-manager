@@ -15,6 +15,7 @@ import { Textarea } from "@/app/_components/ui/textarea";
 import { MenuProductDto } from "@/app/_data-access/menu/get-menu-data";
 import { useCartStore } from "../_store/use-cart-store";
 import { cn } from "@/app/_lib/utils";
+import { isPromotionActive } from "@/app/_lib/promotion";
 
 interface ProductDetailsSheetProps {
   product: MenuProductDto | null;
@@ -40,7 +41,8 @@ export const ProductDetailsSheet = ({
       price,
     );
 
-  const activePrice = product.promoPrice || product.price;
+  const hasActivePromotion = isPromotionActive(product);
+  const activePrice = hasActivePromotion && product.promoPrice ? Number(product.promoPrice) : Number(product.price);
 
   const isOutOfStock = product.availability <= 0 && !allowNegativeStock;
   const isMaxQuantityReached = !allowNegativeStock && (quantity + totalInCart) >= product.availability;
@@ -50,6 +52,7 @@ export const ProductDetailsSheet = ({
       productId: product.id,
       name: product.name,
       price: activePrice,
+      basePrice: Number(product.price),
       quantity,
       maxQuantity: product.availability,
       image: product.imageUrl || undefined,
@@ -123,7 +126,7 @@ export const ProductDetailsSheet = ({
                 <span className="text-xl font-black text-primary">
                   {formatPrice(activePrice)}
                 </span>
-                {product.promoPrice && (
+                {product.promoPrice && hasActivePromotion && (
                   <span className="text-xs font-bold text-gray-400 line-through">
                     {formatPrice(product.price)}
                   </span>

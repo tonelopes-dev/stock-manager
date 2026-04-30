@@ -29,13 +29,15 @@ export const updateCustomerProfile = async (input: UpdateCustomerProfileInput) =
       return { success: false, message: "Este telefone já está sendo usado por outro cadastro." };
     }
 
+    const normalizedPhone = phoneNumber ? phoneNumber.replace(/\D/g, "") : null;
+
     // 2. Update the customer
     const updatedCustomer = await db.customer.update({
       where: { id: customerId },
       data: {
         name,
         email: email || null,
-        phone: phoneNumber,
+        phone: normalizedPhone,
         birthday: birthDate ? new Date(birthDate) : null,
       },
     });

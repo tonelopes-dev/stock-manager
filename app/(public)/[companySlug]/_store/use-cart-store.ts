@@ -6,6 +6,7 @@ export interface CartItem {
   productId: string;
   name: string;
   price: number;
+  basePrice?: number; // Pre-promotion price
   quantity: number;
   maxQuantity: number;
   image?: string;

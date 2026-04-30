@@ -50,6 +50,8 @@ import { PromotionsModal } from "./promotions-modal";
 import { useCartStore } from "../_store/use-cart-store";
 import { useUIStore } from "../_store/use-ui-store";
 import { supabase } from "@/app/_lib/supabase";
+import { isPromotionActive } from "@/app/_lib/promotion";
+
 
 interface MenuClientProps {
   companyId: string;
@@ -159,6 +161,32 @@ export function MenuClient({
   useEffect(() => {
     setCurrentMenuData(menuData);
   }, [menuData]);
+
+  // Promotion refinement (Timezone aware)
+  useEffect(() => {
+    const refinePromotions = () => {
+      setCurrentMenuData((prev: any) => {
+        if (!prev || !prev.categories) return prev;
+        
+        const newCategories = prev.categories.map((cat: any) => ({
+          ...cat,
+          products: cat.products.map((p: any) => ({
+            ...p,
+            promoActive: isPromotionActive(p)
+          }))
+        }));
+        
+        return { ...prev, categories: newCategories };
+      });
+    };
+
+    // Run once on mount
+    refinePromotions();
+    
+    // Then run every minute to keep it updated (in case a promotion starts/ends)
+    const interval = setInterval(refinePromotions, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -360,7 +388,7 @@ export function MenuClient({
                   <div className="absolute bottom-4 left-4 right-4">
                     <p className="text-sm font-black text-white line-clamp-1">{product.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      {product.promoPrice ? (
+                      {isPromotionActive(product) ? (
                         <>
                           <p className="text-sm font-black text-primary">{formatPrice(product.promoPrice)}</p>
                           <p className="text-[10px] font-bold text-gray-400 line-through">{formatPrice(product.price)}</p>
