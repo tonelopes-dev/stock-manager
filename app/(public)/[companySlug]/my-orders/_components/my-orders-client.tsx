@@ -373,7 +373,6 @@ export const MyOrdersClient = ({ companyId, companySlug }: MyOrdersClientProps) 
           event: "*", 
           schema: "public", 
           table: "Order",
-          filter: `customerId=eq.${customerId}`
         },
         (payload: any) => {
           console.log("🔄 My Orders Realtime:", payload.eventType, payload.new?.id);
