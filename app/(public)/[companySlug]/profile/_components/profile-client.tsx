@@ -80,6 +80,14 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
     localStorage.removeItem(`kipo-customer-${companyId}`);
     toast.success("Você saiu da sua conta");
     setIsLoggedIn(false);
+    setCustomerId(null);
+    setForm({
+      name: "",
+      phoneNumber: "",
+      email: "",
+      birthDate: "",
+      imageUrl: "",
+    });
     setLoginPhone("");
     setLoginName("");
     setShowRegisterFields(false);
@@ -263,31 +271,33 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
               {companyName}
             </p>
           </div>
-          <div className="relative">
-            <div className="flex h-[88px] w-[88px] items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/60 p-[4px] shadow-xl shadow-primary/10">
-              <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-gray-900 text-white">
-                {form.imageUrl ? (
-                  <Image
-                    src={form.imageUrl}
-                    alt={form.name}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <User size={32} />
-                )}
+          {isLoggedIn && (
+            <div className="relative">
+              <div className="flex h-[88px] w-[88px] items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/60 p-[4px] shadow-xl shadow-primary/10">
+                <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-gray-900 text-white">
+                  {form.imageUrl ? (
+                    <Image
+                      src={form.imageUrl}
+                      alt={form.name}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <User size={32} />
+                  )}
+                </div>
               </div>
+              
+              {/* Camera Overlay Button */}
+              <button
+                onClick={() => setIsCameraOpen(true)}
+                className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-white text-primary shadow-lg ring-4 ring-white hover:scale-110 transition-transform active:scale-95"
+                title="Atualizar foto"
+              >
+                <Camera size={16} strokeWidth={3} />
+              </button>
             </div>
-            
-            {/* Camera Overlay Button */}
-            <button
-              onClick={() => setIsCameraOpen(true)}
-              className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-white text-primary shadow-lg ring-4 ring-white hover:scale-110 transition-transform active:scale-95"
-              title="Atualizar foto"
-            >
-              <Camera size={16} strokeWidth={3} />
-            </button>
-          </div>
+          )}
         </div>
       </header>
 

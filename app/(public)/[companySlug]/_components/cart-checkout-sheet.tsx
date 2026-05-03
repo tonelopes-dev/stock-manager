@@ -95,6 +95,10 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelf
         setCustomerName(data.customer.name);
         setTempCustomerId(data.customer.customerId);
         setCustomerImageUrl(data.customer.imageUrl || null);
+        
+        // Salva os dados no localStorage para que o usuário não precise logar novamente na tela de pedidos
+        localStorage.setItem(`kipo-customer-${companyId}`, JSON.stringify(data.customer));
+        
         toast.success(`Olá, ${data.customer.name.split(' ')[0]}!`);
       } else {
         setCustomerExists(false);
@@ -262,6 +266,80 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelf
             <>
               {checkoutStep === "DETAILS" && (
                 <div className="space-y-6 py-4">
+                  {/* Identification Form */}
+                  <div className="space-y-6 rounded-[2rem] bg-gray-50 p-6 border border-gray-100">
+                    <h3 className="text-sm font-black uppercase tracking-widest text-gray-400">Identificação</h3>
+                    
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-2 text-xs font-bold text-gray-500 ml-1">
+                          <Phone className="w-3 h-3" />
+                          TELEFONE (WHATSAPP) *
+                        </label>
+                        <div className="flex gap-2">
+                          <Input 
+                            placeholder="(00) 00000-0000"
+                            value={phoneNumber}
+                            onChange={(e) => {
+                              const formatted = formatPhoneNumber(e.target.value);
+                              setPhoneNumber(formatted);
+                              setIsPhoneVerified(false);
+                            }}
+                            className="h-12 rounded-xl border-none bg-white shadow-sm focus-visible:ring-primary/20"
+                            disabled={isSubmitting || isCheckingPhone}
+                            type="tel"
+                            data-testid="checkout-phone-number"
+                          />
+                          <Button
+                            type="button"
+                            onClick={handleCheckPhone}
+                            disabled={isSubmitting || isCheckingPhone || !phoneNumber.trim()}
+                            className={cn(
+                              "h-12 w-12 shrink-0 rounded-xl transition-all",
+                              isPhoneVerified 
+                                ? "bg-emerald-500 hover:bg-emerald-600" 
+                                : "bg-primary hover:bg-primary/90 text-white"
+                            )}
+                          >
+                            {isCheckingPhone ? (
+                              <Loader2 className="h-5 w-5 animate-spin" />
+                            ) : (
+                              <Check className="h-5 w-5" strokeWidth={3} />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {isPhoneVerified && (
+                        <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                          <label className="flex items-center gap-2 text-xs font-bold text-gray-500 ml-1">
+                            <User className="w-3 h-3" />
+                            NOME E SOBRENOME *
+                          </label>
+                          <Input 
+                            placeholder="Como podemos te chamar?"
+                            value={customerName}
+                            onChange={(e) => setCustomerName(e.target.value)}
+                            className="h-12 rounded-xl border-none bg-white shadow-sm focus-visible:ring-primary/20"
+                            disabled={isSubmitting || (isPhoneVerified && customerExists)}
+                            data-testid="checkout-customer-name"
+                          />
+                          {customerExists && (
+                            <div className="flex justify-end">
+                              <button
+                                type="button"
+                                onClick={() => router.push(`/${companySlug}/profile`)}
+                                className="text-[10px] font-bold text-primary hover:underline px-1"
+                              >
+                                Editar Perfil
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   {items.map((item: CartItem) => (
                     <div
                       key={item.id}
@@ -339,80 +417,6 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelf
                       </div>
                     </div>
                   ))}
-
-                  {/* Identification Form */}
-                  <div className="mt-8 space-y-6 rounded-[2rem] bg-gray-50 p-6 border border-gray-100">
-                    <h3 className="text-sm font-black uppercase tracking-widest text-gray-400">Identificação</h3>
-                    
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <label className="flex items-center gap-2 text-xs font-bold text-gray-500 ml-1">
-                          <Phone className="w-3 h-3" />
-                          TELEFONE (WHATSAPP) *
-                        </label>
-                        <div className="flex gap-2">
-                          <Input 
-                            placeholder="(00) 00000-0000"
-                            value={phoneNumber}
-                            onChange={(e) => {
-                              const formatted = formatPhoneNumber(e.target.value);
-                              setPhoneNumber(formatted);
-                              setIsPhoneVerified(false);
-                            }}
-                            className="h-12 rounded-xl border-none bg-white shadow-sm focus-visible:ring-primary/20"
-                            disabled={isSubmitting || isCheckingPhone}
-                            type="tel"
-                            data-testid="checkout-phone-number"
-                          />
-                          <Button
-                            type="button"
-                            onClick={handleCheckPhone}
-                            disabled={isSubmitting || isCheckingPhone || !phoneNumber.trim()}
-                            className={cn(
-                              "h-12 w-12 shrink-0 rounded-xl transition-all",
-                              isPhoneVerified 
-                                ? "bg-emerald-500 hover:bg-emerald-600" 
-                                : "bg-primary hover:bg-primary/90 text-white"
-                            )}
-                          >
-                            {isCheckingPhone ? (
-                              <Loader2 className="h-5 w-5 animate-spin" />
-                            ) : (
-                              <Check className="h-5 w-5" strokeWidth={3} />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-
-                      {isPhoneVerified && (
-                        <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                          <label className="flex items-center gap-2 text-xs font-bold text-gray-500 ml-1">
-                            <User className="w-3 h-3" />
-                            NOME E SOBRENOME *
-                          </label>
-                          <Input 
-                            placeholder="Como podemos te chamar?"
-                            value={customerName}
-                            onChange={(e) => setCustomerName(e.target.value)}
-                            className="h-12 rounded-xl border-none bg-white shadow-sm focus-visible:ring-primary/20"
-                            disabled={isSubmitting || (isPhoneVerified && customerExists)}
-                            data-testid="checkout-customer-name"
-                          />
-                          {customerExists && (
-                            <div className="flex justify-end">
-                              <button
-                                type="button"
-                                onClick={() => router.push(`/${companySlug}/profile`)}
-                                className="text-[10px] font-bold text-primary hover:underline px-1"
-                              >
-                                Editar Perfil
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
                 </div>
               )}
 
