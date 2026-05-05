@@ -19,10 +19,16 @@ import {
   Phone,
   MapPin,
   CreditCard,
+  MonitorPlay,
+  Tv,
+  Maximize,
+  Minimize,
 } from "lucide-react";
 import { formatDistanceToNow, differenceInMinutes, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
+import { Button } from "@/app/_components/ui/button";
+import { useAppMode } from "@/app/_components/app-mode-provider";
 import {
   Sheet,
   SheetContent,
@@ -64,6 +70,7 @@ export const KDSClient = ({
   companyId,
   environments,
 }: KDSClientProps) => {
+  const { isLiveMode, setIsLiveMode } = useAppMode();
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -209,7 +216,22 @@ export const KDSClient = ({
           </Tabs>
         </div>
 
-        <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex items-center gap-2 md:gap-3 xl:gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsLiveMode(!isLiveMode)}
+            className={cn(
+              "h-8 gap-2 rounded-2xl border-2 px-3 text-[9px] font-black uppercase tracking-widest transition-all md:h-9 md:px-4 md:text-[10px] xl:h-10 xl:px-6",
+              isLiveMode 
+                ? "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100" 
+                : "border-primary/20 bg-background text-primary hover:bg-primary/5"
+            )}
+          >
+            {isLiveMode ? <Minimize className="h-4 w-4" /> : <MonitorPlay className="h-4 w-4" />}
+            <span>{isLiveMode ? "Sair do Live" : "Modo Live"}</span>
+          </Button>
+
           <Badge
             variant="outline"
             className="h-8 gap-1.5 rounded-2xl border-emerald-200 bg-emerald-50 px-2.5 text-[9px] font-black text-emerald-700 shadow-sm md:h-9 md:px-3 md:text-[10px] xl:h-10 xl:px-4"

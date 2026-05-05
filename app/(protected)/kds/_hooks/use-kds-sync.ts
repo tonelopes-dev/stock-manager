@@ -32,17 +32,28 @@ export const useKdsSync = ({ initialOrders, companyId }: UseKdsSyncProps) => {
 
   useEffect(() => {
     const channel = supabase
-      .channel("kds-realtime")
+      .channel(`kds-${companyId}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "Order", filter: `companyId=eq.${companyId}` },
+        {
+          event: "*",
+          schema: "public",
+          table: "Order",
+          filter: `companyId=eq.${companyId}`,
+        },
         async (payload: any) => {
-          console.log("🔄 KDS Realtime (Order):", payload.eventType, payload.new?.id || payload.old?.id);
+          console.log(
+            "🔄 KDS Realtime (Order):",
+            payload.eventType,
+            payload.new?.id || payload.old?.id
+          );
           if (payload.eventType === "INSERT") {
             playBeep();
             const { data: newOrder } = await supabase
               .from("Order")
-              .select("*, items:OrderItem(*, product:Product(*, environment:Environment(*)))")
+              .select(
+                "*, items:OrderItem(*, product:Product(*, environment:Environment(*)))"
+              )
               .eq("id", payload.new.id)
               .single();
 
@@ -71,7 +82,9 @@ export const useKdsSync = ({ initialOrders, companyId }: UseKdsSyncProps) => {
             if (pendingUpdates.current.has(updatedOrder.id)) return;
 
             setOrders((prev) =>
-              prev.map((o) => (o.id === updatedOrder.id ? { ...o, ...updatedOrder } : o))
+              prev.map((o) =>
+                o.id === updatedOrder.id ? { ...o, ...updatedOrder } : o
+              )
             );
           } else if (payload.eventType === "DELETE") {
             setOrders((prev) => prev.filter((o) => o.id !== payload.old.id));
@@ -82,10 +95,17 @@ export const useKdsSync = ({ initialOrders, companyId }: UseKdsSyncProps) => {
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "OrderItem" },
         (payload: any) => {
-          console.log("🔄 KDS Realtime (OrderItem):", payload.eventType, payload.new?.id);
+          console.log(
+            "🔄 KDS Realtime (OrderItem):",
+            payload.eventType,
+            payload.new?.id
+          );
           setOrders((prev) => {
-            const orderOfItem = prev.find((o) => o.items.some((i) => i.id === payload.new.id));
-            if (orderOfItem && pendingUpdates.current.has(orderOfItem.id)) return prev;
+            const orderOfItem = prev.find((o) =>
+              o.items.some((i) => i.id === payload.new.id)
+            );
+            if (orderOfItem && pendingUpdates.current.has(orderOfItem.id))
+              return prev;
 
             return prev.map((order) => ({
               ...order,
@@ -98,13 +118,16 @@ export const useKdsSync = ({ initialOrders, companyId }: UseKdsSyncProps) => {
       )
       .subscribe((status, err) => {
         if (status === "SUBSCRIBED") {
-          console.log("✅ KDS Realtime: Subscribed to Order/OrderItem", { companyId });
+          console.log(`✅ KDS Realtime (${companyId}): Subscribed`);
         }
         if (status === "CHANNEL_ERROR") {
-          console.error("❌ KDS Realtime: Channel Error:", err);
+          console.error(
+            "❌ KDS Realtime Error:",
+            err?.message || err || "Unknown Error"
+          );
         }
         if (status === "TIMED_OUT") {
-          console.warn("⚠️ KDS Realtime: Connection Timed Out");
+          console.warn("⚠️ KDS Realtime Timeout");
         }
       });
 
