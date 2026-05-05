@@ -36,6 +36,10 @@ export interface CompanyBranding {
   instagramUrl: string | null;
   operatingHours: any;
   requireSelfieOnCheckout: boolean;
+  allowNegativeStock: boolean;
+  estimatedMonthlyVolume: number;
+  enableOverheadInjection: boolean;
+  enableServiceTax: boolean;
 }
 
 export const getMenuManagementData = async (): Promise<{
@@ -59,6 +63,10 @@ export const getMenuManagementData = async (): Promise<{
       instagramUrl: true,
       operatingHours: true,
       requireSelfieOnCheckout: true,
+      allowNegativeStock: true,
+      estimatedMonthlyVolume: true,
+      enableOverheadInjection: true,
+      enableServiceTax: true,
     },
   });
 
