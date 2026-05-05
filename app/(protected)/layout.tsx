@@ -14,6 +14,7 @@ import { AppModeProvider } from "@/app/_components/app-mode-provider";
 import { SubscriptionProvider } from "@/app/_components/SubscriptionContext";
 import { AuthProvider } from "@/app/_components/auth/auth-provider";
 import { TooltipProvider } from "@/app/_components/ui/tooltip";
+import { cn } from "@/app/_lib/utils";
 
 export default async function ProtectedLayout({
   children,
@@ -75,7 +76,10 @@ export default async function ProtectedLayout({
                 {/* Subscription Alert Banner */}
                 <SubscriptionBanner />
 
-                <main className="flex-1 overflow-y-auto bg-muted">
+                <main className={cn(
+                  "flex-1 bg-muted",
+                  pathname.startsWith("/kds") ? "overflow-hidden" : "overflow-y-auto"
+                )}>
                   {children}
                 </main>
               </div>

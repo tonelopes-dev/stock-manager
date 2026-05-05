@@ -41,6 +41,7 @@ export const MenuAppearanceSettings = ({ initialData }: MenuAppearanceSettingsPr
     resolver: zodResolver(updateCompanySchema),
     defaultValues: {
       name: initialData.name,
+      slug: initialData.slug,
       bannerUrl: initialData.bannerUrl || "",
       logoUrl: initialData.logoUrl || "",
       address: initialData.address || "",
@@ -49,6 +50,11 @@ export const MenuAppearanceSettings = ({ initialData }: MenuAppearanceSettingsPr
       instagramUrl: initialData.instagramUrl || "",
 
       operatingHours: initialData.operatingHours || DEFAULT_HOURS,
+      requireSelfieOnCheckout: initialData.requireSelfieOnCheckout,
+      allowNegativeStock: initialData.allowNegativeStock,
+      estimatedMonthlyVolume: initialData.estimatedMonthlyVolume,
+      enableOverheadInjection: initialData.enableOverheadInjection,
+      enableServiceTax: initialData.enableServiceTax,
     },
   });
 
