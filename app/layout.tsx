@@ -33,6 +33,7 @@ import { Toaster } from "sonner";
 import { CookieBanner } from "@/components/cookie-banner";
 import { SessionClearHandler } from "./_components/auth/session-clear-handler";
 import { ServiceWorkerRegister } from "./_components/pwa/service-worker-register";
+import { PWAInstallBanner } from "./_components/pwa/pwa-install-banner";
 import { Suspense } from "react";
 
 export default function RootLayout({
@@ -50,6 +51,7 @@ export default function RootLayout({
         {children}
         <CookieBanner />
         <Toaster richColors closeButton position="top-left" />
+        <PWAInstallBanner />
       </body>
     </html>
   );
