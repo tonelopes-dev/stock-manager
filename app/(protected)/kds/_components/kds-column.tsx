@@ -38,15 +38,15 @@ export const KDSColumn = ({
   const [parent] = useAutoAnimate();
 
   return (
-    <div className="flex w-[400px] min-w-[400px] flex-col rounded-[2.5rem] border border-border/60 bg-muted/40 p-5 shadow-inner">
-      <div className="mb-6 flex items-center justify-between px-4 py-2">
-        <h3 className="flex items-center gap-2 text-sm font-black uppercase italic tracking-tighter text-muted-foreground">
-          <span className={cn("h-2.5 w-2.5 rounded-full", accentColor)} />
+    <div className="flex w-[260px] min-w-[260px] flex-col rounded-[1.8rem] border border-border/60 bg-muted/40 p-3 shadow-inner md:w-[300px] md:min-w-[300px] md:rounded-[2rem] md:p-4 xl:w-[380px] xl:min-w-[380px] xl:rounded-[2.5rem] xl:p-5">
+      <div className="mb-3 flex items-center justify-between px-2 py-1 md:mb-4 md:px-3 xl:mb-6 xl:px-4 xl:py-2">
+        <h3 className="flex items-center gap-1.5 text-xs font-black uppercase italic tracking-tighter text-muted-foreground md:gap-2 md:text-sm">
+          <span className={cn("h-2 w-2 rounded-full md:h-2.5 md:w-2.5", accentColor)} />
           {title}
         </h3>
         <Badge
           variant="secondary"
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background p-0 font-black"
+          className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background p-0 font-black md:h-8 md:w-8"
         >
           {orders.length}
         </Badge>
@@ -54,7 +54,7 @@ export const KDSColumn = ({
 
       <div
         ref={parent}
-        className="scrollbar-hide flex-1 space-y-6 overflow-y-auto pr-1"
+        className="scrollbar-hide flex-1 space-y-3 overflow-y-auto pr-0.5 md:space-y-4 xl:space-y-6 xl:pr-1"
       >
         {orders.map((order) => (
           <KDSCard

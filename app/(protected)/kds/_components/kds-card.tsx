@@ -9,18 +9,15 @@ import {
   Clock,
   CheckCircle2,
   Play,
-  Info,
   Check,
   User,
   Phone,
-  AlertTriangle,
   AlertCircle,
   RotateCcw,
 } from "lucide-react";
 import { differenceInMinutes } from "date-fns";
 import { useState, useEffect } from "react";
 import { cn } from "@/app/_lib/utils";
-import { isUrgent } from "../_hooks/kds-engine";
 import Image from "next/image";
 
 interface KDSCardProps {
@@ -55,9 +52,6 @@ export const KDSCard = ({
   const [minutesSince, setMinutesSince] = useState(
     differenceInMinutes(new Date(), new Date(order.createdAt)),
   );
-  const urgent = isUrgent(new Date(order.createdAt)) && 
-    order.displayStatus !== OrderStatus.PAID && 
-    order.displayStatus !== OrderStatus.DELIVERED;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -98,9 +92,8 @@ export const KDSCard = ({
     <Card
       data-testid={`kds-card-${order.id}`}
       className={cn(
-        "group relative overflow-hidden rounded-[2rem] border-none p-6 shadow-lg shadow-slate-200/50 transition-all duration-300 hover:shadow-xl",
+        "group relative overflow-hidden rounded-[1.5rem] border-none p-4 shadow-lg shadow-slate-200/50 transition-all duration-300 hover:shadow-xl md:rounded-[1.8rem] md:p-5 xl:rounded-[2rem] xl:p-6",
         isExpeditionView ? "bg-white ring-1 ring-slate-100" : "bg-background",
-        urgent && "border-l-4 border-red-600 bg-red-50/50 shadow-red-100/10",
         isUpdating && "pointer-events-none opacity-60 grayscale-[0.5]",
       )}
     >
@@ -109,39 +102,33 @@ export const KDSCard = ({
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
       )}
-      {urgent && (
-        <div className="absolute -right-1 -top-1 flex h-7 items-center gap-1.5 rounded-bl-2xl bg-red-600 px-4 text-[9px] font-black text-white shadow-sm">
-          <AlertTriangle size={12} />
-          SLA CRÍTICO
-        </div>
-      )}
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-3 md:gap-4 xl:gap-5">
         <div className="flex items-start justify-between">
           <div
             className="flex cursor-pointer flex-col"
             onClick={() => onDetail(order)}
           >
-            <span className="text-[10px] font-black uppercase leading-none tracking-widest text-muted-foreground">
+            <span className="text-[9px] font-black uppercase leading-none tracking-widest text-muted-foreground md:text-[10px]">
               {isExpeditionView ? "EXPEDIÇÃO" : "PEDIDO"}
             </span>
-            <div className="flex items-center gap-2">
-              <span className="text-3xl font-black italic text-foreground">
-                #{order.orderNumber}
-              </span>
-              <Info className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-            </div>
+            <span className="text-2xl font-black italic text-foreground md:text-3xl">
+              #{order.orderNumber}
+            </span>
+            <span className="mt-1 text-[10px] font-bold uppercase tracking-wider text-primary md:text-[11px]">
+              Detalhes do Pedido
+            </span>
           </div>
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-col items-end gap-1.5 md:gap-2">
             {order.displayStatus !== OrderStatus.PAID && (
               <div
-                className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold ${getTimeColor()}`}
+                className={`flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold md:gap-1.5 md:px-3 md:py-1 ${getTimeColor()}`}
               >
                 <Clock className="h-3 w-3" />
                 {minutesSince} min
               </div>
             )}
             {order.tableNumber && (
-              <Badge className="h-7 rounded-xl border-none bg-foreground px-3 text-[10px] font-black text-background">
+              <Badge className="h-6 rounded-lg border-none bg-foreground px-2.5 text-[9px] font-black text-background md:h-7 md:rounded-xl md:px-3 md:text-[10px]">
                 MESA {order.tableNumber}
               </Badge>
             )}
@@ -152,24 +139,24 @@ export const KDSCard = ({
           order.displayStatus !== OrderStatus.PAID &&
           order.stationSummary &&
           order.stationSummary.length > 0 && (
-            <div className="space-y-2">
+            <div className="space-y-1.5 md:space-y-2">
               <span className="ml-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">
                 Status por Praça
               </span>
-              <div className="flex flex-wrap gap-2 rounded-2xl bg-muted/50 p-3">
+              <div className="flex flex-wrap gap-1.5 rounded-xl bg-muted/50 p-2 md:gap-2 md:rounded-2xl md:p-3">
                 {order.stationSummary.map((station: any, idx: number) => (
                   <Badge
                     key={idx}
                     variant="outline"
                     className={cn(
-                      "flex h-7 items-center gap-1.5 border-none px-3 text-[9px] font-black uppercase tracking-wider transition-all",
+                      "flex h-6 items-center gap-1 border-none px-2 text-[9px] font-black uppercase tracking-wider transition-all md:h-7 md:gap-1.5 md:px-3",
                       station.isDone
                         ? "bg-emerald-500 text-white shadow-lg shadow-emerald-100"
                         : "bg-orange-100 text-orange-700 shadow-sm",
                     )}
                   >
                     {station.isDone ? (
-                      <Check className="h-3 w-3" />
+                      <Check className="h-2.5 w-2.5 md:h-3 md:w-3" />
                     ) : (
                       <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-500" />
                     )}
@@ -180,24 +167,25 @@ export const KDSCard = ({
             </div>
           )}
 
-        <div className="space-y-2">
+        <div className="space-y-1.5 md:space-y-2">
           {order.items.map((item: any) => (
             <div
               key={item.id}
               className={cn(
-                "group/item relative flex items-center justify-between gap-3 rounded-2xl border transition-all",
+                "group/item relative flex items-center justify-between gap-2 rounded-xl border transition-all md:gap-3 md:rounded-2xl",
                 isExpeditionView
                   ? "border-slate-100 bg-slate-50/50 p-2"
-                  : "border-border bg-muted/40 p-3",
+                  : "border-border bg-muted/40 p-2.5 md:p-3",
                 item.status === OrderStatus.READY && !isExpeditionView
                   ? "border-emerald-100 bg-emerald-50/30"
                   : "",
               )}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 md:gap-3">
                 <span
                   className={cn(
-                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-xl text-[10px] font-black text-white shadow-sm",
+                    "flex shrink-0 items-center justify-center rounded-lg font-black text-white shadow-sm",
+                    "h-8 w-8 text-xs md:h-8 md:w-8 md:rounded-xl md:text-[11px] xl:h-7 xl:w-7 xl:text-[10px]",
                     getStatusColor(item.status),
                   )}
                 >
@@ -207,13 +195,13 @@ export const KDSCard = ({
                   <span
                     className={cn(
                       "font-black leading-tight text-foreground",
-                      isExpeditionView ? "text-[11px]" : "text-xs",
+                      isExpeditionView ? "text-[11px]" : "text-xs md:text-sm xl:text-xs",
                     )}
                   >
                     {item.productName}
                   </span>
                   {item.notes && (
-                    <span className="text-[9px] font-bold uppercase italic leading-tight text-destructive">
+                    <span className="text-[9px] font-bold uppercase italic leading-tight text-destructive md:text-[10px]">
                       {item.notes}
                     </span>
                   )}
@@ -223,12 +211,12 @@ export const KDSCard = ({
               {!isExpeditionView &&
                 item.status !== OrderStatus.DELIVERED &&
                 item.status !== OrderStatus.PAID && (
-                  <div className="flex items-center">
+                  <div className="flex shrink-0 items-center">
                     {item.status === OrderStatus.PENDING && (
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-8 gap-2 rounded-full border-primary/20 px-3 text-[10px] font-black text-primary hover:bg-primary hover:text-white"
+                        className="h-9 gap-1.5 rounded-full border-primary/20 px-3 text-[10px] font-black text-primary hover:bg-primary hover:text-white md:h-10 md:px-4 md:text-xs xl:h-8 xl:px-3 xl:text-[10px]"
                         onClick={() => onItemAction(item.id, OrderStatus.PREPARING)}
                         disabled={isUpdating}
                       >
@@ -238,15 +226,15 @@ export const KDSCard = ({
                     {item.status === OrderStatus.PREPARING && (
                       <Button
                         size="sm"
-                        className="h-8 gap-2 rounded-full bg-primary px-3 text-[10px] font-black text-white hover:bg-primary/90"
+                        className="h-9 gap-1.5 rounded-full bg-primary px-3 text-[10px] font-black text-white hover:bg-primary/90 md:h-10 md:px-4 md:text-xs xl:h-8 xl:px-3 xl:text-[10px]"
                         onClick={() => onItemAction(item.id, OrderStatus.READY)}
                         disabled={isUpdating}
                       >
-                        <Check size={12} strokeWidth={4} /> PRONTO
+                        <Check size={13} strokeWidth={4} /> PRONTO
                       </Button>
                     )}
                     {item.status === OrderStatus.READY && (
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-100">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-100 md:h-10 md:w-10 xl:h-8 xl:w-8">
                         <Check size={16} strokeWidth={4} />
                       </div>
                     )}
@@ -254,15 +242,15 @@ export const KDSCard = ({
                 )}
 
               {isExpeditionView && (
-                <div className="flex items-center gap-2">
+                <div className="flex shrink-0 items-center gap-2">
                    {(item.status === OrderStatus.READY || 
                      item.status === OrderStatus.DELIVERED || 
                      item.status === OrderStatus.PAID) ? (
-                     <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                     <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 md:h-7 md:w-7">
                         <Check size={12} strokeWidth={4} />
                      </div>
                    ) : (
-                     <Badge variant="outline" className="h-6 border-orange-200 bg-orange-50 px-2 text-[8px] font-black text-orange-600">
+                     <Badge variant="outline" className="h-6 border-orange-200 bg-orange-50 px-2 text-[8px] font-black text-orange-600 md:h-7 md:px-2.5 md:text-[9px]">
                         {item.status === OrderStatus.PREPARING ? "EM PREPARO" : "PENDENTE"}
                      </Badge>
                    )}
@@ -274,8 +262,8 @@ export const KDSCard = ({
 
         {/* Customer Info Badge */}
         {(order.customerName || order.customerPhone) && (
-          <div className="flex items-center gap-3 rounded-2xl border border-primary/10 bg-primary/5 p-4 text-[11px] text-primary">
-            <div className="relative h-6 w-6 shrink-0 overflow-hidden rounded-lg bg-primary/20">
+          <div className="flex items-center gap-2.5 rounded-xl border border-primary/10 bg-primary/5 p-3 text-[11px] text-primary md:gap-3 md:rounded-2xl md:p-4">
+            <div className="relative h-7 w-7 shrink-0 overflow-hidden rounded-lg bg-primary/20 md:h-6 md:w-6">
               {order.customerImageUrl ? (
                 <Image
                   src={order.customerImageUrl}
@@ -290,7 +278,7 @@ export const KDSCard = ({
               )}
             </div>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <span className="font-black uppercase tracking-wider">
+              <span className="text-[11px] font-black uppercase tracking-wider md:text-xs">
                 Cliente: {order.customerName || "Não informado"}
               </span>
               {order.customerPhone && (
@@ -298,7 +286,7 @@ export const KDSCard = ({
                   <span className="hidden opacity-30 md:inline">|</span>
                   <div className="flex items-center gap-1">
                     <Phone className="h-3 w-3 opacity-70" />
-                    <span className="font-bold">{order.customerPhone}</span>
+                    <span className="text-[11px] font-bold md:text-xs">{order.customerPhone}</span>
                   </div>
                 </>
               )}
@@ -307,7 +295,7 @@ export const KDSCard = ({
         )}
 
         {order.notes && !order.notes.startsWith("Cliente:") && (
-          <div className="flex items-start gap-3 rounded-2xl border border-orange-500/20 bg-orange-500/5 p-4 text-[11px] text-orange-600">
+          <div className="flex items-start gap-2.5 rounded-xl border border-orange-500/20 bg-orange-500/5 p-3 text-[11px] text-orange-600 md:gap-3 md:rounded-2xl md:p-4">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <p className="font-bold italic">{order.notes}</p>
           </div>
@@ -318,7 +306,7 @@ export const KDSCard = ({
           disabled={isUpdating}
           data-testid={`kds-action-button-${order.id}`}
           className={cn(
-            "flex h-14 w-full items-center justify-center gap-3 rounded-[1.8rem] text-xs font-black transition-all",
+            "flex h-12 w-full items-center justify-center gap-2.5 rounded-[1.5rem] text-sm font-black transition-all md:h-14 md:gap-3 md:rounded-[1.8rem] md:text-sm xl:text-xs",
             accentColor === "bg-emerald-500" ||
               order.displayStatus === OrderStatus.READY
               ? "border-b-4 border-emerald-700 bg-emerald-500 text-background shadow-2xl shadow-emerald-200 hover:bg-emerald-600 active:translate-y-1 active:border-b-0"
@@ -344,7 +332,7 @@ export const KDSCard = ({
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-full rounded-xl text-[10px] font-bold text-muted-foreground hover:bg-muted"
+            className="h-10 w-full rounded-xl text-[11px] font-bold text-muted-foreground hover:bg-muted md:h-11 md:text-xs xl:h-8 xl:text-[10px]"
             onClick={() => onUndo(order.id, order.status)}
             disabled={isUpdating}
             data-testid={`kds-undo-button-${order.id}`}
