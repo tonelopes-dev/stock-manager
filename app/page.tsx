@@ -20,11 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { KipoLogo } from "@/app/_components/logo";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/app/_components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/app/_components/ui/sheet";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -47,7 +43,7 @@ const LandingPage = () => {
       <nav className="fixed top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="transition-all hover:scale-[1.02]">
-            <KipoLogo className="origin-left scale-[0.6] sm:scale-75" />
+            <KipoLogo showText className="origin-left scale-[0.6] sm:scale-75" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -97,7 +93,7 @@ const LandingPage = () => {
                 </SheetTrigger>
                 <SheetContent side="right" className="w-[300px] sm:w-[400px]">
                   <div className="flex flex-col gap-8 pt-10">
-                    <KipoLogo className="scale-75" />
+                    <KipoLogo showText className="scale-75" />
                     <nav className="flex flex-col gap-4">
                       <a
                         href="#features"
@@ -152,7 +148,7 @@ const LandingPage = () => {
             <motion.h1
               {...fadeInUp}
               transition={{ delay: 0.2, duration: 0.8 }}
-              className="mb-8 text-4xl font-black leading-[1.1] tracking-tight text-foreground xs:text-5xl sm:text-7xl md:text-[84px]"
+              className="xs:text-5xl mb-8 text-4xl font-black leading-[1.1] tracking-tight text-foreground sm:text-7xl md:text-[84px]"
             >
               Gestão inteligente para <br className="hidden md:block" />
               <span className="text-gradient">bares e restaurantes.</span>
@@ -161,7 +157,7 @@ const LandingPage = () => {
             <motion.p
               {...fadeInUp}
               transition={{ delay: 0.4, duration: 0.8 }}
-              className="mx-auto mb-12 max-w-2xl px-4 text-base font-medium text-muted-foreground xs:text-lg md:text-xl"
+              className="xs:text-lg mx-auto mb-12 max-w-2xl px-4 text-base font-medium text-muted-foreground md:text-xl"
             >
               Do pedido na mesa ao controle do estoque: conecte seu salão,
               cozinha e caixa em um só sistema sem complicação.
@@ -173,7 +169,7 @@ const LandingPage = () => {
               className="mb-24 flex flex-col items-center justify-center gap-4 px-4 sm:flex-row sm:gap-5"
             >
               <Button
-                className="h-14 w-full rounded-full bg-primary px-8 text-lg font-bold shadow-xl transition-all hover:scale-105 hover:shadow-primary/20 sm:h-16 sm:px-10 sm:text-xl sm:w-auto"
+                className="h-14 w-full rounded-full bg-primary px-8 text-lg font-bold shadow-xl transition-all hover:scale-105 hover:shadow-primary/20 sm:h-16 sm:w-auto sm:px-10 sm:text-xl"
                 size="lg"
                 asChild
               >
@@ -181,7 +177,7 @@ const LandingPage = () => {
               </Button>
               <Button
                 variant="outline"
-                className="h-14 w-full rounded-full border-border bg-background px-8 text-lg font-bold shadow-sm transition-all hover:bg-slate-50 sm:h-16 sm:px-10 sm:text-xl sm:w-auto"
+                className="h-14 w-full rounded-full border-border bg-background px-8 text-lg font-bold shadow-sm transition-all hover:bg-slate-50 sm:h-16 sm:w-auto sm:px-10 sm:text-xl"
                 size="lg"
               >
                 Fale com um especialista
@@ -222,28 +218,28 @@ const LandingPage = () => {
           <div className="mx-auto max-w-7xl">
             <div className="flex flex-col items-center justify-between gap-24 text-center lg:flex-row lg:text-left">
               <div className="max-w-xl">
-                <span className="mb-4 sm:mb-6 inline-block rounded-full bg-primary/10 px-4 py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-primary">
+                <span className="mb-4 inline-block rounded-full bg-primary/10 px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-primary sm:mb-6 sm:text-xs">
                   Ecossistema Integrado
                 </span>
-                <h2 className="mb-6 sm:mb-8 text-3xl font-black leading-tight text-foreground xs:text-4xl sm:text-6xl">
+                <h2 className="xs:text-4xl mb-6 text-3xl font-black leading-tight text-foreground sm:mb-8 sm:text-6xl">
                   O coração da sua <br className="hidden lg:block" /> operação
                   gastronômica.
                 </h2>
-                <p className="text-base sm:text-lg font-medium leading-relaxed text-muted-foreground">
+                <p className="text-base font-medium leading-relaxed text-muted-foreground sm:text-lg">
                   Esqueça os sistemas lentos dos anos 2000. O Kipo integra suas
                   vendas físicas, controle de mesas e baixa de insumos no
                   estoque em tempo real.
                 </p>
               </div>
 
-              <div className="relative flex min-h-[500px] w-full max-w-[600px] items-center justify-center">
+              <div className="relative flex min-h-[500px] w-full max-w-[500px] items-center justify-center">
                 {/* Central Logo - Rectangular to fit horizontal brand logo */}
                 <motion.div
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 4, repeat: Infinity }}
-                  className="relative z-20 flex h-24 w-36 items-center justify-center rounded-2xl bg-primary p-2 shadow-2xl shadow-primary/30 ring-1 ring-primary/20"
+                  className="relative z-20 flex h-[94px] w-[94px] items-center justify-center rounded-2xl bg-primary p-2 shadow-2xl shadow-primary/30 ring-1 ring-primary/20"
                 >
-                  <KipoLogo className="scale-[0.5] brightness-0 invert" />
+                  <KipoLogo className="scale-[1.8] brightness-0 invert" />
                 </motion.div>
 
                 {/* SVG Lines */}
@@ -386,41 +382,41 @@ const LandingPage = () => {
         <section id="pricing" className="bg-slate-50 px-6 py-24 md:py-40">
           <div className="mx-auto max-w-4xl text-center">
             <motion.div {...fadeInUp}>
-              <h2 className="mb-6 text-3xl font-black text-foreground xs:text-4xl sm:text-6xl">
+              <h2 className="xs:text-4xl mb-6 text-3xl font-black text-foreground sm:text-6xl">
                 Invista na paz de espírito do seu negócio.
               </h2>
-              <p className="mb-10 sm:mb-20 text-lg sm:text-xl font-medium text-muted-foreground">
+              <p className="mb-10 text-lg font-medium text-muted-foreground sm:mb-20 sm:text-xl">
                 Investimento sob medida para empresas em expansão.
               </p>
 
-              <div className="relative mx-auto max-w-[540px] overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] border border-border bg-white p-6 sm:p-12 text-left shadow-2xl">
+              <div className="relative mx-auto max-w-[540px] overflow-hidden rounded-[2rem] border border-border bg-white p-6 text-left shadow-2xl sm:rounded-[2.5rem] sm:p-12">
                 <div className="absolute left-0 top-0 h-1.5 w-full bg-gradient-to-r from-primary to-orange-500" />
 
                 <div className="flex flex-col gap-8 sm:gap-10">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tighter text-foreground">
+                      <h3 className="text-xl font-black uppercase tracking-tighter text-foreground sm:text-2xl">
                         Enterprise
                       </h3>
-                      <p className="text-[10px] sm:text-sm font-bold text-primary">
+                      <p className="text-[10px] font-bold text-primary sm:text-sm">
                         SOLUÇÃO COMPLETA
                       </p>
                     </div>
-                    <div className="rounded-full bg-primary/10 px-3 sm:px-4 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-primary">
+                    <div className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-primary sm:px-4 sm:text-xs">
                       Experiência VIP
                     </div>
                   </div>
 
                   <div className="space-y-3 sm:space-y-4">
                     <div className="flex items-baseline gap-2">
-                      <span className="text-4xl sm:text-5xl font-black tracking-tighter text-foreground">
+                      <span className="text-4xl font-black tracking-tighter text-foreground sm:text-5xl">
                         R$ 249
                       </span>
-                      <span className="text-base sm:text-lg font-bold text-muted-foreground">
+                      <span className="text-base font-bold text-muted-foreground sm:text-lg">
                         /mês
                       </span>
                     </div>
-                    <p className="text-xs sm:text-sm font-bold text-muted-foreground">
+                    <p className="text-xs font-bold text-muted-foreground sm:text-sm">
                       + R$ 4.500 de Setup de Implementação
                     </p>
                   </div>
@@ -435,7 +431,7 @@ const LandingPage = () => {
                     ].map((item, i) => (
                       <li
                         key={i}
-                        className="flex items-center gap-3 sm:gap-4 text-sm sm:text-base font-semibold text-slate-600"
+                        className="flex items-center gap-3 text-sm font-semibold text-slate-600 sm:gap-4 sm:text-base"
                       >
                         <CheckCircle2 className="h-5 w-5 text-primary" />
                         {item}
@@ -443,7 +439,7 @@ const LandingPage = () => {
                     ))}
                   </ul>
 
-                  <Button className="h-14 sm:h-16 w-full rounded-xl sm:rounded-2xl bg-foreground text-sm sm:text-lg font-black uppercase tracking-normal sm:tracking-widest text-background transition-all hover:scale-[1.02] active:scale-95">
+                  <Button className="h-14 w-full rounded-xl bg-foreground text-sm font-black uppercase tracking-normal text-background transition-all hover:scale-[1.02] active:scale-95 sm:h-16 sm:rounded-2xl sm:text-lg sm:tracking-widest">
                     Falar com especialista
                   </Button>
                 </div>
@@ -456,7 +452,7 @@ const LandingPage = () => {
       {/* FOOTER */}
       <footer className="border-t border-border bg-background px-6 py-16">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-10 md:flex-row">
-          <KipoLogo className="scale-75" />
+          <KipoLogo showText className="scale-75" />
           <p className="text-sm font-medium text-muted-foreground">
             © {new Date().getFullYear()} Kipo. Todos os direitos reservados.
           </p>
