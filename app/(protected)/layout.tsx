@@ -16,6 +16,8 @@ import { AuthProvider } from "@/app/_components/auth/auth-provider";
 import { TooltipProvider } from "@/app/_components/ui/tooltip";
 import { cn } from "@/app/_lib/utils";
 
+import { LayoutContentWrapper } from "./_components/layout-content-wrapper";
+
 export default async function ProtectedLayout({
   children,
 }: Readonly<{
@@ -66,26 +68,16 @@ export default async function ProtectedLayout({
           expiresAt={expiresAt}
         >
           <AppModeProvider>
-            <div className="fixed inset-0 flex overflow-hidden">
-              <Sidebar />
-              
-              <div className="flex flex-1 flex-col overflow-hidden">
-                {/* Omni-Header */}
-                <GlobalHeader />
+            <LayoutContentWrapper
+              sidebar={<Sidebar />}
+              header={<GlobalHeader />}
+              banner={<SubscriptionBanner />}
+              pathname={pathname}
+            >
+              {children}
+            </LayoutContentWrapper>
 
-                {/* Subscription Alert Banner */}
-                <SubscriptionBanner />
-
-                <main className={cn(
-                  "flex-1 bg-muted",
-                  pathname.startsWith("/kds") ? "overflow-hidden" : "overflow-y-auto"
-                )}>
-                  {children}
-                </main>
-              </div>
-
-              <PasswordResetModal isOpen={needsPasswordChange} />
-            </div>
+            <PasswordResetModal isOpen={needsPasswordChange} />
           </AppModeProvider>
         </SubscriptionProvider>
       </TooltipProvider>
