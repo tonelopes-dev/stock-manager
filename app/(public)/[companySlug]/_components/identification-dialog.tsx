@@ -73,7 +73,7 @@ export function IdentificationDialog({
                 onChange={(e) =>
                   setForm({ ...form, phoneNumber: e.target.value })
                 }
-                className="rounded-xl"
+                className="rounded-xl text-base md:text-sm"
                 type="tel"
                 autoFocus
                 data-testid="identify-phone-input"
@@ -90,7 +90,7 @@ export function IdentificationDialog({
                   placeholder="Seu nome completo"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="rounded-xl"
+                  className="rounded-xl text-base md:text-sm"
                   autoFocus
                   data-testid="identify-name-input"
                 />
@@ -113,7 +113,7 @@ export function IdentificationDialog({
                   placeholder="seu@email.com"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="rounded-xl"
+                  className="rounded-xl text-base md:text-sm"
                   type="email"
                 />
               </div>

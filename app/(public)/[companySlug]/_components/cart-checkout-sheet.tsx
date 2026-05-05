@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Minus, Plus, ShoppingBag, Trash2, X, User, Phone, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect } from "react";
-import { cn, formatPhoneNumber } from "@/app/_lib/utils";
+import { cn, formatPhoneNumber, getWhatsAppUrl } from "@/app/_lib/utils";
 
 import {
   Sheet,
@@ -285,7 +285,7 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelf
                               setPhoneNumber(formatted);
                               setIsPhoneVerified(false);
                             }}
-                            className="h-12 rounded-xl border-none bg-white shadow-sm focus-visible:ring-primary/20"
+                            className="h-12 rounded-xl border-none bg-white shadow-sm focus-visible:ring-primary/20 text-base md:text-sm"
                             disabled={isSubmitting || isCheckingPhone}
                             type="tel"
                             data-testid="checkout-phone-number"
@@ -320,7 +320,7 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelf
                             placeholder="Como podemos te chamar?"
                             value={customerName}
                             onChange={(e) => setCustomerName(e.target.value)}
-                            className="h-12 rounded-xl border-none bg-white shadow-sm focus-visible:ring-primary/20"
+                            className="h-12 rounded-xl border-none bg-white shadow-sm focus-visible:ring-primary/20 text-base md:text-sm"
                             disabled={isSubmitting || (isPhoneVerified && customerExists)}
                             data-testid="checkout-customer-name"
                           />

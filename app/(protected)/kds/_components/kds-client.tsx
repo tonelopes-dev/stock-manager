@@ -36,7 +36,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/app/_components/ui/sheet";
-import { cn } from "@/app/_lib/utils";
+import { cn, getWhatsAppUrl } from "@/app/_lib/utils";
 
 import { useKdsSync } from "../_hooks/use-kds-sync";
 import { useKdsActions } from "../_hooks/use-kds-actions";
@@ -328,9 +328,9 @@ export const KDSClient = ({
                     </div>
                     {selectedOrder.customerPhone && (
                       <a 
-                        href={`https://wa.me/55${selectedOrder.customerPhone.replace(/\D/g, "")}?text=${encodeURIComponent(
+                        href={getWhatsAppUrl(selectedOrder.customerPhone, 
                           `Olá ${selectedOrder.customerName || "cliente"}, seu pedido #${selectedOrder.orderNumber} está com status: ${getStatusLabel(selectedOrder.status)}!`
-                        )}`}
+                        )}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex h-9 items-center gap-2 rounded-xl border bg-white px-4 text-[10px] font-black uppercase tracking-wider text-emerald-600 shadow-sm transition-all hover:bg-emerald-50 hover:shadow-md"

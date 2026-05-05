@@ -89,6 +89,7 @@ import {
 import { upsertCustomer } from "@/app/_actions/customer/upsert-customer";
 import { deleteCustomer } from "@/app/_actions/customer/delete-customer";
 import { Textarea } from "@/app/_components/ui/textarea";
+import { getWhatsAppUrl } from "@/app/_lib/utils";
 
 // Helper to handle date strings/objects from Prisma/Server correctly in local time
 // avoiding the "one day off" bug due to UTC vs Local shifts (especially common in birthdays)
@@ -411,7 +412,7 @@ export const CustomerDetailsDialogContent = ({
                           <p className="text-sm font-medium">{fullCustomer.phoneNumber || "—"}</p>
                           {fullCustomer.phoneNumber && (
                             <a 
-                              href={`https://wa.me/55${fullCustomer.phoneNumber.replace(/\D/g, "")}`}
+                              href={getWhatsAppUrl(fullCustomer.phoneNumber)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex h-7 items-center gap-1.5 rounded-lg border bg-white px-2.5 text-[9px] font-black uppercase tracking-wider text-emerald-600 shadow-sm transition-all hover:bg-emerald-50 hover:shadow-md"
