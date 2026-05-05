@@ -4,7 +4,6 @@
   "description": "Sistema de gestão de estoque, vendas e cardápio digital.",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#0f0f0f",
   "theme_color": "#7C3AED",
   "categories": ["business", "productivity"],

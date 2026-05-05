@@ -2,6 +2,7 @@ import React from "react";
 
 interface LogoProps {
   className?: string;
+  showText?: boolean;
 }
 
 export const Logomarca = ({ className }: LogoProps) => (
@@ -76,10 +77,16 @@ export const Logotipo = ({ className }: LogoProps) => (
   </svg>
 );
 
-export const KipoLogo = ({ className }: LogoProps) => (
-  <div className={`flex items-center gap-0 transition-all group-hover/sidebar:gap-2 ${className}`}>
+export const KipoLogo = ({ className, showText = false }: LogoProps) => (
+  <div className={`flex items-center transition-all ${showText ? 'gap-2' : 'gap-0 group-hover/sidebar:gap-2'} ${className}`}>
     <Logomarca className="h-9 w-9 shrink-0" />
-    <div className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-24 group-hover/sidebar:opacity-100">
+    <div
+      className={`overflow-hidden transition-all duration-300 ${
+        showText
+          ? 'w-24 opacity-100'
+          : 'w-0 opacity-0 group-hover/sidebar:w-24 group-hover/sidebar:opacity-100'
+      }`}
+    >
       <Logotipo className="h-12 w-24" />
     </div>
   </div>
