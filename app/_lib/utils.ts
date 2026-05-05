@@ -29,3 +29,16 @@ export const normalizePhoneNumber = (value: string | null | undefined) => {
   if (!value) return "";
   return value.replace(/\D/g, "");
 };
+
+export const getWhatsAppUrl = (phone: string, message?: string) => {
+  const cleanPhone = phone.replace(/\D/g, "");
+  // Se o número tiver 10 ou 11 dígitos (sem DDI), adicionamos o 55 (Brasil)
+  const finalPhone = cleanPhone.length <= 11 ? `55${cleanPhone}` : cleanPhone;
+  const baseUrl = `https://api.whatsapp.com/send?phone=${finalPhone}`;
+  
+  if (message) {
+    return `${baseUrl}&text=${encodeURIComponent(message)}`;
+  }
+  
+  return baseUrl;
+};

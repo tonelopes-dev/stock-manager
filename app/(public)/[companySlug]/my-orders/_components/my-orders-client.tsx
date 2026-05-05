@@ -447,7 +447,7 @@ export const MyOrdersClient = ({ companyId, companySlug }: MyOrdersClientProps) 
                     placeholder="(00) 00000-0000"
                     type="tel"
                     disabled={isCheckingPhone}
-                    className="h-14 rounded-2xl border-none bg-gray-50 pl-12 text-sm shadow-inner focus-visible:ring-primary/20"
+                    className="h-14 rounded-2xl border-none bg-gray-50 pl-12 text-base md:text-sm shadow-inner focus-visible:ring-primary/20"
                   />
                 </div>
               </div>

@@ -8,6 +8,7 @@ import { actionClient } from "@/app/_lib/safe-action";
 import { UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
+import { getWhatsAppUrl } from "@/app/_lib/utils";
 
 const inviteSchema = z.object({
   name: z.string().min(3),
@@ -66,7 +67,7 @@ export const inviteUserViaWhatsApp = actionClient
 
     // 3. Generate WhatsApp Link
     const company = await db.company.findUnique({ where: { id: companyId } });
-    const encodedMessage = encodeURIComponent(
+    const whatsappUrl = getWhatsAppUrl(phone, 
       `Olá ${name}! 👋\n\n` +
       `Você foi convidado por ${session.user.name} para se juntar à equipe da *${company?.name}* no *Kipo*.\n\n` +
       `Seu acesso como *${role === "ADMIN" ? "Administrador" : "Membro"}* está pronto:\n` +
@@ -75,8 +76,6 @@ export const inviteUserViaWhatsApp = actionClient
       `🔗 *Acesse aqui:* ${process.env.NEXTAUTH_URL}/login\n\n` +
       `*Por segurança, o sistema solicitará que você crie sua própria senha no primeiro acesso.*`
     );
-
-    const whatsappUrl = `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodedMessage}`;
 
     revalidatePath("/settings/team");
     

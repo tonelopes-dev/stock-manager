@@ -23,6 +23,7 @@ import {
   Star,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { getWhatsAppUrl } from "@/app/_lib/utils";
 
 import { Input } from "@/app/_components/ui/input";
 import { Button } from "@/app/_components/ui/button";
@@ -354,7 +355,7 @@ export function MenuClient({
         <Search className="absolute left-10 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <Input
           placeholder="O que você quer comer hoje?"
-          className="h-14 rounded-2xl border-none bg-gray-100 pl-12 text-sm shadow-inner focus-visible:ring-primary/20"
+          className="h-14 rounded-2xl border-none bg-gray-100 pl-12 text-base md:text-sm shadow-inner focus-visible:ring-primary/20"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -528,7 +529,7 @@ export function MenuClient({
                 <div className="grid grid-cols-1 gap-3">
                   {currentMenuData.whatsappNumber && (
                     <a 
-                      href={`https://wa.me/${currentMenuData.whatsappNumber.replace(/\D/g, '')}`}
+                      href={getWhatsAppUrl(currentMenuData.whatsappNumber)}
                       target="_blank"
                       className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 bg-white hover:border-green-200 hover:bg-green-50/30 transition-all group"
                     >

@@ -315,14 +315,14 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
                 </label>
                 <div className="relative">
                   <Phone className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                  <Input
-                    value={loginPhone}
-                    onChange={(e) => setLoginPhone(formatPhoneNumber(e.target.value))}
-                    placeholder="(00) 00000-0000"
-                    type="tel"
-                    disabled={isCheckingPhone || showRegisterFields}
-                    className="h-14 rounded-2xl border-none bg-gray-50 pl-12 text-sm shadow-inner focus-visible:ring-primary/20"
-                  />
+                    <Input
+                      value={loginPhone}
+                      onChange={(e) => setLoginPhone(formatPhoneNumber(e.target.value))}
+                      placeholder="(00) 00000-0000"
+                      type="tel"
+                      disabled={isCheckingPhone || showRegisterFields}
+                      className="h-14 rounded-2xl border-none bg-gray-50 pl-12 text-base md:text-sm shadow-inner focus-visible:ring-primary/20"
+                    />
                 </div>
               </div>
 
@@ -338,7 +338,7 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
                       onChange={(e) => setLoginName(e.target.value)}
                       placeholder="Seu nome"
                       disabled={isCheckingPhone}
-                      className="h-14 rounded-2xl border-none bg-gray-50 pl-12 text-sm shadow-inner focus-visible:ring-primary/20"
+                      className="h-14 rounded-2xl border-none bg-gray-50 pl-12 text-base md:text-sm shadow-inner focus-visible:ring-primary/20"
                     />
                   </div>
                 </div>
@@ -382,7 +382,7 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder="Seu nome"
-                    className="h-14 rounded-2xl border-none bg-white pl-12 text-sm shadow-sm focus-visible:ring-primary/20"
+                    className="h-14 rounded-2xl border-none bg-white pl-12 text-base md:text-sm shadow-sm focus-visible:ring-primary/20"
                   />
                 </div>
               </div>
@@ -398,7 +398,7 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
                     onChange={(e) => setForm({ ...form, phoneNumber: formatPhoneNumber(e.target.value) })}
                     placeholder="(00) 00000-0000"
                     type="tel"
-                    className="h-14 rounded-2xl border-none bg-white pl-12 text-sm shadow-sm focus-visible:ring-primary/20"
+                    className="h-14 rounded-2xl border-none bg-white pl-12 text-base md:text-sm shadow-sm focus-visible:ring-primary/20"
                   />
                 </div>
               </div>
@@ -414,7 +414,7 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     placeholder="seu@email.com"
                     type="email"
-                    className="h-14 rounded-2xl border-none bg-white pl-12 text-sm shadow-sm focus-visible:ring-primary/20"
+                    className="h-14 rounded-2xl border-none bg-white pl-12 text-base md:text-sm shadow-sm focus-visible:ring-primary/20"
                   />
                 </div>
               </div>
@@ -429,7 +429,7 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
                     type="date"
                     value={form.birthDate}
                     onChange={(e) => setForm({ ...form, birthDate: e.target.value })}
-                    className="h-14 rounded-2xl border-none bg-white pl-12 text-sm shadow-sm focus-visible:ring-primary/20"
+                    className="h-14 rounded-2xl border-none bg-white pl-12 text-base md:text-sm shadow-sm focus-visible:ring-primary/20"
                   />
                 </div>
               </div>
