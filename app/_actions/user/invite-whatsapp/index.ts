@@ -1,3 +1,4 @@
+
 "use server";
 
 import { db } from "@/app/_lib/prisma";
@@ -6,20 +7,26 @@ import { auth } from "@/app/_lib/auth";
 import { z } from "zod";
 import { actionClient } from "@/app/_lib/safe-action";
 import { UserRole } from "@prisma/client";
-import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { getWhatsAppUrl } from "@/app/_lib/utils";
+import { InvitationService } from "@/app/_services/invitation.service";
 
 const inviteSchema = z.object({
   name: z.string().min(3),
   email: z.string().email(),
   phone: z.string().min(10), // Required for WhatsApp
   role: z.nativeEnum(UserRole),
+  permissions: z.array(z.string()).optional(),
 });
 
+/**
+ * 🛡️ REATORAÇÃO DE SEGURANÇA (Zero Trust)
+ * Anteriormente este arquivo enviava a senha em texto claro via WhatsApp.
+ * Agora, ele gera um convite seguro (token) e envia o link de aceite (Magic Link).
+ */
 export const inviteUserViaWhatsApp = actionClient
   .schema(inviteSchema)
-  .action(async ({ parsedInput: { name, email, phone, role } }) => {
+  .action(async ({ parsedInput: { name, email, phone, role, permissions = [] } }) => {
     const session = await auth();
     const companyId = await getCurrentCompanyId();
 
@@ -27,61 +34,45 @@ export const inviteUserViaWhatsApp = actionClient
       throw new Error("Não autorizado.");
     }
 
-    // 1. Generate a strong temporary password
-    const tempPassword = Math.random().toString(36).slice(-8) + "!ST";
-    const hashedPassword = await bcrypt.hash(tempPassword, 12);
-
-    // 2. Transacional creation
-    await db.$transaction(async (trx) => {
-      // Create user if not exists
-      let user = await trx.user.findUnique({ where: { email } });
-
-      if (!user) {
-        user = await trx.user.create({
-          data: {
-            name,
-            email,
-            phone,
-            password: hashedPassword,
-            needsPasswordChange: true,
-          },
-        });
-      }
-
-      // Link to company
-      await trx.userCompany.upsert({
-        where: {
-          userId_companyId: {
-            userId: user.id,
-            companyId,
-          },
-        },
-        update: { role },
-        create: {
-          userId: user.id,
-          companyId,
-          role,
-        },
-      });
+    // 1. Verificar se usuário já existe na empresa
+    const existingMember = await db.userCompany.findFirst({
+      where: {
+        companyId,
+        user: { email },
+      },
     });
 
-    // 3. Generate WhatsApp Link
+    if (existingMember) {
+      throw new Error("Este usuário já faz parte da empresa.");
+    }
+
+    // 2. Criar Convite Seguro via Serviço
+    const invitation = await InvitationService.createInvitation({
+      email,
+      role,
+      companyId,
+      permissions,
+      inviterId: session.user.id,
+    });
+
+    // 3. Obter dados da empresa para a mensagem
     const company = await db.company.findUnique({ where: { id: companyId } });
-    const whatsappUrl = getWhatsAppUrl(phone, 
-      `Olá ${name}! 👋\n\n` +
+
+    // 4. Gerar WhatsApp Link com o Magic Link de aceite
+    const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/invite/accept?token=${invitation.token}`;
+    
+    const message = `Olá ${name}! 👋\n\n` +
       `Você foi convidado por ${session.user.name} para se juntar à equipe da *${company?.name}* no *Kipo*.\n\n` +
-      `Seu acesso como *${role === "ADMIN" ? "Administrador" : "Membro"}* está pronto:\n` +
-      `🔐 *E-mail:* ${email}\n` +
-      `🔑 *Senha Temporária:* ${tempPassword}\n\n` +
-      `🔗 *Acesse aqui:* ${process.env.NEXTAUTH_URL}/login\n\n` +
-      `*Por segurança, o sistema solicitará que você crie sua própria senha no primeiro acesso.*`
-    );
+      `Para aceitar o convite e configurar seu acesso, clique no link seguro abaixo:\n\n` +
+      `🔗 *Aceitar Convite:* ${inviteLink}\n\n` +
+      `_Este link expira em 48 horas por segurança._`;
+
+    const whatsappUrl = getWhatsAppUrl(phone, message);
 
     revalidatePath("/settings/team");
     
     return { 
         success: true, 
-        whatsappUrl,
-        tempPassword // Just in case UI wants to show it
+        whatsappUrl 
     };
   });

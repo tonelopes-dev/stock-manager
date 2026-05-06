@@ -28,6 +28,7 @@ export const getTeamMembers = async () => {
     name: member.user.name,
     email: member.user.email,
     role: member.role,
+    permissions: member.permissions,
     joinedAt: member.createdAt,
   }));
 };

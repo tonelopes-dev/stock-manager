@@ -4,9 +4,9 @@ import { UserRole } from "@prisma/client";
 import { getCurrentCompanyId } from "./get-current-company";
 
 /**
- * Retorna o papel do usuário logado na empresa atual.
+ * Retorna o papel e as permissões do usuário logado na empresa atual.
  */
-export async function getCurrentUserRole(): Promise<UserRole | null> {
+export async function getCurrentUserAuth() {
   const session = await auth();
   const companyId = await getCurrentCompanyId();
   
@@ -19,27 +19,62 @@ export async function getCurrentUserRole(): Promise<UserRole | null> {
         companyId,
       },
     },
-    select: { role: true },
+    select: { role: true, permissions: true },
   });
 
-  return userCompany?.role || null;
+  return userCompany ? { 
+    role: userCompany.role, 
+    permissions: userCompany.permissions,
+    userId: session.user.id,
+    companyId
+  } : null;
+}
+
+/**
+ * Legado: Retorna apenas o papel.
+ */
+export async function getCurrentUserRole(): Promise<UserRole | null> {
+  const authData = await getCurrentUserAuth();
+  return authData?.role || null;
 }
 
 /**
  * Garante que o usuário tem um dos papéis permitidos.
- * Lança erro se não autorizado. (Camada de Proteção de Server Actions)
+ * (Camada de Proteção de Server Actions)
  */
 export async function assertRole(allowedRoles: UserRole[]) {
-  const session = await auth();
-  const role = await getCurrentUserRole();
+  const authData = await getCurrentUserAuth();
   
-  if (!role || !allowedRoles.includes(role) || !session?.user?.id) {
+  if (!authData || !allowedRoles.includes(authData.role)) {
     throw new Error("Ação não permitida: nível de permissão insuficiente.");
   }
   
-  return { role, userId: session.user.id };
+  return { role: authData.role, userId: authData.userId };
 }
 
+/**
+ * Garante que o usuário tem uma permissão específica (Capability).
+ * Se o usuário for OWNER, ele tem permissão total automaticamente.
+ */
+export async function assertCapability(permission: string) {
+  const authData = await getCurrentUserAuth();
+
+  if (!authData) {
+    throw new Error("Não autenticado.");
+  }
+
+  // 1. Superuser Check (OWNER pode tudo)
+  if (authData.role === UserRole.OWNER) {
+    return authData;
+  }
+
+  // 2. Granular Check
+  if (!authData.permissions.includes(permission)) {
+    throw new Error("Ação não permitida: nível de permissão insuficiente.");
+  }
+
+  return authData;
+}
 
 // Helpers rápidos para legibilidade
 export const OWNER_ONLY = [UserRole.OWNER];

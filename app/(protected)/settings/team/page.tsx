@@ -8,13 +8,14 @@ import { getTeamMembers, getPendingInvitations } from "@/app/_data-access/user/g
 import { Card, CardContent } from "@/app/_components/ui/card";
 import { Badge } from "@/app/_components/ui/badge";
 import { UserIcon, MailIcon, ShieldCheckIcon, ClockIcon } from "lucide-react";
-import InviteMemberButton from "./_components/invite-member-button";
+import MemberFormModal from "./_components/member-form-modal";
 import { getCurrentUserRole } from "@/app/_lib/rbac";
 import { auth } from "@/app/_lib/auth";
 import { UserRole } from "@prisma/client";
 import { MemberCardActions } from "./_components/member-card-actions";
 import { ActivityTimeline } from "@/app/_components/activity-timeline";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { PERMISSION_LABELS } from "@/app/_lib/permissions";
 
 
 export default async function TeamPage() {
@@ -36,7 +37,7 @@ export default async function TeamPage() {
           <HeaderTitle>Gestão de Equipe</HeaderTitle>
         </HeaderLeft>
         <HeaderRight>
-          {isManagement && <InviteMemberButton />}
+          {isManagement && <MemberFormModal mode="invite" />}
         </HeaderRight>
       </Header>
 
@@ -66,11 +67,20 @@ export default async function TeamPage() {
                                 )}
                             </div>
                             <p className="text-sm text-muted-foreground truncate">{member.email}</p>
+                            
+                            {member.permissions.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                    {member.permissions.map((p) => (
+                                        <Badge key={p} variant="outline" className="text-[8px] h-3.5 px-1 bg-muted/30 border-muted-foreground/20 text-muted-foreground font-medium uppercase">
+                                            {PERMISSION_LABELS[p as keyof typeof PERMISSION_LABELS] || p}
+                                        </Badge>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                         
                         <MemberCardActions 
-                          memberId={member.id}
-                          memberRole={member.role as UserRole}
+                          member={member}
                           requesterRole={requesterRole}
                           isSelf={member.userId === requesterId}
                         />
