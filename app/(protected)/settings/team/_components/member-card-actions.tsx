@@ -28,6 +28,7 @@ interface MemberCardActionsProps {
     email: string;
     role: UserRole;
     permissions: string[];
+    avatarUrl?: string | null;
     userId: string;
   };
   requesterRole: UserRole;
