@@ -18,6 +18,7 @@ import { Loader2Icon, SaveIcon } from "lucide-react";
 
 import { updateProfile } from "@/app/_actions/user/update-profile";
 import { useAction } from "next-safe-action/hooks";
+import { PatternFormat, NumberFormatValues } from "react-number-format";
 
 const profileSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
@@ -95,7 +96,14 @@ export const ProfileForm = ({ user }: { user: UserProfile | null }) => {
               <FormItem>
                 <FormLabel className="font-bold">Telefone / WhatsApp</FormLabel>
                 <FormControl>
-                  <Input placeholder="+55 (11) 99999-9999" {...field} />
+                  <PatternFormat
+                    format="(##) #####-####"
+                    mask="_"
+                    customInput={Input}
+                    placeholder="(11) 99999-9999"
+                    value={field.value}
+                    onValueChange={(values: NumberFormatValues) => field.onChange(values.value)}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

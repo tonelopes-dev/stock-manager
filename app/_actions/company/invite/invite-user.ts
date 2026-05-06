@@ -6,17 +6,17 @@ import { inviteUserSchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { assertRole, ADMIN_AND_OWNER } from "@/app/_lib/rbac";
-import { sendEmail } from "@/app/_services/email.service";
-import { invitationTemplate } from "@/app/_services/email/templates";
+import { InvitationService } from "@/app/_services/invitation.service";
+import { AuditService } from "@/app/_services/audit";
+import { AuditEventType } from "@prisma/client";
 
 export const inviteUser = actionClient
   .schema(inviteUserSchema)
   .action(async ({ parsedInput: { email, role } }) => {
     const companyId = await getCurrentCompanyId();
-    await assertRole(ADMIN_AND_OWNER);
+    const { userId: inviterId } = await assertRole(ADMIN_AND_OWNER);
 
-
-    // Check if user is already in the company
+    // 1. Verificar se usuário já é membro
     const existingMember = await db.userCompany.findFirst({
       where: {
         companyId,
@@ -28,47 +28,25 @@ export const inviteUser = actionClient
       throw new Error("Usuário já é membro da empresa.");
     }
 
-    // Check if there is already a pending invitation
-    const existingInvitation = await db.companyInvitation.findFirst({
-      where: {
-        email,
-        companyId,
-        status: "PENDING",
-      },
+    // 2. Criar convite via Serviço (Geração de Token e Expiração centralizada)
+    const invitation = await InvitationService.createInvitation({
+      email,
+      role,
+      companyId,
+      inviterId,
     });
 
-    if (existingInvitation) {
-      throw new Error("Já existe um convite pendente para este email.");
-    }
+    // 3. Enviar E-mail via Serviço (Centralizado)
+    await InvitationService.sendInvitationEmail(invitation.id);
 
-    await db.companyInvitation.create({
-      data: {
-        email,
-        role,
-        companyId,
-      },
+    // 4. Log Audit
+    await AuditService.log({
+      type: AuditEventType.MEMBER_INVITED,
+      companyId,
+      entityType: "TEAM_MEMBER",
+      metadata: { email, role },
     });
 
-    // Send invitation email
-    const company = await db.company.findUnique({
-      where: { id: companyId },
-      select: { name: true },
-    });
-
-    const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/register?email=${email}`;
-
-    try {
-      await sendEmail({
-        to: email,
-        subject: `Você foi convidado para a empresa ${company?.name || "Kipo"}`,
-        html: invitationTemplate({
-          companyName: company?.name || "Kipo",
-          inviteLink,
-        }),
-      });
-    } catch (err) {
-      console.error("Failed to send invitation email:", err);
-    }
-
-    revalidatePath("/company/members");
+    revalidatePath("/settings/team");
+    return { success: true };
   });

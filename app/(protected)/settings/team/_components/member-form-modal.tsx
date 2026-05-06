@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAction } from "next-safe-action/hooks";
 import { inviteUserViaWhatsApp } from "@/app/_actions/user/invite-whatsapp";
+import { updateMemberAction } from "@/app/_actions/user/update-member";
 import {
   Dialog,
   DialogContent,
@@ -38,43 +39,69 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/app/_components/ui/tooltip";
-import { PlusIcon, Loader2Icon, UserPlusIcon, MessageCircleIcon, CheckCircle2Icon, ShieldCheckIcon, InfoIcon } from "lucide-react";
+import { 
+    PlusIcon, 
+    Loader2Icon, 
+    UserPlusIcon, 
+    MessageCircleIcon, 
+    CheckCircle2Icon, 
+    ShieldCheckIcon, 
+    InfoIcon,
+    Edit3Icon 
+} from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import { UserRole } from "@prisma/client";
 import { PERMISSIONS, PERMISSION_PRESETS, PERMISSION_LABELS, PERMISSION_DESCRIPTIONS } from "@/app/_lib/permissions";
+import { ImagePicker } from "@/app/_components/ui/image-picker";
+import { PatternFormat, NumberFormatValues } from "react-number-format";
 
 const formSchema = z.object({
-  name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
-  email: z.string().email("E-mail inválido"),
-  phone: z.string().min(10, "Telefone inválido (mínimo 10 dígitos)"),
+  name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres").optional(),
+  email: z.string().email("E-mail inválido").optional(),
+  phone: z.string().min(10, "Telefone inválido (mínimo 10 dígitos)").optional(),
   role: z.nativeEnum(UserRole),
   permissions: z.array(z.string()).default([]),
+  avatarUrl: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-const InviteMemberButton = () => {
+interface MemberFormModalProps {
+  mode: "invite" | "edit";
+  initialData?: {
+    userCompanyId?: string;
+    name: string;
+    email: string;
+    phone?: string;
+    role: UserRole;
+    permissions: string[];
+    avatarUrl?: string;
+  };
+  trigger?: React.ReactNode;
+}
+
+const MemberFormModal = ({ mode, initialData, trigger }: MemberFormModalProps) => {
   const [open, setOpen] = useState(false);
   const [invitationResult, setInvitationResult] = useState<{ whatsappUrl: string } | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      role: UserRole.MEMBER,
-      permissions: [],
+      name: initialData?.name || "",
+      email: initialData?.email || "",
+      phone: initialData?.phone || "",
+      role: initialData?.role || UserRole.MEMBER,
+      permissions: initialData?.permissions || [],
+      avatarUrl: initialData?.avatarUrl || "",
     },
   });
 
-  const { execute, isPending } = useAction(inviteUserViaWhatsApp, {
+  // Action: Convidar
+  const inviteAction = useAction(inviteUserViaWhatsApp, {
     onSuccess: (data) => {
       if (data.data?.success && data.data?.whatsappUrl) {
-        setInvitationResult({
-            whatsappUrl: data.data.whatsappUrl
-        });
+        setInvitationResult({ whatsappUrl: data.data.whatsappUrl });
         toast.success("Convite gerado com sucesso!");
       }
     },
@@ -83,19 +110,49 @@ const InviteMemberButton = () => {
     },
   });
 
+  // Action: Editar
+  const updateAction = useAction(updateMemberAction, {
+    onSuccess: () => {
+      toast.success("Membro atualizado com sucesso!");
+      setOpen(false);
+      form.reset();
+    },
+    onError: (error) => {
+      toast.error(error.error.serverError || "Erro ao atualizar membro.");
+    },
+  });
+
   const onSubmit = (values: FormValues) => {
-    execute(values);
+    if (mode === "invite") {
+      inviteAction.execute({
+        name: values.name!,
+        email: values.email!,
+        phone: values.phone!,
+        role: values.role,
+        permissions: values.permissions,
+        avatarUrl: values.avatarUrl,
+      });
+    } else {
+      updateAction.execute({
+        userCompanyId: initialData!.userCompanyId!,
+        role: values.role,
+        permissions: values.permissions,
+        avatarUrl: values.avatarUrl,
+      });
+    }
   };
 
   const handleClose = () => {
     setOpen(false);
     setInvitationResult(null);
-    form.reset();
+    if (mode === "invite") form.reset();
   };
 
   const applyPreset = (preset: keyof typeof PERMISSION_PRESETS) => {
     form.setValue("permissions", PERMISSION_PRESETS[preset]);
   };
+
+  const isPending = inviteAction.isPending || updateAction.isPending;
 
   return (
     <Dialog open={open} onOpenChange={(val) => {
@@ -103,21 +160,27 @@ const InviteMemberButton = () => {
         else setOpen(true);
     }}>
       <DialogTrigger asChild>
-        <Button className="font-black gap-2 h-11">
-          <PlusIcon size={18} />
-          Convidar Membro
-        </Button>
+        {trigger || (
+            <Button className="font-black gap-2 h-11">
+                <PlusIcon size={18} />
+                Convidar Membro
+            </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         {!invitationResult ? (
           <>
             <DialogHeader>
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
-                <UserPlusIcon size={24} />
+                {mode === "invite" ? <UserPlusIcon size={24} /> : <Edit3Icon size={24} />}
               </div>
-              <DialogTitle className="text-2xl font-black">Convidar para a equipe</DialogTitle>
+              <DialogTitle className="text-2xl font-black">
+                {mode === "invite" ? "Convidar para a equipe" : "Editar Membro"}
+              </DialogTitle>
               <DialogDescription>
-                Informe os dados do colaborador e defina as permissões de acesso.
+                {mode === "invite" 
+                    ? "Informe os dados do colaborador e defina as permissões de acesso."
+                    : "Atualize o papel e as capacidades deste colaborador na empresa."}
               </DialogDescription>
             </DialogHeader>
 
@@ -130,6 +193,26 @@ const InviteMemberButton = () => {
                              <UserPlusIcon size={20} className="text-primary" />
                              <h3 className="font-black text-lg">Dados do Colaborador</h3>
                         </div>
+
+                        <div className="flex justify-center sm:justify-start pb-4">
+                            <FormField
+                                control={form.control}
+                                name="avatarUrl"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <ImagePicker 
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                category="avatars"
+                                                disabled={isPending}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                         
                         <FormField
                         control={form.control}
@@ -138,7 +221,11 @@ const InviteMemberButton = () => {
                             <FormItem>
                             <FormLabel className="font-bold">Nome Completo</FormLabel>
                             <FormControl>
-                                <Input placeholder="Nome do colaborador" {...field} />
+                                <Input 
+                                    placeholder="Nome do colaborador" 
+                                    {...field} 
+                                    disabled={mode === "edit"} 
+                                />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -151,7 +238,11 @@ const InviteMemberButton = () => {
                         render={({ field }) => (
                             <FormItem>
                             <FormLabel className="font-bold">Papel Base</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                                disabled={isPending}
+                            >
                                 <FormControl>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecione um papel" />
@@ -174,7 +265,11 @@ const InviteMemberButton = () => {
                             <FormItem>
                             <FormLabel className="font-bold">E-mail</FormLabel>
                             <FormControl>
-                                <Input placeholder="ex@empresa.com" {...field} />
+                                <Input 
+                                    placeholder="ex@empresa.com" 
+                                    {...field} 
+                                    disabled={mode === "edit"}
+                                />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -186,9 +281,17 @@ const InviteMemberButton = () => {
                         name="phone"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel className="font-bold">WhatsApp (DDI+DDD)</FormLabel>
+                            <FormLabel className="font-bold">WhatsApp (Celular)</FormLabel>
                             <FormControl>
-                                <Input placeholder="5511999999999" {...field} />
+                                <PatternFormat
+                                    format="(##) #####-####"
+                                    mask="_"
+                                    customInput={Input}
+                                    placeholder="(11) 99999-9999"
+                                    value={field.value}
+                                    onValueChange={(values: NumberFormatValues) => field.onChange(values.value)}
+                                    disabled={mode === "edit"}
+                                />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -288,7 +391,7 @@ const InviteMemberButton = () => {
                     {isPending ? (
                       <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
-                      "Gerar Convite Seguro"
+                        mode === "invite" ? "Gerar Convite Seguro" : "Salvar Alterações"
                     )}
                   </Button>
                 </div>
@@ -330,4 +433,4 @@ const InviteMemberButton = () => {
   );
 };
 
-export default InviteMemberButton;
+export default MemberFormModal;

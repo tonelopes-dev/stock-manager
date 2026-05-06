@@ -36,33 +36,41 @@ Este capítulo documenta a arquitetura de autenticação multi-tenant do Kipo ER
 
 ```prisma
 model UserCompany {
-  id        String   @id @default(cuid())
-  userId    String
-  companyId String
-  role      UserRole @default(MEMBER)
+  id          String   @id @default(cuid())
+  userId      String
+  companyId   String
+  role        UserRole @default(MEMBER)
+  permissions String[] // Permissões granulares (Capabilities)
 
   @@unique([userId, companyId])
 }
 ```
 
-**Um User pode pertencer a várias Companies**, e cada associação tem um `role` independente. O sistema atualmente usa `take: 1` no JWT callback para selecionar a primeira empresa do utilizador.
+**Um User pode pertencer a várias Companies**, e cada associação tem um `role` independente e um conjunto de `permissions` granulares.
 
-### `CompanyInvitation`
+### `CompanyInvitation` (Convites Seguros)
 
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `email` | `String` | Email do convidado. |
 | `role` | `UserRole` | Papel a ser atribuído após aceitar. |
+| `permissions` | `String[]` | Capacidades pré-atribuídas no convite. |
+| `token` | `String (unique)` | Token único (Magic Link) para aceite seguro. |
+| `expiresAt` | `DateTime` | Data de expiração (padrão: 48h). |
 | `status` | `InvitationStatus` | `PENDING`, `ACCEPTED`, `REJECTED`. |
 
-**Constraint:** `@@unique([email, companyId, status])` — Impede convites duplicados com o mesmo estado.
+**Zero Trust:** O sistema não envia senhas em texto claro. O convidado recebe um link seguro e define sua própria senha ao entrar.
 
-### `UserRole` (Enum)
+### `UserRole` (Enum) & Capabilities
+
+O Kipo utiliza um modelo **Híbrido**:
+1. **Roles:** Papéis fixos que definem o nível macro (Hierarquia).
+2. **Capabilities:** Permissões granulares (`permissions[]`) que permitem o "Least Privilege".
 
 ```
-OWNER  → Dono da empresa. Tudo permitido, incluindo destruição e transferência.
-ADMIN  → Administrador. Gestão completa, exceto planos e billing.
-MEMBER → Membro operacional. PDV, KDS, vendas do dia-a-dia.
+OWNER  → Dono da empresa. Superuser (possui todas as capabilities implicitamente).
+ADMIN  → Administrador. Gestão completa, exceto billing.
+MEMBER → Membro operacional. Acesso baseado estritamente nas capabilities atribuídas.
 ```
 
 ---
@@ -254,17 +262,23 @@ db.userCompany.findUnique({
 
 ### `assertRole(allowedRoles)`
 
-Usada como guarda dentro de Server Actions:
+Guarda macro baseada na hierarquia.
+
+### `assertCapability(permission)`
+
+Guarda granular baseada em ações específicas. Recomendada para a maioria das proteções de Server Actions.
 
 ```typescript
-// Exemplo: Apenas OWNER e ADMIN podem alterar promoções
-export const updateProductPromotion = actionClient
-  .schema(updateProductPromotionSchema)
-  .action(async ({ parsedInput }) => {
-    await assertRole(ADMIN_AND_OWNER); // ← Lança erro se MEMBER
+// Exemplo: Verificando se o membro pode ver o KDS
+export const getKdsOrders = actionClient
+  .action(async () => {
+    await assertCapability(PERMISSIONS.KDS_VIEW);
     // ... lógica
   });
 ```
+
+> [!TIP]
+> O `OWNER` é ignorado por esta verificação (acesso total), garantindo que o dono nunca fique bloqueado por erro de configuração de permissão.
 
 ### Helpers
 

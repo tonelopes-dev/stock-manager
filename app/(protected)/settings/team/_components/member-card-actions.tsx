@@ -2,18 +2,10 @@
 
 import { useAction } from "next-safe-action/hooks";
 import { removeMember } from "@/app/_actions/user/remove-member";
-import { updateMemberRole } from "@/app/_actions/user/update-member-role";
 import { UserRole } from "@prisma/client";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/app/_components/ui/dropdown-menu";
 import { Button } from "@/app/_components/ui/button";
-import { Trash2Icon, ShieldIcon, UserIcon, Loader2Icon } from "lucide-react";
+import { Trash2Icon, Loader2Icon, Edit3Icon } from "lucide-react";
+import MemberFormModal from "./member-form-modal";
 
 import { toast } from "sonner";
 import {
@@ -30,13 +22,19 @@ import {
 import { useState } from "react";
 
 interface MemberCardActionsProps {
-  memberId: string;
-  memberRole: UserRole;
+  member: {
+    id: string; // UserCompany ID
+    name: string;
+    email: string;
+    role: UserRole;
+    permissions: string[];
+    userId: string;
+  };
   requesterRole: UserRole;
   isSelf: boolean;
 }
 
-export const MemberCardActions = ({ memberId, memberRole, requesterRole, isSelf }: MemberCardActionsProps) => {
+export const MemberCardActions = ({ member, requesterRole, isSelf }: MemberCardActionsProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const removeAction = useAction(removeMember, {
@@ -44,49 +42,37 @@ export const MemberCardActions = ({ memberId, memberRole, requesterRole, isSelf 
     onError: (e) => { toast.error(e.error.serverError || "Erro ao remover membro."); },
   });
 
-  const updateRoleAction = useAction(updateMemberRole, {
-    onSuccess: () => { toast.success("Papel atualizado com sucesso."); },
-    onError: (e) => { toast.error(e.error.serverError || "Erro ao atualizar papel."); },
-  });
-
-
   const canRemove = !isSelf && (
     requesterRole === UserRole.OWNER || 
-    (requesterRole === UserRole.ADMIN && memberRole === UserRole.MEMBER)
+    (requesterRole === UserRole.ADMIN && member.role === UserRole.MEMBER)
   );
 
-  const canChangeRole = requesterRole === UserRole.OWNER && !isSelf;
+  const canEdit = !isSelf && (
+    requesterRole === UserRole.OWNER || 
+    (requesterRole === UserRole.ADMIN && member.role === UserRole.MEMBER)
+  );
 
-  if (!canRemove && !canChangeRole) return null;
+  if (!canRemove && !canEdit) return null;
 
   return (
-    <div className="flex items-center gap-2">
-      {canChangeRole && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">
-              <ShieldIcon size={16} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>Alterar Papel</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem 
-               onClick={() => updateRoleAction.execute({ userCompanyId: memberId, newRole: UserRole.MEMBER })}
-               className="gap-2"
-               disabled={memberRole === UserRole.MEMBER || updateRoleAction.isPending}
-            >
-              <UserIcon size={14} /> Membro (Operação)
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-               onClick={() => updateRoleAction.execute({ userCompanyId: memberId, newRole: UserRole.ADMIN })}
-               className="gap-2"
-               disabled={memberRole === UserRole.ADMIN || updateRoleAction.isPending}
-            >
-              <ShieldIcon size={14} /> Administrador
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+    <div className="flex items-center gap-1">
+      {canEdit && (
+        <MemberFormModal 
+            mode="edit"
+            initialData={{
+                userCompanyId: member.id,
+                name: member.name,
+                email: member.email,
+                role: member.role,
+                permissions: member.permissions,
+                avatarUrl: member.avatarUrl
+            }}
+            trigger={
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">
+                    <Edit3Icon size={16} />
+                </Button>
+            }
+        />
       )}
 
       {canRemove && (
@@ -107,7 +93,7 @@ export const MemberCardActions = ({ memberId, memberRole, requesterRole, isSelf 
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
               <AlertDialogAction 
-                onClick={() => removeAction.execute({ userCompanyId: memberId })}
+                onClick={() => removeAction.execute({ userCompanyId: member.id })}
                 className="bg-destructive hover:bg-destructive"
               >
                 {removeAction.isPending ? <Loader2Icon className="animate-spin" /> : "Confirmar Remoção"}

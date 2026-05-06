@@ -136,6 +136,7 @@ model User {
   emailVerified        DateTime?
   password             String?
   image                String?
+  avatarUrl            String?
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
   needsPasswordChange  Boolean           @default(false)
@@ -277,27 +278,32 @@ model FixedExpense {
 }
 
 model UserCompany {
-  id        String   @id @default(cuid())
-  userId    String
-  companyId String
-  role      UserRole @default(MEMBER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  userId      String
+  companyId   String
+  role        UserRole @default(MEMBER)
+  permissions String[] @default([]) // Granular permissions (Capabilities)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, companyId])
 }
 
 model CompanyInvitation {
-  id        String           @id @default(uuid())
-  email     String
-  role      UserRole         @default(MEMBER)
-  status    InvitationStatus @default(PENDING)
-  companyId String
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  company   Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id          String           @id @default(uuid())
+  email       String
+  role        UserRole         @default(MEMBER)
+  status      InvitationStatus @default(PENDING)
+  companyId   String
+  token       String           @unique @default(uuid())
+  expiresAt   DateTime?        // Invitation expiration
+  inviterId   String?          // User who sent the invitation
+  permissions String[]         @default([]) // Pre-defined permissions for the new member
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  company     Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@unique([email, companyId, status])
 }

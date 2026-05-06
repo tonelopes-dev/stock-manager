@@ -14,6 +14,7 @@ export const getTeamMembers = async () => {
           id: true,
           name: true,
           email: true,
+          avatarUrl: true,
         },
       },
     },
@@ -27,7 +28,9 @@ export const getTeamMembers = async () => {
     userId: member.userId,
     name: member.user.name,
     email: member.user.email,
+    avatarUrl: member.user.avatarUrl,
     role: member.role,
+    permissions: member.permissions,
     joinedAt: member.createdAt,
   }));
 };
