@@ -39,6 +39,7 @@ import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { PatternFormat, NumberFormatValues } from "react-number-format";
 import { Textarea } from "@/app/_components/ui/textarea";
 import { DatePicker } from "@/app/_components/ui/date-picker";
 import { format, parseISO } from "date-fns";
@@ -126,22 +127,6 @@ const UpsertCustomerDialogContent = ({
     },
   });
 
-  const formatPhoneNumber = (value: string) => {
-    const cleaned = value.replace(/\D/g, "");
-    let formatted = "";
-
-    if (cleaned.length > 0) {
-      formatted = "(" + cleaned.slice(0, 2);
-      if (cleaned.length > 2) {
-        formatted += ") " + cleaned.slice(2, 7);
-        if (cleaned.length > 7) {
-          formatted += "-" + cleaned.slice(7, 11);
-        }
-      }
-    }
-
-    return formatted;
-  };
 
   const handleAddCategory = async () => {
     if (!newCategoryName) return;
@@ -249,14 +234,15 @@ const UpsertCustomerDialogContent = ({
                     Telefone <span className="text-destructive">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input
+                    <PatternFormat
+                      format="(##) #####-####"
+                      mask="_"
+                      customInput={Input}
                       placeholder="(00) 00000-0000"
                       className="h-10 text-xs font-bold"
-                      {...field}
                       value={field.value || ""}
-                      onChange={(e) => {
-                        const formatted = formatPhoneNumber(e.target.value);
-                        field.onChange(formatted);
+                      onValueChange={(values: NumberFormatValues) => {
+                        field.onChange(values.value);
                       }}
                     />
                   </FormControl>

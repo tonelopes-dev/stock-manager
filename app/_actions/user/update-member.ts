@@ -14,15 +14,16 @@ const updateMemberSchema = z.object({
   userCompanyId: z.string(), // ID da relação UserCompany
   role: z.nativeEnum(UserRole),
   permissions: z.array(z.string()),
+  avatarUrl: z.string().optional(),
 });
 
 /**
  * 🛠️ SERVER ACTION: Atualizar Membro da Equipe
- * Permite alterar o papel e as capacidades granulares de um colaborador.
+ * Permite alterar o papel, as capacidades granulares e a foto de um colaborador.
  */
 export const updateMemberAction = actionClient
   .schema(updateMemberSchema)
-  .action(async ({ parsedInput: { userCompanyId, role, permissions } }) => {
+  .action(async ({ parsedInput: { userCompanyId, role, permissions, avatarUrl } }) => {
     const companyId = await getCurrentCompanyId();
     
     // 1. Verificação de Permissão (Lei Zero Trust)
@@ -47,13 +48,24 @@ export const updateMemberAction = actionClient
       throw new Error("Não é possível alterar as permissões do proprietário da empresa.");
     }
 
-    // 4. Executar Atualização
-    await db.userCompany.update({
-      where: { id: userCompanyId },
-      data: {
-        role,
-        permissions,
-      },
+    // 4. Executar Atualização em Transação
+    await db.$transaction(async (trx) => {
+        // Atualizar Role e Permissões no Elo UserCompany
+        await trx.userCompany.update({
+            where: { id: userCompanyId },
+            data: {
+                role,
+                permissions,
+            },
+        });
+
+        // Atualizar Avatar no User (se fornecido)
+        if (avatarUrl !== undefined) {
+            await trx.user.update({
+                where: { id: currentMember.userId },
+                data: { avatarUrl },
+            });
+        }
     });
 
     revalidatePath("/settings/team");

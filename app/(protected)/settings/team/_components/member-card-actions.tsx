@@ -64,7 +64,8 @@ export const MemberCardActions = ({ member, requesterRole, isSelf }: MemberCardA
                 name: member.name,
                 email: member.email,
                 role: member.role,
-                permissions: member.permissions
+                permissions: member.permissions,
+                avatarUrl: member.avatarUrl
             }}
             trigger={
                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">

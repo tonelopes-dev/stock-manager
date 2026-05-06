@@ -20,6 +20,7 @@ import { useCartStore, CartItem } from "../_store/use-cart-store";
 import { createOrderAction } from "@/app/_actions/order/create-order";
 import { SelfieCamera } from "./selfie-camera";
 import { updateCustomerSelfie } from "@/app/_actions/customer/update-customer-selfie";
+import { PatternFormat, NumberFormatValues } from "react-number-format";
 
 interface CartCheckoutSheetProps {
   isOpen: boolean;
@@ -277,12 +278,14 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelf
                           TELEFONE (WHATSAPP) *
                         </label>
                         <div className="flex gap-2">
-                          <Input 
+                          <PatternFormat
+                            format="(##) #####-####"
+                            mask="_"
+                            customInput={Input}
                             placeholder="(00) 00000-0000"
                             value={phoneNumber}
-                            onChange={(e) => {
-                              const formatted = formatPhoneNumber(e.target.value);
-                              setPhoneNumber(formatted);
+                            onValueChange={(values: NumberFormatValues) => {
+                              setPhoneNumber(values.value);
                               setIsPhoneVerified(false);
                             }}
                             className="h-12 rounded-xl border-none bg-white shadow-sm focus-visible:ring-primary/20 text-base md:text-sm"

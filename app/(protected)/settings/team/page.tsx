@@ -50,8 +50,12 @@ export default async function TeamPage() {
                     <Card key={member.id} className="overflow-hidden border-border transition-hover hover:border-primary/20">
                     <CardContent className="p-0">
                         <div className="flex items-center gap-4 p-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                            <UserIcon size={24} />
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground overflow-hidden relative">
+                            {member.avatarUrl ? (
+                                <img src={member.avatarUrl} alt={member.name || ""} className="h-full w-full object-cover" />
+                            ) : (
+                                <UserIcon size={24} />
+                            )}
                         </div>
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">

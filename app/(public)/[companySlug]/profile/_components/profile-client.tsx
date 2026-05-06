@@ -22,6 +22,7 @@ import { useUIStore } from "../../_store/use-ui-store";
 import { formatPhoneNumber } from "@/app/_lib/utils";
 import { updateCustomerSelfie } from "@/app/_actions/customer/update-customer-selfie";
 import { updateCustomerProfile } from "@/app/_actions/customer/update-customer-profile";
+import { PatternFormat, NumberFormatValues } from "react-number-format";
 
 interface ProfileClientProps {
   companySlug: string;
@@ -315,9 +316,12 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
                 </label>
                 <div className="relative">
                   <Phone className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                    <Input
+                    <PatternFormat
+                      format="(##) #####-####"
+                      mask="_"
+                      customInput={Input}
                       value={loginPhone}
-                      onChange={(e) => setLoginPhone(formatPhoneNumber(e.target.value))}
+                      onValueChange={(values: NumberFormatValues) => setLoginPhone(values.value)}
                       placeholder="(00) 00000-0000"
                       type="tel"
                       disabled={isCheckingPhone || showRegisterFields}
@@ -393,9 +397,12 @@ export function ProfileClient({ companySlug, companyId, companyName }: ProfileCl
                 </label>
                 <div className="relative">
                   <Phone className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                  <Input
+                  <PatternFormat
+                    format="(##) #####-####"
+                    mask="_"
+                    customInput={Input}
                     value={form.phoneNumber}
-                    onChange={(e) => setForm({ ...form, phoneNumber: formatPhoneNumber(e.target.value) })}
+                    onValueChange={(values: NumberFormatValues) => setForm({ ...form, phoneNumber: values.value })}
                     placeholder="(00) 00000-0000"
                     type="tel"
                     className="h-14 rounded-2xl border-none bg-white pl-12 text-base md:text-sm shadow-sm focus-visible:ring-primary/20"

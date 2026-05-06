@@ -53,6 +53,8 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { UserRole } from "@prisma/client";
 import { PERMISSIONS, PERMISSION_PRESETS, PERMISSION_LABELS, PERMISSION_DESCRIPTIONS } from "@/app/_lib/permissions";
+import { ImagePicker } from "@/app/_components/ui/image-picker";
+import { PatternFormat, NumberFormatValues } from "react-number-format";
 
 const formSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres").optional(),
@@ -60,6 +62,7 @@ const formSchema = z.object({
   phone: z.string().min(10, "Telefone inválido (mínimo 10 dígitos)").optional(),
   role: z.nativeEnum(UserRole),
   permissions: z.array(z.string()).default([]),
+  avatarUrl: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -73,6 +76,7 @@ interface MemberFormModalProps {
     phone?: string;
     role: UserRole;
     permissions: string[];
+    avatarUrl?: string;
   };
   trigger?: React.ReactNode;
 }
@@ -89,6 +93,7 @@ const MemberFormModal = ({ mode, initialData, trigger }: MemberFormModalProps) =
       phone: initialData?.phone || "",
       role: initialData?.role || UserRole.MEMBER,
       permissions: initialData?.permissions || [],
+      avatarUrl: initialData?.avatarUrl || "",
     },
   });
 
@@ -125,12 +130,14 @@ const MemberFormModal = ({ mode, initialData, trigger }: MemberFormModalProps) =
         phone: values.phone!,
         role: values.role,
         permissions: values.permissions,
+        avatarUrl: values.avatarUrl,
       });
     } else {
       updateAction.execute({
         userCompanyId: initialData!.userCompanyId!,
         role: values.role,
         permissions: values.permissions,
+        avatarUrl: values.avatarUrl,
       });
     }
   };
@@ -185,6 +192,26 @@ const MemberFormModal = ({ mode, initialData, trigger }: MemberFormModalProps) =
                         <div className="flex items-center gap-2 mb-2">
                              <UserPlusIcon size={20} className="text-primary" />
                              <h3 className="font-black text-lg">Dados do Colaborador</h3>
+                        </div>
+
+                        <div className="flex justify-center sm:justify-start pb-4">
+                            <FormField
+                                control={form.control}
+                                name="avatarUrl"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <ImagePicker 
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                category="avatars"
+                                                disabled={isPending}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </div>
                         
                         <FormField
@@ -254,11 +281,15 @@ const MemberFormModal = ({ mode, initialData, trigger }: MemberFormModalProps) =
                         name="phone"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel className="font-bold">WhatsApp (DDI+DDD)</FormLabel>
+                            <FormLabel className="font-bold">WhatsApp (Celular)</FormLabel>
                             <FormControl>
-                                <Input 
-                                    placeholder="5511999999999" 
-                                    {...field} 
+                                <PatternFormat
+                                    format="(##) #####-####"
+                                    mask="_"
+                                    customInput={Input}
+                                    placeholder="(11) 99999-9999"
+                                    value={field.value}
+                                    onValueChange={(values: NumberFormatValues) => field.onChange(values.value)}
                                     disabled={mode === "edit"}
                                 />
                             </FormControl>
