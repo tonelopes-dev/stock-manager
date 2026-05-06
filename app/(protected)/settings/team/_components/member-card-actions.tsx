@@ -24,7 +24,7 @@ import { useState } from "react";
 interface MemberCardActionsProps {
   member: {
     id: string; // UserCompany ID
-    name: string;
+    name: string | null;
     email: string;
     role: UserRole;
     permissions: string[];

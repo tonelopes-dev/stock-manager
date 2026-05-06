@@ -71,7 +71,7 @@ interface MemberFormModalProps {
   mode: "invite" | "edit";
   initialData?: {
     userCompanyId?: string;
-    name: string;
+    name: string | null;
     email: string;
     phone?: string;
     role: UserRole;
@@ -130,7 +130,6 @@ const MemberFormModal = ({ mode, initialData, trigger }: MemberFormModalProps) =
         phone: values.phone!,
         role: values.role,
         permissions: values.permissions,
-        avatarUrl: values.avatarUrl,
       });
     } else {
       updateAction.execute({
@@ -194,25 +193,27 @@ const MemberFormModal = ({ mode, initialData, trigger }: MemberFormModalProps) =
                              <h3 className="font-black text-lg">Dados do Colaborador</h3>
                         </div>
 
-                        <div className="flex justify-center sm:justify-start pb-4">
-                            <FormField
-                                control={form.control}
-                                name="avatarUrl"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <ImagePicker 
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                category="avatars"
-                                                disabled={isPending}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
+                        {mode === "edit" && (
+                            <div className="flex justify-center sm:justify-start pb-4">
+                                <FormField
+                                    control={form.control}
+                                    name="avatarUrl"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <ImagePicker 
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                    category="avatars"
+                                                    disabled={isPending}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        )}
                         
                         <FormField
                         control={form.control}
