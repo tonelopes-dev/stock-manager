@@ -171,7 +171,7 @@ export async function GET(req: NextRequest) {
     const expiredUpdateResult = await db.company.updateMany({
       where: {
         expiresAt: {
-          lt: today,
+          lt: new Date(),
         },
         subscriptionStatus: {
           in: ["ACTIVE", "TRIALING"],

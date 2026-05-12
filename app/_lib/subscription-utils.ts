@@ -53,20 +53,23 @@ export function getSubscriptionUIState(
 
   // 2. ACTIVE
   if (status === DBStatus.ACTIVE) {
-    const isExpiringSoon = level === "warning" || level === "urgent" || level === "expired";
+    const isExpired = level === "expired";
+    const isExpiringSoon = level === "warning" || level === "urgent" || isExpired;
     
     return {
-      statusLabel: "Plano Pro",
-      description: isExpiringSoon 
-        ? `Expira em ${daysRemaining} ${daysRemaining === 1 ? "dia" : "dias"}`
-        : "Assinatura ativa",
-      severity: level === "urgent" || level === "expired" ? "danger" : level === "warning" ? "warning" : "success",
+      statusLabel: isExpired ? "Assinatura Expirada" : "Plano Pro",
+      description: isExpired
+        ? "Renove para continuar usando o Kipo"
+        : isExpiringSoon 
+          ? `Expira em ${daysRemaining} ${daysRemaining === 1 ? "dia" : "dias"}`
+          : "Assinatura ativa",
+      severity: level === "urgent" || isExpired ? "danger" : level === "warning" ? "warning" : "success",
       allowRenewal: true,
       renewalDatePreview,
       primaryCTA: {
-        label: isExpiringSoon ? "Renovar Assinatura" : "Adicionar +1 Mês",
+        label: isExpired ? "Regularizar Agora" : isExpiringSoon ? "Renovar Assinatura" : "Adicionar +1 Mês",
         href: "/plans",
-        variant: isExpiringSoon ? "default" : "outline",
+        variant: isExpiringSoon || isExpired ? "default" : "outline",
       },
       daysRemaining,
     };
