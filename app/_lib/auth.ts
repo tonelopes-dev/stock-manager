@@ -79,6 +79,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 select: {
                   subscriptionStatus: true,
                   deletedAt: true,
+                  expiresAt: true,
                 }
               }
             },
@@ -94,10 +95,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       // 4. Populate missing fields
       const userCompany = dbUser.userCompanies[0];
+      const company = userCompany?.company;
+      
       token.companyId = userCompany?.companyId ?? "";
       token.role = userCompany?.role ?? UserRole.MEMBER;
-      token.subscriptionStatus = userCompany?.company?.subscriptionStatus ?? null;
-      token.companyDeletedAt = userCompany?.company?.deletedAt?.toISOString() ?? null;
+      token.companyDeletedAt = company?.deletedAt?.toISOString() ?? null;
+      token.expiresAt = company?.expiresAt?.toISOString() ?? null;
+
+      // Real-time status override: if expiresAt is in the past, treat as PAST_DUE
+      // even if the cron job hasn't updated the database yet.
+      const now = new Date();
+      const isExpired = company?.expiresAt && company.expiresAt < now;
+      
+      if (isExpired && company?.subscriptionStatus === "ACTIVE") {
+        token.subscriptionStatus = "PAST_DUE";
+      } else {
+        token.subscriptionStatus = company?.subscriptionStatus ?? null;
+      }
 
       return token;
     }

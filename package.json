@@ -11,6 +11,7 @@
     "prepare": "prisma generate",
     "db:seed": "prisma db seed",
     "db:reset": "npx prisma db push --force-reset && npm run db:seed",
+    "db:backup": "dotenv -e .env -- powershell -Command \"if (!(Test-Path backups)) { New-Item -ItemType Directory -Path backups }; $ts = Get-Date -Format 'yyyyMMdd_HHmmss'; echo 'Iniciando dump via Direct URL...'; pg_dump $env:DIRECT_URL > backups/backup_kipo_$ts.sql; echo 'Backup concluído em backups/backup_kipo_$ts.sql'\"",
     "db:clear-seed": "npx tsx prisma/clear-seed.ts",
     "seed:test": "node scripts/seed-daily-test-data.js",
     "db:sync": "node scripts/sync-db.ts",

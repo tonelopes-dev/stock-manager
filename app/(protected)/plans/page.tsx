@@ -47,7 +47,10 @@ const PlansPage = async () => {
           <HeaderSubtitle>Gerencie seu plano e faturamento</HeaderSubtitle>
           <div className="flex items-center gap-4">
             <HeaderTitle>Assinatura</HeaderTitle>
-            <SubscriptionStatus subscriptionStatus={subscriptionStatus} />
+            <SubscriptionStatus 
+              subscriptionStatus={subscriptionStatus} 
+              expiresAt={expiresAt}
+            />
           </div>
         </HeaderLeft>
       </Header>
@@ -98,7 +101,8 @@ const PlansPage = async () => {
                 </div>
               </div>
 
-              {subscriptionStatus === "ACTIVE" && (
+              <div className="flex flex-col gap-6 md:flex-row md:items-center">
+              {subscriptionStatus === "ACTIVE" && (!expiresAt || expiresAt >= new Date()) && (
                 <div className="flex items-center gap-3">
                   <div className="rounded-full bg-background p-2 text-green-600 shadow-sm">
                     <ShieldCheckIcon size={18} />
@@ -114,8 +118,9 @@ const PlansPage = async () => {
                 </div>
               )}
             </div>
+          </div>
 
-            <div className="space-y-3">
+          <div className="space-y-3">
               <p className="text-sm font-bold uppercase tracking-tight text-foreground">
                 O que está incluído:
               </p>

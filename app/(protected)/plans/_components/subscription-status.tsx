@@ -5,10 +5,10 @@ import { AlertCircleIcon, CheckCircle2Icon, ClockIcon } from "lucide-react";
 
 interface SubscriptionStatusProps {
   subscriptionStatus?: string | null;
+  expiresAt?: Date | string | null;
 }
 
-
-export type SubStatus = "FREE" | "TRIALING" | "ACTIVE" | "PAST_DUE" | "CANCELED" | "INCOMPLETE";
+export type SubStatus = "FREE" | "TRIALING" | "ACTIVE" | "PAST_DUE" | "CANCELED" | "INCOMPLETE" | "EXPIRED";
 
 const configs: Record<
   SubStatus,
@@ -36,6 +36,12 @@ const configs: Record<
     variant: "default",
     className: "bg-green-100 text-green-700 hover:bg-green-100 border-none",
   },
+  EXPIRED: {
+    label: "Assinatura Expirada",
+    icon: <AlertCircleIcon className="h-3 w-3" />,
+    variant: "destructive",
+    className: "bg-destructive text-destructive-foreground border-none",
+  },
   PAST_DUE: {
     label: "Pagamento Pendente",
     icon: <AlertCircleIcon className="h-3 w-3" />,
@@ -55,9 +61,18 @@ const configs: Record<
 
 export const SubscriptionStatus = ({
   subscriptionStatus,
+  expiresAt
 }: SubscriptionStatusProps) => {
   // Determine display status: prefer subscriptionStatus from DB (set by webhook)
-  const status: SubStatus = (subscriptionStatus as SubStatus) ?? "FREE";
+  let status: SubStatus = (subscriptionStatus as SubStatus) ?? "FREE";
+
+  // Real-time override if expiresAt is provided and in the past
+  if (expiresAt && status === "ACTIVE") {
+    const expiryDate = new Date(expiresAt);
+    if (expiryDate < new Date()) {
+      status = "EXPIRED";
+    }
+  }
 
   const config = configs[status] ?? configs.FREE;
 
