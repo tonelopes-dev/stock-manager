@@ -1,7 +1,7 @@
 ---
 name: Documentation Agent
 description: "Use when: writing project documentation, creating guides, explaining code architecture, updating README, or documenting features and workflows"
-model: claude-sonnet-4-6
+model: gemini-1.5-flash
 triggers:
   - keywords: ["document", "guide", "explain architecture", "readme", "docs", "tutorial"]
     context: always
@@ -12,6 +12,7 @@ tools:
   - Write
   - Edit
   - Bash
+  - update-project-docs # Adicionando a nova skill
 ---
 
 # Documentation Agent

@@ -1,7 +1,7 @@
 ---
 name: Clean Project Agent
 description: "Use when: refactoring code, removing dead code, improving code quality, organizing imports, fixing type errors, or simplifying patterns"
-model: claude-sonnet-4-6
+model: gemini-1.5-flash
 triggers:
   - keywords: ["refactor", "clean up", "dead code", "quality", "simplify", "organize imports", "type error"]
     context: always

@@ -16,9 +16,17 @@
 [![Stripe](https://img.shields.io/badge/Stripe-Assinaturas-635BFF?style=flat-square&logo=stripe)](https://stripe.com/)
 [![Sentry](https://img.shields.io/badge/Sentry-Monitoramento-362D59?style=flat-square&logo=sentry)](https://sentry.io/)
 
-## 🎯 **Visão Geral do Projeto**
+## 🎯 **Visão Geral do Projeto: KIPO - Uma Plataforma SaaS de Nível de Produção para Operações de Restaurantes**
 
-O KIPO é uma solução SaaS multi-tenant robusta (v1.4.0). Ele permite que proprietários de negócios gerenciem o estoque em múltiplas empresas, coordenem equipes com permissões granulares e obtenham insights financeiros profundos por meio de análises avançadas — tudo isso escalando sem esforço com assinaturas via Stripe.
+O KIPO é uma solução SaaS multi-tenant altamente escalável (v1.4.0), meticulosamente projetada para revolucionar a gestão de restaurantes e negócios alimentícios. Ele capacita proprietários com controle abrangente de estoque, rastreamento preciso de vendas, um Kitchen Display System (KDS) em tempo real e coordenação robusta de equipes com permissões granulares. Desenvolvido para estar pronto para empresas, o KIPO oferece insights financeiros profundos através de análises avançadas e garante escalabilidade contínua com gestão de assinaturas integrada via Stripe.
+
+### **Abordando Desafios do Mundo Real:**
+
+O KIPO resolve as complexidades enfrentadas por pequenas e médias empresas na gestão profissional e centralizada de estoque e vendas. Ele vai além das planilhas manuais ao oferecer:
+- **Controle Multi-tenant Centralizado**: Gerencie múltiplas empresas sob uma única conta com isolamento completo de dados.
+- **Auditoria Abrangente de Estoque**: Registro detalhado de cada movimentação (entrada, saída, venda, ajuste) para rastreabilidade total.
+- **Inteligência Financeira**: Dashboards automatizados que fornecem lucro real, margem de contribuição e histórico de custos em tempo real.
+- **Gestão Proativa de Estoque**: Alertas configuráveis de estoque baixo (`minStock`) para prevenir rupturas e otimizar níveis de inventário.
 
 ### ✨ **Pilares do Sistema**
 
@@ -88,12 +96,75 @@ kipo/
 └── docs/                   # Documentação adicional e README em PT-BR
 ```
 
+## 🏛️ **Arquitetura e Padrões de Código**
+
+O KIPO segue padrões arquiteturais de nível empresarial que garantem qualidade de código, segurança e escalabilidade:
+
+### **Separação Limpa em 3 Camadas**
+```
+Camada de UI (Componentes React)
+    ↓
+Camada de Ações (Server Actions - API Type-safe)
+    ↓
+Camada de Acesso a Dados (Repository Pattern - Operações CRUD)
+    ↓
+Banco de Dados (PostgreSQL + Prisma)
+```
+
+### **Princípios Arquiteturais-Chave**
+
+- **Multi-tenancy por Design**: Cada query força isolamento de `companyId` no nível do ORM. Vazamentos de dados entre tenants são arquiteturalmente impossíveis.
+- **Server Actions Type-Safe**: Aproveita Next.js Server Actions com validação Zod para segurança de tipo fim-a-fim, do cliente ao banco de dados.
+- **Controle de Acesso Baseado em Papéis (RBAC)**: Sistema de permissões granulares (`DONO` > `ADMIN` > `MEMBRO` > `VISUALIZADOR`) com 13+ verificações de capacidade para operações sensíveis.
+- **Data Transfer Objects (DTOs)**: Separação limpa de modelos de banco de dados de respostas de API. Modelos brutos do Prisma nunca saem da camada de acesso a dados.
+- **Otimização de Performance**: Uso estratégico de `select()` do Prisma (nunca `include()`) para evitar queries N+1 e otimizar tempos de resposta.
+- **Tratamento de Erros**: Tratamento centralizado de erros via wrapper `safe-action` com mensagens em português para usuários e logs em inglês para debug.
+
+### **Testes e Garantia de Qualidade**
+
+- **Testes Unitários**: Vitest para validação de lógica de negócio
+- **Testes de Integração**: Testando Server Actions com interações de banco de dados
+- **Testes E2E**: Playwright para fluxos de usuário (login, vendas, relatórios, etc.)
+- **Segurança de Tipo**: Modo TypeScript strict sem `any` implícito
+
+## 🔐 **Segurança e Conformidade**
+
+- ✅ Isolamento de dados multi-tenant forçado no nível do ORM
+- ✅ Padrões de segurança em nível de linha via filtragem de `companyId`
+- ✅ Hash de senha com algoritmos padrão da indústria
+- ✅ Gestão de sessão baseada em JWT com armazenamento em Prisma
+- ✅ Verificações de permissão RBAC em cada operação sensível
+- ✅ Integração com Sentry para monitoramento de erros em tempo real e rastreamento de performance
+- ✅ Logs de auditoria para conformidade e responsabilidade
+
 ---
 
 <div align="center">
 
 **KIPO - Potencializando a Gestão Moderna de Estoque e Vendas**
 
-[🌐 Acessar Kipo](https://usekipo.com.br/) • [🛠️ Issues](https://github.com/tonelopes-dev/stock-manager/issues)
+[🌐 Acessar Kipo](https://usekipo.com.br/) • [🛠️ Issues](https://github.com/tonelopes-dev/stock-manager/issues) • [📖 Documentação Técnica](../docs/)
+
+</div>
+
+## 💼 **Para Desenvolvedores e Líderes Técnicos**
+
+Este repositório demonstra:
+- **Arquitetura Empresarial**: Separação limpa de responsabilidades com multi-tenancy real
+- **TypeScript Moderno**: Modo strict com segurança de tipo fim-a-fim
+- **Boas Práticas**: Princípios SOLID, padrões de design e estruturas de pastas escaláveis
+- **Código Pronto para Produção**: Tratamento de erros, monitoramento, testes e documentação
+
+**Interessado em se juntar à equipe ou colaborar?** Entre em contato através de [GitHub Issues](https://github.com/tonelopes-dev/stock-manager/issues) ou visite nosso website.
+
+## 📄 **Licença e Atribuição**
+
+O KIPO foi construído com ❤️ e funciona como implementação de referência para plataformas SaaS. Para detalhes de licença, consulte o arquivo [LICENSE](../LICENSE).
+
+---
+
+<div align="center">
+
+**Elevando operações de restaurantes através de tecnologia moderna.** ✨
 
 </div>

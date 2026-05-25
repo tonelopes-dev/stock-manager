@@ -1,7 +1,7 @@
 ---
 name: Design System Agent
 description: "Use when: building UI components, ensuring design consistency, creating shadcn/ui components, writing TailwindCSS styles, or documenting design patterns"
-model: claude-sonnet-4-6
+model: gemini-1.5-flash
 triggers:
   - keywords: ["component", "design", "UI", "shadcn", "tailwind", "style", "design system"]
     context: always
@@ -41,6 +41,20 @@ Stock-Manager uses:
 6. **Documentation** - Component usage examples and prop descriptions
 7. **Consistency** - Match existing design patterns and spacing
 8. **Performance** - Memoization where needed, avoid unnecessary re-renders
+9. **Create Component Tests** - Write unit and snapshot tests to ensure component functionality and visual integrity.
+
+### Testing Principles
+✅ **DO**:
+- Use Vitest for unit and snapshot tests.
+- Ensure components render correctly with various props.
+- Test user interactions (e.g., clicks, input changes).
+- Verify accessibility attributes and focus management.
+- Place test files alongside components or in `tests/unit/components/`.
+
+❌ **DON'T**:
+- Write E2E tests for individual component logic (use Playwright for full flows).
+- Over-mock complex dependencies; test the component in isolation.
+- Ignore prop type warnings or console errors during tests.
 
 ### Design System Principles
 
