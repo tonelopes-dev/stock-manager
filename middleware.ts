@@ -134,9 +134,15 @@ export default auth(async (req) => {
      // 2.2 Lifecycle Guard: Subscription (Suspended)
      // Allowed statuses for app access: ACTIVE, TRIALING
      const restrictedStatuses = ["PAST_DUE", "CANCELED", "INCOMPLETE"];
-     if (restrictedStatuses.includes(subscriptionStatus as string) && pathname !== "/billing-required" && !isPublicRoute) {
-        // Only allow OWNER/ADMIN to access billing/settings to fix it? 
-        // For now, redirect everyone to the billing required page.
+     const jwtExpiresAt = req.auth?.user?.expiresAt;
+     
+     // Safety check: if the JWT says "restricted" but expiresAt is actually
+     // in the future, don't block — the status is stale from before a payment
+     // was processed by the webhook. The full auth() callback in the layout
+     // will correct the JWT on this request.
+     const hasValidExpiry = jwtExpiresAt && new Date(jwtExpiresAt) > new Date();
+     
+     if (restrictedStatuses.includes(subscriptionStatus as string) && !hasValidExpiry && pathname !== "/billing-required" && !isPublicRoute) {
         return NextResponse.redirect(new URL("/billing-required", req.nextUrl.origin));
      }
      
