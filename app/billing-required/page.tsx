@@ -1,9 +1,42 @@
 import { ShieldAlertIcon } from "lucide-react";
 import { BillingActions } from "./_components/billing-actions";
+import { auth } from "@/app/_lib/auth";
+import { db } from "@/app/_lib/prisma";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-const BillingRequiredPage = () => {
+const BillingRequiredPage = async () => {
+  // CRITICAL: Call the full auth() to refresh the JWT with fresh DB data.
+  // Without this, the JWT remains stale and the middleware keeps redirecting
+  // the user here even after a successful payment.
+  const session = await auth();
+
+  // If we have a valid session, check the REAL subscription status from the DB
+  // (the auth() call above already refreshed the JWT, but let's double-check
+  // directly against the DB to avoid any edge case with JWT propagation)
+  if (session?.user?.companyId) {
+    const company = await db.company.findUnique({
+      where: { id: session.user.companyId },
+      select: { expiresAt: true, subscriptionStatus: true },
+    });
+
+    const now = new Date();
+    const isActive = company?.subscriptionStatus === "ACTIVE" && 
+                     company?.expiresAt && 
+                     company.expiresAt > now;
+    
+    const isTrialing = company?.subscriptionStatus === "TRIALING" && 
+                       company?.expiresAt && 
+                       company.expiresAt > now;
+
+    if (isActive || isTrialing) {
+      // Subscription is valid! The JWT was just refreshed by auth() above,
+      // so the middleware will now see the correct status on the next request.
+      redirect("/sales");
+    }
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-muted p-6">
       <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-background shadow-xl">
