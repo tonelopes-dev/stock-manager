@@ -11,7 +11,7 @@ import { subMonths } from "date-fns/subMonths";
 import { addDays } from "date-fns/addDays";
 import { startOfDay } from "date-fns/startOfDay";
 import { ptBR } from "date-fns/locale/pt-BR";
-import { parseLocalDay, getDefaultSalesRange } from "@/app/_lib/date";
+import { parseLocalDay, getDefaultSalesRange, nowBRT } from "@/app/_lib/date";
 
 export interface SalesAnalyticsDto {
     totalRevenue: {
@@ -111,7 +111,7 @@ export const getSalesAnalytics = async (
     });
 
     // 4. Monthly Comparison (Custom Months or Current vs Previous)
-    const now = new Date();
+    const now = nowBRT();
     const parseMonthStr = (str?: string, defaultDate: Date = now) => {
         if (!str) return { start: startOfMonth(defaultDate), end: startOfDay(addDays(endOfMonth(defaultDate), 1)) };
         const [year, month] = str.split("-").map(Number);

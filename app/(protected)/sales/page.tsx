@@ -36,6 +36,7 @@ import { getAggregatedSales } from "@/app/_data-access/sale/get-aggregated-sales
 import { ProductSalesChart } from "./_components/product-sales-chart";
 import { AggregatedSalesTable } from "./_components/aggregated-sales-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
+import { todayBRT } from "@/app/_lib/date";
 
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";
@@ -88,7 +89,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
   const from = resolvedSearchParams.from;
   const to = resolvedSearchParams.to;
   
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayBRT();
   const analyticsFrom = from || today;
   const analyticsTo = to || today;
 

@@ -9,6 +9,7 @@ import { recordStockMovement } from "@/app/_lib/stock";
 import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
 import { AuditService } from "@/app/_services/audit";
 import { AuditEventType, Prisma } from "@prisma/client";
+import { nowBRT } from "@/app/_lib/date";
 
 /**
  * Re-calculates and updates the cost of products that depend on the modified child product.
@@ -87,6 +88,7 @@ export const createStockEntry = actionClient
             expirationDate: data.expirationDate,
             invoiceNumber: data.invoiceNumber,
             date: data.date,
+            createdAt: nowBRT(),
             companyId,
             userId,
           },

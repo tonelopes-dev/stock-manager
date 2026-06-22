@@ -10,6 +10,7 @@ import { assertRole, ADMIN_AND_OWNER } from "@/app/_lib/rbac";
 import { AuditService } from "@/app/_services/audit";
 import { AuditEventType, AuditSeverity } from "@prisma/client";
 import { BusinessError } from "@/app/_lib/errors";
+import { nowBRT } from "@/app/_lib/date";
 
 export const cancelSale = actionClient
   .schema(cancelSaleSchema)
@@ -34,7 +35,7 @@ export const cancelSale = actionClient
 
         await trx.sale.update({
           where: { id },
-          data: { status: "CANCELED" },
+          data: { status: "CANCELED", updatedAt: nowBRT() },
         });
 
         for (const item of sale.saleItems) {

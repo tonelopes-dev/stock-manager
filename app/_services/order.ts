@@ -4,6 +4,7 @@ import { BusinessError } from "@/app/_lib/errors";
 import { AuditEventType, OrderStatus, Prisma } from "@prisma/client";
 import { isPromotionActive } from "@/app/_lib/promotion";
 import { AuditService } from "./audit";
+import { nowBRT } from "@/app/_lib/date";
 
 interface CreateOrderParams {
   companyId: string;
@@ -80,6 +81,8 @@ export const OrderService = {
             isEmployeeSale: isEmployeeSale || false,
             hasServiceTax: hasServiceTax !== undefined ? hasServiceTax : true,
             status: OrderStatus.PENDING,
+            createdAt: nowBRT(),
+            updatedAt: nowBRT(),
             orderItems: {
               create: itemsWithPrices.map((item) => ({
                 productId: item.productId,
@@ -87,6 +90,8 @@ export const OrderService = {
                 unitPrice: item.unitPrice,
                 notes: item.notes,
                 status: OrderStatus.PENDING,
+                createdAt: nowBRT(),
+                updatedAt: nowBRT(),
               })),
             },
           },
@@ -144,7 +149,7 @@ export const OrderService = {
 
         const updatedItem = await trx.orderItem.update({
           where: { id: itemId },
-          data: { status },
+          data: { status, updatedAt: nowBRT() },
         });
 
         // 2. Sync order status based on all items
@@ -173,7 +178,7 @@ export const OrderService = {
 
         await trx.order.update({
           where: { id: item.orderId },
-          data: { status: newOrderStatus },
+          data: { status: newOrderStatus, updatedAt: nowBRT() },
         });
 
         return { updatedItem };
@@ -215,7 +220,7 @@ export const OrderService = {
 
         const updatedOrder = await trx.order.update({
           where: { id: orderId },
-          data: { status },
+          data: { status, updatedAt: nowBRT() },
         });
 
         return updatedOrder;
@@ -289,7 +294,9 @@ export const OrderService = {
             adjustmentReason,
             isEmployeeSale,
             tipAmount,
-            date: new Date(),
+            date: nowBRT(),
+            createdAt: nowBRT(),
+            updatedAt: nowBRT(),
             status: "ACTIVE",
           },
         });
@@ -306,13 +313,15 @@ export const OrderService = {
               quantity: item.quantity,
               unitPrice: unitPrice,
               baseCost: item.product.cost,
+              createdAt: nowBRT(),
+              updatedAt: nowBRT(),
             };
           }),
         });
 
         await trx.stockMovement.updateMany({
           where: { orderId: { in: orderIds }, type: "ORDER" },
-          data: { saleId: sale.id }
+          data: { saleId: sale.id, updatedAt: nowBRT() }
         });
 
         // 3. Mark Orders as PAID and complete with Concurrency Protection
@@ -393,7 +402,9 @@ export const OrderService = {
             extraAmount,
             adjustmentReason,
             isEmployeeSale,
-            date: new Date(),
+            date: nowBRT(),
+            createdAt: nowBRT(),
+            updatedAt: nowBRT(),
             status: "ACTIVE",
           },
         });
@@ -410,12 +421,14 @@ export const OrderService = {
               quantity: item.quantity,
               unitPrice: unitPrice,
               baseCost: item.product.cost,
+              createdAt: nowBRT(),
+              updatedAt: nowBRT(),
             },
           });
 
           await trx.stockMovement.updateMany({
             where: { orderId: item.orderId, productId: item.productId, type: "ORDER" },
-            data: { saleId: sale.id },
+            data: { saleId: sale.id, updatedAt: nowBRT() },
           });
 
           await trx.orderItem.delete({ where: { id: item.id } });
@@ -433,7 +446,7 @@ export const OrderService = {
             
             await trx.order.update({
               where: { id: orderId },
-              data: { totalAmount: newTotal },
+              data: { totalAmount: newTotal, updatedAt: nowBRT() },
             });
           }
         }
