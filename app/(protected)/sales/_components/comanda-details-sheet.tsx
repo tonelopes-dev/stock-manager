@@ -62,6 +62,7 @@ import { Switch } from "@/app/_components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/app/_components/ui/dialog";
+import { WhatsAppButton } from "@/app/_components/whatsapp-button";
 
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
@@ -392,9 +393,14 @@ export const ComandaDetailsSheet = ({
                   <UISheetTitle className="line-clamp-1 pr-2 text-xl font-black uppercase italic leading-tight tracking-tighter text-foreground">
                     {comanda.customerName}
                   </UISheetTitle>
-                  <UISheetDescription className="text-xs font-bold text-muted-foreground">
-                    {comanda.customerPhone || "Sem telefone"}
-                  </UISheetDescription>
+                  <div className="flex items-center gap-2">
+                    <UISheetDescription className="text-xs font-bold text-muted-foreground">
+                      {comanda.customerPhone || "Sem telefone"}
+                    </UISheetDescription>
+                    {comanda.customerPhone && (
+                      <WhatsAppButton phoneNumber={comanda.customerPhone} />
+                    )}
+                  </div>
                 </div>
               </div>
               <Badge
