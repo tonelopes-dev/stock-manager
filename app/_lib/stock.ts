@@ -1,6 +1,7 @@
 import { db } from "./prisma";
 import { StockMovementType, Prisma, UnitType } from "@prisma/client";
 import { BusinessError } from "./errors";
+import { nowBRT } from "./date";
 
 type Decimal = Prisma.Decimal;
 const Decimal = Prisma.Decimal;
@@ -75,7 +76,9 @@ export const recordStockMovement = async (
           stockAfter,
           unit: params.unit || updatedProduct.unit,
           quantityDecimal: qty,
-          date: params.date || new Date(),
+          date: params.date || nowBRT(),
+          createdAt: params.date || nowBRT(),
+          updatedAt: params.date || nowBRT(),
         },
       });
     } catch (err) {
@@ -212,7 +215,9 @@ export async function processBatchStockMovement(
       stockAfter: newStock,
       quantityDecimal: qty,
       unit: product.unit,
-      date: mParams.date || new Date(),
+      date: mParams.date || nowBRT(),
+      createdAt: mParams.date || nowBRT(),
+      updatedAt: mParams.date || nowBRT(),
     });
 
     // Recurse if Made-to-Order or COMBO (Ficha Técnica)

@@ -2,6 +2,7 @@ import { db } from "@/app/_lib/prisma";
 import { recordStockMovement, processRecursiveStockMovement } from "@/app/_lib/stock";
 import { BusinessError } from "@/app/_lib/errors";
 import { PaymentMethod, Prisma } from "@prisma/client";
+import { nowBRT } from "@/app/_lib/date";
 
 interface UpsertSaleParams {
   id?: string;
@@ -75,6 +76,7 @@ export const SaleService = {
             data: {
               date: date || existingSale.date,
               userId,
+              updatedAt: nowBRT(),
             },
           });
         }
@@ -84,7 +86,9 @@ export const SaleService = {
         if (!isUpdate) {
           const newSale = await trx.sale.create({
             data: {
-              date: date || new Date(),
+              date: nowBRT(),
+              createdAt: nowBRT(),
+              updatedAt: nowBRT(),
               companyId,
               userId,
               customerId: customerId || null,
@@ -111,6 +115,7 @@ export const SaleService = {
               extraAmount: extraAmount !== undefined ? extraAmount : undefined,
               adjustmentReason: adjustmentReason !== undefined ? adjustmentReason : undefined,
               isEmployeeSale: isEmployeeSale !== undefined ? isEmployeeSale : undefined,
+              updatedAt: nowBRT(),
             },
           });
         }
@@ -161,6 +166,8 @@ export const SaleService = {
               operationalCost: productFromDb.operationalCost,
               totalAmount: new Prisma.Decimal(unitPrice).mul(product.quantity),
               totalCost: new Prisma.Decimal(productFromDb.cost).add(productFromDb.operationalCost).mul(product.quantity),
+              createdAt: nowBRT(),
+              updatedAt: nowBRT(),
             },
           });
 
@@ -176,6 +183,7 @@ export const SaleService = {
           data: {
             totalAmount: finalTotalAmount,
             totalCost,
+            updatedAt: nowBRT(),
           },
         });
 

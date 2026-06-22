@@ -1,6 +1,7 @@
 import { db } from "@/app/_lib/prisma";
 import { Prisma } from "@prisma/client";
 import { BusinessError } from "@/app/_lib/errors";
+import { nowBRT } from "@/app/_lib/date";
 
 interface AdjustIngredientStockParams {
   ingredientId: string;
@@ -61,6 +62,9 @@ export const IngredientService = {
           stockAfter: stockAfter,
           unit: item.unit,
           reason: params.reason,
+          date: nowBRT(),
+          createdAt: nowBRT(),
+          updatedAt: nowBRT(),
         },
       });
     };

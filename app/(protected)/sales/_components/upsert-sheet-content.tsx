@@ -234,7 +234,7 @@ const UpsertSheetContent = ({
 
     executeUpsertSale({
       id: saleId,
-      date: values.date ? new Date(values.date + "T12:00:00") : undefined,
+      date: values.date ? new Date(values.date + "T12:00:00.000Z") : undefined,
       customerId: values.customerId || undefined,
       paymentMethod: values.paymentMethod,
       tipAmount: totals.serviceChargeAmount,
