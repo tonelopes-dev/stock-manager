@@ -21,16 +21,16 @@ import { createOrderAction } from "@/app/_actions/order/create-order";
 import { SelfieCamera } from "./selfie-camera";
 import { updateCustomerSelfie } from "@/app/_actions/customer/update-customer-selfie";
 import { PatternFormat, NumberFormatValues } from "react-number-format";
+import { useMenuConfig } from "./menu-config-context";
 
 interface CartCheckoutSheetProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   companyId: string;
-  requireSelfieOnCheckout?: boolean;
-  enableServiceTax?: boolean;
 }
 
-export function CartCheckoutSheet({ isOpen, onOpenChange, companyId, requireSelfieOnCheckout = false, enableServiceTax = true }: CartCheckoutSheetProps) {
+export function CartCheckoutSheet({ isOpen, onOpenChange, companyId }: CartCheckoutSheetProps) {
+  const { requireSelfieOnCheckout, enableServiceTax } = useMenuConfig();
   const router = useRouter();
   const params = useParams();
   const companySlug = params.companySlug as string;
