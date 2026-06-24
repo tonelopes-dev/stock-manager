@@ -28,10 +28,10 @@ import { OrderStatusDto } from "@/app/_data-access/order/get-order-status";
 import { getMyOrdersAction } from "@/app/_actions/order/get-my-orders";
 import { cn, formatPhoneNumber } from "@/app/_lib/utils";
 import { toast } from "sonner";
-import { BottomNav } from "../../_components/bottom-nav";
-import { PromotionsModal } from "../../_components/promotions-modal";
-import { ProductDetailsSheet } from "../../_components/product-details-sheet";
-import { FloatingCartButton } from "../../_components/floating-cart-button";
+import { BottomNav } from "../../_components/layout/bottom-nav";
+import { PromotionsModal } from "../../_components/promotions/promotions-modal";
+import { ProductDetailsSheet } from "../../_components/product/product-details-sheet";
+import { FloatingCartButton } from "../../_components/cart/floating-cart-button";
 import { useUIStore } from "../../_store/use-ui-store";
 
 interface MyOrdersClientProps {

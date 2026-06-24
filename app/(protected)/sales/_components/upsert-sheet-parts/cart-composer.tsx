@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from "@/app/_components/ui/form";
 import { QuantityStepper } from "@/app/_components/ui/quantity-stepper";
-import { formatCurrency } from "@/app/_helpers/currency";
+import { formatCurrency } from "@/app/_utils/currency";
 import { cn } from "@/app/_lib/utils";
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ProductAvailabilityInfo } from "../shared/product-availability-info";

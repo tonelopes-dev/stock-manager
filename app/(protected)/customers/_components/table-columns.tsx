@@ -96,7 +96,7 @@ export const customerTableColumns: ColumnDef<CustomerDto>[] = [
     accessorKey: "totalSpent",
     header: "Total Gasto",
     cell: ({ row: { original: customer } }) => {
-      const { formatCurrency } = require("@/app/_helpers/currency");
+      const { formatCurrency } = require("@/app/_utils/currency");
       return (
         <span className="font-bold text-foreground">
           {formatCurrency(customer.totalSpent)}

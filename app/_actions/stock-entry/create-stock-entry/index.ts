@@ -5,11 +5,11 @@ import { revalidatePath } from "next/cache";
 import { createStockEntrySchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { recordStockMovement } from "@/app/_lib/stock";
+import { recordStockMovement } from "@/app/_utils/stock";
 import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
 import { AuditService } from "@/app/_services/audit";
 import { AuditEventType, Prisma } from "@prisma/client";
-import { nowBRT } from "@/app/_lib/date";
+import { nowBRT } from "@/app/_utils/date";
 
 /**
  * Re-calculates and updates the cost of products that depend on the modified child product.

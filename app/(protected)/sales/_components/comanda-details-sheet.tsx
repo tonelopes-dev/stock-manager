@@ -3,7 +3,7 @@
 import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
 import { Badge } from "@/app/_components/ui/badge";
 import { Button } from "@/app/_components/ui/button";
-import { formatCurrency } from "@/app/_helpers/currency";
+import { formatCurrency } from "@/app/_utils/currency";
 import {
   Clock,
   Smartphone,

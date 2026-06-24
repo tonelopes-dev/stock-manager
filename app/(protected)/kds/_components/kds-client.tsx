@@ -28,7 +28,7 @@ import { formatDistanceToNow, differenceInMinutes, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 import { Button } from "@/app/_components/ui/button";
-import { useAppMode } from "@/app/_components/app-mode-provider";
+import { useAppMode } from "@/app/_providers/app-mode-provider";
 import {
   Sheet,
   SheetContent,

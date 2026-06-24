@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import { Minus, Plus, ShoppingBag, Trash2, X, User, Phone, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
-import { useEffect } from "react";
-import { cn, formatPhoneNumber, getWhatsAppUrl } from "@/app/_lib/utils";
+import { cn } from "@/app/_lib/utils";
 
 import {
   Sheet,
@@ -16,12 +15,13 @@ import {
 } from "@/app/_components/ui/sheet";
 import { Button } from "@/app/_components/ui/button";
 import { Input } from "@/app/_components/ui/input";
-import { useCartStore, CartItem } from "../_store/use-cart-store";
+import { useCartStore, CartItem } from "../../_store/use-cart-store";
 import { createOrderAction } from "@/app/_actions/order/create-order";
-import { SelfieCamera } from "./selfie-camera";
-import { updateCustomerSelfie } from "@/app/_actions/customer/update-customer-selfie";
+import { SelfieCamera } from "../checkout/selfie-camera";
 import { PatternFormat, NumberFormatValues } from "react-number-format";
-import { useMenuConfig } from "./menu-config-context";
+import { useMenuConfig } from "../../_context/menu-config-context";
+import { useCustomerSession } from "../../_hooks/use-customer-session";
+import { useSelfieUpload } from "../../_hooks/use-selfie-upload";
 
 interface CartCheckoutSheetProps {
   isOpen: boolean;
@@ -37,6 +37,45 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId }: CartCheck
   
   const { items, totalAmount, updateQuantity, clearCart, allowNegativeStock } = useCartStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [checkoutStep, setCheckoutStep] = useState<"DETAILS" | "SELFIE">("DETAILS");
+
+  const {
+    customerName,
+    setCustomerName,
+    phoneNumber,
+    setPhoneNumber,
+    isPhoneVerified,
+    setIsPhoneVerified,
+    isCheckingPhone,
+    customerExists,
+    tempCustomerId,
+    customerImageUrl,
+    setCustomerImageUrl,
+    loadFromStorage,
+    handleCheckPhone,
+    setSessionData,
+  } = useCustomerSession(companyId);
+
+  // Load saved customer from localStorage when sheet opens
+  useEffect(() => {
+    if (isOpen) {
+      loadFromStorage();
+      setCheckoutStep("DETAILS");
+    }
+  }, [isOpen, loadFromStorage]);
+
+  const { isUploading, handleSelfieCapture } = useSelfieUpload({
+    companyId,
+    companySlug,
+    tempCustomerId,
+    onUploadSuccess: (url) => {
+      setCustomerImageUrl(url);
+      setCheckoutStep("DETAILS");
+      setTimeout(() => handleCheckout(url), 500);
+    },
+  });
+
+  const isSubmittingOrUploading = isSubmitting || isUploading;
 
   const totalDiscount = items.reduce((acc, item) => {
     if (item.basePrice && item.basePrice > item.price) {
@@ -46,113 +85,6 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId }: CartCheck
   }, 0);
 
   const subtotalWithDiscounts = totalAmount + totalDiscount;
-  
-  // Identification state
-  const [customerName, setCustomerName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
-  const [isCheckingPhone, setIsCheckingPhone] = useState(false);
-  const [customerExists, setCustomerExists] = useState(false);
-  const [tempCustomerId, setTempCustomerId] = useState<string | null>(null);
-  const [customerImageUrl, setCustomerImageUrl] = useState<string | null>(null);
-  const [checkoutStep, setCheckoutStep] = useState<"DETAILS" | "SELFIE">("DETAILS");
-
-  // Load saved customer from localStorage
-  useEffect(() => {
-    if (isOpen) {
-      const savedCustomer = localStorage.getItem(`kipo-customer-${companyId}`);
-      if (savedCustomer) {
-        try {
-          const data = JSON.parse(savedCustomer);
-          setCustomerName(data.name || "");
-          setPhoneNumber(formatPhoneNumber(data.phoneNumber || ""));
-          setIsPhoneVerified(true);
-          setCustomerExists(true);
-          setTempCustomerId(data.customerId || null);
-          setCustomerImageUrl(data.imageUrl || null);
-        } catch (e) {
-          console.error("Error parsing saved customer");
-        }
-      }
-      setCheckoutStep("DETAILS");
-    }
-  }, [isOpen, companyId]);
-
-  const handleCheckPhone = async () => {
-    const cleanPhone = phoneNumber.replace(/\D/g, "");
-    if (!cleanPhone) {
-      toast.error("Informe o telefone primeiro.");
-      return;
-    }
-    
-    setIsCheckingPhone(true);
-    try {
-      const res = await fetch(`/api/customers/check?phone=${cleanPhone}&companyId=${companyId}`);
-      const data = await res.json();
-
-      setIsPhoneVerified(true);
-      if (data.exists) {
-        setCustomerExists(true);
-        setCustomerName(data.customer.name);
-        setTempCustomerId(data.customer.customerId);
-        setCustomerImageUrl(data.customer.imageUrl || null);
-        
-        // Salva os dados no localStorage para que o usuário não precise logar novamente na tela de pedidos
-        localStorage.setItem(`kipo-customer-${companyId}`, JSON.stringify(data.customer));
-        
-        toast.success(`Olá, ${data.customer.name.split(' ')[0]}!`);
-      } else {
-        setCustomerExists(false);
-        setCustomerName("");
-        setTempCustomerId(null);
-        setCustomerImageUrl(null);
-        toast.info("Não encontramos seu cadastro. Por favor, informe seu nome.");
-      }
-    } catch {
-      toast.error("Erro ao verificar telefone.");
-    } finally {
-      setIsCheckingPhone(false);
-    }
-  };
-
-  const handleSelfieCapture = async (blob: Blob) => {
-    setIsSubmitting(true);
-    try {
-      // 1. Upload the image - following the pattern from estoque
-      const file = new File([blob], `selfie_${Date.now()}.jpg`, { type: "image/jpeg" });
-      
-      const uploadRes = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}&category=customers&companySlug=${companySlug}&v=${Date.now()}`, {
-        method: "POST",
-        body: file,
-      });
-      
-      if (!uploadRes.ok) throw new Error("Upload failed");
-      const { url } = await uploadRes.json();
-
-      // 2. Update customer record
-      if (tempCustomerId) {
-        await updateCustomerSelfie(tempCustomerId, url);
-        setCustomerImageUrl(url);
-        
-        // Update local storage
-        const saved = localStorage.getItem(`kipo-customer-${companyId}`);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          localStorage.setItem(`kipo-customer-${companyId}`, JSON.stringify({ ...parsed, imageUrl: url }));
-        }
-      }
-
-      toast.success("Selfie salva com sucesso!");
-      setCheckoutStep("DETAILS");
-      
-      // Proceed to final checkout after a small delay
-      setTimeout(() => handleCheckout(url), 500);
-    } catch (error) {
-      toast.error("Erro ao processar selfie.");
-      console.error(error);
-      setIsSubmitting(false);
-    }
-  };
 
   const handleCheckout = async (forcedImageUrl?: string) => {
     if (items.length === 0) return;
@@ -193,7 +125,7 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId }: CartCheck
         
         if (regData.success) {
           finalCustomerId = regData.customer.customerId;
-          localStorage.setItem(`kipo-customer-${companyId}`, JSON.stringify(regData.customer));
+          setSessionData(regData.customer);
         } else {
           toast.error(regData.message || "Erro ao realizar cadastro.");
           setIsSubmitting(false);
@@ -230,7 +162,7 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId }: CartCheck
     }
   };
 
-  const isCheckoutDisabled = items.length === 0 || isSubmitting || !isPhoneVerified || !customerName.trim();
+  const isCheckoutDisabled = items.length === 0 || isSubmittingOrUploading || !isPhoneVerified || !customerName.trim();
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -289,14 +221,14 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId }: CartCheck
                               setIsPhoneVerified(false);
                             }}
                             className="h-12 rounded-xl border-none bg-white shadow-sm focus-visible:ring-primary/20 text-base md:text-sm"
-                            disabled={isSubmitting || isCheckingPhone}
+                            disabled={isSubmittingOrUploading || isCheckingPhone}
                             type="tel"
                             data-testid="checkout-phone-number"
                           />
                           <Button
                             type="button"
                             onClick={handleCheckPhone}
-                            disabled={isSubmitting || isCheckingPhone || !phoneNumber.trim()}
+                            disabled={isSubmittingOrUploading || isCheckingPhone || !phoneNumber.trim()}
                             className={cn(
                               "h-12 w-12 shrink-0 rounded-xl transition-all",
                               isPhoneVerified 
@@ -324,7 +256,7 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId }: CartCheck
                             value={customerName}
                             onChange={(e) => setCustomerName(e.target.value)}
                             className="h-12 rounded-xl border-none bg-white shadow-sm focus-visible:ring-primary/20 text-base md:text-sm"
-                            disabled={isSubmitting || (isPhoneVerified && customerExists)}
+                            disabled={isSubmittingOrUploading || (isPhoneVerified && customerExists)}
                             data-testid="checkout-customer-name"
                           />
                           {customerExists && (
@@ -392,7 +324,7 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId }: CartCheck
                           size="icon"
                           className="h-8 w-8 rounded-xl text-muted-foreground transition-colors hover:text-destructive"
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          disabled={isSubmitting}
+                          disabled={isSubmittingOrUploading}
                         >
                           {item.quantity === 1 ? (
                             <Trash2 className="h-3 w-3" />
@@ -413,7 +345,7 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId }: CartCheck
                               toast.error("Limite de estoque atingido!");
                             }
                           }}
-                          disabled={isSubmitting || (!allowNegativeStock && item.quantity >= item.maxQuantity)}
+                          disabled={isSubmittingOrUploading || (!allowNegativeStock && item.quantity >= item.maxQuantity)}
                         >
                           <Plus className="h-3 w-3" />
                         </Button>
@@ -496,7 +428,7 @@ export function CartCheckoutSheet({ isOpen, onOpenChange, companyId }: CartCheck
               data-testid="checkout-submit-button"
               onClick={() => handleCheckout()}
             >
-              {isSubmitting ? (
+              {isSubmittingOrUploading ? (
                 <div className="flex items-center gap-2">
                   <Loader2 className="h-5 w-5 animate-spin" />
                   "PROCESSANDO..."

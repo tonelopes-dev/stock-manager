@@ -3,7 +3,7 @@ import "server-only";
 import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { startOfDay, endOfDay } from "date-fns";
-import { parseLocalDay, nowBRT } from "@/app/_lib/date";
+import { parseLocalDay, nowBRT } from "@/app/_utils/date";
 
 export interface AggregatedSaleDto {
   productId: string;

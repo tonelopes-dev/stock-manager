@@ -6,7 +6,7 @@ import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
 import { formatDistanceToNow, differenceInHours } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Clock, ShoppingBag, User } from "lucide-react";
-import { formatCurrency } from "@/app/_helpers/currency";
+import { formatCurrency } from "@/app/_utils/currency";
 import { cn } from "@/app/_lib/utils";
 import { useEffect, useState } from "react";
 import Image from "next/image";

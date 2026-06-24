@@ -12,8 +12,8 @@ import { Tag, Plus, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { getPromotionsAction } from "@/app/_actions/menu/get-promotions";
-import { useUIStore } from "../_store/use-ui-store";
-import { isPromotionActive } from "@/app/_lib/promotion";
+import { useUIStore } from "../../_store/use-ui-store";
+import { isPromotionActive } from "@/app/_utils/promotion";
 
 interface PromotionsModalProps {
   companySlug: string;

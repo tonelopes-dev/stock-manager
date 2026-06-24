@@ -66,11 +66,23 @@ Data Access Layer →  app/_data-access/[feature]/
 Database          →  Prisma ORM → PostgreSQL
 ```
 
-### Regras invioláveis de camadas
+### Estrutura de Diretórios e Responsabilidades
+
+- **`app/_lib/`**: Apenas infraestrutura e integrações externas (Prisma, Redis, Supabase, Safe Action, etc.).
+- **`app/_utils/`**: Funções puras utilitárias e sem estado (cálculos, formatações de data e moeda, lógica de estoque).
+- **`app/_providers/`**: Contexts globais do React (como temas, controle de planos, estados globais de modo de app).
+- **`app/_hooks/`**: Custom hooks compartilhados globalmente no app.
+- **`[feature]/_context/`**: Contexts locais específicos de uma feature (ex: `menu-config-context.tsx`).
+- **`[feature]/_hooks/`**: Custom hooks específicos de uma feature (ex: `useCustomerSession`).
+
+### Regras invioláveis de camadas e organização
 1. **UI não acessa banco diretamente** — usa Server Actions ou Server Components com Data Access
 2. **Data Access não contém lógica de negócio** — apenas queries + DTOs
 3. **Actions não retornam modelos Prisma brutos** — sempre DTOs
 4. **`server-only`** deve ser importado em todo arquivo da camada Data Access
+5. **Contexts em local correto** — Contexts de React devem ficar em `_context/` (no nível da feature) ou `_providers/` (no nível global), **nunca** misturados em `_components/`
+6. **Funções puras em `_utils/`** — Lógicas de cálculo/formatação sem dependências externas devem ficar em `_utils/`, deixando `_lib/` puramente para configurações de clientes e APIs
+7. **Organização por Domínio** — Features com mais de 8 componentes em `_components/` devem sub-dividir o diretório em sub-pastas por domínio de responsabilidade (ex: `layout/`, `product/`, `cart/`, `checkout/`)
 
 ---
 

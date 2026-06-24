@@ -1,7 +1,7 @@
-import { db } from "./prisma";
+import { db } from "@/app/_lib/prisma";
 import { StockMovementType, Prisma, UnitType } from "@prisma/client";
-import { BusinessError } from "./errors";
-import { nowBRT } from "./date";
+import { BusinessError } from "@/app/_lib/errors";
+import { nowBRT } from "@/app/_utils/date";
 
 type Decimal = Prisma.Decimal;
 const Decimal = Prisma.Decimal;

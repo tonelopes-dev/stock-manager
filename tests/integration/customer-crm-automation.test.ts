@@ -110,7 +110,7 @@ describe("Customer CRM Automation Integration Tests", () => {
         phone: "11777776666",
         companyId: company.id,
         stageId: otherStage.id,
-        source: "CRM",
+        source: "MANUAL",
       },
     });
 

@@ -1,9 +1,9 @@
 "use client";
 
-import { useCartStore } from "../_store/use-cart-store";
+import { useCartStore } from "../../_store/use-cart-store";
 import { ShoppingBag } from "lucide-react";
 import { useState, useEffect } from "react";
-import { CartCheckoutSheet } from "@/app/(public)/[companySlug]/_components/cart-checkout-sheet";
+import { CartCheckoutSheet } from "./cart-checkout-sheet";
 
 interface FloatingCartButtonProps {
   companyId: string;

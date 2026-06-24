@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@/app/_components/ui/card";
 import { GoalDto } from "@/app/_data-access/goal/get-goals";
-import { formatCurrency } from "@/app/_helpers/currency";
+import { formatCurrency } from "@/app/_utils/currency";
 import {
   TargetIcon,
   TrendingUpIcon,

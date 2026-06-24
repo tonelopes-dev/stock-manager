@@ -2,7 +2,7 @@
   "cookies": [
     {
       "name": "authjs.csrf-token",
-      "value": "a9fe6212467dc7163606e6425bbe4ed89b32ac1298772df1765b19af7205780f%7C28ee3cd9198d7b4fefb1fb670e80435394a162f36476f932e70ad6dbdd8be063",
+      "value": "3be3ed46a0300f92ed893786a85d7716520297e47127c11440c0b752f588e8e3%7C5b3972d563021c23b72f8670895cce934fb18b24a51d5fb794f945e48f1340cb",
       "domain": "localhost",
       "path": "/",
       "expires": -1,
@@ -22,10 +22,10 @@
     },
     {
       "name": "authjs.session-token",
-      "value": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoiQk5xOXlNaUppaHBkcWlaakJTMkp5ZVllTWFQS1lyZjlVTFBfQnBUMFktamE0MHVwTzJGbDVELVA4OW9Va19udXU2cjIyZUhiUlRvWExCRXhhdmNkSFEifQ..uXkIHVT1wY2gNTtZJsA3Zw.Zq6bdcIO_nAZqQkPKCzuIU9xa9UJ09L5dMEEo0GZIpVzC7ZhV8a5r_fQQFKjD59s36r-pdtrmWnJ0mFSnOD5WUyV3TkYtPt12L6658b5tWJGf2Gfni52z1X8fT684vih4ZhhTYBnkmASEoi9XddeF5PnOFQtHW9He09EFL6x-GY8knA97UDdhG77bjlqgJK5qONhbEUBxKmRSSVuf5zUZMZYcLQ_R2-DhZunnOayN9WqhKWrORovS2iDYYX2Awt2pO1KI1wAXBp8pTOA_s7tWVO-HodC-mby-x6iTrImYduWFQbnTLc892kzTCBU651MYZZIOVvs0LJuPUiZXyaDKa2h-fKY_qKX2WKZMvKEKHnymeG_Gd1rd11TVCAgqZu50dv1D4l7-HnYhEJ44U7gSRKPMnZJMZPOxDPojglYbZCdwvh2xVuQIiyQrOFdWZ0U.P3N3yGDEkQHBR3tYau0AtVj43aP4w0Iu-6EZQRAzffA",
+      "value": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoiQk5xOXlNaUppaHBkcWlaakJTMkp5ZVllTWFQS1lyZjlVTFBfQnBUMFktamE0MHVwTzJGbDVELVA4OW9Va19udXU2cjIyZUhiUlRvWExCRXhhdmNkSFEifQ..21c3pKC6JE6ULs70QyISTg.sUGWD2zWoeM0itx13V4lqeidPPBzPOf3poA65Gkoz5rNey2vwFRY_NpCieFxA404l_PQw92AOkYzfzS_UPRYrHUCr3gywAJsJo07vrtPQ52YOnW6lwwaPnvJdICmNR1z6wR3a_1ZtvEih471A1rZP_7_IDPt4u67YRodXTiFvAZdbqLV0vEr3jjLOYB3DuZFjifh69Tn_Up7OkEyMfcAfcEZcnzMEjODhZ5A2g10eIJ5_kCHZdvVBTBMJK9TRo39UfDHLQRHc0lzRaCpggzZUpKPMd2VHSELr_U-0YbCY-S5a3WUHu8BQlfxCsAzQfaqLbbyxQfjsa3zInFqY6IkHHraiBzkXKiQusJJiWXHoMi1tw_-mS26z7H9xW-KU96XkGu_ZNLcoLJGI_Dgf1VzoSxOTmP1YcSzQzovZ0X314pjSq6nx4dHH72e18abVYiwudDFvSNUD-E-9am3RBnk_P0EA168hTPafEJLOXatr2U.yUq4wSGM12VfnQ5TljfEXptRI1T0j99T7rf12aqCkp0",
       "domain": "localhost",
       "path": "/",
-      "expires": 1779665553.861327,
+      "expires": 1784841806.859672,
       "httpOnly": true,
       "secure": false,
       "sameSite": "Lax"

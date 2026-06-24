@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { addRecipeIngredientSchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { isUnitCompatible, calculateStockDeduction } from "@/app/_lib/units";
+import { isUnitCompatible, calculateStockDeduction } from "@/app/_utils/units";
 import { recalculateProductCostRecursive } from "./recalculate-cost";
 import { ProductType, UnitType } from "@prisma/client";
 

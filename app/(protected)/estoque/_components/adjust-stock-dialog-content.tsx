@@ -30,7 +30,7 @@ import { flattenValidationErrors } from "next-safe-action";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { formatQuantity } from "@/app/_lib/format-quantity";
+import { formatQuantity } from "@/app/_utils/format-quantity";
 
 import {
   Select,

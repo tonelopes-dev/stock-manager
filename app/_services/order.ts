@@ -1,10 +1,10 @@
 import { db } from "@/app/_lib/prisma";
-import { recordStockMovement, processRecursiveStockMovement, getProductsWithFullTree, processBatchStockMovement } from "@/app/_lib/stock";
+import { recordStockMovement, processRecursiveStockMovement, getProductsWithFullTree, processBatchStockMovement } from "@/app/_utils/stock";
 import { BusinessError } from "@/app/_lib/errors";
 import { AuditEventType, OrderStatus, Prisma } from "@prisma/client";
-import { isPromotionActive } from "@/app/_lib/promotion";
+import { isPromotionActive } from "@/app/_utils/promotion";
 import { AuditService } from "./audit";
-import { nowBRT } from "@/app/_lib/date";
+import { nowBRT } from "@/app/_utils/date";
 
 interface CreateOrderParams {
   companyId: string;

@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/app/_components/ui/table";
 import { QuantityStepper } from "@/app/_components/ui/quantity-stepper";
-import { formatCurrency } from "@/app/_helpers/currency";
+import { formatCurrency } from "@/app/_utils/currency";
 
 interface CartTableProps {
   fields: any[];

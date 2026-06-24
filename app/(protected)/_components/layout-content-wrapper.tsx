@@ -1,6 +1,6 @@
 "use client";
 
-import { useAppMode } from "@/app/_components/app-mode-provider";
+import { useAppMode } from "@/app/_providers/app-mode-provider";
 import { cn } from "@/app/_lib/utils";
 
 interface LayoutContentWrapperProps {

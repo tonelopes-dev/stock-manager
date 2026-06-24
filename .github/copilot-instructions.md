@@ -79,8 +79,16 @@ Database (Prisma ORM)
 ```
 app/
 ├── (protected)/          # Auth-guarded routes
-│   ├── [feature]/
-│   └── _components/      # Route-specific components
+│   └── [feature]/
+│       ├── _components/  # Feature-specific components (domain grouped if > 8 files)
+│       ├── _hooks/       # Feature-specific hooks
+│       └── _context/     # Feature-specific contexts
+├── (public)/             # Public tenant pages
+│   └── [companySlug]/
+│       ├── _components/  # public menu UI (subfolders: layout, product, cart, checkout)
+│       ├── _context/     # public menu contexts
+│       ├── _hooks/       # public menu hooks
+│       └── _store/       # public menu zustand stores
 ├── _actions/             # Server Actions (organized by feature)
 │   └── [feature]/
 │       ├── schema.ts     # Zod validation schemas
@@ -91,8 +99,10 @@ app/
 │       ├── get-*.ts      # Query functions
 │       └── types.ts      # DTOs
 ├── _services/            # Business logic, cross-cutting concerns
-├── _lib/                 # Core configs (auth, RBAC, utilities)
-├── _components/          # Global UI components
+├── _lib/                 # Core configs only (auth, prisma, redis, safe-action)
+├── _utils/               # Stateless helper functions (currency, pricing, dates, stocks)
+├── _providers/           # React Context Providers for global state (subscription, app-mode)
+├── _components/          # Global UI components (e.g. ui/ button, input, dialog)
 ├── api/                  # API routes (webhooks, etc.)
 └── (auth)/               # Auth pages (login, register)
 ```

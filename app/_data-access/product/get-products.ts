@@ -3,7 +3,7 @@ import "server-only";
 import { db } from "@/app/_lib/prisma";
 import { Product, Prisma, ProductType } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { calculateMargin } from "@/app/_lib/pricing";
+import { calculateMargin } from "@/app/_utils/pricing";
 import { subDays } from "date-fns";
 import { sanitizeUUID } from "@/app/_lib/uuid";
 import { calculateProductAvailability } from "./calculate-product-availability";
