@@ -195,14 +195,6 @@ export const KDSClient = ({
       label: "",
       icon: null,
     },
-    {
-      title: "Pagos",
-      status: OrderStatus.PAID,
-      color: "bg-emerald-600",
-      action: null,
-      label: "",
-      icon: null,
-    },
   ];
 
   return (
