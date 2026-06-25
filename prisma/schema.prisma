@@ -249,6 +249,7 @@ model Company {
   fixedExpenses          FixedExpense[]
   suppliers              Supplier[]
   stockEntries           StockEntry[]
+  pushSubscriptions      PushSubscription[]
 
   // Branding & Menu Info
   bannerUrl              String?
@@ -371,7 +372,8 @@ model Customer {
   sales       Sale[]
   categories  CustomerCategory[]   @relation("CustomerToCustomerCategory")
   checklists  Checklist[]
-  auditEvents AuditEvent[]
+  auditEvents      AuditEvent[]
+  pushSubscriptions PushSubscription[]
 
   @@unique([email, companyId])
   @@unique([phone, companyId])
@@ -740,4 +742,18 @@ enum GoalPeriod {
   WEEKLY
   MONTHLY
   CUSTOM
+}
+
+model PushSubscription {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  endpoint   String   @unique
+  p256dh     String
+  auth       String
+  createdAt  DateTime @default(now())
+
+  @@index([customerId, companyId])
 }

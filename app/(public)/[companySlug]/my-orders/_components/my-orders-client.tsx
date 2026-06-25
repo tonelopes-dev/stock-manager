@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/_lib/supabase";
+import { usePushNotifications } from "@/app/_hooks/use-push-notifications";
 
 
 import { OrderStatus } from "@prisma/client";
@@ -19,7 +20,8 @@ import {
   Loader2,
   Utensils,
   Check,
-  Phone
+  Phone,
+  BellRing
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/app/_components/ui/button";
@@ -298,6 +300,13 @@ export const MyOrdersClient = ({ companyId, companySlug }: MyOrdersClientProps) 
   const [loginPhone, setLoginPhone] = useState("");
   const [isCheckingPhone, setIsCheckingPhone] = useState(false);
 
+  // Push Notifications
+  const { permission: pushPermission, isSubscribed, isLoading: pushLoading, requestPermissionAndSubscribe } = usePushNotifications({
+    customerId,
+    companyId,
+    autoSubscribe: true,
+  });
+
 
   const loadOrders = async (cid: string) => {
     try {
@@ -428,6 +437,27 @@ export const MyOrdersClient = ({ companyId, companySlug }: MyOrdersClientProps) 
       </header>
 
       <main className="flex-1 space-y-6 px-6 py-8 pb-32">
+        {/* Push Notification Opt-in Banner */}
+        {isLoggedIn && pushPermission !== "granted" && pushPermission !== "unsupported" && pushPermission !== "denied" && (
+          <button
+            onClick={async () => {
+              const success = await requestPermissionAndSubscribe();
+              if (success) {
+                toast.success("Notificações ativadas! Você será avisado quando seu pedido estiver pronto. 🔔");
+              }
+            }}
+            disabled={pushLoading}
+            className="flex w-full items-center gap-4 rounded-2xl bg-gradient-to-r from-primary/10 to-primary/5 p-4 border border-primary/20 transition-all hover:shadow-md active:scale-[0.98]"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15">
+              <BellRing className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-xs font-black text-gray-900">Ativar Notificações</p>
+              <p className="text-[10px] font-bold text-gray-400">Saiba na hora quando seu pedido ficar pronto</p>
+            </div>
+          </button>
+        )}
         {!isLoggedIn ? (
           <div className="space-y-6 rounded-[2rem] bg-white p-6 shadow-sm border border-gray-100 mt-12">
             <h3 className="text-sm font-black uppercase tracking-widest text-gray-400 text-center mb-6">

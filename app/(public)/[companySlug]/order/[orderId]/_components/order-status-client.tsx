@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePushNotifications } from "@/app/_hooks/use-push-notifications";
 import { OrderStatus } from "@prisma/client";
 import { supabase } from "@/app/_lib/supabase";
 
@@ -98,24 +99,24 @@ export const OrderStatusClient = ({
 }: OrderStatusClientProps) => {
   const router = useRouter();
   const [order, setOrder] = useState<OrderStatusDto>(initialOrder);
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>("default");
 
-  // Notification Permission Handling
-  useEffect(() => {
-    if (typeof window !== "undefined" && "Notification" in window) {
-      setNotificationPermission(Notification.permission);
-    }
-  }, []);
+  // Push Notifications
+  const customerId = typeof window !== "undefined"
+    ? (() => {
+        try {
+          const saved = localStorage.getItem(`kipo-customer-${companyId}`);
+          return saved ? JSON.parse(saved)?.customerId ?? null : null;
+        } catch { return null; }
+      })()
+    : null;
 
-  const requestNotificationPermission = async () => {
-    if (typeof window !== "undefined" && "Notification" in window) {
-      const permission = await Notification.requestPermission();
-      setNotificationPermission(permission);
-      if (permission === "granted") {
-        toast.success("Você será avisado quando o pedido estiver pronto! 🔔");
-      }
-    }
-  };
+  const { permission: pushPermission, isLoading: pushLoading, requestPermissionAndSubscribe } = usePushNotifications({
+    customerId,
+    companyId,
+    autoSubscribe: true,
+  });
+
+
 
   // Supabase Realtime - Native Postgres Changes
   useEffect(() => {
@@ -193,13 +194,19 @@ export const OrderStatusClient = ({
             {currentStatus.description}
           </p>
 
-          {/* Native Notification Opt-in */}
-          {notificationPermission !== "granted" && order.status !== "PAID" && (
+          {/* Push Notification Opt-in */}
+          {pushPermission !== "granted" && pushPermission !== "unsupported" && order.status !== "PAID" && (
             <button
-              onClick={requestNotificationPermission}
+              onClick={async () => {
+                const success = await requestPermissionAndSubscribe();
+                if (success) {
+                  toast.success("Você será avisado quando o pedido estiver pronto! 🔔");
+                }
+              }}
+              disabled={pushLoading}
               className="mt-8 flex items-center gap-2 rounded-2xl bg-gray-900 px-6 py-3 text-xs font-bold text-white shadow-xl shadow-gray-200 hover:scale-105 active:scale-95 transition-all"
             >
-              {notificationPermission === "denied" ? (
+              {pushPermission === "denied" ? (
                 <><BellOff className="h-4 w-4" /> Notificações Bloqueadas</>
               ) : (
                 <><BellRing className="h-4 w-4" /> Me avise quando estiver pronto</>

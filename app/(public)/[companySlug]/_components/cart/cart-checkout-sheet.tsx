@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { usePushNotifications } from "@/app/_hooks/use-push-notifications";
 import Image from "next/image";
 import {
   Minus,
@@ -71,6 +72,12 @@ export function CartCheckoutSheet({
     handleCheckPhone,
     setSessionData,
   } = useCustomerSession(companyId);
+
+  const { requestPermissionAndSubscribe } = usePushNotifications({
+    customerId: tempCustomerId,
+    companyId,
+    autoSubscribe: false,
+  });
 
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -236,7 +243,9 @@ export function CartCheckoutSheet({
         toast.success("Pedido realizado com sucesso!");
         clearCart();
         onOpenChange(false);
-        router.push(`/${companySlug}/my-orders`);
+        requestPermissionAndSubscribe().finally(() => {
+          router.push(`/${companySlug}/my-orders`);
+        });
       } else {
         toast.error(
           result?.serverError || "Erro ao processar pedido. Tente novamente.",
