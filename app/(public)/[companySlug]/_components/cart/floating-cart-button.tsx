@@ -3,6 +3,7 @@
 import { useCartStore } from "../../_store/use-cart-store";
 import { ShoppingBag } from "lucide-react";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { CartCheckoutSheet } from "./cart-checkout-sheet";
 
 interface FloatingCartButtonProps {
@@ -13,6 +14,12 @@ export function FloatingCartButton({ companyId }: FloatingCartButtonProps) {
   const { totalItems, totalAmount } = useCartStore();
   const [isMounted, setIsMounted] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Close sheet when pathname changes
+  useEffect(() => {
+    setIsSheetOpen(false);
+  }, [pathname]);
 
   // Hydration fix for Zustand persist
   useEffect(() => {

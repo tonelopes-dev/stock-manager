@@ -27,6 +27,13 @@ export function useCustomerSession(companyId: string) {
       } catch (e) {
         console.error("Error parsing saved customer", e);
       }
+    } else {
+      setCustomerName("");
+      setPhoneNumber("");
+      setIsPhoneVerified(false);
+      setCustomerExists(false);
+      setTempCustomerId(null);
+      setCustomerImageUrl(null);
     }
   }, [companyId]);
 
@@ -55,15 +62,18 @@ export function useCustomerSession(companyId: string) {
         
         localStorage.setItem(`kipo-customer-${companyId}`, JSON.stringify(data.customer));
         toast.success(`Olá, ${data.customer.name.split(' ')[0]}!`);
+        return true;
       } else {
         setCustomerExists(false);
         setCustomerName("");
         setTempCustomerId(null);
         setCustomerImageUrl(null);
         toast.info("Não encontramos seu cadastro. Por favor, informe seu nome.");
+        return false;
       }
     } catch {
       toast.error("Erro ao verificar telefone.");
+      return null;
     } finally {
       setIsCheckingPhone(false);
     }
