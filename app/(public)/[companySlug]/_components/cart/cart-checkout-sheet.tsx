@@ -292,12 +292,12 @@ export function CartCheckoutSheet({
                     </div>
                   )}
                 </div>
-                <div className="flex min-w-0 flex-col">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-primary/80">
-                    Cliente Identificado
-                  </span>
-                  <span className="max-w-[180px] truncate text-sm font-black leading-tight text-gray-900">
+                <div className="flex min-w-0 flex-col items-start gap-1">
+                  <span className="max-w-[180px] truncate text-sm font-black capitalize leading-tight text-gray-900">
                     {customerName}
+                  </span>
+                  <span className="max-w-[180px] truncate text-xs font-light leading-tight text-gray-900">
+                    {phoneNumber}
                   </span>
                 </div>
                 <button
