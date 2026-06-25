@@ -110,6 +110,29 @@ export const KDSClient = ({
     activeEnvId,
   });
 
+  // Calcula a quantidade de pedidos pendentes para cada praça em tempo real
+  const pendingCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: 0 };
+    environments.forEach((env) => { counts[env.id] = 0; });
+
+    orders.forEach((order) => {
+      // Para Expedição (all)
+      if (order.items.length > 0 && getDerivedStatus(order, "all") === OrderStatus.PENDING) {
+        counts.all++;
+      }
+
+      // Para cada praça específica
+      environments.forEach((env) => {
+        const hasItems = order.items.some(i => i.environmentId === env.id);
+        if (hasItems && getDerivedStatus(order, env.id) === OrderStatus.PENDING) {
+          counts[env.id]++;
+        }
+      });
+    });
+
+    return counts;
+  }, [orders, environments]);
+
   // Recalcula o estado derivado dos pedidos baseado na aba ativa
   const filteredOrders = useMemo(() => {
     return orders
@@ -202,6 +225,11 @@ export const KDSClient = ({
                 className="rounded-[1rem] px-3 text-[9px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg md:px-4 md:text-[10px] xl:px-6"
               >
                 <AlertCircle className="mr-1.5 h-3.5 w-3.5 md:mr-2 md:h-4 md:w-4" /> EXPEDIÇÃO
+                {pendingCounts.all > 0 && (
+                  <span className="ml-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-orange-500 px-1 text-[9px] font-black text-white shadow-sm">
+                    {pendingCounts.all}
+                  </span>
+                )}
               </TabsTrigger>
               {environments.map((env) => (
                 <TabsTrigger
@@ -210,6 +238,11 @@ export const KDSClient = ({
                   className="rounded-[1rem] px-3 text-[9px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg md:px-4 md:text-[10px] xl:px-6"
                 >
                   {env.name}
+                  {pendingCounts[env.id] > 0 && (
+                    <span className="ml-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-orange-500 px-1 text-[9px] font-black text-white shadow-sm">
+                      {pendingCounts[env.id]}
+                    </span>
+                  )}
                 </TabsTrigger>
               ))}
             </TabsList>
