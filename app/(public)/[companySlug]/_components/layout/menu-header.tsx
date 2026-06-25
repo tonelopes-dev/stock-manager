@@ -82,7 +82,7 @@ export const MenuHeader = ({
       <div className="relative z-10 mx-6 -mt-10 rounded-[2.5rem] bg-white p-6 shadow-2xl shadow-gray-200/50">
         <div className="absolute -top-14 left-1/2 h-28 w-28 -translate-x-1/2 overflow-hidden rounded-full border-[6px] border-white bg-white shadow-xl">
           <Image
-            src={menuData.logoUrl || "/logo/logo-kipo.png"}
+            src={menuData.logoUrl || "/logo/logomarca-180.png"}
             alt="Logo"
             fill
             className="object-cover"
