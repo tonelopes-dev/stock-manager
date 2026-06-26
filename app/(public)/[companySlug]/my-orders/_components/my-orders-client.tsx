@@ -86,6 +86,13 @@ const statusConfig: Record<
     description: "Finalizado.",
     step: 5,
   },
+  SETTLED_LATER: {
+    label: "Liberado (VIP)",
+    icon: CheckCircle2,
+    color: "text-blue-600",
+    description: "Mesa liberada para acerto posterior.",
+    step: 5,
+  },
   CANCELED: {
     label: "Cancelado",
     icon: Clock,
@@ -101,6 +108,7 @@ const itemStatusConfig: Record<OrderStatus, { label: string; color: string; icon
   READY: { label: "Pronto", color: "bg-emerald-100 text-emerald-700 border-emerald-200", icon: CheckCircle2 },
   DELIVERED: { label: "Entregue", color: "bg-primary/10 text-primary border-primary/20", icon: Check },
   PAID: { label: "Pago", color: "bg-emerald-100 text-emerald-700 border-emerald-200", icon: Check },
+  SETTLED_LATER: { label: "Liberado (VIP)", color: "bg-blue-100 text-blue-700 border-blue-200", icon: Check },
   CANCELED: { label: "Cancelado", color: "bg-destructive/10 text-destructive border-destructive/20", icon: Clock },
 };
 

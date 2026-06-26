@@ -83,6 +83,14 @@ const statusConfig: Record<
     description: "Obrigado! Volte sempre ao nosso restaurante.",
     step: 5,
   },
+  SETTLED_LATER: {
+    label: "Liberado (VIP)",
+    icon: CheckCircle2,
+    color: "text-blue-600",
+    bgColor: "bg-blue-50",
+    description: "Mesa liberada para pagamento posterior. Obrigado pela preferência!",
+    step: 5,
+  },
   CANCELED: {
     label: "Cancelado",
     icon: X,

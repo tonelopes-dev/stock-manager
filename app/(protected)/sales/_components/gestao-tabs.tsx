@@ -7,14 +7,17 @@ import { Search } from "lucide-react";
 import { PeriodFilter } from "@/app/_components/period-filter";
 import { ComandasGrid } from "./comandas-grid";
 import { ClosedSalesGrid } from "./closed-sales-grid";
+import { ReceivablesTable } from "./receivables-table";
 import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
 import { SaleDto } from "@/app/_data-access/sale/get-sales";
+import { ReceivableDto } from "@/app/_data-access/sale/get-pending-receivables";
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
 
 interface GestaoTabsProps {
   initialComandas: ComandaDto[];
   initialClosedSales: SaleDto[];
+  initialReceivables: ReceivableDto[];
   totalClosedSales: number;
   currentClosedPage: number;
   currentClosedPageSize: number;
@@ -29,6 +32,7 @@ interface GestaoTabsProps {
 export const GestaoTabs = ({
   initialComandas,
   initialClosedSales,
+  initialReceivables,
   totalClosedSales,
   currentClosedPage,
   currentClosedPageSize,
@@ -53,6 +57,12 @@ export const GestaoTabs = ({
                 className="rounded-xl px-6 font-black uppercase italic tracking-tighter data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"
               >
                 Abertas
+              </TabsTrigger>
+              <TabsTrigger 
+                value="pendentes" 
+                className="rounded-xl px-6 font-black uppercase italic tracking-tighter data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"
+              >
+                Pendentes
               </TabsTrigger>
               <TabsTrigger 
                 value="fechadas"
@@ -88,10 +98,14 @@ export const GestaoTabs = ({
             companyId={companyId}
             products={products}
             productOptions={productOptions}
+            customerOptions={customerOptions}
             stages={stages}
             categories={categories}
             search={search}
           />
+        </TabsContent>
+        <TabsContent value="pendentes" className="mt-0 ring-0 focus-visible:ring-0">
+          <ReceivablesTable initialReceivables={initialReceivables} search={search} />
         </TabsContent>
         <TabsContent value="fechadas" className="mt-0 ring-0 focus-visible:ring-0">
           <ClosedSalesGrid

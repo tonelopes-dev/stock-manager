@@ -33,6 +33,7 @@ import { getPendingOrders } from "@/app/_data-access/order/get-pending-orders";
 import { PendingOrdersBanner } from "./_components/pending-orders-banner";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { getAggregatedSales } from "@/app/_data-access/sale/get-aggregated-sales";
+import { getPendingReceivables } from "@/app/_data-access/sale/get-pending-receivables";
 import { ProductSalesChart } from "./_components/product-sales-chart";
 import { AggregatedSalesTable } from "./_components/aggregated-sales-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
@@ -94,7 +95,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
   const analyticsTo = to || today;
 
   // 2. Fetch business data in parallel (conditionally)
-  const [analytics, aggregatedData, activeComandas, salesResult, preFetchedSale] = await Promise.all([
+  const [analytics, aggregatedData, activeComandas, salesResult, preFetchedSale, pendingReceivables] = await Promise.all([
     // Only fetch analytics if needed
     (view === "inteligencia" || view === "gorjetas") 
       ? getSalesAnalytics(analyticsFrom, analyticsTo, resolvedSearchParams.monthA, resolvedSearchParams.monthB)
@@ -114,7 +115,8 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
       pageSize: pageSize,
     }),
 
-    resolvedSearchParams.saleId ? getSaleById(resolvedSearchParams.saleId) : Promise.resolve(null)
+    resolvedSearchParams.saleId ? getSaleById(resolvedSearchParams.saleId) : Promise.resolve(null),
+    getPendingReceivables(),
   ]);
 
   const { data: closedSales, total: totalClosedSales } = salesResult;
@@ -192,6 +194,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
           <GestaoTabs
             initialComandas={activeComandas}
             initialClosedSales={closedSales}
+            initialReceivables={pendingReceivables}
             totalClosedSales={totalClosedSales}
             currentClosedPage={currentPage}
             currentClosedPageSize={pageSize}

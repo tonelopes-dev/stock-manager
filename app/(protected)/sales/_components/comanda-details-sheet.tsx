@@ -63,6 +63,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/app/_components/ui/dialog";
 import { WhatsAppButton } from "@/app/_components/whatsapp-button";
+import { DatePicker } from "@/app/_components/ui/date-picker";
 
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
@@ -75,6 +76,7 @@ interface ComandaDetailsSheetProps {
   companyId: string;
   products: ProductDto[];
   productOptions: ComboboxOption[];
+  customerOptions: ComboboxOption[];
   stages: { id: string; name: string }[];
   categories: { id: string; name: string }[];
 }
@@ -91,6 +93,7 @@ const paymentMethodLabels: Record<
   },
   DEBIT_CARD: { label: "Débito", icon: <CreditCard className="h-3.5 w-3.5" /> },
   OTHER: { label: "Outro", icon: <Wallet className="h-3.5 w-3.5" /> },
+  PENDING_PAYMENT: { label: "Pagar Depois (VIP)", icon: <Clock className="h-3.5 w-3.5 text-orange-500" /> },
 };
 
 export const ComandaDetailsSheet = ({
@@ -100,6 +103,7 @@ export const ComandaDetailsSheet = ({
   companyId,
   products,
   productOptions,
+  customerOptions,
   stages,
   categories,
 }: ComandaDetailsSheetProps) => {
@@ -126,6 +130,14 @@ export const ComandaDetailsSheet = ({
   );
   const [isGrouped, setIsGrouped] = useState<boolean>(false);
 
+  // VIP Pending Payment State
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
+  const [dueDate, setDueDate] = useState<Date>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d;
+  });
+
   const router = useRouter();
 
   // Reset state when sheet opens/closes or comanda changes
@@ -140,6 +152,11 @@ export const ComandaDetailsSheet = ({
       setAdjustmentReason(comanda.adjustmentReason || "");
       setAdjustmentType((comanda.extraAmount || 0) > 0 ? "extra" : "discount");
       setIsEmployeeSale(comanda.isEmployeeSale || false);
+      setSelectedCustomerId(comanda.customerId || "");
+      const d = new Date();
+      d.setDate(d.getDate() + 30);
+      setDueDate(d);
+      setPaymentMethod("PIX");
     }
   }, [isOpen, comanda]);
 
@@ -253,19 +270,30 @@ export const ComandaDetailsSheet = ({
       return;
     }
 
+    if (paymentMethod === "PENDING_PAYMENT" && !selectedCustomerId) {
+      toast.error("Selecione um cliente para gerar a fatura fiado.");
+      return;
+    }
+
     startTransition(async () => {
       try {
+        const actualStatus = paymentMethod === "PENDING_PAYMENT" ? "PENDING_PAYMENT" : "ACTIVE";
+        const actualPaymentMethod = paymentMethod === "PENDING_PAYMENT" ? null : (paymentMethod as any);
+
         if (selectedItemIds.size === 0) {
           // PAY EVERYTHING (Consolidated logic)
           const result = await convertOrderToSaleAction({
             orderIds: comanda.orders.map(o => o.id),
             companyId,
-            paymentMethod: paymentMethod as any,
+            paymentMethod: actualPaymentMethod,
             tipAmount: totals.serviceChargeAmount,
             discountAmount: totals.effectiveDiscount,
             extraAmount: totals.extraAmount,
             adjustmentReason: adjustmentReason || undefined,
             isEmployeeSale: isEmployeeSale,
+            status: actualStatus as any,
+            dueDate: paymentMethod === "PENDING_PAYMENT" ? dueDate : undefined,
+            customerId: paymentMethod === "PENDING_PAYMENT" ? selectedCustomerId : undefined,
           });
           if (result?.serverError) throw new Error(result.serverError);
         } else {
@@ -273,12 +301,15 @@ export const ComandaDetailsSheet = ({
           const result = await convertItemsToSaleAction({
             itemIds: Array.from(selectedItemIds),
             companyId,
-            paymentMethod: paymentMethod as any,
+            paymentMethod: actualPaymentMethod,
             tipAmount: totals.serviceChargeAmount,
             discountAmount: totals.effectiveDiscount,
             extraAmount: totals.extraAmount,
             adjustmentReason: adjustmentReason || undefined,
             isEmployeeSale,
+            status: actualStatus as any,
+            dueDate: paymentMethod === "PENDING_PAYMENT" ? dueDate : undefined,
+            customerId: paymentMethod === "PENDING_PAYMENT" ? selectedCustomerId : undefined,
           });
 
           if (result?.serverError) throw new Error(result.serverError);
@@ -656,6 +687,44 @@ export const ComandaDetailsSheet = ({
                     </div>
                   </div>
 
+                  {paymentMethod === "PENDING_PAYMENT" && (
+                    <div className="space-y-3 rounded-2xl border border-orange-200 bg-orange-50/50 p-4 shadow-sm animate-in fade-in slide-in-from-bottom-2">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-orange-500" />
+                        <span className="text-xs font-black uppercase tracking-widest text-orange-700">
+                          Opções de Pagamento Futuro (Fiado)
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                            Cliente VIP (Obrigatório)
+                          </Label>
+                          <Combobox
+                            options={customerOptions}
+                            value={selectedCustomerId}
+                            onChange={setSelectedCustomerId}
+                            placeholder="Selecione o cliente..."
+                          />
+                          {!selectedCustomerId && (
+                            <p className="text-[10px] font-bold text-destructive">
+                              * Selecione um cliente para liberar.
+                            </p>
+                          )}
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                            Data de Vencimento
+                          </Label>
+                          <DatePicker
+                            value={dueDate}
+                            onChange={(date) => date && setDueDate(date)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <Button
                     className={cn(
                       "h-14 w-full rounded-2xl text-lg font-black uppercase italic tracking-wider ring-offset-2 transition-all active:scale-95 disabled:opacity-50",
@@ -663,7 +732,7 @@ export const ComandaDetailsSheet = ({
                         ? "bg-primary text-background shadow-lg shadow-primary/20 hover:bg-primary/90"
                         : "bg-emerald-600 text-background shadow-lg shadow-emerald-100 hover:bg-emerald-700",
                     )}
-                    disabled={isPending}
+                    disabled={isPending || (paymentMethod === "PENDING_PAYMENT" && !selectedCustomerId)}
                     onClick={handlePay}
                   >
                     {isPending ? (
