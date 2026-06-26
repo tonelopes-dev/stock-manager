@@ -31,11 +31,22 @@ const composerSchema = z.object({
 
 type ComposerSchema = z.infer<typeof composerSchema>;
 
+interface CartItem {
+  productId: string;
+  name: string;
+  price: number;
+  cost: number;
+  operationalCost: number;
+  quantity: number;
+  stock: number;
+  notes?: string;
+}
+
 interface CartComposerProps {
   products: ProductDto[];
   productOptions: ComboboxOption[];
-  fields: any[];
-  append: (item: any) => void;
+  fields: CartItem[];
+  append: (item: CartItem) => void;
   isReadOnly?: boolean;
 }
 

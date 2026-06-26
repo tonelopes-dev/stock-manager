@@ -86,8 +86,9 @@ export const ReceivablesTable = ({
         toast.success(`Conta de ${selectedReceivableForSettle.customerName} liquidada com sucesso!`);
         setSelectedReceivableForSettle(null);
         router.refresh();
-      } catch (err: any) {
-        toast.error(`Erro ao dar baixa: ${err.message}`);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Erro desconhecido";
+        toast.error(`Erro ao dar baixa: ${message}`);
       }
     });
   };

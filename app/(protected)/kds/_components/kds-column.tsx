@@ -7,10 +7,11 @@ import { Utensils } from "lucide-react";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { cn } from "@/app/_lib/utils";
 import { KDSCard } from "./kds-card";
+import { StationSummary } from "../_hooks/kds-engine";
 
 interface KDSColumnProps {
   title: string;
-  orders: any[];
+  orders: (KDSOrderDto & { displayStatus?: OrderStatus; stationSummary?: StationSummary[] })[];
   accentColor: string;
   activeEnvId: string;
   onAction: (orderId: string) => void;

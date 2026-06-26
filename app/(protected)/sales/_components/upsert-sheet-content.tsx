@@ -8,7 +8,7 @@ import {
 } from "@/app/_components/ui/sheet";
 import { ShoppingCartIcon } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, FormProvider, UseFormWatch } from "react-hook-form";
 import { z } from "zod";
 import { PaymentMethod } from "@prisma/client";
 import { upsertSale } from "@/app/_actions/sale/upsert-sale";
@@ -38,6 +38,7 @@ import {
   DialogTitle,
 } from "@/app/_components/ui/dialog";
 import UpsertCustomerDialogContent from "../../customers/_components/upsert-dialog-content";
+import { UpsertCustomerSchema } from "@/app/_actions/customer/upsert-customer/schema";
 import { PlusIcon } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
 import { useFieldArray } from "react-hook-form";
@@ -196,7 +197,7 @@ const UpsertSheetContent = ({
   }, [form, isOpen, resetUpsertSale, resetCreateOrder]);
 
   // Hook for totals (used in handlers)
-  const totals = useSaleTotals(form.watch as any);
+  const totals = useSaleTotals(form.watch as UseFormWatch<FormSchema>);
 
   const handleOpenOrder = () => {
     const values = form.getValues();
@@ -252,7 +253,7 @@ const UpsertSheetContent = ({
     });
   };
 
-  const handleCustomerSuccess = (customer: any) => {
+  const handleCustomerSuccess = (customer: { id: string }) => {
     form.setValue("customerId", customer.id);
     setCustomerDialogOpen(false);
     setCustomerSearchValue("");
@@ -367,7 +368,12 @@ const UpsertSheetContent = ({
             categories={categories}
             stages={stages}
             onSuccess={handleCustomerSuccess}
-            defaultValues={{ name: customerSearchValue, phoneNumber: "" } as any}
+            defaultValues={{
+              name: customerSearchValue,
+              phoneNumber: "",
+              categoryIds: [],
+              stageId: "",
+            }}
           />
         </Dialog>
       </FormProvider>

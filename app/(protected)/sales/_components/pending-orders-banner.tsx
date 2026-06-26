@@ -24,6 +24,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { convertOrderToSaleAction } from "@/app/_actions/order/convert-to-sale";
+import { PaymentMethod } from "@prisma/client";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -85,7 +86,7 @@ export const PendingOrdersBanner = ({
       const result = await convertOrderToSaleAction({
         orderIds: [orderId],
         companyId,
-        paymentMethod: method as any,
+        paymentMethod: method as PaymentMethod,
       });
       if (result?.data?.success) {
         toast.success("Pedido convertido em venda com sucesso!");

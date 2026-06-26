@@ -18,7 +18,7 @@ import { SalesDataTable } from "./_components/sales-data-table";
 import { Suspense } from "react";
 import { SaleTableSkeleton } from "./_components/table-skeleton";
 import { PeriodFilter } from "@/app/_components/period-filter";
-import { getSalesAnalytics } from "@/app/_data-access/sale/get-sales-analytics";
+import { getSalesAnalytics, SalesAnalyticsDto } from "@/app/_data-access/sale/get-sales-analytics";
 import { SalesSummary } from "./_components/sales-summary";
 import { SalesCharts } from "./_components/sales-charts";
 import { MonthComparisonFilter } from "./_components/month-comparison-filter";
@@ -244,7 +244,7 @@ const TipsReportWrapper = async ({
 }: {
   from?: string;
   to?: string;
-  analytics: any; // Using already fetched analytics
+  analytics: SalesAnalyticsDto | null;
 }) => {
   const sales = await getSalesForTips({ from, to });
 
