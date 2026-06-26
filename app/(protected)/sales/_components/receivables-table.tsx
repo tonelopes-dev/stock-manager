@@ -329,7 +329,8 @@ export const ReceivablesTable = ({
             companyId={companyId}
             stages={stages}
             categories={categories}
-            isReadOnly={true}
+            isReadOnly={false}
+            isPendingSale={true}
             defaultSelectedProducts={selectedReceivableForSheet.saleItems.map((item) => {
               const product = products.find((p) => p.id === item.productId);
               return {

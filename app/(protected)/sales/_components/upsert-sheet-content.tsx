@@ -100,6 +100,7 @@ interface UpsertSheetContentProps {
   stages: { id: string; name: string }[];
   categories: { id: string; name: string }[];
   isReadOnly?: boolean;
+  isPendingSale?: boolean;
 }
 
 const UpsertSheetContent = ({
@@ -122,6 +123,7 @@ const UpsertSheetContent = ({
   stages,
   categories,
   isReadOnly = false,
+  isPendingSale = false,
 }: UpsertSheetContentProps) => {
   const [customerDialogOpen, setCustomerDialogOpen] = useState(false);
   const [customerSearchValue, setCustomerSearchValue] = useState("");
@@ -164,7 +166,7 @@ const UpsertSheetContent = ({
       toast.error(serverError ?? flattenedErrors.formErrors[0]);
     },
     onSuccess: () => {
-      toast.success("Venda realizada com sucesso.");
+      toast.success("Venda atualizada com sucesso.");
       setSheetIsOpen(false);
     },
   });
@@ -227,7 +229,7 @@ const UpsertSheetContent = ({
     const values = form.getValues();
     if (values.items.length === 0) return;
 
-    if (!values.paymentMethod) {
+    if (!isPendingSale && !values.paymentMethod) {
       toast.error("Selecione uma forma de pagamento.");
       return;
     }
@@ -236,12 +238,13 @@ const UpsertSheetContent = ({
       id: saleId,
       date: values.date ? new Date(values.date + "T12:00:00.000Z") : undefined,
       customerId: values.customerId || undefined,
-      paymentMethod: values.paymentMethod,
+      paymentMethod: values.paymentMethod || null,
       tipAmount: totals.serviceChargeAmount,
       discountAmount: totals.effectiveDiscount,
       extraAmount: totals.extraAmount,
       adjustmentReason: values.adjustmentReason || undefined,
       isEmployeeSale: values.isEmployeeSale,
+      status: isPendingSale ? "PENDING_PAYMENT" : "ACTIVE",
       products: values.items.map((p) => ({
         id: p.productId,
         quantity: p.quantity,
@@ -268,11 +271,11 @@ const UpsertSheetContent = ({
                       <ShoppingCartIcon size={18} />
                     </div>
                     <SheetTitle className="whitespace-nowrap text-lg font-black uppercase italic tracking-tighter">
-                      {isReadOnly ? "Visualizar Venda" : saleId ? "Editar Venda" : "Nova Venda"}
+                      {isReadOnly ? "Visualizar Venda" : isPendingSale ? "Editar Comanda Pendente" : saleId ? "Editar Venda" : "Nova Venda"}
                     </SheetTitle>
                   </div>
                   <SheetDescription className="text-[10px] font-semibold uppercase tracking-tight text-muted-foreground">
-                    {isReadOnly ? "Venda finalizada (Somente Leitura)" : "Processamento em tempo real"}
+                    {isReadOnly ? "Venda finalizada (Somente Leitura)" : isPendingSale ? "Ajuste de itens aguardando pagamento" : "Processamento em tempo real"}
                   </SheetDescription>
                 </SheetHeader>
 
@@ -322,6 +325,7 @@ const UpsertSheetContent = ({
                     isUpsertPending={isUpsertPending}
                     saleId={saleId}
                     isReadOnly={isReadOnly}
+                    isPendingSale={isPendingSale}
                   />
                 </div>
               </div>
