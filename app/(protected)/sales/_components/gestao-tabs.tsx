@@ -52,37 +52,37 @@ export const GestaoTabs = ({
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-4 flex-1">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-fit">
-            <TabsList className="bg-muted/50 p-1 rounded-2xl h-12">
+        <div className="flex flex-col xl:flex-row xl:items-center gap-4 flex-1 w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full xl:w-fit">
+            <TabsList className="bg-muted/50 p-1 rounded-2xl h-12 w-full flex justify-around xl:justify-start">
               <TabsTrigger 
                 value="abertas" 
-                className="rounded-xl px-6 font-black uppercase italic tracking-tighter data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"
+                className="rounded-xl px-3 sm:px-6 text-xs sm:text-sm font-black uppercase italic tracking-tighter data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all flex-1 xl:flex-none"
               >
                 Abertas
               </TabsTrigger>
               <TabsTrigger 
                 value="pendentes" 
-                className="rounded-xl px-6 font-black uppercase italic tracking-tighter data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"
+                className="rounded-xl px-3 sm:px-6 text-xs sm:text-sm font-black uppercase italic tracking-tighter data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all flex-1 xl:flex-none"
               >
                 Pendentes
               </TabsTrigger>
               <TabsTrigger 
                 value="fechadas"
-                className="rounded-xl px-6 font-black uppercase italic tracking-tighter data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"
+                className="rounded-xl px-3 sm:px-6 text-xs sm:text-sm font-black uppercase italic tracking-tighter data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all flex-1 xl:flex-none"
               >
                 Fechadas
               </TabsTrigger>
             </TabsList>
           </Tabs>
 
-          <div className="relative flex-1 max-w-md">
+          <div className="relative flex-1 w-full max-w-none xl:max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Buscar por cliente ou celular..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-12 rounded-2xl border-border bg-muted/50 pl-10 font-bold transition-all placeholder:font-medium placeholder:text-muted-foreground focus:bg-background"
+              className="h-12 w-full rounded-2xl border-border bg-muted/50 pl-10 font-bold transition-all placeholder:font-medium placeholder:text-muted-foreground focus:bg-background"
             />
           </div>
         </div>

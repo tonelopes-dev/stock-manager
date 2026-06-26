@@ -122,7 +122,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
   const { data: closedSales, total: totalClosedSales } = salesResult;
 
   return (
-    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-background p-8">
+    <div className="space-y-8 overflow-auto rounded-lg bg-background p-3 sm:p-4 md:p-8">
       <div className="flex flex-col gap-6">
         <div className="space-y-1">
           <HeaderSubtitle>
@@ -131,9 +131,9 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
           <HeaderTitle>Vendas</HeaderTitle>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <SalesViewTabs />
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
             {view === "inteligencia" && <PeriodFilter />}
             {view === "inteligencia" && <ExportReportModal />}
             <UpsertSaleButton

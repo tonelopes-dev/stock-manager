@@ -268,8 +268,8 @@ export const KDSClient = ({
         </div>
       </div>
 
-      <div className="scrollbar-hide flex-1 overflow-x-auto p-3 pb-8 md:p-4 md:pb-10 xl:p-6 xl:pb-14">
-        <div className="flex h-full gap-3 md:gap-4 xl:gap-6">
+      <div className="scrollbar-hide flex-1 overflow-x-auto snap-x snap-mandatory p-3 pb-8 md:p-4 md:pb-10 xl:p-6 xl:pb-14">
+        <div className="flex h-full gap-4 md:gap-4 xl:gap-6">
           {columns.map((column) => {
             const columnOrders = filteredOrders.filter((order) => {
               if (Array.isArray(column.status)) {

@@ -10,8 +10,8 @@ export const GlobalHeader = async () => {
   return (
     <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center border-b border-border bg-background/95 backdrop-blur-md px-6">
 
-      {/* Middle Area: Absolutely Centered Search */}
-      <div className="pointer-events-none absolute left-1/2 flex -translate-x-10 items-center justify-center">
+      {/* Middle Area: Absolutely Centered Search (Hidden on Mobile) */}
+      <div className="pointer-events-none absolute left-1/2 hidden md:flex -translate-x-10 items-center justify-center">
         <div className="pointer-events-auto">
           <GlobalSearch />
         </div>
