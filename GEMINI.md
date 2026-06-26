@@ -38,6 +38,13 @@ Você é um **desenvolvedor sênior especialista** em:
 - **Auth**: NextAuth v5 (Beta), JWT
 - **Multi-tenancy**: `companyId` obrigatório em toda query
 
+### Banco Online & Migrations (Supabase / PostgreSQL)
+- **REGRA INVIOLÁVEL DE SCHEMA**: Sempre que alterar qualquer estrutura no arquivo `schema.prisma` (adicionar models, colunas, enums ou relações), é **OBRIGATÓRIO** gerar o arquivo físico de migração SQL para garantir que as tabelas e colunas sejam criadas corretamente no banco de dados online na Supabase em produção.
+- **Fluxo de Migração Obrigatório**:
+  1. Gerar a migration com nome explicativo: `npx prisma migrate dev --name <nome_descritivo>`
+  2. Se houver divergência por `db push` anterior em desenvolvimento, utilize `npx prisma migrate diff` ou crie o SQL cirúrgico e marque como resolvida via `npx prisma migrate resolve --applied <migration_name>`.
+  3. **Forçar o commit da migration**: Mesmo que `prisma/migrations` esteja no `.gitignore`, faça o commit obrigatório via `git add -f prisma/migrations/<migration_folder>` para assegurar que a pipeline execute `npx prisma migrate deploy` no banco online.
+
 ### Serviços
 - **Pagamentos**: Stripe + MercadoPago
 - **Email**: Resend (templates em Português)
@@ -230,3 +237,4 @@ await assertCapability("product:delete");
 - ❌ Deixar `console.log` de debug em código commitado
 - ❌ Escrever mensagens de erro técnico em Português (logs = Inglês)
 - ❌ Criar soluções rápidas que sacrificam manutenibilidade
+- ❌ Alterar o `schema.prisma` sem gerar e comitar a respectiva migration SQL para o banco online da Supabase
