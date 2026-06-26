@@ -118,7 +118,7 @@ export const ComandaPaymentSection = ({
   onPay,
 }: ComandaPaymentSectionProps) => {
   return (
-    <div className="flex min-h-0 flex-col border-r border-border bg-muted/30">
+    <div className="flex min-h-0 flex-col border-r border-border bg-muted/30 order-2 lg:order-1 flex-1 lg:w-1/2 overflow-y-auto">
       <div className="scrollbar-hide hover:scrollbar-default flex-1 space-y-2 overflow-y-auto p-2 transition-all">
         {/* Metrics Section */}
         <div className="grid grid-cols-2 gap-3">
@@ -395,7 +395,7 @@ export const ComandaPaymentSection = ({
 
           <Button
             className={cn(
-              "h-14 w-full rounded-2xl text-lg font-black uppercase italic tracking-wider ring-offset-2 transition-all active:scale-95 disabled:opacity-50",
+              "w-full rounded-2xl text-sm sm:text-lg whitespace-normal leading-tight h-auto py-3 font-black uppercase italic tracking-wider ring-offset-2 transition-all active:scale-95 disabled:opacity-50",
               isPartial
                 ? "bg-primary text-background shadow-lg shadow-primary/20 hover:bg-primary/90"
                 : "bg-emerald-600 text-background shadow-lg shadow-emerald-100 hover:bg-emerald-700",

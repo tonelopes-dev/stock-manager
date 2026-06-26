@@ -57,7 +57,7 @@ export const ComandaDetailsSheet = ({
 
   return (
     <UISheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <UISheetContent className="flex h-full !max-w-full flex-col border-none bg-background p-0 shadow-2xl lg:!max-w-5xl">
+      <UISheetContent className="flex h-full w-full sm:max-w-full md:max-w-3xl lg:max-w-5xl p-0 w-screen inset-0 flex-col border-none bg-background shadow-2xl">
         <TooltipProvider delayDuration={0}>
           <ComandaHeader
             comanda={comanda}
@@ -65,7 +65,7 @@ export const ComandaDetailsSheet = ({
             setIsImageOpen={state.setIsImageOpen}
           />
 
-          <div className="grid flex-1 grid-cols-1 overflow-hidden lg:grid-cols-2">
+          <div className="flex flex-col lg:flex-row h-full flex-1 overflow-hidden">
             {/* Left Column: Metrics & Controls */}
             <ComandaPaymentSection
               comanda={comanda}
@@ -96,7 +96,7 @@ export const ComandaDetailsSheet = ({
             />
 
             {/* Right Column: Items */}
-            <div className="flex min-h-0 flex-col bg-background p-2">
+            <div className="flex min-h-0 flex-col p-2 order-1 lg:order-2 flex-1 lg:w-1/2 overflow-y-auto bg-background">
               <ComandaItemsList
                 groupedItems={state.groupedItems}
                 isGrouped={state.isGrouped}
