@@ -81,6 +81,7 @@ model ProductComposition {
 model Sale {
   id             String          @id @default(uuid())
   date           DateTime
+  dueDate        DateTime?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   companyId      String
@@ -613,6 +614,7 @@ enum SaleStatus {
   ACTIVE
   CANCELED
   DRAFT
+  PENDING_PAYMENT
 }
 
 enum OrderStatus {
@@ -622,6 +624,7 @@ enum OrderStatus {
   DELIVERED
   CANCELED
   PAID
+  SETTLED_LATER
 }
 
 enum PaymentMethod {
