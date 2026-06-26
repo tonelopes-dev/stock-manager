@@ -191,20 +191,22 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
 
       {view === "gestao" && (
         <div className="space-y-8">
-          <GestaoTabs
-            initialComandas={activeComandas}
-            initialClosedSales={closedSales}
-            initialReceivables={pendingReceivables}
-            totalClosedSales={totalClosedSales}
-            currentClosedPage={currentPage}
-            currentClosedPageSize={pageSize}
-            companyId={companyId || ""}
-            products={products}
-            productOptions={productOptions}
-            customerOptions={customerOptions}
-            stages={stages}
-            categories={categories}
-          />
+          <Suspense fallback={null}>
+            <GestaoTabs
+              initialComandas={activeComandas}
+              initialClosedSales={closedSales}
+              initialReceivables={pendingReceivables}
+              totalClosedSales={totalClosedSales}
+              currentClosedPage={currentPage}
+              currentClosedPageSize={pageSize}
+              companyId={companyId || ""}
+              products={products}
+              productOptions={productOptions}
+              customerOptions={customerOptions}
+              stages={stages}
+              categories={categories}
+            />
+          </Suspense>
         </div>
       )}
 

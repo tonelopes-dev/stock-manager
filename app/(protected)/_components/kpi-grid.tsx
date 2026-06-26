@@ -58,35 +58,37 @@ export const KpiGrid = ({ revenue, profit, cogs, margin, tips, accountsReceivabl
       />
 
       {/* 6. CONTAS A RECEBER (FIADO / VIP) */}
-      <Link href="/sales" className="block outline-none">
-        <div className="group relative overflow-hidden rounded-xl border border-orange-200 bg-gradient-to-br from-orange-50/40 via-background to-background p-5 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <Clock size={14} className="text-orange-500" />
-              <p className="text-[11px] font-bold uppercase tracking-widest text-orange-700">
-                A Receber
-              </p>
+      <Link href="/sales?tab=pendentes" className="block h-full outline-none">
+        <div className="group relative flex h-full flex-col justify-between overflow-hidden rounded-xl border border-orange-200 bg-gradient-to-br from-orange-50/40 via-background to-background p-5 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10">
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Clock size={14} className="text-orange-500" />
+                <p className="text-[11px] font-bold uppercase tracking-widest text-orange-700">
+                  A Receber
+                </p>
+              </div>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="cursor-pointer border-none text-muted-foreground outline-none transition-colors hover:text-orange-600">
+                    <InfoIcon size={14} strokeWidth={2.5} />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  side="top"
+                  align="end"
+                  className="max-w-[240px] border-foreground bg-foreground text-[11px] font-medium leading-relaxed text-background shadow-xl"
+                >
+                  Valores de vendas lançadas como 'Pagar Depois (VIP / Fiado)'. Clique para gerenciar e dar baixa.
+                </PopoverContent>
+              </Popover>
             </div>
 
-            <Popover>
-              <PopoverTrigger asChild>
-                <button className="cursor-pointer border-none text-muted-foreground outline-none transition-colors hover:text-orange-600">
-                  <InfoIcon size={14} strokeWidth={2.5} />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent
-                side="top"
-                align="end"
-                className="max-w-[240px] border-foreground bg-foreground text-[11px] font-medium leading-relaxed text-background shadow-xl"
-              >
-                Valores de vendas lançadas como 'Pagar Depois (VIP / Fiado)'. Clique para gerenciar e dar baixa.
-              </PopoverContent>
-            </Popover>
+            <p className="mb-1 text-2xl font-black leading-none tracking-tight text-foreground">
+              {formatCurrencyBR(accountsReceivable)}
+            </p>
           </div>
-
-          <p className="mb-1 text-2xl font-black leading-none tracking-tight text-foreground">
-            {formatCurrencyBR(accountsReceivable)}
-          </p>
 
           <p className="mt-1 text-xs font-medium text-orange-600/80 group-hover:text-orange-600 group-hover:underline">
             Ver títulos em aberto ↗

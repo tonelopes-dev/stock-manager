@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 import { Input } from "@/app/_components/ui/input";
 import { Search } from "lucide-react";
@@ -43,8 +44,10 @@ export const GestaoTabs = ({
   stages,
   categories,
 }: GestaoTabsProps) => {
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get("tab") || "abertas";
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState("abertas");
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   return (
     <div className="space-y-6">
