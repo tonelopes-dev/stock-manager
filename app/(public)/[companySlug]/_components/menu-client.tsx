@@ -345,7 +345,7 @@ export function MenuClient({
         customer={customer}
         handleLogout={handleLogout}
         totalItems={useCartStore((state) => state.totalItems)}
-        setIsCartOpen={() => {}} 
+        setIsCartOpen={useCartStore((state) => state.setIsCartOpen)} 
         setIsStoreInfoOpen={setIsStoreInfoOpen}
         tableNumber={tableNumber}
         onBack={() => router.back()}

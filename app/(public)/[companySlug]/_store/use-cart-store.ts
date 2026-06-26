@@ -18,6 +18,8 @@ interface CartStore {
   totalAmount: number;
   totalItems: number;
   allowNegativeStock: boolean;
+  isCartOpen: boolean;
+  setIsCartOpen: (isOpen: boolean) => void;
   addItem: (item: Omit<CartItem, "id">) => boolean;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => boolean;
@@ -32,6 +34,8 @@ export const useCartStore = create<CartStore>()(
       totalAmount: 0,
       totalItems: 0,
       allowNegativeStock: false,
+      isCartOpen: false,
+      setIsCartOpen: (isCartOpen) => set({ isCartOpen }),
 
       addItem: (newItem) => {
         const currentItems = get().items;
