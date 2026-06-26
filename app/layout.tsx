@@ -34,6 +34,7 @@ import { CookieBanner } from "@/components/cookie-banner";
 import { SessionClearHandler } from "./_components/auth/session-clear-handler";
 import { ServiceWorkerRegister } from "./_components/pwa/service-worker-register";
 import { PWAInstallBanner } from "./_components/pwa/pwa-install-banner";
+import { ScrollRestoration } from "./_components/scroll-restoration";
 import { Suspense } from "react";
 
 export default function RootLayout({
@@ -46,6 +47,7 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`}>
         <ServiceWorkerRegister />
         <Suspense fallback={null}>
+          <ScrollRestoration />
           <SessionClearHandler />
         </Suspense>
         {children}
