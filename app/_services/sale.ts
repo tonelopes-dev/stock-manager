@@ -1,7 +1,7 @@
 import { db } from "@/app/_lib/prisma";
 import { recordStockMovement, processRecursiveStockMovement } from "@/app/_utils/stock";
 import { BusinessError } from "@/app/_lib/errors";
-import { PaymentMethod, Prisma } from "@prisma/client";
+import { PaymentMethod, Prisma, SaleStatus } from "@prisma/client";
 import { nowBRT } from "@/app/_utils/date";
 
 interface UpsertSaleParams {
@@ -16,6 +16,8 @@ interface UpsertSaleParams {
   extraAmount?: number;
   adjustmentReason?: string;
   isEmployeeSale?: boolean;
+  status?: SaleStatus;
+  dueDate?: Date | null;
   products: {
     id: string;
     quantity: number;
@@ -23,7 +25,7 @@ interface UpsertSaleParams {
 }
 
 export const SaleService = {
-  async upsertSale({ id, date, companyId, userId, customerId, paymentMethod, tipAmount, discountAmount = 0, extraAmount = 0, adjustmentReason, isEmployeeSale = false, products }: UpsertSaleParams) {
+  async upsertSale({ id, date, companyId, userId, customerId, paymentMethod, tipAmount, discountAmount = 0, extraAmount = 0, adjustmentReason, isEmployeeSale = false, status, dueDate, products }: UpsertSaleParams) {
     try {
       return await db.$transaction(async (trx) => {
         const isUpdate = Boolean(id);
@@ -84,9 +86,21 @@ export const SaleService = {
         // Create or use existing sale ID
         let saleId = id;
         if (!isUpdate) {
+          if (status === "PENDING_PAYMENT") {
+            if (!customerId) {
+              throw new BusinessError("Erro: Para gerar uma cobrança futura (Fiado), é obrigatório vincular a comanda a um cliente.");
+            }
+            if (!dueDate) {
+              const nextMonth = new Date();
+              nextMonth.setDate(nextMonth.getDate() + 30);
+              dueDate = nextMonth;
+            }
+          }
+
           const newSale = await trx.sale.create({
             data: {
               date: nowBRT(),
+              dueDate: dueDate || null,
               createdAt: nowBRT(),
               updatedAt: nowBRT(),
               companyId,
@@ -98,15 +112,28 @@ export const SaleService = {
               extraAmount: extraAmount || 0,
               adjustmentReason: adjustmentReason || null,
               isEmployeeSale,
+              status: status || "ACTIVE",
             },
           });
           saleId = newSale.id;
         } else {
+          if (status === "PENDING_PAYMENT") {
+            if (!customerId) {
+              throw new BusinessError("Erro: Para gerar uma cobrança futura (Fiado), é obrigatório vincular a comanda a um cliente.");
+            }
+            if (!dueDate) {
+              const nextMonth = new Date();
+              nextMonth.setDate(nextMonth.getDate() + 30);
+              dueDate = nextMonth;
+            }
+          }
+
           // Update details for update mode
           await trx.sale.update({
             where: { id: saleId, companyId },
             data: {
               date: date || undefined,
+              dueDate: dueDate || undefined,
               userId,
               customerId: customerId || undefined,
               paymentMethod: paymentMethod !== undefined ? paymentMethod : undefined,
@@ -115,6 +142,7 @@ export const SaleService = {
               extraAmount: extraAmount !== undefined ? extraAmount : undefined,
               adjustmentReason: adjustmentReason !== undefined ? adjustmentReason : undefined,
               isEmployeeSale: isEmployeeSale !== undefined ? isEmployeeSale : undefined,
+              status: status || undefined,
               updatedAt: nowBRT(),
             },
           });
