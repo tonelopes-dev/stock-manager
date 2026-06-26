@@ -695,7 +695,7 @@ export const ComandaDetailsSheet = ({
                           Opções de Pagamento Futuro (Fiado)
                         </span>
                       </div>
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div className="flex flex-col gap-3">
                         <div className="space-y-1.5">
                           <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                             Cliente VIP (Obrigatório)
