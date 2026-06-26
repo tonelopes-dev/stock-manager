@@ -105,7 +105,16 @@ export const GestaoTabs = ({
           />
         </TabsContent>
         <TabsContent value="pendentes" className="mt-0 ring-0 focus-visible:ring-0">
-          <ReceivablesTable initialReceivables={initialReceivables} search={search} />
+          <ReceivablesTable
+            initialReceivables={initialReceivables}
+            search={search}
+            companyId={companyId}
+            products={products}
+            productOptions={productOptions}
+            customerOptions={customerOptions}
+            stages={stages}
+            categories={categories}
+          />
         </TabsContent>
         <TabsContent value="fechadas" className="mt-0 ring-0 focus-visible:ring-0">
           <ClosedSalesGrid
