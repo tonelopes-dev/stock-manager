@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertTriangle, Info, X, Loader2Icon, ArrowRightIcon } from "lucide-react";
-import { useSubscription } from "./SubscriptionContext";
+import { useSubscription } from "@/app/_providers/subscription-context";
 import { Button } from "@/app/_components/ui/button";
 import { useAction } from "next-safe-action/hooks";
 import { createMercadoPagoPreference } from "@/app/_actions/mercadopago/create-preference";

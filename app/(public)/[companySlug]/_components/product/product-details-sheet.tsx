@@ -13,9 +13,9 @@ import {
 import { Button } from "@/app/_components/ui/button";
 import { Textarea } from "@/app/_components/ui/textarea";
 import { MenuProductDto } from "@/app/_data-access/menu/get-menu-data";
-import { useCartStore } from "../_store/use-cart-store";
+import { useCartStore } from "../../_store/use-cart-store";
 import { cn } from "@/app/_lib/utils";
-import { isPromotionActive } from "@/app/_lib/promotion";
+import { isPromotionActive } from "@/app/_utils/promotion";
 
 interface ProductDetailsSheetProps {
   product: MenuProductDto | null;

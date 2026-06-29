@@ -4,7 +4,7 @@ import { Home, Tag, Receipt, User } from "lucide-react";
 import { cn } from "@/app/_lib/utils";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useUIStore } from "../_store/use-ui-store";
+import { useUIStore } from "../../_store/use-ui-store";
 
 interface BottomNavProps {
   companySlug: string;

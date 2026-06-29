@@ -3,15 +3,28 @@ import { sanitizeUUID } from "@/app/_lib/uuid";
 import { db } from "@/app/_lib/prisma";
 import { SaleStatus, SaleItem, Product, Prisma, PaymentMethod } from "@prisma/client";
 
-export interface SaleItemDto extends Omit<SaleItem, "operationalCost" | "baseCost"> {
-  operationalCost: number;
+export interface SaleItemDto {
+  id: string;
+  saleId: string;
+  productId: string;
+  unitPrice: number;
+  quantity: number;
   baseCost: number;
-  product: Pick<Product, "name">;
+  operationalCost: number;
+  discountAmount: number;
+  totalAmount: number;
+  totalCost: number;
+  createdAt: Date;
+  updatedAt: Date;
+  product: {
+    name: string;
+  };
 }
 
 export interface SaleDto {
   id: string;
   date: Date;
+  dueDate: Date | null;
   totalAmount: number;
   totalCost: number;
   status: SaleStatus;
@@ -35,6 +48,25 @@ interface GetSalesParams {
   page: number;
   pageSize: number;
 }
+
+type SaleWithRelations = Prisma.SaleGetPayload<{
+  include: {
+    saleItems: {
+      include: {
+        product: {
+          select: {
+            name: true;
+          };
+        };
+      };
+    };
+    customer: {
+      select: {
+        name: true;
+      };
+    };
+  };
+}>;
 
 export const getSales = async ({
   from,
@@ -106,20 +138,18 @@ export const getSales = async ({
   ]);
 
   return {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: (sales as any[]).map((sale) => ({
+    data: sales.map((sale: SaleWithRelations) => ({
       id: sale.id,
       date: sale.date,
+      dueDate: sale.dueDate || null,
       totalAmount: Number(sale.totalAmount),
       totalCost: Number(sale.totalCost),
       status: sale.status,
       productNames: sale.saleItems
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .map((item: any) => item.product.name)
+        .map((item) => item.product.name)
         .join(", "),
       totalProducts: sale.saleItems.reduce(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (acc: number, item: any) => acc + Number(item.quantity),
+        (acc: number, item) => acc + Number(item.quantity),
         0,
       ),
       customerName: sale.customer?.name || null,
@@ -127,10 +157,10 @@ export const getSales = async ({
       paymentMethod: sale.paymentMethod,
       tipAmount: Number(sale.tipAmount),
       discountAmount: Number(sale.discountAmount || 0),
-      extraAmount: Number((sale as any).extraAmount || 0),
-      adjustmentReason: (sale as any).adjustmentReason || null,
-      isEmployeeSale: (sale as any).isEmployeeSale || false,
-      saleItems: sale.saleItems.map((item: any) => ({
+      extraAmount: Number(sale.extraAmount || 0),
+      adjustmentReason: sale.adjustmentReason || null,
+      isEmployeeSale: sale.isEmployeeSale || false,
+      saleItems: sale.saleItems.map((item) => ({
         ...item,
         unitPrice: Number(item.unitPrice),
         baseCost: Number(item.baseCost || 0),
@@ -179,15 +209,15 @@ export const getSaleById = async (id: string): Promise<SaleDto | null> => {
   return {
     id: sale.id,
     date: sale.date,
+    dueDate: sale.dueDate || null,
     totalAmount: Number(sale.totalAmount),
     totalCost: Number(sale.totalCost),
     status: sale.status,
     productNames: sale.saleItems
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .map((item: any) => item.product.name)
+      .map((item) => item.product.name)
       .join(", "),
     totalProducts: sale.saleItems.reduce(
-      (acc: number, item: any) => acc + Number(item.quantity),
+      (acc: number, item) => acc + Number(item.quantity),
       0,
     ),
     customerName: sale.customer?.name || null,
@@ -195,10 +225,10 @@ export const getSaleById = async (id: string): Promise<SaleDto | null> => {
     paymentMethod: sale.paymentMethod,
     tipAmount: Number(sale.tipAmount),
     discountAmount: Number(sale.discountAmount || 0),
-    extraAmount: Number((sale as any).extraAmount || 0),
-    adjustmentReason: (sale as any).adjustmentReason || null,
-    isEmployeeSale: (sale as any).isEmployeeSale || false,
-    saleItems: sale.saleItems.map((item: any) => ({
+    extraAmount: Number(sale.extraAmount || 0),
+    adjustmentReason: sale.adjustmentReason || null,
+    isEmployeeSale: sale.isEmployeeSale || false,
+    saleItems: sale.saleItems.map((item) => ({
       ...item,
       unitPrice: Number(item.unitPrice),
       baseCost: Number(item.baseCost || 0),

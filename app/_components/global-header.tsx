@@ -8,17 +8,22 @@ export const GlobalHeader = async () => {
   const companyId = await getCurrentCompanyId();
 
   return (
-    <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center border-b border-border bg-background/95 backdrop-blur-md px-6">
+    <header className="sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-between border-b border-border bg-background/95 backdrop-blur-md px-4 sm:px-6">
 
-      {/* Middle Area: Absolutely Centered Search */}
-      <div className="pointer-events-none absolute left-1/2 flex -translate-x-10 items-center justify-center">
+      {/* Left side: Logo on Mobile */}
+      <div className="flex items-center md:hidden">
+        <KipoLogo showText={true} />
+      </div>
+
+      {/* Middle Area: Absolutely Centered Search (Hidden on Mobile) */}
+      <div className="pointer-events-none absolute left-1/2 hidden md:flex -translate-x-10 items-center justify-center">
         <div className="pointer-events-auto">
           <GlobalSearch />
         </div>
       </div>
 
       {/* Middle & Right Content */}
-      <div className="flex h-full flex-1 items-center justify-between px-6">
+      <div className="flex h-full flex-1 items-center justify-between">
         <GlobalHeaderClient
           companyId={companyId || ""}
           userProfile={<HeaderUserProfile />}

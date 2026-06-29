@@ -26,7 +26,8 @@ export const getMostSoldProducts = async (): Promise<MostSoldProductDto[]> => {
     SELECT "Product"."name", SUM("SaleProduct"."quantity")::float as "totalSold", "Product"."price", "Product"."stock", "Product"."id" as "productId"
     FROM "SaleProduct"
     JOIN "Product" ON "SaleProduct"."productId" = "Product"."id"
-    WHERE "Product"."companyId" = ${companyId}
+    JOIN "Sale" ON "SaleProduct"."saleId" = "Sale"."id"
+    WHERE "Product"."companyId" = ${companyId} AND "Sale"."status" = 'ACTIVE'
     GROUP BY "Product"."name", "Product"."price", "Product"."stock", "Product"."id"
     ORDER BY "totalSold" DESC
     LIMIT 5;

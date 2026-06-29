@@ -12,12 +12,24 @@ import {
   TableRow,
 } from "@/app/_components/ui/table";
 import { QuantityStepper } from "@/app/_components/ui/quantity-stepper";
-import { formatCurrency } from "@/app/_helpers/currency";
+import { formatCurrency } from "@/app/_utils/currency";
+
+interface CartItem {
+  id?: string;
+  productId: string;
+  name: string;
+  price: number;
+  cost: number;
+  operationalCost: number;
+  quantity: number;
+  stock: number;
+  notes?: string;
+}
 
 interface CartTableProps {
-  fields: any[];
+  fields: CartItem[];
   remove: (index: number) => void;
-  update: (index: number, item: any) => void;
+  update: (index: number, item: CartItem) => void;
   isReadOnly?: boolean;
 }
 

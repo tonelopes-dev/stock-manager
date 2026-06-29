@@ -5,21 +5,25 @@ import { actionClient } from "@/app/_lib/safe-action";
 import { OrderService } from "@/app/_services/order";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/app/_lib/auth";
+import { PaymentMethod, SaleStatus } from "@prisma/client";
 
 const convertOrderToSaleSchema = z.object({
   orderIds: z.array(z.string()),
   companyId: z.string(),
-  paymentMethod: z.enum(["CASH", "CREDIT_CARD", "DEBIT_CARD", "PIX", "OTHER"]),
+  paymentMethod: z.nativeEnum(PaymentMethod).nullable().optional(),
   tipAmount: z.number().min(0).default(0),
   discountAmount: z.number().min(0).default(0),
   extraAmount: z.number().min(0).default(0),
   adjustmentReason: z.string().optional().nullable(),
   isEmployeeSale: z.boolean().default(false),
+  status: z.enum(["ACTIVE", "DRAFT", "PENDING_PAYMENT"]).optional().default("ACTIVE"),
+  dueDate: z.date().optional().nullable(),
+  customerId: z.string().optional().nullable(),
 });
 
 export const convertOrderToSaleAction = actionClient
   .schema(convertOrderToSaleSchema)
-  .action(async ({ parsedInput: { orderIds, companyId, paymentMethod, tipAmount, discountAmount, extraAmount, adjustmentReason, isEmployeeSale } }) => {
+  .action(async ({ parsedInput: { orderIds, companyId, paymentMethod, tipAmount, discountAmount, extraAmount, adjustmentReason, isEmployeeSale, status, dueDate, customerId } }) => {
     const session = await auth();
     if (!session?.user?.id) throw new Error("Não autorizado");
 
@@ -28,12 +32,15 @@ export const convertOrderToSaleAction = actionClient
         orderIds,
         companyId,
         session.user.id,
-        paymentMethod,
+        paymentMethod || null,
         tipAmount,
         discountAmount,
         extraAmount,
         adjustmentReason || undefined,
         isEmployeeSale,
+        status as SaleStatus,
+        dueDate,
+        customerId,
       );
 
       revalidatePath(`/sales`, "page");
@@ -41,8 +48,9 @@ export const convertOrderToSaleAction = actionClient
       revalidatePath(`/menu/${companyId}/my-orders`, "page");
 
       return { success: true, saleId: sale.id };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Convert Order to Sale Error:", error);
-      throw new Error(error.message || "Falha ao converter pedido(s) em venda.");
+      const message = error instanceof Error ? error.message : "Falha ao converter pedido(s) em venda.";
+      throw new Error(message);
     }
   });

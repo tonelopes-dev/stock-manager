@@ -2,6 +2,7 @@ import {
   getDashboardAnalytics,
   DashboardRange,
 } from "@/app/_data-access/dashboard/get-dashboard-analytics";
+import { getAccountsReceivable } from "@/app/_data-access/dashboard/get-accounts-receivable";
 import { DateRangePicker } from "@/app/(protected)/_components/date-range-picker";
 import { KpiGrid } from "../_components/kpi-grid";
 import { Suspense } from "react";
@@ -57,7 +58,10 @@ const DashboardContent = async ({
   from?: string;
   to?: string;
 }) => {
-  const data = await getDashboardAnalytics(range, from, to);
+  const [data, accountsReceivable] = await Promise.all([
+    getDashboardAnalytics(range, from, to),
+    getAccountsReceivable(),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -68,6 +72,7 @@ const DashboardContent = async ({
         cogs={data.cogs}
         margin={data.margin}
         tips={data.tips}
+        accountsReceivable={accountsReceivable}
       />
 
       <Suspense
@@ -115,7 +120,9 @@ const DashboardContent = async ({
 
 const DashboardLoadingSkeleton = () => (
   <div className="space-y-8">
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="h-32 animate-pulse rounded-xl bg-muted" />
+      <div className="h-32 animate-pulse rounded-xl bg-muted" />
       <div className="h-32 animate-pulse rounded-xl bg-muted" />
       <div className="h-32 animate-pulse rounded-xl bg-muted" />
       <div className="h-32 animate-pulse rounded-xl bg-muted" />

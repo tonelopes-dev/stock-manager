@@ -174,6 +174,7 @@ export const ProductVisualCatalog = ({
           search={search}
           sortBy={sortBy}
           selectedCategoryId={selectedCategoryId}
+          setSelectedCategoryId={setSelectedCategoryId}
           userRole={userRole}
           categories={categories}
           environments={environments}

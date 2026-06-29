@@ -1,10 +1,10 @@
 import { db } from "@/app/_lib/prisma";
-import { recordStockMovement, processRecursiveStockMovement, getProductsWithFullTree, processBatchStockMovement } from "@/app/_lib/stock";
+import { recordStockMovement, processRecursiveStockMovement, getProductsWithFullTree, processBatchStockMovement } from "@/app/_utils/stock";
 import { BusinessError } from "@/app/_lib/errors";
-import { AuditEventType, OrderStatus, Prisma } from "@prisma/client";
-import { isPromotionActive } from "@/app/_lib/promotion";
+import { AuditEventType, OrderStatus, Prisma, SaleStatus, PaymentMethod } from "@prisma/client";
+import { isPromotionActive } from "@/app/_utils/promotion";
 import { AuditService } from "./audit";
-import { nowBRT } from "@/app/_lib/date";
+import { nowBRT } from "@/app/_utils/date";
 
 interface CreateOrderParams {
   companyId: string;
@@ -234,7 +234,7 @@ export const OrderService = {
     }
   },
 
-  async convertToSale(orderIds: string[], companyId: string, userId: string, paymentMethod: any, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false) {
+  async convertToSale(orderIds: string[], companyId: string, userId: string, paymentMethod: PaymentMethod | null, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false, status?: SaleStatus, dueDate?: Date | null, customerId?: string | null) {
     try {
       // 1. Check for existing Sale (Idempotency) - Check if any of the orders already has a sale
       const existingSale = await db.sale.findFirst({
@@ -268,6 +268,25 @@ export const OrderService = {
           throw new Error("ORDER_ALREADY_PAID_CONCURRENCY");
         }
 
+        const effectiveCustomerId = customerId || orders[0].customerId;
+        if (status === "PENDING_PAYMENT") {
+          if (!effectiveCustomerId) {
+            throw new BusinessError("Erro: Para gerar uma cobrança futura (Fiado), é obrigatório vincular a comanda a um cliente.");
+          }
+          if (!dueDate) {
+            const nextMonth = new Date();
+            nextMonth.setDate(nextMonth.getDate() + 30);
+            dueDate = nextMonth;
+          }
+        }
+
+        if (customerId && customerId !== orders[0].customerId) {
+          await trx.order.updateMany({
+            where: { id: { in: orderIds } },
+            data: { customerId },
+          });
+        }
+
         const allItems = orders.flatMap(o => o.orderItems);
 
         const subtotal = allItems.reduce((acc, item) => {
@@ -285,9 +304,9 @@ export const OrderService = {
           data: {
             companyId,
             userId,
-            customerId: orders[0].customerId,
+            customerId: effectiveCustomerId,
             orderId: orders[0].id, 
-            paymentMethod,
+            paymentMethod: status === "PENDING_PAYMENT" ? null : paymentMethod,
             totalAmount: totalWithTip,
             discountAmount,
             extraAmount,
@@ -295,9 +314,10 @@ export const OrderService = {
             isEmployeeSale,
             tipAmount,
             date: nowBRT(),
+            dueDate: dueDate || null,
             createdAt: nowBRT(),
             updatedAt: nowBRT(),
-            status: "ACTIVE",
+            status: status || "ACTIVE",
           },
         });
 
@@ -325,9 +345,11 @@ export const OrderService = {
         });
 
         // 3. Mark Orders as PAID and complete with Concurrency Protection
+        const nextOrderStatus = status === "PENDING_PAYMENT" ? OrderStatus.SETTLED_LATER : OrderStatus.PAID;
+
         const updatedOrderCount = await trx.order.updateMany({
           where: { id: { in: orderIds }, status: { not: OrderStatus.PAID } },
-          data: { status: OrderStatus.PAID },
+          data: { status: nextOrderStatus },
         });
 
         if (updatedOrderCount.count === 0) {
@@ -336,7 +358,7 @@ export const OrderService = {
 
         await trx.orderItem.updateMany({
           where: { orderId: { in: orderIds } },
-          data: { status: OrderStatus.PAID },
+          data: { status: nextOrderStatus },
         });
 
         return sale;
@@ -370,15 +392,36 @@ export const OrderService = {
     }
   },
 
-  async convertItemsToSale(itemIds: string[], companyId: string, userId: string, paymentMethod: any, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false) {
+  async convertItemsToSale(itemIds: string[], companyId: string, userId: string, paymentMethod: PaymentMethod | null, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false, status?: SaleStatus, dueDate?: Date | null, customerId?: string | null) {
     try {
       const { sale } = await db.$transaction(async (trx) => {
         const items = await trx.orderItem.findMany({
           where: { id: { in: itemIds }, order: { companyId } },
-          include: { order: true, product: { select: { cost: true, operationalCost: true } } },
+          include: { order: true, product: true },
         });
 
-        if (items.length === 0) throw new BusinessError("Nenhum item encontrado.");
+        if (items.length === 0) throw new BusinessError("Itens não encontrados.");
+
+        const orderId = items[0].orderId;
+
+        const effectiveCustomerId = customerId || items[0].order.customerId;
+        if (status === "PENDING_PAYMENT") {
+          if (!effectiveCustomerId) {
+            throw new BusinessError("Erro: Para gerar uma cobrança futura (Fiado), é obrigatório vincular a comanda a um cliente.");
+          }
+          if (!dueDate) {
+            const nextMonth = new Date();
+            nextMonth.setDate(nextMonth.getDate() + 30);
+            dueDate = nextMonth;
+          }
+        }
+
+        if (customerId && customerId !== items[0].order.customerId) {
+          await trx.order.updateMany({
+            where: { id: orderId },
+            data: { customerId },
+          });
+        }
 
         const subtotal = items.reduce((acc, item) => {
           const price = isEmployeeSale 
@@ -394,8 +437,8 @@ export const OrderService = {
           data: {
             companyId,
             userId,
-            customerId: items[0].order.customerId,
-            paymentMethod,
+            customerId: effectiveCustomerId,
+            paymentMethod: status === "PENDING_PAYMENT" ? null : paymentMethod,
             totalAmount,
             tipAmount,
             discountAmount,
@@ -403,9 +446,10 @@ export const OrderService = {
             adjustmentReason,
             isEmployeeSale,
             date: nowBRT(),
+            dueDate: dueDate || null,
             createdAt: nowBRT(),
             updatedAt: nowBRT(),
-            status: "ACTIVE",
+            status: status || "ACTIVE",
           },
         });
 

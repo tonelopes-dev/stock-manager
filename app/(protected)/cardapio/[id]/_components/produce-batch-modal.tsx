@@ -27,7 +27,7 @@ import { useAction } from "next-safe-action/hooks";
 import { produceProduct } from "@/app/_actions/product/produce";
 import { toast } from "sonner";
 import { RecipeIngredientDto } from "@/app/_data-access/product/get-product-by-id";
-import { formatQuantity } from "@/app/_lib/format-quantity";
+import { formatQuantity } from "@/app/_utils/format-quantity";
 
 const formatCurrency = (value: number) => {
   if (value === null || value === undefined || isNaN(value) || !isFinite(value)) {

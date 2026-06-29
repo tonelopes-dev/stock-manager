@@ -384,7 +384,21 @@ const UpsertProductDialogContent = ({
                 name="categoryId"
                 render={({ field }) => (
                   <FormItem className="md:col-span-1">
-                    <FormLabel className="text-[11px] uppercase font-bold text-muted-foreground">Categoria</FormLabel>
+                    <FormLabel className="text-[11px] uppercase font-bold text-muted-foreground flex items-center gap-1.5">
+                      Categoria
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon size={12} className="text-muted-foreground hover:text-primary cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-[220px]">
+                            <p className="text-[10px] font-bold uppercase leading-tight">
+                              Organiza como os produtos aparecem no Cardápio para os clientes (Ex: Bebidas, Sobremesas).
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </FormLabel>
                     <Select onValueChange={(val) => val === "create" ? setIsAddingCategory(true) : field.onChange(val === "none" ? null : val)} value={field.value || "none"}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Sem categoria" /></SelectTrigger></FormControl>
                       <SelectContent>
@@ -402,7 +416,21 @@ const UpsertProductDialogContent = ({
                 name="environmentId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[11px] uppercase font-bold text-muted-foreground">Ambiente</FormLabel>
+                    <FormLabel className="text-[11px] uppercase font-bold text-muted-foreground flex items-center gap-1.5">
+                      Ambiente
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon size={12} className="text-muted-foreground hover:text-primary cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-[220px]">
+                            <p className="text-[10px] font-bold uppercase leading-tight">
+                              Define para qual monitor de produção o pedido vai (Ex: Cozinha, Bar). Essencial para o KDS.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </FormLabel>
                     <Select onValueChange={(val) => val === "create" ? setIsEnvironmentDialogOpen(true) : field.onChange(val === "none" ? null : val)} value={field.value || "none"}>
                       <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
                       <SelectContent>

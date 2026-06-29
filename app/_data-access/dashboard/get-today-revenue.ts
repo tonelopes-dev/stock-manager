@@ -12,7 +12,7 @@ export const getTodayRevenue = async (): Promise<number> => {
     SELECT SUM("SaleProduct"."unitPrice" * "SaleProduct"."quantity") as "todayRevenue"
     FROM "SaleProduct"
     JOIN "Sale" ON "SaleProduct"."saleId" = "Sale"."id"
-    WHERE "Sale"."date" >= ${start} AND "Sale"."date" <= ${end} AND "Sale"."companyId" = ${companyId};
+    WHERE "Sale"."date" >= ${start} AND "Sale"."date" <= ${end} AND "Sale"."companyId" = ${companyId} AND "Sale"."status" = 'ACTIVE';
   `;
   return Number(todayRevenue[0]?.todayRevenue ?? 0);
 };

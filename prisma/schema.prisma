@@ -81,6 +81,7 @@ model ProductComposition {
 model Sale {
   id             String          @id @default(uuid())
   date           DateTime
+  dueDate        DateTime?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   companyId      String
@@ -249,6 +250,7 @@ model Company {
   fixedExpenses          FixedExpense[]
   suppliers              Supplier[]
   stockEntries           StockEntry[]
+  pushSubscriptions      PushSubscription[]
 
   // Branding & Menu Info
   bannerUrl              String?
@@ -371,7 +373,8 @@ model Customer {
   sales       Sale[]
   categories  CustomerCategory[]   @relation("CustomerToCustomerCategory")
   checklists  Checklist[]
-  auditEvents AuditEvent[]
+  auditEvents      AuditEvent[]
+  pushSubscriptions PushSubscription[]
 
   @@unique([email, companyId])
   @@unique([phone, companyId])
@@ -611,6 +614,7 @@ enum SaleStatus {
   ACTIVE
   CANCELED
   DRAFT
+  PENDING_PAYMENT
 }
 
 enum OrderStatus {
@@ -620,6 +624,7 @@ enum OrderStatus {
   DELIVERED
   CANCELED
   PAID
+  SETTLED_LATER
 }
 
 enum PaymentMethod {
@@ -740,4 +745,18 @@ enum GoalPeriod {
   WEEKLY
   MONTHLY
   CUSTOM
+}
+
+model PushSubscription {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  endpoint   String   @unique
+  p256dh     String
+  auth       String
+  createdAt  DateTime @default(now())
+
+  @@index([customerId, companyId])
 }

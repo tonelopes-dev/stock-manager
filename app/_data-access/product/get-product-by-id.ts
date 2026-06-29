@@ -2,8 +2,8 @@ import "server-only";
 
 import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { calculateMargin } from "@/app/_lib/pricing";
-import { calculateRealCost, calculateStockDeduction } from "@/app/_lib/units";
+import { calculateMargin } from "@/app/_utils/pricing";
+import { calculateRealCost, calculateStockDeduction } from "@/app/_utils/units";
 import { UnitType } from "@prisma/client";
 import { calculateProductAvailability } from "@/app/_data-access/product/calculate-product-availability";
 

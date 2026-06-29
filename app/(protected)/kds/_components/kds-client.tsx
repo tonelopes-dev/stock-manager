@@ -28,7 +28,7 @@ import { formatDistanceToNow, differenceInMinutes, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 import { Button } from "@/app/_components/ui/button";
-import { useAppMode } from "@/app/_components/app-mode-provider";
+import { useAppMode } from "@/app/_providers/app-mode-provider";
 import {
   Sheet,
   SheetContent,
@@ -36,6 +36,13 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/app/_components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/_components/ui/select";
 import { cn, getWhatsAppUrl } from "@/app/_lib/utils";
 
 import { useKdsSync } from "../_hooks/use-kds-sync";
@@ -110,6 +117,29 @@ export const KDSClient = ({
     activeEnvId,
   });
 
+  // Calcula a quantidade de pedidos pendentes para cada praça em tempo real
+  const pendingCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: 0 };
+    environments.forEach((env) => { counts[env.id] = 0; });
+
+    orders.forEach((order) => {
+      // Para Expedição (all)
+      if (order.items.length > 0 && getDerivedStatus(order, "all") === OrderStatus.PENDING) {
+        counts.all++;
+      }
+
+      // Para cada praça específica
+      environments.forEach((env) => {
+        const hasItems = order.items.some(i => i.environmentId === env.id);
+        if (hasItems && getDerivedStatus(order, env.id) === OrderStatus.PENDING) {
+          counts[env.id]++;
+        }
+      });
+    });
+
+    return counts;
+  }, [orders, environments]);
+
   // Recalcula o estado derivado dos pedidos baseado na aba ativa
   const filteredOrders = useMemo(() => {
     return orders
@@ -172,51 +202,91 @@ export const KDSClient = ({
       label: "",
       icon: null,
     },
-    {
-      title: "Pagos",
-      status: OrderStatus.PAID,
-      color: "bg-emerald-600",
-      action: null,
-      label: "",
-      icon: null,
-    },
   ];
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-slate-50/30">
-      <div className="flex items-center justify-between border-b bg-background px-4 py-2 md:px-6 md:py-3 xl:px-8">
-        <div className="flex items-center gap-3 md:gap-4 xl:gap-6">
-          <div className="flex flex-col">
-            <h1 className="text-lg font-black italic tracking-tighter text-foreground xl:text-xl">
-              KDS <span className="text-primary">PRO</span>
-            </h1>
-            <span className="hidden text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground md:block">
-              Sistema de Cozinha
-            </span>
-          </div>
-
-          <Tabs value={activeEnvId} onValueChange={handleStationChange}>
-            <TabsList className="h-10 rounded-[1.2rem] border bg-muted/50 p-1 shadow-inner md:h-11 xl:h-12 xl:p-1.5">
-              <TabsTrigger
-                value="all"
-                className="rounded-[1rem] px-3 text-[9px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg md:px-4 md:text-[10px] xl:px-6"
-              >
-                <AlertCircle className="mr-1.5 h-3.5 w-3.5 md:mr-2 md:h-4 md:w-4" /> EXPEDIÇÃO
-              </TabsTrigger>
-              {environments.map((env) => (
-                <TabsTrigger
-                  key={env.id}
-                  value={env.id}
-                  className="rounded-[1rem] px-3 text-[9px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg md:px-4 md:text-[10px] xl:px-6"
-                >
-                  {env.name}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+      <div className="flex items-center justify-between w-full border-b bg-background px-4 py-2 md:px-6 md:py-3 xl:px-8 gap-2 sm:gap-4">
+        {/* Left: Logo (shrink-0) */}
+        <div className="flex flex-col shrink-0">
+          <h1 className="text-lg font-black italic tracking-tighter text-foreground xl:text-xl">
+            KDS <span className="text-primary">PRO</span>
+          </h1>
+          <span className="hidden text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground md:block">
+            Sistema de Cozinha
+          </span>
         </div>
 
-        <div className="flex items-center gap-2 md:gap-3 xl:gap-4">
+        {/* Center: Desktop Pills */}
+        <div className="hidden md:flex flex-1 justify-center">
+          <div className="flex overflow-x-auto scrollbar-hide items-center gap-2">
+            <Tabs value={activeEnvId} onValueChange={handleStationChange} className="w-full">
+              <TabsList className="h-10 w-max rounded-[1.2rem] border bg-muted/50 p-1 shadow-inner md:h-11 xl:h-12 xl:p-1.5 flex items-center">
+                <TabsTrigger
+                  value="all"
+                  className="rounded-[1rem] px-3 text-[9px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg md:px-4 md:text-[10px] xl:px-6"
+                >
+                  <AlertCircle className="mr-1.5 h-3.5 w-3.5 md:mr-2 md:h-4 md:w-4" /> EXPEDIÇÃO
+                  {pendingCounts.all > 0 && (
+                    <span className="ml-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-orange-500 px-1 text-[9px] font-black text-white shadow-sm">
+                      {pendingCounts.all}
+                    </span>
+                  )}
+                </TabsTrigger>
+                {environments.map((env) => (
+                  <TabsTrigger
+                    key={env.id}
+                    value={env.id}
+                    className="rounded-[1rem] px-3 text-[9px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg md:px-4 md:text-[10px] xl:px-6"
+                  >
+                    {env.name}
+                    {pendingCounts[env.id] > 0 && (
+                      <span className="ml-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-orange-500 px-1 text-[9px] font-black text-white shadow-sm">
+                        {pendingCounts[env.id]}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+        </div>
+
+        {/* Center: Mobile Dropdown */}
+        <div className="flex md:hidden flex-1 justify-center px-2">
+          <Select value={activeEnvId} onValueChange={handleStationChange}>
+            <SelectTrigger className="h-9 w-full max-w-[200px] rounded-full border border-border bg-muted/50 px-3 text-[10px] font-black uppercase tracking-widest text-foreground shadow-inner focus:ring-0">
+              <SelectValue placeholder="Ambiente" />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl border border-border bg-background shadow-lg">
+              <SelectItem value="all" className="rounded-xl text-[10px] font-black uppercase tracking-widest">
+                <div className="flex items-center gap-1.5">
+                  <span>Expedição</span>
+                  {pendingCounts.all > 0 && (
+                    <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-orange-500 px-1 text-[9px] font-black text-white shadow-sm">
+                      {pendingCounts.all}
+                    </span>
+                  )}
+                </div>
+              </SelectItem>
+              {environments.map((env) => (
+                <SelectItem key={env.id} value={env.id} className="rounded-xl text-[10px] font-black uppercase tracking-widest">
+                  <div className="flex items-center gap-1.5">
+                    <span>{env.name}</span>
+                    {pendingCounts[env.id] > 0 && (
+                      <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-orange-500 px-1 text-[9px] font-black text-white shadow-sm">
+                        {pendingCounts[env.id]}
+                      </span>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Right: Actions (shrink-0) */}
+        <div className="flex items-center gap-2 md:gap-3 xl:gap-4 shrink-0">
           <Button
             variant="outline"
             size="sm"
@@ -229,22 +299,22 @@ export const KDSClient = ({
             )}
           >
             {isLiveMode ? <Minimize className="h-4 w-4" /> : <MonitorPlay className="h-4 w-4" />}
-            <span>{isLiveMode ? "Sair do Live" : "Modo Live"}</span>
+            <span className="hidden sm:inline">{isLiveMode ? "Sair do Live" : "Modo Live"}</span>
           </Button>
 
           <Badge
             variant="outline"
             className="h-8 gap-1.5 rounded-2xl border-emerald-200 bg-emerald-50 px-2.5 text-[9px] font-black text-emerald-700 shadow-sm md:h-9 md:px-3 md:text-[10px] xl:h-10 xl:px-4"
           >
-            <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+            <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-50" />
             <span className="hidden sm:inline">REALTIME</span>
             <span className="hidden md:inline"> ATIVO</span>
           </Badge>
         </div>
       </div>
 
-      <div className="scrollbar-hide flex-1 overflow-x-auto p-3 pb-8 md:p-4 md:pb-10 xl:p-6 xl:pb-14">
-        <div className="flex h-full gap-3 md:gap-4 xl:gap-6">
+      <div className="scrollbar-hide flex-1 overflow-x-auto snap-x snap-mandatory p-3 pb-8 md:p-4 md:pb-10 xl:p-6 xl:pb-14">
+        <div className="flex h-full gap-4 md:gap-4 xl:gap-6">
           {columns.map((column) => {
             const columnOrders = filteredOrders.filter((order) => {
               if (Array.isArray(column.status)) {

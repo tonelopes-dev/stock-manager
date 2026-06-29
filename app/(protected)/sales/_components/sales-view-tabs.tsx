@@ -16,7 +16,7 @@ export function SalesViewTabs() {
   };
 
   return (
-    <Tabs value={currentView} onValueChange={handleTabChange} className="w-[450px]">
+    <Tabs value={currentView} onValueChange={handleTabChange} className="w-[450px] hidden md:block">
       <TabsList className="grid w-full grid-cols-3 bg-muted p-1">
         <TabsTrigger 
             value="gestao" 

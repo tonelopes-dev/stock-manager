@@ -27,7 +27,7 @@ export const getLast14DaysRevenue = async (): Promise<DayTotalRevenueDto[]> => {
       SELECT SUM("SaleProduct"."unitPrice" * "SaleProduct"."quantity") as "totalRevenue"
       FROM "SaleProduct"
       JOIN "Sale" ON "SaleProduct"."saleId" = "Sale"."id"
-      WHERE "Sale"."date" >= ${start} AND "Sale"."date" <= ${end} AND "Sale"."companyId" = ${companyId};
+      WHERE "Sale"."date" >= ${start} AND "Sale"."date" <= ${end} AND "Sale"."companyId" = ${companyId} AND "Sale"."status" = 'ACTIVE';
     `;
     totalLast14DaysRevenue.push({
       day: day.format("DD/MM"),

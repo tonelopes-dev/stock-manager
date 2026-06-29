@@ -5,7 +5,7 @@ import { deleteSaleSchema } from "./schema";
 import { db } from "@/app/_lib/prisma";
 import { revalidatePath } from "next/cache";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { recordStockMovement } from "@/app/_lib/stock";
+import { recordStockMovement } from "@/app/_utils/stock";
 import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
 import { AuditService } from "@/app/_services/audit";
 import { AuditEventType, AuditSeverity } from "@prisma/client";

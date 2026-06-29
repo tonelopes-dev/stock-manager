@@ -34,7 +34,7 @@ const UpsertSaleButton = ({
   return (
     <Sheet open={sheetIsOpen} onOpenChange={setSheetIsOpen}>
       <SheetTrigger asChild>
-        <Button className="gap-2">
+        <Button className="gap-2 w-full md:w-auto">
           <PlusIcon size={20} />
           {view === "gestao" ? "Nova Venda/Comanda" : "Nova Venda"}
         </Button>

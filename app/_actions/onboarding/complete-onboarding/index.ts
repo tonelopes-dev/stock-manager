@@ -6,7 +6,7 @@ import { completeOnboardingSchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { auth } from "@/app/_lib/auth";
-import { recordStockMovement } from "@/app/_lib/stock";
+import { recordStockMovement } from "@/app/_utils/stock";
 
 export const completeOnboarding = actionClient
   .schema(completeOnboardingSchema)

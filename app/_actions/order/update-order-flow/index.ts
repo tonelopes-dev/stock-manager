@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/app/_lib/auth";
 import { db } from "@/app/_lib/prisma";
 import { BusinessError } from "@/app/_lib/errors";
+import { sendPushToCustomer } from "@/app/_lib/push-notifications";
 
 const updateOrderFlowSchema = z.object({
   orderId: z.string(),
@@ -73,7 +74,26 @@ export const updateOrderFlowAction = actionClient
       revalidatePath(`/kds`, "page");
       revalidatePath(`/sales`, "page");
       revalidatePath(`/menu/${companyId}/my-orders`, "page");
-      
+
+      // 4. Push Notification (fire-and-forget, outside transaction)
+      // Fetch order to get customerId and orderNumber for the notification
+      const order = await db.order.findUnique({
+        where: { id: orderId },
+        select: { status: true, customerId: true, orderNumber: true, company: { select: { slug: true } } },
+      });
+
+      if (order?.status === OrderStatus.READY && order.customerId) {
+        sendPushToCustomer(order.customerId, companyId, {
+          title: "Pedido Pronto! 🍽️",
+          body: `Seu pedido #${order.orderNumber} está pronto! Bom apetite!`,
+          icon: "/logo/logomarca-192.png",
+          tag: `order-ready-${orderId}`,
+          url: `/${order.company.slug}/my-orders`,
+          orderId,
+          orderNumber: order.orderNumber,
+        }).catch((err) => console.error("[Push] Failed to send:", err));
+      }
+
       return { success: true };
     } catch (error: any) {
       console.error("Update Order Flow Action Error:", error);

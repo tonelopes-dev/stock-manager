@@ -18,6 +18,7 @@ interface ActionFooterProps {
   isOrderPending: boolean;
   saleId?: string;
   isReadOnly?: boolean;
+  isPendingSale?: boolean;
 }
 
 export const ActionFooter = ({
@@ -28,6 +29,7 @@ export const ActionFooter = ({
   isOrderPending,
   saleId,
   isReadOnly = false,
+  isPendingSale = false,
 }: ActionFooterProps) => {
   const { watch } = useFormContext();
   const items = watch("items") || [];
@@ -41,6 +43,39 @@ export const ActionFooter = ({
         <p className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
           Visualização em modo de consulta
         </p>
+      </div>
+    );
+  }
+
+  // Se for edição de uma comanda pendente de pagamento (Fiado)
+  if (isPendingSale) {
+    return (
+      <div className="mt-2 grid grid-cols-1">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              className="h-12 w-full gap-2 bg-primary text-[11px] font-black uppercase tracking-tight text-background shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 active:scale-[0.98] disabled:opacity-50"
+              data-testid="save-pending-sale-button"
+              disabled={!hasItems || isPending}
+              onClick={onFinalizeSale}
+            >
+              {isUpsertPending ? (
+                <span className="animate-pulse">Salvando alterações...</span>
+              ) : (
+                <>
+                  <CheckIcon size={16} />
+                  Salvar Comanda Pendente
+                </>
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent
+            side="top"
+            className="text-center text-[10px] font-bold uppercase"
+          >
+            Salva as alterações nos itens mantendo a comanda pendente de pagamento
+          </TooltipContent>
+        </Tooltip>
       </div>
     );
   }

@@ -7,7 +7,7 @@ import { useState } from "react";
 import { Card } from "@/app/_components/ui/card";
 import { Badge } from "@/app/_components/ui/badge";
 import { Calendar, ShoppingBag, User, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
-import { formatCurrency } from "@/app/_helpers/currency";
+import { formatCurrency } from "@/app/_utils/currency";
 import { cn } from "@/app/_lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";

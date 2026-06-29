@@ -13,11 +13,11 @@ import {
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
-import { BottomNav } from "../../_components/bottom-nav";
-import { PromotionsModal } from "../../_components/promotions-modal";
-import { ProductDetailsSheet } from "../../_components/product-details-sheet";
-import { FloatingCartButton } from "../../_components/floating-cart-button";
-import { SelfieCamera } from "../../_components/selfie-camera";
+import { BottomNav } from "../../_components/layout/bottom-nav";
+import { PromotionsModal } from "../../_components/promotions/promotions-modal";
+import { ProductDetailsSheet } from "../../_components/product/product-details-sheet";
+import { FloatingCartButton } from "../../_components/cart/floating-cart-button";
+import { SelfieCamera } from "../../_components/checkout/selfie-camera";
 import { useUIStore } from "../../_store/use-ui-store";
 import { formatPhoneNumber } from "@/app/_lib/utils";
 import { updateCustomerSelfie } from "@/app/_actions/customer/update-customer-selfie";

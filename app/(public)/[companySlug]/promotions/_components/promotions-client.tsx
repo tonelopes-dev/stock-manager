@@ -9,9 +9,9 @@ import { MenuProductDto } from "@/app/_data-access/menu/get-menu-data";
 import { useCartStore } from "../../_store/use-cart-store";
 import { toast } from "sonner";
 import { useState } from "react";
-import { ProductDetailsSheet } from "../../_components/product-details-sheet";
-import { FloatingCartButton } from "../../_components/floating-cart-button";
-import { BottomNav } from "../../_components/bottom-nav";
+import { ProductDetailsSheet } from "../../_components/product/product-details-sheet";
+import { FloatingCartButton } from "../../_components/cart/floating-cart-button";
+import { BottomNav } from "../../_components/layout/bottom-nav";
 
 interface PromotionsClientProps {
   companySlug: string;

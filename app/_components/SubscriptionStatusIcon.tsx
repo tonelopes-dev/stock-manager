@@ -1,6 +1,6 @@
 "use client";
 
-import { useSubscription } from "./SubscriptionContext";
+import { useSubscription } from "@/app/_providers/subscription-context";
 import { AlertCircle, AlertTriangle } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
 import {

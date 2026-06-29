@@ -1,7 +1,8 @@
 "use client";
 
-import { useAppMode } from "@/app/_components/app-mode-provider";
+import { useAppMode } from "@/app/_providers/app-mode-provider";
 import { cn } from "@/app/_lib/utils";
+import { MobileBottomNav } from "@/app/_components/mobile-bottom-nav";
 
 interface LayoutContentWrapperProps {
   sidebar: React.ReactNode;
@@ -30,11 +31,13 @@ export const LayoutContentWrapper = ({
         {!effectiveLiveMode && banner}
 
         <main className={cn(
-          "flex-1 bg-muted",
+          "flex-1 bg-muted pb-20 md:pb-0",
           (pathname.startsWith("/kds") || effectiveLiveMode) ? "overflow-hidden" : "overflow-y-auto"
         )}>
           {children}
         </main>
+
+        {!effectiveLiveMode && <MobileBottomNav />}
       </div>
     </div>
   );

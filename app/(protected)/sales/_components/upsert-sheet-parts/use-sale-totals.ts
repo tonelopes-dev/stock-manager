@@ -1,29 +1,47 @@
 import { useMemo } from "react";
-import { useFormContext, UseFormWatch } from "react-hook-form";
+import { useFormContext, UseFormWatch, FieldValues } from "react-hook-form";
 
-export const useSaleTotals = (externalWatch?: UseFormWatch<any>) => {
-  const context = useFormContext();
+interface SaleFormItem {
+  price: number;
+  cost: number;
+  operationalCost: number;
+  quantity: number;
+}
+
+interface SaleFormValues {
+  items: SaleFormItem[];
+  isEmployeeSale: boolean;
+  applyServiceCharge: boolean;
+  discountAmount: number;
+  extraAmount: number;
+}
+
+export const useSaleTotals = <T extends FieldValues>(externalWatch?: UseFormWatch<T>) => {
+  const context = useFormContext<T>();
   const watch = externalWatch || context?.watch;
 
   if (!watch) {
     throw new Error("useSaleTotals must be used within a FormProvider or provided with a watch function.");
   }
 
-  const watchedItems = (watch as any)("items") || [];
-  const watchedIsEmployeeSale = (watch as any)("isEmployeeSale");
-  const watchedApplyServiceCharge = (watch as any)("applyServiceCharge");
-  const watchedDiscountAmount = (watch as any)("discountAmount") || 0;
-  const watchedExtraAmount = (watch as any)("extraAmount") || 0;
+  const formValues = watch();
+  const values = formValues as unknown as SaleFormValues;
+
+  const watchedItems: SaleFormItem[] = values.items || [];
+  const watchedIsEmployeeSale: boolean = values.isEmployeeSale;
+  const watchedApplyServiceCharge: boolean = values.applyServiceCharge;
+  const watchedDiscountAmount: number = values.discountAmount || 0;
+  const watchedExtraAmount: number = values.extraAmount || 0;
 
   return useMemo(() => {
-    const subtotal = watchedItems.reduce((acc: number, p: any) => {
+    const subtotal = watchedItems.reduce((acc: number, p: SaleFormItem) => {
       const unitPrice = watchedIsEmployeeSale
         ? Number(p.cost || 0) + Number(p.operationalCost || 0)
         : Number(p.price);
       return acc + unitPrice * (p.quantity || 0);
     }, 0);
 
-    const itenCount = watchedItems.reduce((acc: number, p: any) => acc + (p.quantity || 0), 0);
+    const itenCount = watchedItems.reduce((acc: number, p: SaleFormItem) => acc + (p.quantity || 0), 0);
 
     const serviceChargeAmount = watchedApplyServiceCharge
       ? Math.round(subtotal * 0.1 * 100) / 100

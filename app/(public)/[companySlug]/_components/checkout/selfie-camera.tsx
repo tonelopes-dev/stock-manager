@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { Camera, RefreshCw, Check, User, ShieldCheck } from "lucide-react";
+import { Camera, RefreshCw, Check, User, ShieldCheck, Loader2 } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
 import { cn } from "@/app/_lib/utils";
 
@@ -18,6 +18,7 @@ export function SelfieCamera({ onCapture }: SelfieCameraProps) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   // Efeito para vincular o stream ao elemento de vídeo assim que ele for renderizado
   useEffect(() => {
@@ -97,12 +98,17 @@ export function SelfieCamera({ onCapture }: SelfieCameraProps) {
   };
 
   const confirmPhoto = () => {
-    if (!capturedImage) return;
+    if (!capturedImage || isConfirming) return;
+    setIsConfirming(true);
     
     // Convert base64 to blob
     fetch(capturedImage)
       .then((res) => res.blob())
-      .then((blob) => onCapture(blob));
+      .then((blob) => onCapture(blob))
+      .catch((err) => {
+        console.error(err);
+        setIsConfirming(false);
+      });
   };
 
   const retake = () => {
@@ -207,6 +213,7 @@ export function SelfieCamera({ onCapture }: SelfieCameraProps) {
             <Button 
               variant="outline" 
               onClick={retake}
+              disabled={isConfirming}
               className="flex-1 h-14 rounded-2xl border-gray-200 text-gray-600 font-black text-xs uppercase tracking-widest hover:bg-gray-50"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
@@ -214,10 +221,20 @@ export function SelfieCamera({ onCapture }: SelfieCameraProps) {
             </Button>
             <Button 
               onClick={confirmPhoto}
+              disabled={isConfirming}
               className="flex-1 h-14 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-200"
             >
-              <Check className="mr-2 h-4 w-4" />
-              Confirmar
+              {isConfirming ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  <Check className="mr-2 h-4 w-4" />
+                  Confirmar
+                </>
+              )}
             </Button>
           </div>
         ) : (

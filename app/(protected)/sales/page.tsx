@@ -18,7 +18,7 @@ import { SalesDataTable } from "./_components/sales-data-table";
 import { Suspense } from "react";
 import { SaleTableSkeleton } from "./_components/table-skeleton";
 import { PeriodFilter } from "@/app/_components/period-filter";
-import { getSalesAnalytics } from "@/app/_data-access/sale/get-sales-analytics";
+import { getSalesAnalytics, SalesAnalyticsDto } from "@/app/_data-access/sale/get-sales-analytics";
 import { SalesSummary } from "./_components/sales-summary";
 import { SalesCharts } from "./_components/sales-charts";
 import { MonthComparisonFilter } from "./_components/month-comparison-filter";
@@ -33,10 +33,11 @@ import { getPendingOrders } from "@/app/_data-access/order/get-pending-orders";
 import { PendingOrdersBanner } from "./_components/pending-orders-banner";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { getAggregatedSales } from "@/app/_data-access/sale/get-aggregated-sales";
+import { getPendingReceivables } from "@/app/_data-access/sale/get-pending-receivables";
 import { ProductSalesChart } from "./_components/product-sales-chart";
 import { AggregatedSalesTable } from "./_components/aggregated-sales-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
-import { todayBRT } from "@/app/_lib/date";
+import { todayBRT } from "@/app/_utils/date";
 
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";
@@ -94,7 +95,7 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
   const analyticsTo = to || today;
 
   // 2. Fetch business data in parallel (conditionally)
-  const [analytics, aggregatedData, activeComandas, salesResult, preFetchedSale] = await Promise.all([
+  const [analytics, aggregatedData, activeComandas, salesResult, preFetchedSale, pendingReceivables] = await Promise.all([
     // Only fetch analytics if needed
     (view === "inteligencia" || view === "gorjetas") 
       ? getSalesAnalytics(analyticsFrom, analyticsTo, resolvedSearchParams.monthA, resolvedSearchParams.monthB)
@@ -114,13 +115,14 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
       pageSize: pageSize,
     }),
 
-    resolvedSearchParams.saleId ? getSaleById(resolvedSearchParams.saleId) : Promise.resolve(null)
+    resolvedSearchParams.saleId ? getSaleById(resolvedSearchParams.saleId) : Promise.resolve(null),
+    getPendingReceivables(),
   ]);
 
   const { data: closedSales, total: totalClosedSales } = salesResult;
 
   return (
-    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-background p-8">
+    <div className="space-y-8 overflow-auto rounded-lg bg-background p-3 sm:p-4 md:p-8">
       <div className="flex flex-col gap-6">
         <div className="space-y-1">
           <HeaderSubtitle>
@@ -129,9 +131,9 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
           <HeaderTitle>Vendas</HeaderTitle>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <SalesViewTabs />
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
             {view === "inteligencia" && <PeriodFilter />}
             {view === "inteligencia" && <ExportReportModal />}
             <UpsertSaleButton
@@ -189,19 +191,22 @@ const SalesPage = async ({ searchParams }: HomeProps) => {
 
       {view === "gestao" && (
         <div className="space-y-8">
-          <GestaoTabs
-            initialComandas={activeComandas}
-            initialClosedSales={closedSales}
-            totalClosedSales={totalClosedSales}
-            currentClosedPage={currentPage}
-            currentClosedPageSize={pageSize}
-            companyId={companyId || ""}
-            products={products}
-            productOptions={productOptions}
-            customerOptions={customerOptions}
-            stages={stages}
-            categories={categories}
-          />
+          <Suspense fallback={null}>
+            <GestaoTabs
+              initialComandas={activeComandas}
+              initialClosedSales={closedSales}
+              initialReceivables={pendingReceivables}
+              totalClosedSales={totalClosedSales}
+              currentClosedPage={currentPage}
+              currentClosedPageSize={pageSize}
+              companyId={companyId || ""}
+              products={products}
+              productOptions={productOptions}
+              customerOptions={customerOptions}
+              stages={stages}
+              categories={categories}
+            />
+          </Suspense>
         </div>
       )}
 
@@ -239,7 +244,7 @@ const TipsReportWrapper = async ({
 }: {
   from?: string;
   to?: string;
-  analytics: any; // Using already fetched analytics
+  analytics: SalesAnalyticsDto | null;
 }) => {
   const sales = await getSalesForTips({ from, to });
 

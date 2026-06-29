@@ -19,11 +19,14 @@ import { differenceInMinutes } from "date-fns";
 import { useState, useEffect } from "react";
 import { cn } from "@/app/_lib/utils";
 import Image from "next/image";
+import { StationSummary } from "../_hooks/kds-engine";
+
+type KDSOrderItem = KDSOrderDto["items"][number];
 
 interface KDSCardProps {
   order: KDSOrderDto & { 
     displayStatus?: OrderStatus;
-    stationSummary?: any[];
+    stationSummary?: StationSummary[];
   };
   activeEnvId: string;
   onAction: (orderId: string) => void;
@@ -144,7 +147,7 @@ export const KDSCard = ({
                 Status por Praça
               </span>
               <div className="flex flex-wrap gap-1.5 rounded-xl bg-muted/50 p-2 md:gap-2 md:rounded-2xl md:p-3">
-                {order.stationSummary.map((station: any, idx: number) => (
+                {order.stationSummary.map((station: StationSummary, idx: number) => (
                   <Badge
                     key={idx}
                     variant="outline"
@@ -168,7 +171,7 @@ export const KDSCard = ({
           )}
 
         <div className="space-y-1.5 md:space-y-2">
-          {order.items.map((item: any) => (
+          {order.items.map((item: KDSOrderItem) => (
             <div
               key={item.id}
               className={cn(

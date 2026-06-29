@@ -40,18 +40,18 @@ import { toast } from "sonner";
 import { DatePicker } from "@/app/_components/ui/date-picker";
 
 import { createOrderAction } from "@/app/_actions/order/create-order";
-import { MenuHeader } from "./menu-header";
-import { CategoryNav } from "./category-nav";
-import { ProductSection } from "./product-section";
-import { ProductDetailsSheet } from "./product-details-sheet";
-import { FloatingCartButton } from "./floating-cart-button";
-import { BottomNav } from "./bottom-nav";
-import { IdentificationDialog } from "./identification-dialog";
-import { PromotionsModal } from "./promotions-modal";
+import { MenuHeader } from "./layout/menu-header";
+import { CategoryNav } from "./layout/category-nav";
+import { ProductSection } from "./product/product-section";
+import { ProductDetailsSheet } from "./product/product-details-sheet";
+import { FloatingCartButton } from "./cart/floating-cart-button";
+import { BottomNav } from "./layout/bottom-nav";
+import { IdentificationDialog } from "./checkout/identification-dialog";
+import { PromotionsModal } from "./promotions/promotions-modal";
 import { useCartStore } from "../_store/use-cart-store";
 import { useUIStore } from "../_store/use-ui-store";
 import { supabase } from "@/app/_lib/supabase";
-import { isPromotionActive } from "@/app/_lib/promotion";
+import { isPromotionActive } from "@/app/_utils/promotion";
 
 
 interface MenuClientProps {
@@ -345,7 +345,7 @@ export function MenuClient({
         customer={customer}
         handleLogout={handleLogout}
         totalItems={useCartStore((state) => state.totalItems)}
-        setIsCartOpen={() => {}} 
+        setIsCartOpen={useCartStore((state) => state.setIsCartOpen)} 
         setIsStoreInfoOpen={setIsStoreInfoOpen}
         tableNumber={tableNumber}
         onBack={() => router.back()}
@@ -444,11 +444,7 @@ export function MenuClient({
       />
 
       {/* Floating Cart Button */}
-      <FloatingCartButton 
-        companyId={companyId} 
-        requireSelfieOnCheckout={currentMenuData.requireSelfieOnCheckout}
-        enableServiceTax={currentMenuData.enableServiceTax}
-      />
+      <FloatingCartButton companyId={companyId} />
 
       {/* Bottom Navigation Bar */}
       <BottomNav 

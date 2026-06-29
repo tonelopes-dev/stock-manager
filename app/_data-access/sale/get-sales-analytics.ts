@@ -11,7 +11,7 @@ import { subMonths } from "date-fns/subMonths";
 import { addDays } from "date-fns/addDays";
 import { startOfDay } from "date-fns/startOfDay";
 import { ptBR } from "date-fns/locale/pt-BR";
-import { parseLocalDay, getDefaultSalesRange, nowBRT } from "@/app/_lib/date";
+import { parseLocalDay, getDefaultSalesRange, nowBRT } from "@/app/_utils/date";
 
 export interface SalesAnalyticsDto {
     totalRevenue: {

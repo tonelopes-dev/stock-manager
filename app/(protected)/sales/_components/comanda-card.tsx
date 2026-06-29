@@ -6,10 +6,10 @@ import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
 import { formatDistanceToNow, differenceInHours } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Clock, ShoppingBag, User } from "lucide-react";
-import { formatCurrency } from "@/app/_helpers/currency";
+import { formatCurrency } from "@/app/_utils/currency";
 import { cn } from "@/app/_lib/utils";
 import { useEffect, useState } from "react";
-import Image from "next/image";
+import { ExpandableAvatar } from "@/app/_components/expandable-avatar";
 
 interface ComandaCardProps {
   comanda: ComandaDto;
@@ -46,20 +46,12 @@ export const ComandaCard = ({ comanda, onClick }: ComandaCardProps) => {
       <div className="p-5">
         <div className="mb-4 flex items-start justify-between">
           <div className="flex items-start gap-2">
-            <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-lg bg-primary/10 text-primary">
-              {comanda.customerImageUrl ? (
-                <Image
-                  src={comanda.customerImageUrl}
-                  alt={comanda.customerName}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center">
-                  <User size={16} />
-                </div>
-              )}
-            </div>
+            <ExpandableAvatar
+              imageUrl={comanda.customerImageUrl}
+              name={comanda.customerName}
+              className="h-9 w-9 rounded-lg"
+              iconSize={16}
+            />
             <div className="flex flex-col">
               <h3 className="line-clamp-1 pr-2 text-sm font-black uppercase italic tracking-tighter text-foreground">
                 {comanda.customerName}

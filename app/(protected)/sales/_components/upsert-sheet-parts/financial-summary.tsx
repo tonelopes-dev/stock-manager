@@ -9,7 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/app/_components/ui/tooltip";
-import { formatCurrency } from "@/app/_helpers/currency";
+import { formatCurrency } from "@/app/_utils/currency";
 import { cn } from "@/app/_lib/utils";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -138,41 +138,66 @@ export const FinancialSummary = ({ isReadOnly = false }: FinancialSummaryProps) 
               </Label>
             </div>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Tabs
-                  value={adjustmentType}
-                  onValueChange={(val) => {
-                    const type = val as "discount" | "extra";
-                    setAdjustmentType(type);
-                    if (type === "discount") setValue("extraAmount", 0);
-                    else setValue("discountAmount", 0);
-                  }}
-                  className={cn("h-7", isReadOnly && "pointer-events-none opacity-50")}
-                >
-                  <TabsList className="h-7 bg-muted/50 p-0.5">
-                    <TabsTrigger
-                      value="discount"
-                      className="h-6 text-[10px] font-bold uppercase"
-                    >
-                      Desconto
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="extra"
-                      className="h-6 text-[10px] font-bold uppercase"
-                    >
-                      Acréscimo
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </TooltipTrigger>
-              <TooltipContent
-                side="left"
-                className="text-[10px] font-bold uppercase"
+            {isReadOnly ? (
+              <Tabs
+                value={adjustmentType}
+                className="h-7 pointer-events-none opacity-50"
+                tabIndex={-1}
               >
-                Alterne entre conceder desconto ou adicionar um valor extra
-              </TooltipContent>
-            </Tooltip>
+                <TabsList className="h-7 bg-muted/50 p-0.5">
+                  <TabsTrigger
+                    value="discount"
+                    className="h-6 text-[10px] font-bold uppercase"
+                    disabled
+                  >
+                    Desconto
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="extra"
+                    className="h-6 text-[10px] font-bold uppercase"
+                    disabled
+                  >
+                    Acréscimo
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Tabs
+                    value={adjustmentType}
+                    onValueChange={(val) => {
+                      const type = val as "discount" | "extra";
+                      setAdjustmentType(type);
+                      if (type === "discount") setValue("extraAmount", 0);
+                      else setValue("discountAmount", 0);
+                    }}
+                    className="h-7"
+                  >
+                    <TabsList className="h-7 bg-muted/50 p-0.5">
+                      <TabsTrigger
+                        value="discount"
+                        className="h-6 text-[10px] font-bold uppercase"
+                      >
+                        Desconto
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="extra"
+                        className="h-6 text-[10px] font-bold uppercase"
+                      >
+                        Acréscimo
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="left"
+                  className="text-[10px] font-bold uppercase"
+                >
+                  Alterne entre conceder desconto ou adicionar um valor extra
+                </TooltipContent>
+              </Tooltip>
+            )}
           </div>
 
           <div className="flex items-center justify-between border-t border-border/50 pt-2">

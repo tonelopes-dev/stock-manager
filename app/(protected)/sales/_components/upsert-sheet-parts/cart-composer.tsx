@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from "@/app/_components/ui/form";
 import { QuantityStepper } from "@/app/_components/ui/quantity-stepper";
-import { formatCurrency } from "@/app/_helpers/currency";
+import { formatCurrency } from "@/app/_utils/currency";
 import { cn } from "@/app/_lib/utils";
 import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ProductAvailabilityInfo } from "../shared/product-availability-info";
@@ -31,11 +31,22 @@ const composerSchema = z.object({
 
 type ComposerSchema = z.infer<typeof composerSchema>;
 
+interface CartItem {
+  productId: string;
+  name: string;
+  price: number;
+  cost: number;
+  operationalCost: number;
+  quantity: number;
+  stock: number;
+  notes?: string;
+}
+
 interface CartComposerProps {
   products: ProductDto[];
   productOptions: ComboboxOption[];
-  fields: any[];
-  append: (item: any) => void;
+  fields: CartItem[];
+  append: (item: CartItem) => void;
   isReadOnly?: boolean;
 }
 

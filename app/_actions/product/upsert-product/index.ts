@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { upsertProductSchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { recordStockMovement } from "@/app/_lib/stock";
+import { recordStockMovement } from "@/app/_utils/stock";
 import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
 import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
 import { AuditService } from "@/app/_services/audit";

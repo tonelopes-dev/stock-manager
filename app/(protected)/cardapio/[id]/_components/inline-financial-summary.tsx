@@ -21,7 +21,7 @@ import { useAction } from "next-safe-action/hooks";
 import { upsertProduct } from "@/app/_actions/product/upsert-product";
 import { toast } from "sonner";
 import { NumericFormat } from "react-number-format";
-import { calculateMargin } from "@/app/_lib/pricing";
+import { calculateMargin } from "@/app/_utils/pricing";
 import { cn } from "@/app/_lib/utils";
 
 interface InlineFinancialSummaryProps {

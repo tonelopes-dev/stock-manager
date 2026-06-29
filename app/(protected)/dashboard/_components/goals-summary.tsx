@@ -8,7 +8,7 @@ import {
 import { Progress } from "@/app/_components/ui/progress";
 import { TargetIcon, ChevronRightIcon } from "lucide-react";
 import Link from "next/link";
-import { formatCurrency } from "@/app/_helpers/currency";
+import { formatCurrency } from "@/app/_utils/currency";
 
 export const GoalsSummary = async () => {
   const goals = await getGoals();
