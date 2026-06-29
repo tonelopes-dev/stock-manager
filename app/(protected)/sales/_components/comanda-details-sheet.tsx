@@ -65,7 +65,7 @@ export const ComandaDetailsSheet = ({
             setIsImageOpen={state.setIsImageOpen}
           />
 
-          <div className="flex flex-col lg:flex-row h-full flex-1 overflow-hidden">
+          <div className="flex flex-col lg:flex-row h-full flex-1 overflow-y-auto lg:overflow-hidden">
             {/* Left Column: Metrics & Controls */}
             <ComandaPaymentSection
               comanda={comanda}
@@ -96,7 +96,7 @@ export const ComandaDetailsSheet = ({
             />
 
             {/* Right Column: Items */}
-            <div className="flex min-h-0 flex-col p-2 order-1 lg:order-2 flex-1 lg:w-1/2 overflow-y-auto bg-background">
+            <div className="flex lg:min-h-0 flex-col p-2 order-1 lg:order-2 flex-none lg:flex-1 w-full lg:w-1/2 overflow-visible lg:overflow-y-auto bg-background">
               <ComandaItemsList
                 groupedItems={state.groupedItems}
                 isGrouped={state.isGrouped}
@@ -106,7 +106,7 @@ export const ComandaDetailsSheet = ({
                 handleDeleteItem={state.handleDeleteItem}
               />
 
-              <div className="scrollbar-hide hover:scrollbar-default flex-1 overflow-y-auto pr-1 transition-all">
+              <div className="scrollbar-hide hover:scrollbar-default flex-none lg:flex-1 overflow-visible lg:overflow-y-auto pr-1 transition-all">
                 <ComandaAddItem
                   productOptions={productOptions}
                   selectedProductId={state.selectedProductId}

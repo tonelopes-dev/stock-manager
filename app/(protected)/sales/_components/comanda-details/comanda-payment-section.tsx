@@ -118,8 +118,8 @@ export const ComandaPaymentSection = ({
   onPay,
 }: ComandaPaymentSectionProps) => {
   return (
-    <div className="flex min-h-0 flex-col border-r border-border bg-muted/30 order-2 lg:order-1 flex-1 lg:w-1/2 overflow-y-auto">
-      <div className="scrollbar-hide hover:scrollbar-default flex-1 space-y-2 overflow-y-auto p-2 transition-all">
+    <div className="flex lg:min-h-0 flex-col border-r border-border bg-muted/30 order-2 lg:order-1 flex-none lg:flex-1 w-full lg:w-1/2 overflow-visible lg:overflow-y-auto pb-48 lg:pb-0">
+      <div className="scrollbar-hide hover:scrollbar-default flex-none lg:flex-1 space-y-2 overflow-visible lg:overflow-y-auto p-2 transition-all">
         {/* Metrics Section */}
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-2xl border border-border bg-background p-4 shadow-sm">
@@ -287,15 +287,15 @@ export const ComandaPaymentSection = ({
       </div>
 
       {/* Bottom Actions Area */}
-      <div className="mt-auto border-t border-border bg-background px-3 py-2 shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
-        <div className="w-full space-y-3">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background pt-4 pb-6 px-4 border-t border-border/50 lg:static lg:sticky lg:bottom-0 lg:z-20 lg:pb-2 lg:px-3 shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
+        <div className="w-full space-y-3 max-w-5xl mx-auto">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase italic tracking-tighter text-muted-foreground">
                 Taxa de Serviço (10%)
               </Label>
-              <div className="flex h-12 items-center justify-between rounded-xl border border-border bg-muted/50 px-4">
-                <div className="flex items-center gap-3">
+              <div className="flex h-12 items-center justify-between rounded-xl border border-border bg-muted/50 px-2.5 sm:px-4">
+                <div className="flex items-center gap-1.5 sm:gap-3">
                   <Switch
                     checked={applyServiceCharge}
                     onCheckedChange={setApplyServiceCharge}
@@ -303,14 +303,14 @@ export const ComandaPaymentSection = ({
                   />
                   <Label
                     htmlFor="comanda-service-charge"
-                    className="text-xs font-bold leading-none"
+                    className="hidden text-xs font-bold leading-none sm:inline-block"
                   >
                     {applyServiceCharge ? "Ativada" : "Desativada"}
                   </Label>
                 </div>
                 <span
                   className={cn(
-                    "text-sm font-black transition-colors",
+                    "text-xs sm:text-sm font-black transition-colors",
                     applyServiceCharge
                       ? "text-primary"
                       : "text-muted-foreground/50",

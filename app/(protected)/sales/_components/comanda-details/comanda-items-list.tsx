@@ -36,8 +36,8 @@ export const ComandaItemsList = ({
   handleDeleteItem,
 }: ComandaItemsListProps) => {
   return (
-    <div className="flex min-h-0 flex-col bg-background p-2">
-      <div className="mb-4 flex items-center justify-between px-1">
+    <div className="flex lg:min-h-0 flex-col bg-background p-2 flex-none lg:flex-1">
+      <div className="mb-4 flex items-center justify-between px-1 sticky top-0 z-10 bg-background py-2">
         <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
           Itens Consumidos
         </h4>
@@ -73,7 +73,7 @@ export const ComandaItemsList = ({
         </div>
       </div>
 
-      <div className="scrollbar-hide hover:scrollbar-default flex-1 overflow-y-auto pr-1 transition-all">
+      <div className="scrollbar-hide hover:scrollbar-default flex-none lg:flex-1 overflow-visible lg:overflow-y-auto pr-1 transition-all">
         {/* Items are rendered after the add-item section in the parent */}
         <div className="space-y-2">
           {groupedItems.map((item) => (
