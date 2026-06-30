@@ -81,8 +81,8 @@ export const OrderService = {
             isEmployeeSale: isEmployeeSale || false,
             hasServiceTax: hasServiceTax !== undefined ? hasServiceTax : true,
             status: OrderStatus.PENDING,
-            createdAt: nowBRT(),
-            updatedAt: nowBRT(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
             orderItems: {
               create: itemsWithPrices.map((item) => ({
                 productId: item.productId,
@@ -90,8 +90,8 @@ export const OrderService = {
                 unitPrice: item.unitPrice,
                 notes: item.notes,
                 status: OrderStatus.PENDING,
-                createdAt: nowBRT(),
-                updatedAt: nowBRT(),
+                createdAt: new Date(),
+                updatedAt: new Date(),
               })),
             },
           },
@@ -149,7 +149,7 @@ export const OrderService = {
 
         const updatedItem = await trx.orderItem.update({
           where: { id: itemId },
-          data: { status, updatedAt: nowBRT() },
+          data: { status, updatedAt: new Date() },
         });
 
         // 2. Sync order status based on all items
@@ -178,7 +178,7 @@ export const OrderService = {
 
         await trx.order.update({
           where: { id: item.orderId },
-          data: { status: newOrderStatus, updatedAt: nowBRT() },
+          data: { status: newOrderStatus, updatedAt: new Date() },
         });
 
         return { updatedItem };
@@ -220,7 +220,7 @@ export const OrderService = {
 
         const updatedOrder = await trx.order.update({
           where: { id: orderId },
-          data: { status, updatedAt: nowBRT() },
+          data: { status, updatedAt: new Date() },
         });
 
         return updatedOrder;
@@ -313,10 +313,10 @@ export const OrderService = {
             adjustmentReason,
             isEmployeeSale,
             tipAmount,
-            date: nowBRT(),
+            date: nowBRT(),  // Sale.date é data de negócio → mantém nowBRT() para refletir o dia BRT correto
             dueDate: dueDate || null,
-            createdAt: nowBRT(),
-            updatedAt: nowBRT(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
             status: status || "ACTIVE",
           },
         });
@@ -333,15 +333,15 @@ export const OrderService = {
               quantity: item.quantity,
               unitPrice: unitPrice,
               baseCost: item.product.cost,
-              createdAt: nowBRT(),
-              updatedAt: nowBRT(),
+              createdAt: new Date(),
+              updatedAt: new Date(),
             };
           }),
         });
 
         await trx.stockMovement.updateMany({
           where: { orderId: { in: orderIds }, type: "ORDER" },
-          data: { saleId: sale.id, updatedAt: nowBRT() }
+          data: { saleId: sale.id, updatedAt: new Date() }
         });
 
         // 3. Mark Orders as PAID and complete with Concurrency Protection
@@ -445,10 +445,10 @@ export const OrderService = {
             extraAmount,
             adjustmentReason,
             isEmployeeSale,
-            date: nowBRT(),
+            date: nowBRT(),  // Sale.date é data de negócio → mantém nowBRT() para refletir o dia BRT correto
             dueDate: dueDate || null,
-            createdAt: nowBRT(),
-            updatedAt: nowBRT(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
             status: status || "ACTIVE",
           },
         });
@@ -465,14 +465,14 @@ export const OrderService = {
               quantity: item.quantity,
               unitPrice: unitPrice,
               baseCost: item.product.cost,
-              createdAt: nowBRT(),
-              updatedAt: nowBRT(),
+              createdAt: new Date(),
+              updatedAt: new Date(),
             },
           });
 
           await trx.stockMovement.updateMany({
             where: { orderId: item.orderId, productId: item.productId, type: "ORDER" },
-            data: { saleId: sale.id, updatedAt: nowBRT() },
+            data: { saleId: sale.id, updatedAt: new Date() },
           });
 
           await trx.orderItem.delete({ where: { id: item.id } });
@@ -490,7 +490,7 @@ export const OrderService = {
             
             await trx.order.update({
               where: { id: orderId },
-              data: { totalAmount: newTotal, updatedAt: nowBRT() },
+              data: { totalAmount: newTotal, updatedAt: new Date() },
             });
           }
         }
