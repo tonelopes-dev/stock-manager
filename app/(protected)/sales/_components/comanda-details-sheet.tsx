@@ -57,7 +57,7 @@ export const ComandaDetailsSheet = ({
 
   return (
     <UISheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <UISheetContent className="flex h-full w-full sm:max-w-full md:max-w-3xl lg:max-w-5xl p-0 w-screen inset-0 flex-col border-none bg-background shadow-2xl">
+      <UISheetContent className="flex h-full w-full sm:max-w-full md:max-w-3xl lg:max-w-5xl flex-col border-none bg-background p-0 shadow-2xl">
         <TooltipProvider delayDuration={0}>
           <ComandaHeader
             comanda={comanda}
