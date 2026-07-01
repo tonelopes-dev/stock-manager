@@ -30,9 +30,9 @@ export const generateInfinityPayCheckout = actionClient
       throw new Error("Integração InfinitePay configurada incorretamente (Handle faltando).");
     }
 
-    // 2. Resolver qual Sale usar — cria on-demand se necessário
-    let resolvedSaleId = saleId;
-    let saleAmount: number;
+    // 2. Resolver qual ID usar
+    let resolvedId = saleId;
+    let paymentAmount: number;
     let descriptionText: string;
     let customerData: { name: string; email?: string; phone_number?: string } | undefined;
 
@@ -49,7 +49,7 @@ export const generateInfinityPayCheckout = actionClient
       if (!sale) throw new Error("Venda não encontrada.");
       if (sale.status === "ACTIVE") throw new Error("Este pedido já foi pago.");
 
-      saleAmount = Number(sale.totalAmount);
+      paymentAmount = Number(sale.totalAmount);
       descriptionText = `Pedido #${sale.order?.orderNumber ?? 0}`;
       
       if (sale.customer) {
@@ -60,15 +60,14 @@ export const generateInfinityPayCheckout = actionClient
         };
       }
     } else if (orderIds && orderIds.length > 0) {
-      // Novo fluxo: Agrupamento de N pedidos ativos ("Comanda")
-      
-      // Valida se os pedidos pertencem à empresa e pega o primeiro para referência
+      // Novo fluxo: Agrupamento de N pedidos ativos ("Comanda") sem criar Sale prematuramente
       const orders = await db.order.findMany({
         where: { id: { in: orderIds }, companyId },
         select: { 
           id: true, 
           orderNumber: true, 
           status: true, 
+          totalAmount: true,
           customerId: true,
           customer: { select: { name: true, email: true, phone: true } }
         },
@@ -80,33 +79,23 @@ export const generateInfinityPayCheckout = actionClient
         throw new Error("Um ou mais pedidos não estão disponíveis para pagamento.");
       }
 
-      // 1. Chama o OrderService para converter todos os pedidos numa única Sale
-      // (Isso vincula a Sale ao orders[0] e marca os orders como SETTLED_LATER)
-      const newSale = await OrderService.convertToSale(
-        orderIds,
-        companyId,
-        null, // sem userId pois é o próprio cliente pagando online
-        null, // sem paymentMethod
-        0, 0, 0, undefined, false, 
-        "PENDING_PAYMENT", 
-        null, 
-        orders[0].customerId
-      );
+      // Calcula o total
+      paymentAmount = orders.reduce((sum, o) => sum + Number(o.totalAmount), 0);
 
-      // 2. GAMBIARRA SEGURA (Ver docs/tech-debt.md)
-      // Como a relação no BD é 1-1, a Venda só "sabe" do orders[0].
-      // Para o webhook achar os outros pedidos da mesma Venda (Comanda),
-      // injetamos uma tag no `adjustmentReason` deles.
+      // 2. GAMBIARRA SEGURA
+      // A comanda permanece em "Abertas" (Order) até ser paga pelo webhook.
+      // Usamos o primeiro Order como ID de referência (order_nsu) para o webhook.
+      const mainOrderId = orders[0].id;
+      
       if (orderIds.length > 1) {
-        const secondaryOrderIds = orderIds.filter(id => id !== orders[0].id);
+        const secondaryOrderIds = orderIds.filter(id => id !== mainOrderId);
         await db.order.updateMany({
           where: { id: { in: secondaryOrderIds } },
-          data: { adjustmentReason: `infinitypay_group_sale:${newSale.id}` }
+          data: { adjustmentReason: `infinitypay_group_order:${mainOrderId}` }
         });
       }
 
-      resolvedSaleId = newSale.id;
-      saleAmount = Number(newSale.totalAmount);
+      resolvedId = mainOrderId;
       descriptionText = orderIds.length > 1 
         ? `Comanda (${orderIds.length} pedidos)` 
         : `Pedido #${orders[0].orderNumber}`;
@@ -119,7 +108,7 @@ export const generateInfinityPayCheckout = actionClient
         };
       }
 
-      console.log(`[InfinityPay] Sale de Comanda criada on-demand: ${resolvedSaleId} para ${orderIds.length} pedidos`);
+      console.log(`[InfinityPay] Link gerado usando Order ID: ${resolvedId} para ${orderIds.length} pedidos`);
     } else {
       throw new Error("Dados de pagamento insuficientes.");
     }
@@ -134,9 +123,9 @@ export const generateInfinityPayCheckout = actionClient
 
     const checkoutUrl = await createInfinityPayCheckout({
       handle: integration.credentials.merchantId,
-      amount: saleAmount,
+      amount: paymentAmount,
       description: descriptionText,
-      order_nsu: resolvedSaleId!, // Sale ID é nosso identificador único para o webhook
+      order_nsu: resolvedId!, 
       webhook_url: `${appUrl}/api/webhooks/infinitypay`,
       redirect_url: `${appUrl}/${company?.slug}/my-orders`,
       customer: customerData,

@@ -4,6 +4,7 @@ import { IntegrationProvider } from "@prisma/client";
 import { getIntegrationRawData } from "@/app/_data-access/integration/get-integration-raw";
 import { broadcastEvent } from "@/app/_lib/broadcast";
 import { broadcastKdsEvent } from "@/app/_lib/kds-broadcast";
+import { OrderService } from "@/app/_services/order";
 
 export const runtime = "nodejs";
 
@@ -19,66 +20,59 @@ export async function POST(req: Request) {
       return new NextResponse("Invalid JSON", { status: 400 });
     }
 
-    // 1. Extrair os dados conforme documentação (order_nsu é o nosso Sale ID)
+    // 1. Extrair os dados conforme documentação
     const { order_nsu, transaction_nsu, status, capture_method, paid_amount } = body;
-    const saleId = order_nsu;
+    const incomingId = order_nsu; // Pode ser Sale ID ou Order ID
 
-    if (!saleId) {
-      console.error("[InfinityPay Webhook] Missing order_nsu (saleId)");
+    if (!incomingId) {
+      console.error("[InfinityPay Webhook] Missing order_nsu (incomingId)");
       return new NextResponse("Missing order_nsu", { status: 400 });
     }
 
-    // 2. Buscar a venda para saber de qual loja (tenant) ela é
-    const sale = await db.sale.findUnique({
-      where: { id: saleId },
+    const isApproved = status ? (status === "approved" || status === "paid") : true;
+
+    if (!isApproved) {
+      console.log(`[InfinityPay Webhook] Transaction ${transaction_nsu} not approved. Status: ${status}`);
+      return new NextResponse("OK", { status: 200 });
+    }
+
+    console.log(`[InfinityPay Webhook] Processing approved payment for ID ${incomingId}, transaction: ${transaction_nsu}`);
+
+    // 2. Tenta achar como Venda (fluxo antigo ou checkout de algo que já estava A Pagar)
+    let sale = await db.sale.findUnique({
+      where: { id: incomingId },
       include: {
         order: { select: { id: true, customerId: true, companyId: true, orderNumber: true } },
         customer: { select: { id: true, name: true, email: true } },
       }
     });
 
-    if (!sale) {
-      console.error(`[InfinityPay Webhook] Sale ${saleId} not found`);
-      return new NextResponse("Sale not found", { status: 404 });
-    }
-    
-    // Evita processamento duplicado, conforme documentação "Se já estiver PAID, ignorar"
-    if (sale.status === "ACTIVE") {
-      console.log(`[InfinityPay Webhook] Sale ${saleId} is already PAID. Ignoring.`);
-      return new NextResponse("OK", { status: 200 });
-    }
+    if (sale) {
+      // É uma SALE
+      if (sale.status === "ACTIVE") {
+        console.log(`[InfinityPay Webhook] Sale ${incomingId} is already PAID. Ignoring.`);
+        return new NextResponse("OK", { status: 200 });
+      }
 
-    const companyId = sale.companyId;
+      const companyId = sale.companyId;
 
-    console.log(`[InfinityPay Webhook] Processing payment for sale ${saleId}, transaction: ${transaction_nsu}`);
-
-    // Em webhooks gerados pelo "InfinitePay Checkout Links", o pagamento bate quando já foi feito.
-    // Vamos tratar "status === 'approved' ou 'paid'" se eles enviarem, 
-    // mas muitas vezes webhooks só vêm quando o pagamento foi confirmado. 
-    // Assumimos confirmado. Se enviarem status, checamos.
-    const isApproved = status ? (status === "approved" || status === "paid") : true;
-
-    // 5. Processar o pagamento aprovado
-    if (isApproved) {
-      // 5.1 Atualiza Sale
+      // Atualiza Sale
       await db.sale.update({
-        where: { id: saleId },
+        where: { id: incomingId },
         data: { 
           status: "ACTIVE",
-          paymentMethod: "PIX" // Supondo PIX. A InfinityPay envia o método no payload, pode ser mapeado se necessário.
+          paymentMethod: "PIX" 
         },
       });
 
-      // 5.2 Atualiza Order (O principal que está nativamente vinculado à Sale)
+      // Atualiza Order principal
       if (sale.order?.id) {
         await db.order.update({
           where: { id: sale.order.id },
           data: { status: "PAID" },
         });
 
-        // 5.3 Emite Broadcast para o cliente e para o KDS (Tempo Real)
         if (sale.order.customerId) {
-          // Atualiza a tela do cliente
           await broadcastEvent(
             `customer-${sale.order.customerId}`,
             "order_status_update",
@@ -86,18 +80,12 @@ export async function POST(req: Request) {
           );
         }
         
-        // Atualiza a tela da cozinha/PDV
-        await broadcastKdsEvent(
-          companyId,
-          "update_order",
-          { orderId: sale.order.id, status: "PAID" }
-        );
+        await broadcastKdsEvent(companyId, "update_order", { orderId: sale.order.id, status: "PAID" });
       }
 
-      // 5.2.2 GAMBIARRA SEGURA: Atualiza pedidos secundários agrupados na mesma Comanda
-      // (Ver docs/tech-debt.md)
+      // Atualiza pedidos secundários (Gambiarra Segura para Sale)
       const secondaryOrders = await db.order.findMany({
-        where: { companyId, adjustmentReason: `infinitypay_group_sale:${saleId}` },
+        where: { companyId, adjustmentReason: `infinitypay_group_sale:${incomingId}` },
         select: { id: true, customerId: true }
       });
 
@@ -107,17 +95,15 @@ export async function POST(req: Request) {
           data: { status: "PAID" }
         });
 
-        // Emite broadcast para os pedidos secundários
         for (const order of secondaryOrders) {
           if (order.customerId) {
             await broadcastEvent(`customer-${order.customerId}`, "order_status_update", { orderId: order.id, status: "PAID" });
           }
           await broadcastKdsEvent(companyId, "update_order", { orderId: order.id, status: "PAID" });
         }
-        console.log(`[InfinityPay Webhook] ${secondaryOrders.length} pedidos secundários marcados como pagos para Sale ${saleId}`);
       }
 
-      // 5.4 Auditoria
+      // Auditoria
       try {
         await db.auditEvent.create({
           data: {
@@ -128,7 +114,7 @@ export async function POST(req: Request) {
             actorName: "InfinityPay System",
             severity: "INFO",
             metadata: {
-              saleId,
+              saleId: incomingId,
               orderId: sale.order?.id,
               transactionId: transaction_nsu,
               status: status || "approved",
@@ -140,6 +126,79 @@ export async function POST(req: Request) {
       } catch (auditError) {
         console.warn("[InfinityPay Webhook] Failed to log AuditEvent", auditError);
       }
+
+      return new NextResponse("OK", { status: 200 });
+    }
+
+    // 3. Se não achou Sale, tenta achar como Pedido (Order) - NOVO FLUXO
+    const mainOrder = await db.order.findUnique({
+      where: { id: incomingId }
+    });
+
+    if (!mainOrder) {
+      console.error(`[InfinityPay Webhook] Target ${incomingId} not found as Sale or Order`);
+      return new NextResponse("Not Found", { status: 404 });
+    }
+
+    if (mainOrder.status === "PAID") {
+      console.log(`[InfinityPay Webhook] Order ${incomingId} is already PAID. Ignoring.`);
+      return new NextResponse("OK", { status: 200 });
+    }
+
+    const companyId = mainOrder.companyId;
+
+    // Acha os pedidos secundários agrupados
+    const secondaryOrders = await db.order.findMany({
+      where: { companyId, adjustmentReason: `infinitypay_group_order:${incomingId}` }
+    });
+
+    const allRelatedOrderIds = [mainOrder.id, ...secondaryOrders.map(o => o.id)];
+
+    // Converte os pedidos em uma nova Venda, que os marca como PAID automaticamente
+    const newSale = await OrderService.convertToSale(
+      allRelatedOrderIds,
+      companyId,
+      null,
+      "PIX", 
+      0, 0, 0, undefined, false,
+      "ACTIVE", 
+      null,
+      mainOrder.customerId
+    );
+
+    console.log(`[InfinityPay Webhook] Converted Orders [${allRelatedOrderIds.join(',')}] to Sale ${newSale.id}`);
+
+    // Emite broadcast para atualizar os clientes e o KDS
+    for (const orderId of allRelatedOrderIds) {
+      const order = [mainOrder, ...secondaryOrders].find(o => o.id === orderId);
+      if (order?.customerId) {
+        await broadcastEvent(`customer-${order.customerId}`, "order_status_update", { orderId: order.id, status: "PAID" });
+      }
+      await broadcastKdsEvent(companyId, "update_order", { orderId: orderId, status: "PAID" });
+    }
+
+    // Auditoria
+    try {
+      await db.auditEvent.create({
+        data: {
+          id: `ifp-${transaction_nsu || Date.now()}`,
+          type: "SALE_CREATED",
+          companyId: companyId,
+          customerId: mainOrder.customerId,
+          actorName: "InfinityPay System",
+          severity: "INFO",
+          metadata: {
+            saleId: newSale.id,
+            orderIds: allRelatedOrderIds,
+            transactionId: transaction_nsu,
+            status: status || "approved",
+            amount: paid_amount || Number(newSale.totalAmount),
+            provider: "INFINITYPAY"
+          },
+        },
+      });
+    } catch (auditError) {
+      console.warn("[InfinityPay Webhook] Failed to log AuditEvent for new Sale", auditError);
     }
 
     return new NextResponse("OK", { status: 200 });
@@ -148,3 +207,4 @@ export async function POST(req: Request) {
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
+
