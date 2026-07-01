@@ -46,7 +46,7 @@ Você é um **desenvolvedor sênior especialista** em:
   3. **Forçar o commit da migration**: Mesmo que `prisma/migrations` esteja no `.gitignore`, faça o commit obrigatório via `git add -f prisma/migrations/<migration_folder>` para assegurar que a pipeline execute `npx prisma migrate deploy` no banco online.
 
 ### Serviços
-- **Pagamentos**: Stripe + MercadoPago
+- **Pagamentos**: MercadoPago (Apenas para assinaturas Kipo)
 - **Email**: Resend (templates em Português)
 - **Real-time**: Supabase WebSockets
 - **Cache/Rate Limit**: Upstash Redis
