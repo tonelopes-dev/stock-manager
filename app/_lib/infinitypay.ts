@@ -44,7 +44,7 @@ export async function createInfinityPayCheckout(params: InfinityPayCheckoutParam
 
   // A InfinitePay rejeita valores menores ou iguais a 1 centavo
   if (priceInCents <= 1) {
-    throw new Error("O valor mínimo para pagamento online é R$ 0,02.");
+    throw new Error("O valor mínimo para pagamento online é R$ 1,00.");
   }
 
   console.log("[InfinityPay] Payload enviado:", JSON.stringify(payload, null, 2));
