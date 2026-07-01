@@ -118,36 +118,20 @@ export function OrdersTabGroup({ orders, companyId, companySlug, infinityPayEnab
           </p>
         ) : (
           <div className="space-y-6">
-            {groupedOrders.active.map((order) => (
-              <OrderCard key={order.id} order={order} companyId={companyId} companySlug={companySlug} infinityPayEnabled={infinityPayEnabled} />
+            {groupedOrders.active.map((order, index) => (
+              <OrderCard 
+                key={order.id} 
+                order={order} 
+                companyId={companyId} 
+                companySlug={companySlug} 
+                infinityPayEnabled={infinityPayEnabled}
+                isActiveTab={true}
+                isLastActive={index === groupedOrders.active.length - 1}
+                activeOrdersTotal={activeOrdersTotal}
+                onPayComanda={handlePayComanda}
+                isGeneratingCheckout={isGeneratingCheckout}
+              />
             ))}
-            
-            {infinityPayEnabled && (
-              <div className="fixed bottom-16 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-100 p-4 shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.15)] pb-[calc(1rem+env(safe-area-inset-bottom))]">
-                <div className="mx-auto max-w-md">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm font-bold text-gray-500">Total da Comanda</span>
-                    <span className="text-xl font-black text-gray-900">
-                      {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(activeOrdersTotal)}
-                    </span>
-                  </div>
-                  <Button 
-                    onClick={handlePayComanda}
-                    disabled={isGeneratingCheckout}
-                    className="w-full h-14 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase tracking-widest text-sm shadow-xl shadow-emerald-500/20"
-                  >
-                    {isGeneratingCheckout ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <>
-                        <Zap className="mr-2 h-4 w-4" />
-                        Fechar Comanda
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            )}
           </div>
         )}
       </TabsContent>

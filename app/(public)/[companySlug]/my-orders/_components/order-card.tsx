@@ -55,11 +55,21 @@ export const OrderCard = ({
   companyId,
   companySlug,
   infinityPayEnabled = false,
+  isActiveTab = false,
+  isLastActive = false,
+  activeOrdersTotal = 0,
+  onPayComanda,
+  isGeneratingCheckout = false,
 }: {
   order: OrderStatusDto;
   companyId: string;
   companySlug: string;
   infinityPayEnabled?: boolean;
+  isActiveTab?: boolean;
+  isLastActive?: boolean;
+  activeOrdersTotal?: number;
+  onPayComanda?: () => void;
+  isGeneratingCheckout?: boolean;
 }) => {
   const router = useRouter();
   const currentStatus = statusConfig[order.status];
@@ -82,11 +92,12 @@ export const OrderCard = ({
   const isHistory = order.status === "PAID" || order.status === "CANCELED";
   const isPaid = order.status === "PAID";
   const isActive = ["PENDING", "PREPARING", "READY", "DELIVERED"].includes(order.status);
-  // Mostra botão de pagamento online se:
-  // 1. Integração ativa; E
-  // 2. Order está aguardando pagamento manual (SETTLED_LATER)
-  // (Para orders ativas, o pagamento é feito em lote na aba Ativas)
-  const showPayButton = infinityPayEnabled && isPendingPayment;
+
+  // Mostra botão de pagamento individual se for A PAGAR
+  const showIndividualPayButton = infinityPayEnabled && isPendingPayment && !isActiveTab;
+
+  // Mostra botão de FECHAR COMANDA agrupado se for o último card da aba ATIVAS
+  const showGroupedPayButton = infinityPayEnabled && isActiveTab && isLastActive;
 
   const addItemToCart = useCartStore(state => state.addItem);
   const setIsCartOpen = useCartStore(state => state.setIsCartOpen);
@@ -96,7 +107,7 @@ export const OrderCard = ({
   const [feedback, setFeedback] = useState(order.feedback || "");
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
 
-  const { execute: payNow, isExecuting: isGeneratingCheckout } = useAction(generateInfinityPayCheckout, {
+  const { execute: payNow, isExecuting: isExecutingIndividualCheckout } = useAction(generateInfinityPayCheckout, {
     onSuccess: ({ data }) => {
       if (data?.url) {
         window.location.href = data.url; 
@@ -109,7 +120,6 @@ export const OrderCard = ({
 
   const handlePayNow = () => {
     if (isPendingPayment && order.saleId) {
-      // Fluxo clássico: SETTLED_LATER com Sale já criada
       payNow({ saleId: order.saleId, companyId });
     } else {
       toast.error("Erro interno: não foi possível identificar o pedido.");
@@ -135,7 +145,7 @@ export const OrderCard = ({
         price: item.price,
         basePrice: item.basePrice,
         quantity: item.quantity,
-        maxQuantity: 99, // Assumption for reordering
+        maxQuantity: 99, 
         notes: item.notes || undefined,
       });
       if (!added) allAdded = false;
@@ -152,7 +162,7 @@ export const OrderCard = ({
   };
 
   const handleRatingClick = (value: number) => {
-    if (order.rating) return; // Já avaliado
+    if (order.rating) return; 
     setSelectedRating(value);
     setShowFeedbackForm(true);
   };
@@ -179,6 +189,12 @@ export const OrderCard = ({
             </h3>
             {isPendingPayment && (
               <Badge variant="default" className="bg-amber-500 text-white animate-pulse shadow-sm border-none">
+                <Zap className="w-3 h-3 mr-1" />
+                Pendente
+              </Badge>
+            )}
+            {isActiveTab && (
+              <Badge variant="default" className="bg-amber-100 text-amber-600 shadow-sm border-none flex items-center">
                 <Zap className="w-3 h-3 mr-1" />
                 Pendente
               </Badge>
@@ -232,14 +248,14 @@ export const OrderCard = ({
           {!isPendingPayment && (
             <div className="flex items-center gap-1.5 px-0.5">
               {[1, 2, 3, 4, 5].map((step) => {
-                const isActive = currentStatus.step >= step;
+                const isStepActive = currentStatus.step >= step;
                 const isCurrent = currentStatus.step === step;
                 return (
                   <div
                     key={step}
                     className={cn(
                       "h-2 flex-1 rounded-full transition-all duration-700",
-                      isActive 
+                      isStepActive 
                         ? isCurrent ? "bg-primary animate-pulse" : "bg-primary"
                         : "bg-gray-100"
                     )}
@@ -309,7 +325,7 @@ export const OrderCard = ({
           })}
         </div>
 
-        {/* Total Footer */}
+        {/* Total Footer - Omitido se for a view combinada (showGroupedPayButton) e a gente quiser mostrar o total agrupado ao invés do individual. Mas vamos manter o subtotal individual e logo abaixo colocar o agrupado */}
         <div className="mt-6 space-y-2 border-t border-gray-50 pt-4">
           <div className="flex items-center justify-between text-[10px] font-bold text-gray-400">
             <span className="uppercase tracking-widest">Subtotal</span>
@@ -332,18 +348,44 @@ export const OrderCard = ({
           
           <div className="flex items-center justify-between pt-2">
             <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-              {isPendingPayment ? "Total em Aberto" : "Total"}
+              {!isActiveTab ? (isPendingPayment ? "Total em Aberto" : "Total") : "Total deste Pedido"}
             </span>
             <span className="text-lg font-black text-primary">
               {formatPrice(order.totalAmount)}
             </span>
           </div>
 
-          {/* Checkout Button — aparece para orders ATIVAS e para SETTLED_LATER */}
-          {showPayButton && (
+          {/* Checkout Button Individual (A Pagar) */}
+          {showIndividualPayButton && (
             <div className="pt-4">
               <Button 
                 onClick={handlePayNow}
+                disabled={isExecutingIndividualCheckout}
+                className="w-full h-14 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase tracking-widest text-sm shadow-xl shadow-emerald-500/20"
+              >
+                {isExecutingIndividualCheckout ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <>
+                    <Zap className="mr-2 h-4 w-4" />
+                    Pagar Agora
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+
+          {/* Checkout Button Grouped (ATIVAS) */}
+          {showGroupedPayButton && (
+            <div className="pt-6 mt-4 border-t-2 border-dashed border-gray-100">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-bold text-gray-500">Total da Comanda</span>
+                <span className="text-xl font-black text-gray-900">
+                  {formatPrice(activeOrdersTotal || 0)}
+                </span>
+              </div>
+              <Button 
+                onClick={onPayComanda}
                 disabled={isGeneratingCheckout}
                 className="w-full h-14 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase tracking-widest text-sm shadow-xl shadow-emerald-500/20"
               >
@@ -352,7 +394,7 @@ export const OrderCard = ({
                 ) : (
                   <>
                     <Zap className="mr-2 h-4 w-4" />
-                    {isPendingPayment ? "Pagar Agora" : "Pagar Online"}
+                    Fechar Comanda
                   </>
                 )}
               </Button>
@@ -362,7 +404,6 @@ export const OrderCard = ({
           {/* History Actions: NPS & Reorder */}
           {isHistory && (
             <div className="pt-6 space-y-4 border-t border-gray-50">
-              {/* Repetir Pedido */}
               <Button 
                 onClick={handleReorder}
                 variant="outline"
@@ -372,7 +413,6 @@ export const OrderCard = ({
                 Repetir Pedido
               </Button>
 
-              {/* NPS Rating */}
               {isPaid && !order.rating && (
                 <div className="flex flex-col items-center pt-2 gap-3">
                   <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
