@@ -11,7 +11,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/app/_components/ui/select";
-import { EditIcon, CheckIcon, XIcon, Loader2Icon, InfoIcon, TagIcon, LayersIcon, MapPinIcon } from "lucide-react";
+import { EditIcon, CheckIcon, XIcon, Loader2Icon, InfoIcon, TagIcon, LayersIcon, MapPinIcon, MonitorIcon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { upsertProduct } from "@/app/_actions/product/upsert-product";
 import { toast } from "sonner";
@@ -71,7 +71,7 @@ export default function InlineAdditionalInfo({
   };
 
   const categoryName = (categories || []).find(c => c.id === categoryId)?.name || "N/A";
-  const environmentName = (environments || []).find(e => e.id === environmentId)?.name || "Padrão";
+  const environmentName = (environments || []).find(e => e.id === environmentId)?.name || "Sem praça";
 
   return (
     <Card className={cn(
@@ -153,9 +153,9 @@ export default function InlineAdditionalInfo({
         <div className="flex justify-between items-center group/item h-11">
           <div className="flex items-center gap-3">
              <div className="p-2 rounded-lg bg-slate-50 text-slate-400 group-hover/item:text-primary transition-colors">
-               <MapPinIcon size={14} />
+               <MonitorIcon size={14} />
              </div>
-             <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.1em]">Ambiente</span>
+             <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.1em]">Praça</span>
           </div>
           {isEditing ? (
             <Select onValueChange={setEnvironmentId} value={environmentId}>
@@ -163,7 +163,7 @@ export default function InlineAdditionalInfo({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="border-none shadow-2xl">
-                <SelectItem value="none">Padrão</SelectItem>
+                <SelectItem value="none">Sem praça</SelectItem>
                 {environments.map(env => <SelectItem key={env.id} value={env.id}>{env.name}</SelectItem>)}
               </SelectContent>
             </Select>

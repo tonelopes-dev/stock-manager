@@ -347,7 +347,7 @@ export const KDSClient = ({
         <div className="flex md:hidden flex-1 justify-center px-2">
           <Select value={activeEnvId} onValueChange={handleStationChange}>
             <SelectTrigger className="h-9 w-full max-w-[200px] rounded-full border border-border bg-muted/50 px-3 text-[10px] font-black uppercase tracking-widest text-foreground shadow-inner focus:ring-0">
-              <SelectValue placeholder="Ambiente" />
+              <SelectValue placeholder="Praça" />
             </SelectTrigger>
             <SelectContent className="rounded-2xl border border-border bg-background shadow-lg">
               <SelectItem value="all" className="rounded-xl text-[10px] font-black uppercase tracking-widest">
