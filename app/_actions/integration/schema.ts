@@ -13,3 +13,11 @@ export const toggleIntegrationSchema = z.object({
   companyId: z.string().min(1),
   isEnabled: z.boolean(),
 });
+
+export const upsertMercadoPagoSchema = z.object({
+  provider: z.literal("MERCADOPAGO"), // Usa string literal para evitar quebra caso o Prisma client n tenha sido gerado
+  companyId: z.string().min(1),
+  accessToken: z.string().min(10, "O Access Token é obrigatório"),
+  publicKey: z.string().min(10, "A Public Key é obrigatória"),
+  isEnabled: z.boolean().default(false),
+});

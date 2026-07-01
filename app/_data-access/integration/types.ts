@@ -8,6 +8,8 @@ export interface CompanyIntegrationDto {
   // O webhookSecret NUNCA é enviado ao frontend.
   config: {
     merchantId?: string;
+    accessToken?: string;
+    publicKey?: string;
   };
   createdAt: Date;
   updatedAt: Date;
@@ -16,4 +18,6 @@ export interface CompanyIntegrationDto {
 // Tipo de entrada para os dados criptografados brutos do banco
 export type EncryptedCredentials = {
   merchantId?: string;
+  accessToken?: string;
+  publicKey?: string;
 };

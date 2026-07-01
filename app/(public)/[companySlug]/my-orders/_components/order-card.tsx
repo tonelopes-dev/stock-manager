@@ -21,6 +21,7 @@ import { cn } from "@/app/_lib/utils";
 import { Button } from "@/app/_components/ui/button";
 import { useAction } from "next-safe-action/hooks";
 import { generateInfinityPayCheckout } from "@/app/_actions/integration/generate-infinitypay-checkout";
+import { generateMercadoPagoCheckout } from "@/app/_actions/integration/generate-mercadopago-checkout";
 import { rateOrderAction } from "@/app/_actions/order/rate-order";
 import { toast } from "sonner";
 import { useCartStore } from "../../_store/use-cart-store";
@@ -127,7 +128,7 @@ export const OrderCard = ({
   order,
   companyId,
   companySlug,
-  infinityPayEnabled = false,
+  activePaymentProvider,
   isActiveTab = false,
   isLastActive = false,
   activeOrdersTotal = 0,
@@ -137,7 +138,7 @@ export const OrderCard = ({
   order: OrderStatusDto;
   companyId: string;
   companySlug: string;
-  infinityPayEnabled?: boolean;
+  activePaymentProvider?: "INFINITYPAY" | "MERCADOPAGO" | null;
   isActiveTab?: boolean;
   isLastActive?: boolean;
   activeOrdersTotal?: number;
@@ -173,11 +174,11 @@ export const OrderCard = ({
 
   // Mostra botão de pagamento individual se for A PAGAR
   const showIndividualPayButton =
-    infinityPayEnabled && isPendingPayment && !isActiveTab;
+    !!activePaymentProvider && isPendingPayment && !isActiveTab;
 
   // Mostra botão de FECHAR COMANDA agrupado se for o último card da aba ATIVAS
   const showGroupedPayButton =
-    infinityPayEnabled && isActiveTab && isLastActive;
+    !!activePaymentProvider && isActiveTab && isLastActive;
 
   const addItemToCart = useCartStore((state) => state.addItem);
   const setIsCartOpen = useCartStore((state) => state.setIsCartOpen);
@@ -187,7 +188,7 @@ export const OrderCard = ({
   const [feedback, setFeedback] = useState(order.feedback || "");
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
 
-  const { execute: payNow, isExecuting: isExecutingIndividualCheckout } =
+  const { execute: payNowInfinity, isExecuting: isExecutingInfinity } =
     useAction(generateInfinityPayCheckout, {
       onSuccess: ({ data }) => {
         if (data?.url) {
@@ -201,9 +202,29 @@ export const OrderCard = ({
       },
     });
 
+  const { execute: payNowMercadoPago, isExecuting: isExecutingMercadoPago } =
+    useAction(generateMercadoPagoCheckout, {
+      onSuccess: ({ data }) => {
+        if (data?.url) {
+          window.location.href = data.url;
+        }
+      },
+      onError: ({ error }) => {
+        toast.error(
+          error.serverError || "Não foi possível gerar o link de pagamento (Mercado Pago).",
+        );
+      },
+    });
+
+  const isExecutingIndividualCheckout = isExecutingInfinity || isExecutingMercadoPago;
+
   const handlePayNow = () => {
     if (isPendingPayment && order.saleId) {
-      payNow({ saleId: order.saleId, companyId });
+      if (activePaymentProvider === "MERCADOPAGO") {
+        payNowMercadoPago({ saleId: order.saleId, companyId });
+      } else if (activePaymentProvider === "INFINITYPAY") {
+        payNowInfinity({ saleId: order.saleId, companyId });
+      }
     } else {
       toast.error("Erro interno: não foi possível identificar o pedido.");
     }

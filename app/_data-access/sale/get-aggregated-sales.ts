@@ -27,8 +27,8 @@ export const getAggregatedSales = async (
   const companyId = await getCurrentCompanyId();
   if (!companyId) return { items: [], totalTips: 0, totalRevenue: 0 };
 
-  const start = from ? startOfDay(parseLocalDay(from)) : startOfDay(nowBRT());
-  const end = to ? endOfDay(parseLocalDay(to)) : endOfDay(nowBRT());
+  const start = from ? new Date(from + "T00:00:00.000Z") : new Date(todayBRT() + "T00:00:00.000Z");
+  const end = to ? new Date(to + "T23:59:59.999Z") : new Date(todayBRT() + "T23:59:59.999Z");
 
   // 1. Fetch Aggregated Sales by Product
   const itemsRaw = await db.$queryRaw<any[]>`

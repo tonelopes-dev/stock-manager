@@ -19,19 +19,18 @@ export default async function MyOrdersPage({ params }: MyOrdersPageProps) {
     return notFound();
   }
 
-  // Verifica se a integração InfinitePay está ativa para este estabelecimento
+  // Verifica se alguma integração de pagamento está ativa para este estabelecimento
   const integrations = await getCompanyIntegrations(menuData.id);
-  const infinityPayIntegration = integrations.find(
-    (i) => i.provider === IntegrationProvider.INFINITYPAY && i.isEnabled
-  );
-  const infinityPayEnabled = !!infinityPayIntegration;
+  const activePaymentProvider = integrations.find(
+    (i) => (i.provider === IntegrationProvider.INFINITYPAY || i.provider === "MERCADOPAGO") && i.isEnabled
+  )?.provider as "INFINITYPAY" | "MERCADOPAGO" | null;
 
   return (
     <div className="min-h-screen bg-muted">
       <MyOrdersClient
         companyId={menuData.id}
         companySlug={menuData.slug}
-        infinityPayEnabled={infinityPayEnabled}
+        activePaymentProvider={activePaymentProvider}
       />
     </div>
   );

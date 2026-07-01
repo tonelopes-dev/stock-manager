@@ -787,5 +787,6 @@ enum IntegrationProvider {
   INFINITYPAY
   IFOOD
   WHATSAPP_BUSINESS
+  MERCADOPAGO
 }
 

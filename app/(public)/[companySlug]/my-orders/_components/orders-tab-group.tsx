@@ -9,16 +9,17 @@ import { Button } from "@/app/_components/ui/button";
 import Link from "next/link";
 import { useAction } from "next-safe-action/hooks";
 import { generateInfinityPayCheckout } from "@/app/_actions/integration/generate-infinitypay-checkout";
+import { generateMercadoPagoCheckout } from "@/app/_actions/integration/generate-mercadopago-checkout";
 import { toast } from "sonner";
 
 interface OrdersTabGroupProps {
   orders: OrderStatusDto[];
   companyId: string;
   companySlug: string;
-  infinityPayEnabled: boolean;
+  activePaymentProvider?: "INFINITYPAY" | "MERCADOPAGO" | null;
 }
 
-export function OrdersTabGroup({ orders, companyId, companySlug, infinityPayEnabled }: OrdersTabGroupProps) {
+export function OrdersTabGroup({ orders, companyId, companySlug, activePaymentProvider }: OrdersTabGroupProps) {
   // 1. Group orders
   const groupedOrders = useMemo(() => {
     const active = orders.filter((o) => ["PENDING", "PREPARING", "READY", "DELIVERED"].includes(o.status));
@@ -32,7 +33,7 @@ export function OrdersTabGroup({ orders, companyId, companySlug, infinityPayEnab
     return groupedOrders.active.reduce((acc, order) => acc + Number(order.totalAmount), 0);
   }, [groupedOrders.active]);
 
-  const { execute: payNow, isExecuting: isGeneratingCheckout } = useAction(generateInfinityPayCheckout, {
+  const { execute: payNowInfinity, isExecuting: isGeneratingInfinity } = useAction(generateInfinityPayCheckout, {
     onSuccess: ({ data }) => {
       if (data?.url) {
         window.location.href = data.url; 
@@ -43,10 +44,27 @@ export function OrdersTabGroup({ orders, companyId, companySlug, infinityPayEnab
     }
   });
 
+  const { execute: payNowMercadoPago, isExecuting: isGeneratingMercadoPago } = useAction(generateMercadoPagoCheckout, {
+    onSuccess: ({ data }) => {
+      if (data?.url) {
+        window.location.href = data.url; 
+      }
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError || "Não foi possível gerar o link de pagamento (Mercado Pago).");
+    }
+  });
+
+  const isGeneratingCheckout = isGeneratingInfinity || isGeneratingMercadoPago;
+
   const handlePayComanda = () => {
     const activeOrderIds = groupedOrders.active.map(o => o.id);
     if (activeOrderIds.length > 0) {
-      payNow({ orderIds: activeOrderIds, companyId });
+      if (activePaymentProvider === "MERCADOPAGO") {
+        payNowMercadoPago({ orderIds: activeOrderIds, companyId });
+      } else if (activePaymentProvider === "INFINITYPAY") {
+        payNowInfinity({ orderIds: activeOrderIds, companyId });
+      }
     }
   };
 
@@ -124,7 +142,7 @@ export function OrdersTabGroup({ orders, companyId, companySlug, infinityPayEnab
                 order={order} 
                 companyId={companyId} 
                 companySlug={companySlug} 
-                infinityPayEnabled={infinityPayEnabled}
+                activePaymentProvider={activePaymentProvider}
                 isActiveTab={true}
                 isLastActive={index === groupedOrders.active.length - 1}
                 activeOrdersTotal={activeOrdersTotal}
@@ -143,7 +161,7 @@ export function OrdersTabGroup({ orders, companyId, companySlug, infinityPayEnab
           </p>
         ) : (
           groupedOrders.pendingPayment.map((order) => (
-            <OrderCard key={order.id} order={order} companyId={companyId} companySlug={companySlug} infinityPayEnabled={infinityPayEnabled} />
+            <OrderCard key={order.id} order={order} companyId={companyId} companySlug={companySlug} activePaymentProvider={activePaymentProvider} />
           ))
         )}
       </TabsContent>
