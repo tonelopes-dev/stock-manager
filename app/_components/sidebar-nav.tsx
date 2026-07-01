@@ -95,6 +95,14 @@ export const SidebarNav = ({ isOwner, isAdminOrOwner }: SidebarNavProps) => {
           </span>
         </SidebarButton>
       )}
+      {isAdminOrOwner && (
+        <SidebarButton href="/integracoes">
+          <BeakerIcon size={18} className="shrink-0" />
+          <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
+            Integrações
+          </span>
+        </SidebarButton>
+      )}
       {isOwner && (
         <SidebarButton href="/settings/company">
           <SettingsIcon size={18} className="shrink-0" />
