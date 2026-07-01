@@ -180,6 +180,14 @@ export const OrderService = {
           where: { id: item.orderId },
           data: { status: newOrderStatus, updatedAt: new Date() },
         });
+        
+        // Dispara o realtime para o cliente
+        const orderData = await trx.order.findUnique({ where: { id: item.orderId }, select: { customerId: true } });
+        if (orderData?.customerId) {
+          import("@/app/_lib/broadcast").then(mod => {
+            mod.broadcastEvent(`customer-${orderData.customerId}`, "order_status_update", { orderId: item.orderId, status: newOrderStatus });
+          }).catch(err => console.error("Failed to load broadcast module", err));
+        }
 
         return { updatedItem };
       });
@@ -223,6 +231,13 @@ export const OrderService = {
           data: { status, updatedAt: new Date() },
         });
 
+        // Dispara o realtime para o cliente
+        if (order.customerId) {
+          import("@/app/_lib/broadcast").then(mod => {
+            mod.broadcastEvent(`customer-${order.customerId}`, "order_status_update", { orderId: orderId, status });
+          }).catch(err => console.error("Failed to load broadcast module", err));
+        }
+
         return updatedOrder;
       });
 
@@ -234,7 +249,7 @@ export const OrderService = {
     }
   },
 
-  async convertToSale(orderIds: string[], companyId: string, userId: string, paymentMethod: PaymentMethod | null, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false, status?: SaleStatus, dueDate?: Date | null, customerId?: string | null) {
+  async convertToSale(orderIds: string[], companyId: string, userId: string | null, paymentMethod: PaymentMethod | null, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false, status?: SaleStatus, dueDate?: Date | null, customerId?: string | null) {
     try {
       // 1. Check for existing Sale (Idempotency) - Check if any of the orders already has a sale
       const existingSale = await db.sale.findFirst({
@@ -392,7 +407,7 @@ export const OrderService = {
     }
   },
 
-  async convertItemsToSale(itemIds: string[], companyId: string, userId: string, paymentMethod: PaymentMethod | null, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false, status?: SaleStatus, dueDate?: Date | null, customerId?: string | null) {
+  async convertItemsToSale(itemIds: string[], companyId: string, userId: string | null, paymentMethod: PaymentMethod | null, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false, status?: SaleStatus, dueDate?: Date | null, customerId?: string | null) {
     try {
       const { sale } = await db.$transaction(async (trx) => {
         const items = await trx.orderItem.findMany({
