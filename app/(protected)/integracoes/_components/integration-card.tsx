@@ -16,7 +16,8 @@ interface ProviderConfig {
   provider: IntegrationProvider;
   name: string;
   description: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  logoUrl?: string;
   color: string;
   textColor: string;
   badge: string;
@@ -65,8 +66,17 @@ export function IntegrationCard({ config, integration, companyId, onConfigure }:
     )}>
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
         <div className="flex items-center gap-3">
-          <div className={cn("p-2.5 rounded-lg text-white shadow-sm", config.color)}>
-            <Icon className="h-5 w-5" />
+          <div className={cn(
+            "rounded-lg text-white shadow-sm flex items-center justify-center overflow-hidden shrink-0", 
+            config.color, 
+            "h-10 w-10",
+            !config.logoUrl && "p-2.5"
+          )}>
+            {config.logoUrl ? (
+              <img src={config.logoUrl} alt={config.name} className="h-full w-full object-cover" />
+            ) : Icon ? (
+              <Icon className="h-5 w-5" />
+            ) : null}
           </div>
           <div>
             <CardTitle className="text-lg font-semibold">{config.name}</CardTitle>
