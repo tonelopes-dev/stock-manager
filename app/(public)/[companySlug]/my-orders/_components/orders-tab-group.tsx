@@ -3,6 +3,7 @@
 import { OrderStatusDto } from "@/app/_data-access/order/get-order-status";
 import { OrderCard } from "./order-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
+import { Card } from "@/app/_components/ui/card";
 import { useMemo } from "react";
 import { Utensils, Zap, Loader2 } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
@@ -136,20 +137,41 @@ export function OrdersTabGroup({ orders, companyId, companySlug, activePaymentPr
           </p>
         ) : (
           <div className="space-y-6">
-            {groupedOrders.active.map((order, index) => (
+            {groupedOrders.active.map((order) => (
               <OrderCard 
                 key={order.id} 
                 order={order} 
                 companyId={companyId} 
                 companySlug={companySlug} 
                 activePaymentProvider={activePaymentProvider}
-                isActiveTab={true}
-                isLastActive={index === groupedOrders.active.length - 1}
-                activeOrdersTotal={activeOrdersTotal}
-                onPayComanda={handlePayComanda}
-                isGeneratingCheckout={isGeneratingCheckout}
               />
             ))}
+
+            {activePaymentProvider && groupedOrders.active.length > 0 && (
+              <Card className="mt-8 overflow-hidden rounded-3xl border-0 bg-white shadow-xl shadow-slate-200/50">
+                <div className="p-6">
+                  <div className="mb-4 flex items-center justify-between">
+                    <span className="text-sm font-bold text-gray-500">
+                      Total da Comanda
+                    </span>
+                    <span className="text-xl font-black text-gray-900">
+                      {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(activeOrdersTotal || 0)}
+                    </span>
+                  </div>
+                  <Button
+                    onClick={handlePayComanda}
+                    disabled={isGeneratingCheckout}
+                    className="h-14 w-full rounded-2xl bg-emerald-500 text-sm font-black uppercase tracking-widest text-white shadow-xl shadow-emerald-500/20 hover:bg-emerald-600"
+                  >
+                    {isGeneratingCheckout ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <>Fechar Comanda</>
+                    )}
+                  </Button>
+                </div>
+              </Card>
+            )}
           </div>
         )}
       </TabsContent>
