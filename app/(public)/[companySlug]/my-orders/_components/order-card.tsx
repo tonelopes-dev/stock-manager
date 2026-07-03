@@ -295,7 +295,7 @@ export const OrderCard = ({
                 Pendente
               </Badge>
             )}
-            {isActiveTab && (
+            {isActive && (
               <Badge
                 variant="default"
                 className="flex items-center border-none bg-amber-100 text-amber-600 shadow-sm"
