@@ -129,21 +129,11 @@ export const OrderCard = ({
   companyId,
   companySlug,
   activePaymentProvider,
-  isActiveTab = false,
-  isLastActive = false,
-  activeOrdersTotal = 0,
-  onPayComanda,
-  isGeneratingCheckout = false,
 }: {
   order: OrderStatusDto;
   companyId: string;
   companySlug: string;
   activePaymentProvider?: "INFINITYPAY" | "MERCADOPAGO" | null;
-  isActiveTab?: boolean;
-  isLastActive?: boolean;
-  activeOrdersTotal?: number;
-  onPayComanda?: () => void;
-  isGeneratingCheckout?: boolean;
 }) => {
   const router = useRouter();
   const currentStatus = statusConfig[order.status];
@@ -174,11 +164,7 @@ export const OrderCard = ({
 
   // Mostra botão de pagamento individual se for A PAGAR
   const showIndividualPayButton =
-    !!activePaymentProvider && isPendingPayment && !isActiveTab;
-
-  // Mostra botão de FECHAR COMANDA agrupado se for o último card da aba ATIVAS
-  const showGroupedPayButton =
-    !!activePaymentProvider && isActiveTab && isLastActive;
+    !!activePaymentProvider && isPendingPayment;
 
   const addItemToCart = useCartStore((state) => state.addItem);
   const setIsCartOpen = useCartStore((state) => state.setIsCartOpen);
@@ -476,7 +462,7 @@ export const OrderCard = ({
 
           <div className="flex items-center justify-between pt-2">
             <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-              {!isActiveTab
+              {!isActive
                 ? isPendingPayment
                   ? "Total em Aberto"
                   : "Total"
@@ -504,30 +490,7 @@ export const OrderCard = ({
             </div>
           )}
 
-          {/* Checkout Button Grouped (ATIVAS) */}
-          {showGroupedPayButton && (
-            <div className="mt-4 border-t-2 border-dashed border-gray-100 pt-6">
-              <div className="mb-4 flex items-center justify-between">
-                <span className="text-sm font-bold text-gray-500">
-                  Total da Comanda
-                </span>
-                <span className="text-xl font-black text-gray-900">
-                  {formatPrice(activeOrdersTotal || 0)}
-                </span>
-              </div>
-              <Button
-                onClick={onPayComanda}
-                disabled={isGeneratingCheckout}
-                className="h-14 w-full rounded-2xl bg-emerald-500 text-sm font-black uppercase tracking-widest text-white shadow-xl shadow-emerald-500/20 hover:bg-emerald-600"
-              >
-                {isGeneratingCheckout ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <>Fechar Comanda</>
-                )}
-              </Button>
-            </div>
-          )}
+
 
           {/* History Actions: NPS & Reorder */}
           {isHistory && (
