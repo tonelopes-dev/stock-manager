@@ -121,7 +121,9 @@ export const generateMercadoPagoCheckout = actionClient
     }
 
     // 3. Gerar URL de checkout via API do Mercado Pago
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    let appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    // Remove any accidental quotes or trailing slashes
+    appUrl = appUrl.replace(/['"]/g, '').replace(/\/$/, '').trim();
 
     const company = await db.company.findUnique({
       where: { id: companyId },
@@ -129,6 +131,7 @@ export const generateMercadoPagoCheckout = actionClient
     });
     
     const returnUrl = `${appUrl}/${company?.slug}/my-orders`;
+    console.log("[MercadoPago] URLs configuradas:", { appUrl, returnUrl });
 
     const checkoutUrl = await createMercadoPagoPreference({
       accessToken: integration.credentials.accessToken,
