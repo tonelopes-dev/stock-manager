@@ -99,7 +99,7 @@ export function OrdersTabGroup({ orders, companyId, companySlug, activePaymentPr
 
   return (
     <Tabs defaultValue={defaultTab} className="w-full space-y-6">
-      <TabsList className="w-full h-14 bg-white/50 backdrop-blur-md rounded-full border border-gray-100 shadow-sm p-1 grid grid-cols-3">
+      <TabsList className={`w-full h-14 bg-white/50 backdrop-blur-md rounded-full border border-gray-100 shadow-sm p-1 grid ${groupedOrders.pendingPayment.length > 0 ? "grid-cols-3" : "grid-cols-2"}`}>
         <TabsTrigger 
           value="active" 
           className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md text-xs font-black uppercase tracking-widest transition-all"
@@ -111,17 +111,17 @@ export function OrdersTabGroup({ orders, companyId, companySlug, activePaymentPr
             </span>
           )}
         </TabsTrigger>
-        <TabsTrigger 
-          value="pending" 
-          className="rounded-full data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md text-xs font-black uppercase tracking-widest transition-all"
-        >
-          A Pagar
-          {groupedOrders.pendingPayment.length > 0 && (
+        {groupedOrders.pendingPayment.length > 0 && (
+          <TabsTrigger 
+            value="pending" 
+            className="rounded-full data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md text-xs font-black uppercase tracking-widest transition-all"
+          >
+            A Pagar
             <span className="ml-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white animate-pulse text-[9px]">
               {groupedOrders.pendingPayment.length}
             </span>
-          )}
-        </TabsTrigger>
+          </TabsTrigger>
+        )}
         <TabsTrigger 
           value="history" 
           className="rounded-full data-[state=active]:bg-gray-800 data-[state=active]:text-white data-[state=active]:shadow-md text-xs font-black uppercase tracking-widest transition-all"
