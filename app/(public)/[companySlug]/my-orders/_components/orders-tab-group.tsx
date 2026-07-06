@@ -19,9 +19,10 @@ interface OrdersTabGroupProps {
   companyId: string;
   companySlug: string;
   paymentGatewayConfig?: { provider: string; publicKey?: string } | null;
+  onRefreshRequest?: () => void;
 }
 
-export function OrdersTabGroup({ orders, companyId, companySlug, paymentGatewayConfig }: OrdersTabGroupProps) {
+export function OrdersTabGroup({ orders, companyId, companySlug, paymentGatewayConfig, onRefreshRequest }: OrdersTabGroupProps) {
   // 1. Group orders
   const groupedOrders = useMemo(() => {
     const active = orders.filter((o) => ["PENDING", "PREPARING", "READY", "DELIVERED"].includes(o.status));
@@ -225,6 +226,14 @@ export function OrdersTabGroup({ orders, companyId, companySlug, paymentGatewayC
           preferenceId={mercadoPagoPreferenceId}
           amount={activeOrdersTotal}
           companyId={companyId}
+          onPaymentSuccess={() => {
+            if (onRefreshRequest) onRefreshRequest();
+            // Dá 3 segundos para o usuário ver a tela de "Aprovado" antes de fechar e mostrar a tela limpa
+            setTimeout(() => {
+              setIsCheckoutModalOpen(false);
+              toast.success("Pagamento aprovado! Comanda fechada.");
+            }, 3000);
+          }}
         />
       )}
     </Tabs>

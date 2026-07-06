@@ -232,7 +232,18 @@ export const MyOrdersClient = ({ companyId, companySlug, paymentGatewayConfig }:
             </Button>
           </div>
         ) : (
-          <OrdersTabGroup orders={orders} companyId={companyId} companySlug={companySlug} paymentGatewayConfig={paymentGatewayConfig} />
+          <OrdersTabGroup 
+            orders={orders} 
+            companyId={companyId} 
+            companySlug={companySlug} 
+            paymentGatewayConfig={paymentGatewayConfig} 
+            onRefreshRequest={() => {
+              if (customerId) {
+                loadOrders(customerId);
+                router.refresh();
+              }
+            }}
+          />
         )}
       </main>
 

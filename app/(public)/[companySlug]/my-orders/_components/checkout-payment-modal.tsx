@@ -12,6 +12,7 @@ interface CheckoutPaymentModalProps {
   preferenceId: string;
   amount: number;
   companyId: string;
+  onPaymentSuccess?: (paymentId: string) => void;
 }
 
 export function CheckoutPaymentModal({
@@ -21,6 +22,7 @@ export function CheckoutPaymentModal({
   preferenceId,
   amount,
   companyId,
+  onPaymentSuccess,
 }: CheckoutPaymentModalProps) {
   const [completedPaymentId, setCompletedPaymentId] = useState<string | null>(null);
 
@@ -33,8 +35,9 @@ export function CheckoutPaymentModal({
 
   const handlePaymentSuccess = (paymentId: string) => {
     setCompletedPaymentId(paymentId);
-    // Não fechamos automaticamente, pois o usuário precisa ver o QR Code do Pix
-    // O usuário fechará manualmente quando terminar.
+    if (onPaymentSuccess) {
+      onPaymentSuccess(paymentId);
+    }
   };
 
   const handlePaymentError = (error: string) => {
