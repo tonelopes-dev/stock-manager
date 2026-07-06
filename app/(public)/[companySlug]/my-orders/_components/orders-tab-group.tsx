@@ -4,8 +4,9 @@ import { OrderStatusDto } from "@/app/_data-access/order/get-order-status";
 import { OrderCard } from "./order-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 import { Card } from "@/app/_components/ui/card";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Utensils, Zap, Loader2 } from "lucide-react";
+import { CheckoutPaymentModal } from "./checkout-payment-modal";
 import { Button } from "@/app/_components/ui/button";
 import Link from "next/link";
 import { useAction } from "next-safe-action/hooks";
@@ -17,10 +18,10 @@ interface OrdersTabGroupProps {
   orders: OrderStatusDto[];
   companyId: string;
   companySlug: string;
-  activePaymentProvider?: "INFINITYPAY" | "MERCADOPAGO" | null;
+  paymentGatewayConfig?: { provider: string; publicKey?: string } | null;
 }
 
-export function OrdersTabGroup({ orders, companyId, companySlug, activePaymentProvider }: OrdersTabGroupProps) {
+export function OrdersTabGroup({ orders, companyId, companySlug, paymentGatewayConfig }: OrdersTabGroupProps) {
   // 1. Group orders
   const groupedOrders = useMemo(() => {
     const active = orders.filter((o) => ["PENDING", "PREPARING", "READY", "DELIVERED"].includes(o.status));
@@ -33,6 +34,9 @@ export function OrdersTabGroup({ orders, companyId, companySlug, activePaymentPr
   const activeOrdersTotal = useMemo(() => {
     return groupedOrders.active.reduce((acc, order) => acc + Number(order.totalAmount), 0);
   }, [groupedOrders.active]);
+
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [mercadoPagoPreferenceId, setMercadoPagoPreferenceId] = useState<string | null>(null);
 
   const { execute: payNowInfinity, isExecuting: isGeneratingInfinity } = useAction(generateInfinityPayCheckout, {
     onSuccess: ({ data }) => {
@@ -47,7 +51,12 @@ export function OrdersTabGroup({ orders, companyId, companySlug, activePaymentPr
 
   const { execute: payNowMercadoPago, isExecuting: isGeneratingMercadoPago } = useAction(generateMercadoPagoCheckout, {
     onSuccess: ({ data }) => {
-      if (data?.url) {
+      if (data?.preferenceId && paymentGatewayConfig?.publicKey) {
+        // Abre o modal de Bricks Transparente
+        setMercadoPagoPreferenceId(data.preferenceId);
+        setIsCheckoutModalOpen(true);
+      } else if (data?.url) {
+        // Fallback pro Checkout Pro antigo se não tiver publicKey configurada no payload
         window.location.href = data.url; 
       }
     },
@@ -61,9 +70,9 @@ export function OrdersTabGroup({ orders, companyId, companySlug, activePaymentPr
   const handlePayComanda = () => {
     const activeOrderIds = groupedOrders.active.map(o => o.id);
     if (activeOrderIds.length > 0) {
-      if (activePaymentProvider === "MERCADOPAGO") {
+      if (paymentGatewayConfig?.provider === "MERCADOPAGO") {
         payNowMercadoPago({ orderIds: activeOrderIds, companyId });
-      } else if (activePaymentProvider === "INFINITYPAY") {
+      } else if (paymentGatewayConfig?.provider === "INFINITYPAY") {
         payNowInfinity({ orderIds: activeOrderIds, companyId });
       }
     }
@@ -143,11 +152,11 @@ export function OrdersTabGroup({ orders, companyId, companySlug, activePaymentPr
                 order={order} 
                 companyId={companyId} 
                 companySlug={companySlug} 
-                activePaymentProvider={activePaymentProvider}
+                activePaymentProvider={paymentGatewayConfig?.provider as any}
               />
             ))}
 
-            {activePaymentProvider && groupedOrders.active.length > 0 && (
+            {paymentGatewayConfig?.provider && groupedOrders.active.length > 0 && (
               <Card className="mt-8 overflow-hidden rounded-3xl border-0 bg-white shadow-xl shadow-slate-200/50">
                 <div className="p-6">
                   <div className="mb-4 flex items-center justify-between">
@@ -183,7 +192,7 @@ export function OrdersTabGroup({ orders, companyId, companySlug, activePaymentPr
           </p>
         ) : (
           groupedOrders.pendingPayment.map((order) => (
-            <OrderCard key={order.id} order={order} companyId={companyId} companySlug={companySlug} activePaymentProvider={activePaymentProvider} />
+            <OrderCard key={order.id} order={order} companyId={companyId} companySlug={companySlug} activePaymentProvider={paymentGatewayConfig?.provider as any} />
           ))
         )}
       </TabsContent>
@@ -199,6 +208,17 @@ export function OrdersTabGroup({ orders, companyId, companySlug, activePaymentPr
           ))
         )}
       </TabsContent>
+
+      {paymentGatewayConfig?.provider === "MERCADOPAGO" && paymentGatewayConfig.publicKey && mercadoPagoPreferenceId && (
+        <CheckoutPaymentModal
+          open={isCheckoutModalOpen}
+          onOpenChange={setIsCheckoutModalOpen}
+          publicKey={paymentGatewayConfig.publicKey}
+          preferenceId={mercadoPagoPreferenceId}
+          amount={activeOrdersTotal}
+          companyId={companyId}
+        />
+      )}
     </Tabs>
   );
 }

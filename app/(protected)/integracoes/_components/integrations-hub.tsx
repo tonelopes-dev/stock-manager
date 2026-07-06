@@ -17,13 +17,13 @@ interface IntegrationsHubProps {
 const SUPPORTED_PROVIDERS = [
   {
     provider: IntegrationProvider.INFINITYPAY,
-    name: "InfinityPay Checkout",
+    name: "InfinitePay (Em Breve)",
     description: "Receba pagamentos das suas comandas diretamente no celular do cliente via PIX e Cartão.",
     logoUrl: "/logos/logo_infinite-pay_zFLqIS.png",
     color: "bg-white",
     textColor: "text-emerald-500",
-    badge: "Disponível",
-    isComingSoon: false,
+    badge: "Em Breve",
+    isComingSoon: true,
   },
   {
     provider: "MERCADOPAGO" as IntegrationProvider,

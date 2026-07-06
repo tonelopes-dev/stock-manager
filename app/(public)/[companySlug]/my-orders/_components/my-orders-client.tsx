@@ -23,10 +23,10 @@ import { OrdersTabGroup } from "./orders-tab-group";
 interface MyOrdersClientProps {
   companyId: string;
   companySlug: string;
-  activePaymentProvider?: "INFINITYPAY" | "MERCADOPAGO" | null;
+  paymentGatewayConfig?: { provider: string; publicKey?: string } | null;
 }
 
-export const MyOrdersClient = ({ companyId, companySlug, activePaymentProvider }: MyOrdersClientProps) => {
+export const MyOrdersClient = ({ companyId, companySlug, paymentGatewayConfig }: MyOrdersClientProps) => {
   const router = useRouter();
   const { openPromotionsModal } = useUIStore();
   const [orders, setOrders] = useState<OrderStatusDto[]>([]);
@@ -232,7 +232,7 @@ export const MyOrdersClient = ({ companyId, companySlug, activePaymentProvider }
             </Button>
           </div>
         ) : (
-          <OrdersTabGroup orders={orders} companyId={companyId} companySlug={companySlug} activePaymentProvider={activePaymentProvider} />
+          <OrdersTabGroup orders={orders} companyId={companyId} companySlug={companySlug} paymentGatewayConfig={paymentGatewayConfig} />
         )}
       </main>
 

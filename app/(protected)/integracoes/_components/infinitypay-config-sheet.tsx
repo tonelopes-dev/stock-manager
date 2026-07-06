@@ -73,10 +73,10 @@ export function InfinityPayConfigSheet({ open, onOpenChange, companyId, integrat
             <div className="bg-emerald-500 p-1.5 rounded-md text-white">
               <Store className="h-5 w-5" />
             </div>
-            Configurar InfinityPay
+            Configurar InfinitePay
           </SheetTitle>
           <SheetDescription>
-            Insira suas credenciais da InfinityPay para aceitar pagamentos diretamente nas comandas do KIPO.
+            Insira suas credenciais da InfinitePay para aceitar pagamentos diretamente nas comandas do KIPO.
           </SheetDescription>
         </SheetHeader>
 

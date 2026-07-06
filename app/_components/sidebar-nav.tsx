@@ -16,6 +16,8 @@ import {
   Utensils,
   Boxes,
   Monitor,
+  HousePlugIcon,
+  PlugIcon,
 } from "lucide-react";
 import SidebarButton from "./sidebar-button";
 import LogoutButton from "./logout-button";
@@ -97,7 +99,7 @@ export const SidebarNav = ({ isOwner, isAdminOrOwner }: SidebarNavProps) => {
       )}
       {isAdminOrOwner && (
         <SidebarButton href="/integracoes">
-          <BeakerIcon size={18} className="shrink-0" />
+          <PlugIcon size={18} className="shrink-0" />
           <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
             Integrações
           </span>
