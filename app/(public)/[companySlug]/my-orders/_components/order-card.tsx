@@ -163,8 +163,7 @@ export const OrderCard = ({
   );
 
   // Mostra botão de pagamento individual se for A PAGAR
-  const showIndividualPayButton =
-    !!activePaymentProvider && isPendingPayment;
+  const showIndividualPayButton = !!activePaymentProvider && isPendingPayment;
 
   const addItemToCart = useCartStore((state) => state.addItem);
   const setIsCartOpen = useCartStore((state) => state.setIsCartOpen);
@@ -197,12 +196,14 @@ export const OrderCard = ({
       },
       onError: ({ error }) => {
         toast.error(
-          error.serverError || "Não foi possível gerar o link de pagamento (Mercado Pago).",
+          error.serverError ||
+            "Não foi possível gerar o link de pagamento (Mercado Pago).",
         );
       },
     });
 
-  const isExecutingIndividualCheckout = isExecutingInfinity || isExecutingMercadoPago;
+  const isExecutingIndividualCheckout =
+    isExecutingInfinity || isExecutingMercadoPago;
 
   const handlePayNow = () => {
     if (isPendingPayment && order.saleId) {
@@ -286,24 +287,6 @@ export const OrderCard = ({
             <h3 className="text-xl font-black uppercase tracking-tighter text-gray-900">
               PEDIDO #{order.orderNumber}
             </h3>
-            {isPendingPayment && (
-              <Badge
-                variant="default"
-                className="animate-pulse border-none bg-amber-500 text-white shadow-sm"
-              >
-                <Zap className="mr-1 h-3 w-3" />
-                Pendente
-              </Badge>
-            )}
-            {isActive && (
-              <Badge
-                variant="default"
-                className="flex items-center border-none bg-amber-100 text-amber-600 shadow-sm"
-              >
-                <Zap className="mr-1 h-3 w-3" />
-                Pendente
-              </Badge>
-            )}
             {order.rating && (
               <Badge
                 variant="outline"
@@ -489,8 +472,6 @@ export const OrderCard = ({
               </Button>
             </div>
           )}
-
-
 
           {/* History Actions: NPS & Reorder */}
           {isHistory && (
