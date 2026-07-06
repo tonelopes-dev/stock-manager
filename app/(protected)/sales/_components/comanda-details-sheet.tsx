@@ -93,6 +93,8 @@ export const ComandaDetailsSheet = ({
               customerOptions={customerOptions}
               selectedItemIds={state.selectedItemIds}
               onPay={state.handlePay}
+              generatedPix={state.generatedPix}
+              setGeneratedPix={state.setGeneratedPix}
             />
 
             {/* Right Column: Items */}
