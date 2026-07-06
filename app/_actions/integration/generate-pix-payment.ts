@@ -20,7 +20,7 @@ export const generatePixPayment = actionClient
   .schema(generatePixPaymentSchema)
   .action(async ({ parsedInput: { orderIds, saleId, companyId } }) => {
     // 1. Verificações de permissão
-    await assertCapability("sale:process", companyId);
+    await assertCapability("sale:process");
 
     // 2. Verificar integração ativa
     const integration = await getIntegrationRawData(companyId, "MERCADOPAGO" as IntegrationProvider);
