@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { ComponentProps } from "react";
 import { initMercadoPago, Payment } from "@mercadopago/sdk-react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -60,13 +61,13 @@ export function MercadoPagoBricksForm({
     },
   };
 
-  const onSubmit = async (formData: Record<string, unknown>, additionalData?: Record<string, unknown>) => {
+  const onSubmit: ComponentProps<typeof Payment>["onSubmit"] = async (formData, additionalData) => {
     return new Promise<void>(async (resolve, reject) => {
       try {
         const result = await executeAsync({
           companyId,
           preferenceId,
-          formData,
+          formData: formData as unknown as Record<string, unknown>,
         });
 
         if (result?.data?.success) {

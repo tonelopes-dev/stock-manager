@@ -114,8 +114,8 @@ export const useComandaState = ({
       return;
     }
 
-    if (isOpen && comanda && lastInitializedComandaId.current !== comanda.id) {
-      lastInitializedComandaId.current = comanda.id;
+    if (isOpen && comanda && lastInitializedComandaId.current !== comanda.customerId) {
+      lastInitializedComandaId.current = comanda.customerId;
       setSelectedItemIds(new Set());
       setSelectedProductId("");
       setSelectedQuantity(1);
