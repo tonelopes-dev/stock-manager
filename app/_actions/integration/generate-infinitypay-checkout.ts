@@ -41,7 +41,7 @@ export const generateInfinityPayCheckout = actionClient
       const sale = await db.sale.findUnique({
         where: { id: saleId, companyId },
         include: { 
-          order: { select: { id: true, orderNumber: true } },
+          orders: { select: { id: true, orderNumber: true }, take: 1 },
           customer: { select: { name: true, email: true, phone: true } }
         },
       });
@@ -50,7 +50,7 @@ export const generateInfinityPayCheckout = actionClient
       if (sale.status === "ACTIVE") throw new Error("Este pedido já foi pago.");
 
       paymentAmount = Number(sale.totalAmount);
-      descriptionText = `Pedido #${sale.order?.orderNumber ?? 0}`;
+      descriptionText = `Pedido #${sale.orders[0]?.orderNumber ?? 0}`;
       
       if (sale.customer) {
         customerData = {

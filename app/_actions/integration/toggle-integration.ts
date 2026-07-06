@@ -19,7 +19,29 @@ export const toggleIntegration = actionClient
       throw new Error("Unauthorized tenant access");
     }
 
-    // 2. Atualiza estado
+    // 2. Verifica se a integração que está sendo alterada é um gateway de pagamento
+    const targetIntegration = await db.companyIntegration.findUnique({
+      where: { id, companyId },
+      select: { provider: true }
+    });
+
+    if (!targetIntegration) {
+      throw new Error("Integração não encontrada");
+    }
+
+    // Se estiver ativando um gateway de pagamento, desativar os outros
+    if (isEnabled && (targetIntegration.provider === "MERCADOPAGO" || targetIntegration.provider === "INFINITYPAY")) {
+      await db.companyIntegration.updateMany({
+        where: {
+          companyId,
+          provider: { in: ["MERCADOPAGO", "INFINITYPAY"] },
+          id: { not: id } // Não altera o que estamos ativando agora
+        },
+        data: { isEnabled: false }
+      });
+    }
+
+    // 3. Atualiza estado da integração alvo
     await db.companyIntegration.update({
       where: { id, companyId },
       data: { isEnabled },

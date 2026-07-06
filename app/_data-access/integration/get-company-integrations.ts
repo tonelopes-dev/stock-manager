@@ -17,8 +17,9 @@ export async function getCompanyIntegrations(companyId: string): Promise<Company
       provider: integration.provider,
       isEnabled: integration.isEnabled,
       config: {
-        // Apenas enviamos dados públicos ao Client, como o merchantId (handle).
+        // Apenas enviamos dados públicos ao Client, como o merchantId (handle) e publicKey
         merchantId: credentials?.merchantId || undefined,
+        publicKey: credentials?.publicKey || undefined,
       },
       createdAt: integration.createdAt,
       updatedAt: integration.updatedAt,

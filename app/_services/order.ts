@@ -251,23 +251,26 @@ export const OrderService = {
 
   async convertToSale(orderIds: string[], companyId: string, userId: string | null, paymentMethod: PaymentMethod | null, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false, status?: SaleStatus, dueDate?: Date | null, customerId?: string | null) {
     try {
-      // 1. Check for existing Sale (Idempotency) - Check if any of the orders already has a sale
-      const existingSale = await db.sale.findFirst({
-        where: { orderId: { in: orderIds } },
+      // 1. Idempotency check: if any order is already linked to a Sale via the new 1:N relation, return it
+      const existingSaleViaNewRelation = await db.order.findFirst({
+        where: { id: { in: orderIds }, saleId: { not: null } },
+        select: { saleId: true },
       });
-      
-      if (existingSale) {
-        console.warn(`Sale already exists for some of the orders: ${orderIds}. Returning existing sale.`);
-        // Ensure orders are marked as PAID to fix stuck comandas
-        await db.order.updateMany({
-          where: { id: { in: orderIds }, status: { not: OrderStatus.PAID } },
-          data: { status: OrderStatus.PAID },
-        });
-        await db.orderItem.updateMany({
-          where: { orderId: { in: orderIds }, status: { not: OrderStatus.PAID } },
-          data: { status: OrderStatus.PAID },
-        });
-        return existingSale;
+
+      if (existingSaleViaNewRelation?.saleId) {
+        const existingSale = await db.sale.findUnique({ where: { id: existingSaleViaNewRelation.saleId } });
+        if (existingSale) {
+          console.warn(`[convertToSale] Sale already exists for orders ${orderIds}. Returning existing sale.`);
+          await db.order.updateMany({
+            where: { id: { in: orderIds }, status: { not: OrderStatus.PAID } },
+            data: { status: OrderStatus.PAID },
+          });
+          await db.orderItem.updateMany({
+            where: { orderId: { in: orderIds }, status: { not: OrderStatus.PAID } },
+            data: { status: OrderStatus.PAID },
+          });
+          return existingSale;
+        }
       }
 
       const sale = await db.$transaction(async (trx) => {
@@ -313,14 +316,12 @@ export const OrderService = {
 
         const totalWithTip = Math.max(0, subtotal + tipAmount - discountAmount + extraAmount);
 
-        // We associate the sale with the first order ID for the 'orderId' unique field
-        // This is a limitation of the current schema but satisfies requirements for grouping.
+        // Create the Sale, connecting all orders via the new 1:N relation
         const sale = await trx.sale.create({
           data: {
             companyId,
             userId,
             customerId: effectiveCustomerId,
-            orderId: orders[0].id, 
             paymentMethod: status === "PENDING_PAYMENT" ? null : paymentMethod,
             totalAmount: totalWithTip,
             discountAmount,
@@ -328,11 +329,15 @@ export const OrderService = {
             adjustmentReason,
             isEmployeeSale,
             tipAmount,
-            date: nowBRT(),  // Sale.date é data de negócio → mantém nowBRT() para refletir o dia BRT correto
+            date: nowBRT(),
             dueDate: dueDate || null,
             createdAt: new Date(),
             updatedAt: new Date(),
             status: status || "ACTIVE",
+            // Connect all orders to this sale via the 1:N relation
+            orders: {
+              connect: orderIds.map((id) => ({ id })),
+            },
           },
         });
 
@@ -386,9 +391,15 @@ export const OrderService = {
         (error instanceof Error && error.message === 'ORDER_ALREADY_PAID_CONCURRENCY')
       ) {
         console.warn(`[convertToSale] Race condition avoided for orders ${orderIds}`);
-        const existingSale = await db.sale.findFirst({ where: { orderId: { in: orderIds } } });
+        // Fallback: find sale via new 1:N relation
+        const raceOrder = await db.order.findFirst({
+          where: { id: { in: orderIds }, saleId: { not: null } },
+          select: { saleId: true },
+        });
+        const existingSale = raceOrder?.saleId
+          ? await db.sale.findUnique({ where: { id: raceOrder.saleId } })
+          : null;
         if (existingSale) {
-          // Ensure orders are marked as PAID to fix stuck comandas
           await db.order.updateMany({
             where: { id: { in: orderIds }, status: { not: OrderStatus.PAID } },
             data: { status: OrderStatus.PAID },

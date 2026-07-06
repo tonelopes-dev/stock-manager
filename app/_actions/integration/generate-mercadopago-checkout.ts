@@ -40,7 +40,7 @@ export const generateMercadoPagoCheckout = actionClient
       const sale = await db.sale.findUnique({
         where: { id: saleId, companyId },
         include: { 
-          order: { select: { id: true, orderNumber: true } },
+          orders: { select: { id: true, orderNumber: true } },
           customer: { select: { name: true, email: true, phone: true } }
         },
       });
@@ -49,7 +49,8 @@ export const generateMercadoPagoCheckout = actionClient
       if (sale.status === "ACTIVE") throw new Error("Este pedido já foi pago.");
 
       paymentAmount = Number(sale.totalAmount);
-      descriptionText = `Pedido #${sale.order?.orderNumber ?? 0}`;
+      const firstOrder = sale.orders[0];
+      descriptionText = `Pedido #${firstOrder?.orderNumber ?? 0}`;
       
       if (sale.customer) {
         const name = sale.customer.name;
@@ -133,7 +134,7 @@ export const generateMercadoPagoCheckout = actionClient
     const returnUrl = `${appUrl}/${company?.slug}/my-orders`;
     console.log("[MercadoPago] URLs configuradas:", { appUrl, returnUrl });
 
-    const checkoutUrl = await createMercadoPagoPreference({
+    const preferenceResult = await createMercadoPagoPreference({
       accessToken: integration.credentials.accessToken,
       items: [
         {
@@ -154,6 +155,9 @@ export const generateMercadoPagoCheckout = actionClient
       payer: customerData,
     });
 
-    return { url: checkoutUrl };
+    return { 
+      url: preferenceResult.url, 
+      preferenceId: preferenceResult.id 
+    };
   });
 

@@ -23,7 +23,7 @@ interface MercadoPagoCheckoutParams {
   };
 }
 
-export async function createMercadoPagoPreference(params: MercadoPagoCheckoutParams): Promise<string> {
+export async function createMercadoPagoPreference(params: MercadoPagoCheckoutParams): Promise<{ url: string; id: string }> {
   const client = new MercadoPagoConfig({
     accessToken: params.accessToken,
     options: { timeout: 10000 },
@@ -50,9 +50,9 @@ export async function createMercadoPagoPreference(params: MercadoPagoCheckoutPar
     if (!result.init_point) {
       throw new Error("Mercado Pago não retornou uma URL de checkout.");
     }
-    return result.init_point;
+    return { url: result.init_point!, id: result.id! };
   } catch (error) {
-    console.error("[MercadoPago] Erro ao criar preferência:", error);
+    console.error("[MercadoPago Error] Erro ao criar preferência:", error);
     throw new Error("Falha ao gerar link de pagamento no Mercado Pago");
   }
 }
