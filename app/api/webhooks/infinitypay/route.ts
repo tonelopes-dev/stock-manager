@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     let sale = await db.sale.findUnique({
       where: { id: incomingId },
       include: {
-        order: { select: { id: true, customerId: true, companyId: true, orderNumber: true } },
+        orders: { select: { id: true, customerId: true, companyId: true, orderNumber: true } },
         customer: { select: { id: true, name: true, email: true } },
       }
     });
@@ -65,22 +65,24 @@ export async function POST(req: Request) {
         },
       });
 
-      // Atualiza Order principal
-      if (sale.order?.id) {
+      // Atualiza Orders principais
+      if (sale.orders && sale.orders.length > 0) {
+        const orderId = sale.orders[0].id;
+        const customerId = sale.orders[0].customerId;
         await db.order.update({
-          where: { id: sale.order.id },
+          where: { id: orderId },
           data: { status: "PAID" },
         });
 
-        if (sale.order.customerId) {
+        if (customerId) {
           await broadcastEvent(
-            `customer-${sale.order.customerId}`,
+            `customer-${customerId}`,
             "order_status_update",
-            { orderId: sale.order.id, status: "PAID" }
+            { orderId: orderId, status: "PAID" }
           );
         }
         
-        await broadcastKdsEvent(companyId, "update_order", { orderId: sale.order.id, status: "PAID" });
+        await broadcastKdsEvent(companyId, "update_order", { orderId: orderId, status: "PAID" });
       }
 
       // Atualiza pedidos secundários (Gambiarra Segura para Sale)
@@ -115,7 +117,7 @@ export async function POST(req: Request) {
             severity: "INFO",
             metadata: {
               saleId: incomingId,
-              orderId: sale.order?.id,
+              orderId: sale.orders && sale.orders.length > 0 ? sale.orders[0].id : undefined,
               transactionId: transaction_nsu,
               status: status || "approved",
               amount: paid_amount || Number(sale.totalAmount),
