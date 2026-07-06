@@ -131,7 +131,7 @@ describe("Mercado Pago Integration", () => {
     const order = await testDb.order.create({
       data: {
         companyId: company.id,
-        status: OrderStatus.PENDING_PAYMENT,
+        status: OrderStatus.PENDING,
         orderNumber: 101,
         hasServiceTax: true,
         totalAmount: 11.00, // 10.00 base + 1.00 tip
@@ -189,7 +189,7 @@ describe("Mercado Pago Integration", () => {
     const order = await testDb.order.create({
       data: {
         companyId: company.id,
-        status: OrderStatus.PENDING_PAYMENT,
+        status: OrderStatus.PENDING,
         orderNumber: 102,
         hasServiceTax: true,
         totalAmount: 22.00, // 20.00 base + 2.00 tip
@@ -225,7 +225,7 @@ describe("Mercado Pago Integration", () => {
     });
 
     // Call POST handler
-    const response = await POST(mockRequest);
+    const response = await POST(mockRequest as any);
     expect(response.status).toBe(200);
 
     // Verify order status
