@@ -56,9 +56,13 @@ export const processTransparentPayment = actionClient
       const gateway = new MercadoPagoGateway(integration.credentials.accessToken);
 
       // 3. Processa o pagamento via API do Mercado Pago
-      // Injetamos o valor exato do banco de dados e a referência externa no payload
+      // O SDK do Bricks envia: { paymentType, selectedPaymentMethod, formData: { ...dadosReais } }
+      // A API do MP só aceita os campos internos de formData.formData, não os wrappers do Bricks.
+      const bricksPayload = formData as Record<string, unknown>;
+      const innerFormData = (bricksPayload.formData ?? bricksPayload) as Record<string, unknown>;
+
       const finalPayload = {
-        ...formData,
+        ...innerFormData,
         transaction_amount: Number(paymentIntent.amount),
         external_reference: paymentIntent.id,
       };
