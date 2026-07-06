@@ -67,7 +67,7 @@ export function MercadoPagoBricksForm({
         const result = await executeAsync({
           companyId,
           preferenceId,
-          formData: formData as unknown as Record<string, unknown>,
+          bricksPayload: formData as unknown as Record<string, unknown>,
         });
 
         if (result?.data?.success) {
