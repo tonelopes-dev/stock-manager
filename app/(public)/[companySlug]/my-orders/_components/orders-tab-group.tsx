@@ -4,7 +4,7 @@ import { OrderStatusDto } from "@/app/_data-access/order/get-order-status";
 import { OrderCard } from "./order-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 import { Card } from "@/app/_components/ui/card";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Utensils, Zap, Loader2 } from "lucide-react";
 import { CheckoutPaymentModal } from "./checkout-payment-modal";
 import { Button } from "@/app/_components/ui/button";
@@ -37,6 +37,14 @@ export function OrdersTabGroup({ orders, companyId, companySlug, paymentGatewayC
 
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [mercadoPagoPreferenceId, setMercadoPagoPreferenceId] = useState<string | null>(null);
+
+  // Se a comanda for paga e sair da lista de 'ativas' via WebSockets (ou refresh), fechamos o modal.
+  useEffect(() => {
+    if (isCheckoutModalOpen && groupedOrders.active.length === 0) {
+      setIsCheckoutModalOpen(false);
+      toast.success("Pagamento aprovado! Comanda fechada.");
+    }
+  }, [groupedOrders.active.length, isCheckoutModalOpen]);
 
   const { execute: payNowInfinity, isExecuting: isGeneratingInfinity } = useAction(generateInfinityPayCheckout, {
     onSuccess: ({ data }) => {
