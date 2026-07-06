@@ -60,7 +60,7 @@ export function MercadoPagoBricksForm({
     },
   };
 
-  const onSubmit = async (formData: any, additionalData?: any) => {
+  const onSubmit = async (formData: Record<string, unknown>, additionalData?: Record<string, unknown>) => {
     return new Promise<void>(async (resolve, reject) => {
       try {
         const result = await executeAsync({
@@ -83,15 +83,19 @@ export function MercadoPagoBricksForm({
           onPaymentError(errorMessage);
           reject();
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         toast.error("Erro ao processar o pagamento.");
-        onPaymentError(error.message);
+        if (error instanceof Error) {
+          onPaymentError(error.message);
+        } else {
+          onPaymentError("Erro desconhecido");
+        }
         reject();
       }
     });
   };
 
-  const onError = async (error: any) => {
+  const onError = async (error: unknown) => {
     console.error("MercadoPago Brick Error:", error);
     onPaymentError("Erro no formulário de pagamento.");
   };
