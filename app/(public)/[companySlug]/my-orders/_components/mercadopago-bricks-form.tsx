@@ -38,7 +38,9 @@ export function MercadoPagoBricksForm({
 
   const initialization = {
     amount,
-    preferenceId,
+    // REMOVIDO: preferenceId. Passar preferenceId aqui faz o Bricks gerar um token amarrado à Preference.
+    // Como no backend usamos `payment.create` (Transparent Checkout) puro, o MP rejeitava o token
+    // com erro 2131 (Cannot infer Payment Method). Omitindo, geramos um token limpo.
   };
 
   const customization = {
