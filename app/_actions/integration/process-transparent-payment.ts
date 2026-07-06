@@ -9,6 +9,7 @@ import { db } from "@/app/_lib/prisma";
 
 const processTransparentPaymentSchema = z.object({
   companyId: z.string(),
+  preferenceId: z.string(),
   formData: z.any(), // Payload from Mercado Pago Bricks
 });
 
@@ -35,7 +36,7 @@ function translateMercadoPagoError(statusDetail: string): string {
 
 export const processTransparentPayment = actionClient
   .schema(processTransparentPaymentSchema)
-  .action(async ({ parsedInput: { companyId, formData } }) => {
+  .action(async ({ parsedInput: { companyId, preferenceId, formData } }) => {
     try {
       // 1. Pega o Access Token do lojista
       const integration = await getIntegrationRawData(companyId, IntegrationProvider.MERCADOPAGO);
@@ -43,11 +44,26 @@ export const processTransparentPayment = actionClient
         throw new Error("Integração do Mercado Pago não configurada para este estabelecimento.");
       }
 
+      // 2. Busca a intenção de pagamento no banco para garantir segurança do valor
+      const paymentIntent = await db.paymentIntent.findFirst({
+        where: { externalId: preferenceId, companyId },
+      });
+
+      if (!paymentIntent) {
+        throw new Error("Intenção de pagamento não encontrada ou inválida.");
+      }
+
       const gateway = new MercadoPagoGateway(integration.credentials.accessToken);
 
-      // 2. Processa o pagamento via API do Mercado Pago
-      // A formData do Brick já vem no formato aceito pelo endpoint /v1/payments
-      const paymentResponse = await gateway.createPayment(formData);
+      // 3. Processa o pagamento via API do Mercado Pago
+      // Injetamos o valor exato do banco de dados e a referência externa no payload
+      const finalPayload = {
+        ...formData,
+        transaction_amount: Number(paymentIntent.amount),
+        external_reference: paymentIntent.externalId,
+      };
+
+      const paymentResponse = await gateway.createPayment(finalPayload);
 
       if (!paymentResponse || !paymentResponse.id) {
         throw new Error("Erro desconhecido ao processar pagamento.");
