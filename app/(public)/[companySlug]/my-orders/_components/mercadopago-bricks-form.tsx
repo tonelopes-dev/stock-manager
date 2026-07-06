@@ -60,7 +60,7 @@ export function MercadoPagoBricksForm({
     },
   };
 
-  const onSubmit = async ({ selectedPaymentMethod, formData }: any) => {
+  const onSubmit = async (formData: any, additionalData?: any) => {
     return new Promise<void>(async (resolve, reject) => {
       try {
         const result = await executeAsync({
