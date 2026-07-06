@@ -39,14 +39,6 @@ export function OrdersTabGroup({ orders, companyId, companySlug, paymentGatewayC
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [mercadoPagoPreferenceId, setMercadoPagoPreferenceId] = useState<string | null>(null);
 
-  // Se a comanda for paga e sair da lista de 'ativas' via WebSockets (ou refresh), fechamos o modal.
-  useEffect(() => {
-    if (isCheckoutModalOpen && groupedOrders.active.length === 0) {
-      setIsCheckoutModalOpen(false);
-      toast.success("Pagamento aprovado! Comanda fechada.");
-    }
-  }, [groupedOrders.active.length, isCheckoutModalOpen]);
-
   const { execute: payNowInfinity, isExecuting: isGeneratingInfinity } = useAction(generateInfinityPayCheckout, {
     onSuccess: ({ data }) => {
       if (data?.url) {

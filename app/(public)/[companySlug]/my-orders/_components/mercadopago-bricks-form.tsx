@@ -72,7 +72,6 @@ export function MercadoPagoBricksForm({
         });
 
         if (result?.data?.success) {
-          toast.success("Pagamento aprovado!");
           onPaymentSuccess(result.data.paymentId);
           resolve();
         } else if (result?.data?.status === "pending" || result?.data?.status === "in_process") {

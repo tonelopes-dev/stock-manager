@@ -5,6 +5,7 @@ import { AuditEventType, OrderStatus, Prisma, SaleStatus, PaymentMethod } from "
 import { isPromotionActive } from "@/app/_utils/promotion";
 import { AuditService } from "./audit";
 import { nowBRT } from "@/app/_utils/date";
+import { broadcastEvent } from "@/app/_lib/broadcast";
 
 interface CreateOrderParams {
   companyId: string;
@@ -184,9 +185,8 @@ export const OrderService = {
         // Dispara o realtime para o cliente
         const orderData = await trx.order.findUnique({ where: { id: item.orderId }, select: { customerId: true } });
         if (orderData?.customerId) {
-          import("@/app/_lib/broadcast").then(mod => {
-            mod.broadcastEvent(`customer-${orderData.customerId}`, "order_status_update", { orderId: item.orderId, status: newOrderStatus });
-          }).catch(err => console.error("Failed to load broadcast module", err));
+          broadcastEvent(`customer-${orderData.customerId}`, "order_status_update", { orderId: item.orderId, status: newOrderStatus })
+            .catch(err => console.error("Failed to broadcast order status", err));
         }
 
         return { updatedItem };
@@ -233,9 +233,8 @@ export const OrderService = {
 
         // Dispara o realtime para o cliente
         if (order.customerId) {
-          import("@/app/_lib/broadcast").then(mod => {
-            mod.broadcastEvent(`customer-${order.customerId}`, "order_status_update", { orderId: orderId, status });
-          }).catch(err => console.error("Failed to load broadcast module", err));
+          broadcastEvent(`customer-${order.customerId}`, "order_status_update", { orderId: orderId, status })
+            .catch(err => console.error("Failed to broadcast order status", err));
         }
 
         return updatedOrder;
