@@ -140,7 +140,7 @@ export const MyOrdersClient = ({ companyId, companySlug, paymentGatewayConfig }:
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [companyId, customerId, router]);
+  }, [companyId, customerId]); // Removido router para evitar resubscriptions desnecessárias
 
 
   if (loading) {
