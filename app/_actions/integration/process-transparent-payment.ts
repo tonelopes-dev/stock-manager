@@ -102,11 +102,24 @@ export const processTransparentPayment = actionClient
       // 3. Extrai o payload correto para a API do MP
       const innerFormData = extractMPApiPayload(bricksPayload);
 
+      // Validação de segurança: o valor do Bricks deve bater com o do PaymentIntent (tolerância de R$ 0,01)
+      // IMPORTANTE: NÃO sobrescrevemos transaction_amount — o token do cartão é gerado pelo Bricks
+      // vinculado ao amount exato da inicialização. Qualquer diferença invalida o token (erro 2131).
+      const bricksAmount = Number(innerFormData.transaction_amount);
+      const intentAmount = Number(paymentIntent.amount);
+      const amountDiff = Math.abs(bricksAmount - intentAmount);
+
+      console.log(`${LOG} Amount validation: bricks=${bricksAmount} intent=${intentAmount} diff=${amountDiff.toFixed(4)}`);
+
+      if (amountDiff > 0.02) {
+        console.error(`${LOG} ❌ Amount mismatch too large — possible tampering. Aborting.`);
+        throw new Error("Valor de pagamento inconsistente. Por favor, recarregue a página e tente novamente.");
+      }
+
       const finalPayload = {
         ...innerFormData,
-        transaction_amount: Number(paymentIntent.amount),
+        // Usamos o transaction_amount do Bricks (vinculado ao token do cartão)
         external_reference: paymentIntent.id,
-        // 'description' é obrigatório — sem ele a API retorna 'Cannot infer Payment Method'
         description: "Pagamento de comanda",
       } as Record<string, unknown>;
 
