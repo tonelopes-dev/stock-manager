@@ -6,6 +6,9 @@ import { MercadoPagoGateway } from "@/app/_services/payments/mercadopago-gateway
 import { getIntegrationRawData } from "@/app/_data-access/integration/get-integration-raw";
 import { IntegrationProvider } from "@prisma/client";
 import { db } from "@/app/_lib/prisma";
+import { OrderService } from "@/app/_services/order";
+import { broadcastEvent } from "@/app/_lib/broadcast";
+import { broadcastKdsEvent } from "@/app/_lib/kds-broadcast";
 
 const LOG = "[MP:Bricks]";
 
@@ -142,15 +145,47 @@ export const processTransparentPayment = actionClient
         throw new Error("Erro desconhecido ao processar pagamento.");
       }
 
-      // 4. Se aprovado na hora (cartão), adianta o status do PaymentIntent
-      // O webhook chegará em seguida e converterá os Orders em Sale via idempotência
+      // 4. Se aprovado na hora (cartão), converte a comanda instantaneamente!
+      // Não dependemos 100% do webhook para evitar que a UI fique presa se o webhook atrasar.
+      // O webhook é idempotente e ignorará caso chegue depois.
       if (paymentResponse.status === "approved" && paymentIntent.status !== "PAID") {
-        console.log(`${LOG} Payment approved — marking PaymentIntent ${paymentIntent.id} as PAID`);
+        console.log(`${LOG} Payment approved — marking PaymentIntent ${paymentIntent.id} as PAID and converting orders`);
+        
         await db.paymentIntent.update({
           where: { id: paymentIntent.id },
           data: { status: "PAID" },
         });
-        console.log(`${LOG} ✅ PaymentIntent marked as PAID. Webhook will convert orders to Sale.`);
+
+        const orderIdsToProcess: string[] = paymentIntent.orderIds && paymentIntent.orderIds.length > 0 
+          ? paymentIntent.orderIds 
+          : [paymentIntent.id];
+
+        const orders = await db.order.findMany({
+          where: { id: { in: orderIdsToProcess }, companyId },
+          include: { orderItems: { select: { unitPrice: true, quantity: true } } },
+        });
+
+        if (orders.length > 0 && orders[0].status !== "PAID") {
+          const tipAmount = orders.reduce((sum, order) => {
+            if (!order.hasServiceTax) return sum;
+            const subtotal = order.orderItems.reduce((s, item) => s + Number(item.unitPrice) * Number(item.quantity), 0);
+            return sum + Math.round(subtotal * 0.1 * 100) / 100;
+          }, 0);
+
+          await OrderService.convertToSale(
+            orderIdsToProcess, companyId, null, "CREDIT_CARD",
+            tipAmount, 0, 0, undefined, false, "ACTIVE", null,
+            orders[0].customerId
+          );
+
+          for (const order of orders) {
+            if (order.customerId) {
+              await broadcastEvent(`customer-${order.customerId}`, "order_status_update", { orderId: order.id, status: "PAID" });
+            }
+            await broadcastKdsEvent(companyId, "update_order", { id: order.id, status: "PAID" });
+          }
+          console.log(`${LOG} ✅ Orders converted to Sale synchronously.`);
+        }
       } else if (paymentResponse.status === "pending" || paymentResponse.status === "in_process") {
         console.log(`${LOG} Payment pending/in_process — waiting for webhook to confirm.`);
       }
