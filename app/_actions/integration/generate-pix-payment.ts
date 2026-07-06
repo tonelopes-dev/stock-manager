@@ -64,16 +64,8 @@ export const generatePixPayment = actionClient
 
       paymentAmount = orders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
 
-      // Usar a mesma lógica de agrupamento (PaymentIntent substituto)
+      // Apenas pegamos o mainOrderId. O agrupamento será feito via PaymentIntent.
       const mainOrderId = orders[0].id;
-      
-      if (orderIds.length > 1) {
-        const secondaryOrderIds = orderIds.filter(id => id !== mainOrderId);
-        await db.order.updateMany({
-          where: { id: { in: secondaryOrderIds } },
-          data: { adjustmentReason: `mercadopago_group_order:${mainOrderId}` }
-        });
-      }
 
       resolvedId = mainOrderId;
       descriptionText = orderIds.length > 1 
@@ -87,9 +79,27 @@ export const generatePixPayment = actionClient
        throw new Error("O valor para gerar Pix deve ser maior que zero.");
     }
 
-    // 4. Gerar PIX
+    // 4. Criar PaymentIntent
+    const paymentIntent = await db.paymentIntent.create({
+      data: {
+        companyId,
+        orderIds: saleId ? [] : orderIds,
+        amount: paymentAmount,
+        provider: "MERCADOPAGO",
+      }
+    });
+
+    // 5. Gerar PIX
     const gateway = new MercadoPagoGateway(integration.credentials.accessToken);
-    const pixResult = await gateway.generateDynamicPix(paymentAmount, descriptionText, resolvedId!);
+    const pixResult = await gateway.generateDynamicPix(paymentAmount, descriptionText, paymentIntent.id);
+
+    // 6. Opcional: Atualizar externalId se o Gateway retornar o ID do pagamento PIX
+    if (pixResult.externalId) {
+      await db.paymentIntent.update({
+        where: { id: paymentIntent.id },
+        data: { externalId: pixResult.externalId.toString() }
+      });
+    }
 
     return pixResult; // { qrCodeBase64, copyPasteCode, externalId }
   });

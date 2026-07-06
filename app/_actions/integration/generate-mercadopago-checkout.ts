@@ -86,16 +86,9 @@ export const generateMercadoPagoCheckout = actionClient
       // Calcula o total
       paymentAmount = orders.reduce((sum, o) => sum + Number(o.totalAmount), 0);
 
-      // Usamos o primeiro Order como ID de referência (external_reference) para o webhook.
+      // Apenas pegamos o mainOrderId, não atualizamos mais as orders com adjustmentReason
+      // pois o PaymentIntent fará o agrupamento.
       const mainOrderId = orders[0].id;
-      
-      if (orderIds.length > 1) {
-        const secondaryOrderIds = orderIds.filter(id => id !== mainOrderId);
-        await db.order.updateMany({
-          where: { id: { in: secondaryOrderIds } },
-          data: { adjustmentReason: `mercadopago_group_order:${mainOrderId}` }
-        });
-      }
 
       resolvedId = mainOrderId;
       descriptionText = orderIds.length > 1 
@@ -134,6 +127,16 @@ export const generateMercadoPagoCheckout = actionClient
     const returnUrl = `${appUrl}/${company?.slug}/my-orders`;
     console.log("[MercadoPago] URLs configuradas:", { appUrl, returnUrl });
 
+    // 3.5. Criar o PaymentIntent antes de chamar o MP para ter o ID
+    const paymentIntent = await db.paymentIntent.create({
+      data: {
+        companyId,
+        orderIds: saleId ? [] : orderIds,
+        amount: paymentAmount,
+        provider: "MERCADOPAGO",
+      }
+    });
+
     const preferenceResult = await createMercadoPagoPreference({
       accessToken: integration.credentials.accessToken,
       items: [
@@ -145,7 +148,7 @@ export const generateMercadoPagoCheckout = actionClient
           unit_price: paymentAmount,
         }
       ],
-      external_reference: resolvedId!, 
+      external_reference: paymentIntent.id, 
       notification_url: `${appUrl}/api/webhooks/mercadopago?companyId=${companyId}`,
       back_urls: {
          success: returnUrl,
@@ -153,6 +156,12 @@ export const generateMercadoPagoCheckout = actionClient
          failure: returnUrl,
       },
       payer: customerData,
+    });
+
+    // 4. Atualizar o PaymentIntent com o ID da preference para que a tela de pagamento consiga encontrá-lo
+    await db.paymentIntent.update({
+      where: { id: paymentIntent.id },
+      data: { externalId: preferenceResult.id }
     });
 
     return { 

@@ -118,7 +118,7 @@ export async function handleTenantPaymentWebhook(
 
     // 4b. Resolve via PaymentIntent (new grouped checkout flow)
     const paymentIntent = await db.paymentIntent.findFirst({
-      where: { externalId: externalReference, companyId },
+      where: { id: externalReference, companyId },
     });
 
     const orderIdsToProcess: string[] = paymentIntent?.orderIds ?? [externalReference];

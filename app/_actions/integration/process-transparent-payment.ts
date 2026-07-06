@@ -44,7 +44,7 @@ export const processTransparentPayment = actionClient
         throw new Error("Integração do Mercado Pago não configurada para este estabelecimento.");
       }
 
-      // 2. Busca a intenção de pagamento no banco para garantir segurança do valor
+      // 2. Busca a intenção de pagamento pelo externalId (= preferenceId gerado pelo MP)
       const paymentIntent = await db.paymentIntent.findFirst({
         where: { externalId: preferenceId, companyId },
       });
@@ -60,7 +60,7 @@ export const processTransparentPayment = actionClient
       const finalPayload = {
         ...formData,
         transaction_amount: Number(paymentIntent.amount),
-        external_reference: paymentIntent.externalId,
+        external_reference: paymentIntent.id,
       };
 
       const paymentResponse = await gateway.createPayment(finalPayload);
@@ -72,22 +72,16 @@ export const processTransparentPayment = actionClient
       // 3. Atualiza o banco de dados conforme o status (opcionalmente sincronizando antes do webhook)
       // Nota: Para Pix (pending/in_process), o webhook fará a finalização
       // Para Cartão de Crédito aprovado na hora, podemos já adiantar o status
-      if (paymentResponse.status === "approved" && paymentResponse.external_reference) {
-        // Adianta o status para PAID no PaymentIntent
-        const paymentIntent = await db.paymentIntent.findFirst({
-          where: { externalId: paymentResponse.external_reference, companyId },
+      if (paymentResponse.status === "approved" && paymentIntent.status !== "PAID") {
+        // Reutiliza o paymentIntent já encontrado (não faz nova query)
+        await db.paymentIntent.update({
+          where: { id: paymentIntent.id },
+          data: { status: "PAID" },
         });
 
-        if (paymentIntent && paymentIntent.status !== "PAID") {
-          await db.paymentIntent.update({
-            where: { id: paymentIntent.id },
-            data: { status: "PAID" },
-          });
-
-          // Observação: OrderService.convertToSale não é chamado aqui de imediato 
-          // para evitar race condition pesada com o Webhook. O webhook chegará em ms
-          // e terminará o processo de conversão em Sale com Idempotência segura.
-        }
+        // Observação: OrderService.convertToSale não é chamado aqui de imediato 
+        // para evitar race condition pesada com o Webhook. O webhook chegará em ms
+        // e terminará o processo de conversão em Sale com Idempotência segura.
       }
 
       let mappedMessage = paymentResponse.status_detail;
