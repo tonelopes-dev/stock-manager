@@ -12,7 +12,7 @@ interface CheckoutPaymentModalProps {
   preferenceId: string;
   amount: number;
   companyId: string;
-  onPaymentSuccess?: (paymentId: string) => void;
+  onPaymentSuccess?: (paymentId: string, status: string) => void;
 }
 
 export function CheckoutPaymentModal({
@@ -33,10 +33,10 @@ export function CheckoutPaymentModal({
     }
   }, [open]);
 
-  const handlePaymentSuccess = (paymentId: string) => {
+  const handlePaymentSuccess = (paymentId: string, status: string) => {
     setCompletedPaymentId(paymentId);
     if (onPaymentSuccess) {
-      onPaymentSuccess(paymentId);
+      onPaymentSuccess(paymentId, status);
     }
   };
 

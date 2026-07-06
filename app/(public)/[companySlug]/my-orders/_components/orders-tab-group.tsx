@@ -214,11 +214,17 @@ export function OrdersTabGroup({ orders, companyId, companySlug, paymentGatewayC
         <CheckoutPaymentModal
           open={isCheckoutModalOpen}
           onOpenChange={setIsCheckoutModalOpen}
-          publicKey={paymentGatewayConfig.publicKey}
-          preferenceId={mercadoPagoPreferenceId}
-          amount={activeOrdersTotal}
           companyId={companyId}
-          onPaymentSuccess={() => {
+          preferenceId={mercadoPagoPreferenceId}
+          publicKey={paymentGatewayConfig.publicKey}
+          amount={activeOrdersTotal}
+          onPaymentSuccess={(paymentId, status) => {
+            if (status === "pending" || status === "in_process") {
+              // Se for PIX ou boleto, deixamos o modal aberto com o StatusScreen
+              // para o usuário ler o QR Code ou copiar o código.
+              // Não recarregamos a página e não fechamos a comanda ainda.
+              return;
+            }
             if (onRefreshRequest) onRefreshRequest();
             // Dá 3 segundos para o usuário ver a tela de "Aprovado" antes de fechar e mostrar a tela limpa
             setTimeout(() => {
