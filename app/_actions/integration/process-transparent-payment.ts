@@ -65,6 +65,8 @@ export const processTransparentPayment = actionClient
         ...innerFormData,
         transaction_amount: Number(paymentIntent.amount),
         external_reference: paymentIntent.id,
+        // 'description' é obrigatório para PIX/bank_transfer — sem ele a API retorna 'Cannot infer Payment Method'
+        description: "Pagamento de comanda",
       };
 
       const paymentResponse = await gateway.createPayment(finalPayload);
