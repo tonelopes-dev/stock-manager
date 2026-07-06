@@ -123,6 +123,12 @@ export const processTransparentPayment = actionClient
         description: "Pagamento de comanda",
       } as Record<string, unknown>;
 
+      // A API Node do MercadoPago v2 espera que o issuer_id seja um Number,
+      // mas o Bricks envia como String. Isso causa o erro 2131 de inferência.
+      if (typeof finalPayload.issuer_id === "string") {
+        finalPayload.issuer_id = Number(finalPayload.issuer_id);
+      }
+
       // Log seguro (sem dados sensíveis do cartão)
       const safePayloadLog = { ...finalPayload, token: finalPayload["token"] ? "[REDACTED]" : undefined };
       console.log(`${LOG} Final payload to MP API:`, JSON.stringify(safePayloadLog));
