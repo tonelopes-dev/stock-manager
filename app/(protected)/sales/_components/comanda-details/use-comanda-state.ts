@@ -8,6 +8,7 @@ import {
   useTransition,
   useEffect,
   useMemo,
+  useRef,
 } from "react";
 import { toast } from "sonner";
 import { convertOrderToSaleAction } from "@/app/_actions/order/convert-to-sale";
@@ -104,9 +105,17 @@ export const useComandaState = ({
 
   const router = useRouter();
 
+  const lastInitializedComandaId = useRef<string | null>(null);
+
   // Reset state when sheet opens/closes or comanda changes
   useEffect(() => {
-    if (isOpen && comanda) {
+    if (!isOpen) {
+      lastInitializedComandaId.current = null;
+      return;
+    }
+
+    if (isOpen && comanda && lastInitializedComandaId.current !== comanda.id) {
+      lastInitializedComandaId.current = comanda.id;
       setSelectedItemIds(new Set());
       setSelectedProductId("");
       setSelectedQuantity(1);

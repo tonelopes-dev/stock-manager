@@ -16,11 +16,32 @@ interface PixPaymentDisplayProps {
 export function PixPaymentDisplay({ qrCodeBase64, copyPasteCode, totalAmount }: PixPaymentDisplayProps) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(copyPasteCode);
-    setCopied(true);
-    toast.success("Código PIX copiado!");
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopy = async () => {
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(copyPasteCode);
+      } else {
+        // Fallback para HTTP (ex: acessando localhost pelo celular via IP da rede)
+        const textArea = document.createElement("textarea");
+        textArea.value = copyPasteCode;
+        // Evita rolar a página
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
+      setCopied(true);
+      toast.success("Código PIX copiado!");
+    } catch (err) {
+      console.error("Falha ao copiar:", err);
+      toast.error("Não foi possível copiar automaticamente.");
+    } finally {
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   const handleShareWhatsApp = () => {
