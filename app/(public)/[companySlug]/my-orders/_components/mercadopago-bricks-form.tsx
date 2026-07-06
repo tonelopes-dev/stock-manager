@@ -45,11 +45,10 @@ export function MercadoPagoBricksForm({
 
   const customization = {
     paymentMethods: {
-      ticket: "all" as const,
-      bankTransfer: "all" as const,
+      bankTransfer: "all" as const, // Mantém o PIX
       creditCard: "all" as const,
       debitCard: "all" as const,
-      mercadoPago: "all" as const,
+      mercadoPago: "all" as const, // Pagamento com saldo do MP
     },
     visual: {
       style: {
