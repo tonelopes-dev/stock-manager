@@ -1,1 +1,0 @@
-ALTER TYPE "IntegrationProvider" ADD VALUE 'MERCADOPAGO';
