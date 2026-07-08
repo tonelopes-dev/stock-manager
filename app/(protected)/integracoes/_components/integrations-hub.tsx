@@ -12,6 +12,7 @@ interface IntegrationsHubProps {
   companyId: string;
   companySlug: string;
   mpMarketplaceToken: string | null;
+  mpCheckoutEnabled: boolean;
 }
 
 // Configuração estática dos provedores suportados no sistema
@@ -48,7 +49,7 @@ const SUPPORTED_PROVIDERS = [
   },
 ];
 
-export function IntegrationsHub({ initialIntegrations, companyId, companySlug, mpMarketplaceToken }: IntegrationsHubProps) {
+export function IntegrationsHub({ initialIntegrations, companyId, companySlug, mpMarketplaceToken, mpCheckoutEnabled }: IntegrationsHubProps) {
   const [selectedProvider, setSelectedProvider] = useState<IntegrationProvider | null>(null);
 
   const handleConfigure = (provider: IntegrationProvider) => {
@@ -72,6 +73,7 @@ export function IntegrationsHub({ initialIntegrations, companyId, companySlug, m
               companyId={companyId}
               companySlug={companySlug}
               mpMarketplaceToken={config.provider === "MERCADOPAGO" ? mpMarketplaceToken : null}
+              mpCheckoutEnabled={config.provider === "MERCADOPAGO" ? mpCheckoutEnabled : false}
               onConfigure={() => handleConfigure(config.provider as IntegrationProvider)}
             />
           );

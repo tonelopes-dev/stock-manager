@@ -27,7 +27,7 @@ export default async function IntegrationsPage() {
 
   const company = await db.company.findUnique({
     where: { id: companyId },
-    select: { slug: true, mpMarketplaceToken: true },
+    select: { slug: true, mpMarketplaceToken: true, mpCheckoutEnabled: true },
   });
 
   if (!company) return null;
@@ -62,6 +62,7 @@ export default async function IntegrationsPage() {
         companyId={companyId}
         companySlug={company.slug}
         mpMarketplaceToken={company.mpMarketplaceToken}
+        mpCheckoutEnabled={company.mpCheckoutEnabled}
       />
     </div>
   );

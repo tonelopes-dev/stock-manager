@@ -251,6 +251,12 @@ model Company {
   stockEntries           StockEntry[]
   pushSubscriptions      PushSubscription[]
 
+  // Identificadores para o Take Rate (Marketplace Split MP)
+  mpMarketplaceAccountId  String?   // OAuth user ID do lojista no Mercado Pago
+  mpMarketplaceToken      String?   // Access Token do lojista via marketplace flow
+  mpCheckoutEnabled       Boolean   @default(false)
+  kipoMarketplaceFeeRate  Decimal?  @db.Decimal(5, 4) // Ex: 0.0150 para representar 1.5% de taxa
+
   // Branding & Menu Info
   bannerUrl              String?
   logoUrl                String?
@@ -786,7 +792,6 @@ model CompanyIntegration {
 }
 
 enum IntegrationProvider {
-  INFINITYPAY
   IFOOD
   WHATSAPP_BUSINESS
   MERCADOPAGO

@@ -1,12 +1,6 @@
 import { z } from "zod";
 import { IntegrationProvider } from "@prisma/client";
 
-export const upsertInfinityPaySchema = z.object({
-  provider: z.literal(IntegrationProvider.INFINITYPAY),
-  companyId: z.string().min(1),
-  merchantId: z.string().min(3, "O Handle é obrigatório"),
-  isEnabled: z.boolean().default(false),
-});
 
 export const toggleIntegrationSchema = z.object({
   id: z.string().min(1),
@@ -20,4 +14,9 @@ export const upsertMercadoPagoSchema = z.object({
   accessToken: z.string().trim().min(10, "O Access Token é obrigatório"),
   publicKey: z.string().trim().min(10, "A Public Key é obrigatória"),
   isEnabled: z.boolean().default(false),
+});
+
+export const toggleMpCheckoutSchema = z.object({
+  companyId: z.string().min(1),
+  isEnabled: z.boolean(),
 });

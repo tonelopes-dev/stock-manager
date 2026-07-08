@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { getMenuDataBySlug } from "@/app/_data-access/menu/get-menu-data";
 import { MyOrdersClient } from "./_components/my-orders-client";
-import { getCompanyIntegrations } from "@/app/_data-access/integration/get-company-integrations";
 import { IntegrationProvider } from "@prisma/client";
+import { db } from "@/app/_lib/prisma";
 
 interface MyOrdersPageProps {
   params: Promise<{
@@ -19,17 +19,14 @@ export default async function MyOrdersPage({ params }: MyOrdersPageProps) {
     return notFound();
   }
 
-  // Verifica se alguma integração de pagamento está ativa para este estabelecimento
-  const integrations = await getCompanyIntegrations(menuData.id);
-  const activePaymentIntegration = integrations.find(
-    (i) => (i.provider === IntegrationProvider.INFINITYPAY || i.provider === "MERCADOPAGO") && i.isEnabled
-  );
-  
-  const paymentGatewayConfig = activePaymentIntegration 
-    ? { 
-        provider: activePaymentIntegration.provider, 
-        publicKey: activePaymentIntegration.config?.publicKey 
-      } 
+  // Verifica se a empresa tem o Mercado Pago conectado E se a flag de checkout está ativa
+  const company = await db.company.findUnique({
+    where: { id: menuData.id },
+    select: { mpMarketplaceToken: true, mpCheckoutEnabled: true },
+  });
+
+  const paymentGatewayConfig = (company?.mpMarketplaceToken && company?.mpCheckoutEnabled) 
+    ? { provider: "MERCADOPAGO" as IntegrationProvider } 
     : null;
 
   return (

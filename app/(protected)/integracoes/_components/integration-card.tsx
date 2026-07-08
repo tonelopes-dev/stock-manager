@@ -9,8 +9,8 @@ import { Badge } from "@/app/_components/ui/badge";
 import { Settings2, LucideIcon, Loader2 } from "lucide-react";
 import { cn } from "@/app/_lib/utils";
 import { useAction } from "next-safe-action/hooks";
-import { toggleIntegration } from "@/app/_actions/integration/toggle-integration";
 import { toast } from "sonner";
+import { toggleMpCheckoutAction } from "@/app/_actions/integration/toggle-mp-checkout";
 import { disconnectMercadoPagoAction } from "@/app/_actions/integration/disconnect-mercadopago";
 
 interface ProviderConfig {
@@ -31,35 +31,33 @@ interface IntegrationCardProps {
   companyId: string;
   companySlug?: string;
   mpMarketplaceToken?: string | null;
+  mpCheckoutEnabled?: boolean;
   onConfigure: () => void;
 }
 
-export function IntegrationCard({ config, integration, companyId, companySlug, mpMarketplaceToken, onConfigure }: IntegrationCardProps) {
+export function IntegrationCard({ config, integration, companyId, companySlug, mpMarketplaceToken, mpCheckoutEnabled, onConfigure }: IntegrationCardProps) {
   const Icon = config.icon;
   const isConfigured = !!integration;
   const isEnabled = integration?.isEnabled ?? false;
   
-  // Especifico para Mercado Pago
   const isMercadoPago = config.provider === "MERCADOPAGO";
   const isMpConnected = isMercadoPago && !!mpMarketplaceToken;
 
-  const { execute, isExecuting } = useAction(toggleIntegration, {
+  const { execute: executeToggleCheckout, isExecuting: isTogglingCheckout } = useAction(toggleMpCheckoutAction, {
     onSuccess: () => {
       toast.success(
-        isEnabled
-          ? `${config.name} foi desativada.`
-          : `${config.name} foi ativada com sucesso!`
+        mpCheckoutEnabled
+          ? "Pagamento no cardápio desabilitado."
+          : "Pagamento no cardápio habilitado com sucesso!"
       );
     },
     onError: ({ error }) => {
-      toast.error(error.serverError || "Erro ao alterar o status da integração.");
+      toast.error(error.serverError || "Erro ao alterar o status do checkout.");
     }
   });
 
-  const handleToggle = (checked: boolean) => {
-    if (!integration) return;
-    execute({
-      id: integration.id,
+  const handleToggleCheckout = (checked: boolean) => {
+    executeToggleCheckout({
       companyId,
       isEnabled: checked
     });
@@ -110,14 +108,14 @@ export function IntegrationCard({ config, integration, companyId, companySlug, m
           </div>
         </div>
         
-        {/* Toggle só aparece se estiver configurado e não for coming soon */}
-        {!config.isComingSoon && isConfigured && (
-          <div className="flex items-center space-x-2 bg-muted/50 p-1.5 rounded-full">
-            {isExecuting && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+        {/* Toggle para MP Checkout (só aparece se estiver conectado) */}
+        {isMpConnected && (
+          <div className="flex items-center space-x-2 bg-muted/50 p-1.5 rounded-full" title="Habilitar pagamento no cardápio">
+            {isTogglingCheckout && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
             <Switch
-              checked={isEnabled}
-              onCheckedChange={handleToggle}
-              disabled={isExecuting}
+              checked={mpCheckoutEnabled}
+              onCheckedChange={handleToggleCheckout}
+              disabled={isTogglingCheckout}
               className="data-[state=checked]:bg-primary"
             />
           </div>
