@@ -7,7 +7,6 @@ import { broadcastKdsEvent } from "@/app/_lib/kds-broadcast";
 import { OrderService } from "@/app/_services/order";
 import { MercadoPagoGateway } from "@/app/_services/payments/mercadopago-gateway";
 import { PaymentEventService } from "@/app/_services/payments/payment-event.service";
-import { getIntegrationRawData } from "@/app/_data-access/integration/get-integration-raw";
 import { IMercadoPagoWebhookBody } from "@/app/_services/payments/types";
 
 const LOG = "[MP:Webhook]";
@@ -51,14 +50,18 @@ export async function handleTenantPaymentWebhook(
   }
 
   // 2. Fetch tenant integration credentials
-  const integration = await getIntegrationRawData(companyId, IntegrationProvider.MERCADOPAGO);
-  if (!integration?.isEnabled || !integration.credentials?.accessToken) {
+  const company = await db.company.findUnique({
+    where: { id: companyId },
+    select: { mpMarketplaceToken: true, mpCheckoutEnabled: true },
+  });
+  
+  if (!company || !company.mpMarketplaceToken || !company.mpCheckoutEnabled) {
     console.error(`${LOG} ❌ Integration not configured for company: ${companyId}`);
     return new NextResponse("Integration not configured", { status: 400 });
   }
 
   // 3. Verify payment status server-to-server with the tenant's MP account
-  const gateway = new MercadoPagoGateway(integration.credentials.accessToken);
+  const gateway = new MercadoPagoGateway(company.mpMarketplaceToken);
   const payment = await gateway.getPayment(paymentId);
 
   if (!payment) {

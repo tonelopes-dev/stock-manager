@@ -3,8 +3,7 @@
 import { actionClient } from "@/app/_lib/safe-action";
 import { z } from "zod";
 import { MercadoPagoGateway } from "@/app/_services/payments/mercadopago-gateway";
-import { getIntegrationRawData } from "@/app/_data-access/integration/get-integration-raw";
-import { IntegrationProvider } from "@prisma/client";
+
 import { db } from "@/app/_lib/prisma";
 import { OrderService } from "@/app/_services/order";
 import { broadcastEvent } from "@/app/_lib/broadcast";
@@ -85,8 +84,11 @@ export const processTransparentPayment = actionClient
 
     try {
       // 1. Pega o Access Token do lojista
-      const integration = await getIntegrationRawData(companyId, IntegrationProvider.MERCADOPAGO);
-      if (!integration?.isEnabled || !integration.credentials?.accessToken) {
+      const company = await db.company.findUnique({
+        where: { id: companyId },
+        select: { mpMarketplaceToken: true, mpCheckoutEnabled: true },
+      });
+      if (!company || !company.mpMarketplaceToken || !company.mpCheckoutEnabled) {
         throw new Error("Integração do Mercado Pago não configurada para este estabelecimento.");
       }
       console.log(`${LOG} ✅ Integration found and enabled`);
@@ -136,7 +138,7 @@ export const processTransparentPayment = actionClient
       const safePayloadLog = { ...finalPayload, token: finalPayload["token"] ? "[REDACTED]" : undefined };
       console.log(`${LOG} Final payload to MP API:`, JSON.stringify(safePayloadLog));
 
-      const gateway = new MercadoPagoGateway(integration.credentials.accessToken);
+      const gateway = new MercadoPagoGateway(company.mpMarketplaceToken);
       const paymentResponse = await gateway.createPayment(finalPayload);
 
       console.log(`${LOG} MP API response: id=${paymentResponse?.id} status=${paymentResponse?.status} status_detail=${paymentResponse?.status_detail}`);

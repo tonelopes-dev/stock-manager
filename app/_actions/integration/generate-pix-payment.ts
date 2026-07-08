@@ -3,8 +3,7 @@
 import { actionClient } from "@/app/_lib/safe-action";
 import { z } from "zod";
 import { db } from "@/app/_lib/prisma";
-import { getIntegrationRawData } from "@/app/_data-access/integration/get-integration-raw";
-import { IntegrationProvider } from "@prisma/client";
+
 import { MercadoPagoGateway } from "@/app/_services/payments/mercadopago-gateway";
 import { assertCapability } from "@/app/_lib/rbac";
 
@@ -23,14 +22,13 @@ export const generatePixPayment = actionClient
     await assertCapability("sale:process");
 
     // 2. Verificar integração ativa
-    const integration = await getIntegrationRawData(companyId, "MERCADOPAGO" as IntegrationProvider);
+    const company = await db.company.findUnique({
+      where: { id: companyId },
+      select: { mpMarketplaceToken: true, mpCheckoutEnabled: true },
+    });
     
-    if (!integration || !integration.isEnabled) {
+    if (!company || !company.mpMarketplaceToken || !company.mpCheckoutEnabled) {
       throw new Error("O estabelecimento não possui a integração Mercado Pago ativada no momento.");
-    }
-
-    if (!integration.credentials || !integration.credentials.accessToken) {
-      throw new Error("Integração Mercado Pago configurada incorretamente (Access Token faltando).");
     }
 
     // 3. Resolver pedidos e valores (Mesma lógica do generateCheckout)
@@ -90,7 +88,7 @@ export const generatePixPayment = actionClient
     });
 
     // 5. Gerar PIX
-    const gateway = new MercadoPagoGateway(integration.credentials.accessToken);
+    const gateway = new MercadoPagoGateway(company.mpMarketplaceToken);
     const pixResult = await gateway.generateDynamicPix(paymentAmount, descriptionText, paymentIntent.id);
 
     // 6. Opcional: Atualizar externalId se o Gateway retornar o ID do pagamento PIX
