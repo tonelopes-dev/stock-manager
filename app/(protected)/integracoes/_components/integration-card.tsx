@@ -11,6 +11,7 @@ import { cn } from "@/app/_lib/utils";
 import { useAction } from "next-safe-action/hooks";
 import { toggleIntegration } from "@/app/_actions/integration/toggle-integration";
 import { toast } from "sonner";
+import { disconnectMercadoPagoAction } from "@/app/_actions/integration/disconnect-mercadopago";
 
 interface ProviderConfig {
   provider: IntegrationProvider;
@@ -28,13 +29,19 @@ interface IntegrationCardProps {
   config: ProviderConfig;
   integration?: CompanyIntegrationDto;
   companyId: string;
+  companySlug?: string;
+  mpMarketplaceToken?: string | null;
   onConfigure: () => void;
 }
 
-export function IntegrationCard({ config, integration, companyId, onConfigure }: IntegrationCardProps) {
+export function IntegrationCard({ config, integration, companyId, companySlug, mpMarketplaceToken, onConfigure }: IntegrationCardProps) {
   const Icon = config.icon;
   const isConfigured = !!integration;
   const isEnabled = integration?.isEnabled ?? false;
+  
+  // Especifico para Mercado Pago
+  const isMercadoPago = config.provider === "MERCADOPAGO";
+  const isMpConnected = isMercadoPago && !!mpMarketplaceToken;
 
   const { execute, isExecuting } = useAction(toggleIntegration, {
     onSuccess: () => {
@@ -56,6 +63,19 @@ export function IntegrationCard({ config, integration, companyId, onConfigure }:
       companyId,
       isEnabled: checked
     });
+  };
+
+  const { execute: executeDisconnect, isExecuting: isDisconnecting } = useAction(disconnectMercadoPagoAction, {
+    onSuccess: () => {
+      toast.success("Conta do Mercado Pago desconectada.");
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError || "Erro ao desconectar conta.");
+    }
+  });
+
+  const handleMpDisconnect = () => {
+    executeDisconnect({ companyId });
   };
 
   return (
@@ -81,10 +101,10 @@ export function IntegrationCard({ config, integration, companyId, onConfigure }:
           <div>
             <CardTitle className="text-lg font-semibold">{config.name}</CardTitle>
             <div className="mt-1">
-              <Badge variant={config.isComingSoon ? "secondary" : (isEnabled ? "default" : "outline")}>
+              <Badge variant={config.isComingSoon ? "secondary" : (isEnabled || isMpConnected ? "default" : "outline")}>
                 {config.isComingSoon 
                   ? "Em breve" 
-                  : (isEnabled ? "Ativo" : (isConfigured ? "Desativado" : "Não configurado"))}
+                  : (isMpConnected ? "Conta Conectada" : (isEnabled ? "Ativo" : (isConfigured ? "Desativado" : "Não configurado")))}
               </Badge>
             </div>
           </div>
@@ -111,21 +131,44 @@ export function IntegrationCard({ config, integration, companyId, onConfigure }:
       </CardContent>
       
       <CardFooter className="pt-4 border-t bg-muted/20">
-        <Button 
-          variant={isConfigured ? "outline" : "default"} 
-          className={cn("w-full gap-2", isConfigured && "bg-background")}
-          onClick={onConfigure}
-          disabled={config.isComingSoon}
-        >
-          {isConfigured ? (
-            <>
-              <Settings2 className="h-4 w-4" />
-              Configurar
-            </>
+        {isMercadoPago ? (
+          isMpConnected ? (
+            <Button 
+              variant="destructive"
+              className="w-full gap-2"
+              onClick={handleMpDisconnect}
+              disabled={isDisconnecting}
+            >
+              {isDisconnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Desconectar"}
+            </Button>
           ) : (
-            "Conectar"
-          )}
-        </Button>
+            <Button 
+              variant="default"
+              className="w-full gap-2"
+              asChild
+            >
+              <a href={`/api/integrations/mercadopago/oauth?companyId=${companyId}&companySlug=${companySlug}`}>
+                Conectar Conta
+              </a>
+            </Button>
+          )
+        ) : (
+          <Button 
+            variant={isConfigured ? "outline" : "default"} 
+            className={cn("w-full gap-2", isConfigured && "bg-background")}
+            onClick={onConfigure}
+            disabled={config.isComingSoon}
+          >
+            {isConfigured ? (
+              <>
+                <Settings2 className="h-4 w-4" />
+                Configurar
+              </>
+            ) : (
+              "Conectar"
+            )}
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

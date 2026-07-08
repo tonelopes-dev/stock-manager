@@ -3,6 +3,7 @@ import { IntegrationsHub } from "./_components/integrations-hub";
 import { getCompanyIntegrations } from "@/app/_data-access/integration/get-company-integrations";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { assertRole } from "@/app/_lib/rbac";
+import { db } from "@/app/_lib/prisma";
 import { AlertCircle, Zap } from "lucide-react";
 import {
   Alert,
@@ -24,6 +25,13 @@ export default async function IntegrationsPage() {
 
   const integrations = await getCompanyIntegrations(companyId);
 
+  const company = await db.company.findUnique({
+    where: { id: companyId },
+    select: { slug: true, mpMarketplaceToken: true },
+  });
+
+  if (!company) return null;
+
   return (
     <div className="mx-auto w-full max-w-7xl flex-1 space-y-4 p-4 pt-6 md:p-8">
       <div className="flex items-center justify-between space-y-2">
@@ -44,14 +52,16 @@ export default async function IntegrationsPage() {
         <AlertTitle>Como funcionam as integrações?</AlertTitle>
         <AlertDescription>
           Ao ativar uma integração, o KIPO passa a se comunicar automaticamente
-          com a plataforma conectada. A InfinityPay, por exemplo, permite que
-          seus clientes paguem a comanda direto no celular deles.
+          com a plataforma conectada. O Mercado Pago, por exemplo, permite que
+          seus clientes paguem a comanda direto no celular deles através do PIX ou Cartão.
         </AlertDescription>
       </Alert>
 
       <IntegrationsHub
         initialIntegrations={integrations}
         companyId={companyId}
+        companySlug={company.slug}
+        mpMarketplaceToken={company.mpMarketplaceToken}
       />
     </div>
   );

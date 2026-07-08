@@ -10,7 +10,6 @@ import { CheckoutPaymentModal } from "./checkout-payment-modal";
 import { Button } from "@/app/_components/ui/button";
 import Link from "next/link";
 import { useAction } from "next-safe-action/hooks";
-import { generateInfinityPayCheckout } from "@/app/_actions/integration/generate-infinitypay-checkout";
 import { generateMercadoPagoCheckout } from "@/app/_actions/integration/generate-mercadopago-checkout";
 import { toast } from "sonner";
 
@@ -39,16 +38,6 @@ export function OrdersTabGroup({ orders, companyId, companySlug, paymentGatewayC
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [mercadoPagoPreferenceId, setMercadoPagoPreferenceId] = useState<string | null>(null);
 
-  const { execute: payNowInfinity, isExecuting: isGeneratingInfinity } = useAction(generateInfinityPayCheckout, {
-    onSuccess: ({ data }) => {
-      if (data?.url) {
-        window.location.href = data.url; 
-      }
-    },
-    onError: ({ error }) => {
-      toast.error(error.serverError || "Não foi possível gerar o link de pagamento.");
-    }
-  });
 
   const { execute: payNowMercadoPago, isExecuting: isGeneratingMercadoPago } = useAction(generateMercadoPagoCheckout, {
     onSuccess: ({ data }) => {
@@ -66,15 +55,13 @@ export function OrdersTabGroup({ orders, companyId, companySlug, paymentGatewayC
     }
   });
 
-  const isGeneratingCheckout = isGeneratingInfinity || isGeneratingMercadoPago;
+  const isGeneratingCheckout = isGeneratingMercadoPago;
 
   const handlePayComanda = () => {
     const activeOrderIds = groupedOrders.active.map(o => o.id);
     if (activeOrderIds.length > 0) {
       if (paymentGatewayConfig?.provider === "MERCADOPAGO") {
         payNowMercadoPago({ orderIds: activeOrderIds, companyId });
-      } else if (paymentGatewayConfig?.provider === "INFINITYPAY") {
-        payNowInfinity({ orderIds: activeOrderIds, companyId });
       }
     }
   };

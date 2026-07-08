@@ -3,7 +3,6 @@
 import { CompanyIntegrationDto } from "@/app/_data-access/integration/types";
 import { IntegrationProvider } from "@prisma/client";
 import { IntegrationCard } from "./integration-card";
-import { InfinityPayConfigSheet } from "./infinitypay-config-sheet";
 import { MercadoPagoConfigSheet } from "./mercadopago-config-sheet";
 import { useState } from "react";
 import { CreditCard, MessageSquare, Utensils, SmartphoneNfc } from "lucide-react";
@@ -11,20 +10,12 @@ import { CreditCard, MessageSquare, Utensils, SmartphoneNfc } from "lucide-react
 interface IntegrationsHubProps {
   initialIntegrations: CompanyIntegrationDto[];
   companyId: string;
+  companySlug: string;
+  mpMarketplaceToken: string | null;
 }
 
 // Configuração estática dos provedores suportados no sistema
 const SUPPORTED_PROVIDERS = [
-  {
-    provider: IntegrationProvider.INFINITYPAY,
-    name: "InfinitePay (Em Breve)",
-    description: "Receba pagamentos das suas comandas diretamente no celular do cliente via PIX e Cartão.",
-    logoUrl: "/logos/logo_infinite-pay_zFLqIS.png",
-    color: "bg-white",
-    textColor: "text-emerald-500",
-    badge: "Em Breve",
-    isComingSoon: true,
-  },
   {
     provider: "MERCADOPAGO" as IntegrationProvider,
     name: "Mercado Pago Checkout",
@@ -57,7 +48,7 @@ const SUPPORTED_PROVIDERS = [
   },
 ];
 
-export function IntegrationsHub({ initialIntegrations, companyId }: IntegrationsHubProps) {
+export function IntegrationsHub({ initialIntegrations, companyId, companySlug, mpMarketplaceToken }: IntegrationsHubProps) {
   const [selectedProvider, setSelectedProvider] = useState<IntegrationProvider | null>(null);
 
   const handleConfigure = (provider: IntegrationProvider) => {
@@ -79,6 +70,8 @@ export function IntegrationsHub({ initialIntegrations, companyId }: Integrations
               config={config as any} // workaround para tipagem do MERCADOPAGO se prisma não estiver atualizado localmente
               integration={activeIntegration}
               companyId={companyId}
+              companySlug={companySlug}
+              mpMarketplaceToken={config.provider === "MERCADOPAGO" ? mpMarketplaceToken : null}
               onConfigure={() => handleConfigure(config.provider as IntegrationProvider)}
             />
           );
@@ -86,13 +79,6 @@ export function IntegrationsHub({ initialIntegrations, companyId }: Integrations
       </div>
 
       {/* Sheets de Configuração Específicas */}
-      <InfinityPayConfigSheet
-        open={selectedProvider === IntegrationProvider.INFINITYPAY}
-        onOpenChange={(open) => !open && setSelectedProvider(null)}
-        companyId={companyId}
-        integration={initialIntegrations.find((i) => i.provider === IntegrationProvider.INFINITYPAY)}
-      />
-      
       <MercadoPagoConfigSheet
         open={selectedProvider === "MERCADOPAGO"}
         onOpenChange={(open) => !open && setSelectedProvider(null)}

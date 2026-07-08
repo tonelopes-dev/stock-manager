@@ -20,7 +20,6 @@ import {
 import { cn } from "@/app/_lib/utils";
 import { Button } from "@/app/_components/ui/button";
 import { useAction } from "next-safe-action/hooks";
-import { generateInfinityPayCheckout } from "@/app/_actions/integration/generate-infinitypay-checkout";
 import { generateMercadoPagoCheckout } from "@/app/_actions/integration/generate-mercadopago-checkout";
 import { rateOrderAction } from "@/app/_actions/order/rate-order";
 import { toast } from "sonner";
@@ -133,7 +132,7 @@ export const OrderCard = ({
   order: OrderStatusDto;
   companyId: string;
   companySlug: string;
-  activePaymentProvider?: "INFINITYPAY" | "MERCADOPAGO" | null;
+  activePaymentProvider?: "MERCADOPAGO" | null;
 }) => {
   const router = useRouter();
   const currentStatus = statusConfig[order.status];
@@ -173,19 +172,6 @@ export const OrderCard = ({
   const [feedback, setFeedback] = useState(order.feedback || "");
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
 
-  const { execute: payNowInfinity, isExecuting: isExecutingInfinity } =
-    useAction(generateInfinityPayCheckout, {
-      onSuccess: ({ data }) => {
-        if (data?.url) {
-          window.location.href = data.url;
-        }
-      },
-      onError: ({ error }) => {
-        toast.error(
-          error.serverError || "Não foi possível gerar o link de pagamento.",
-        );
-      },
-    });
 
   const { execute: payNowMercadoPago, isExecuting: isExecutingMercadoPago } =
     useAction(generateMercadoPagoCheckout, {
@@ -202,16 +188,11 @@ export const OrderCard = ({
       },
     });
 
-  const isExecutingIndividualCheckout =
-    isExecutingInfinity || isExecutingMercadoPago;
+  const isGeneratingCheckout = isExecutingMercadoPago;
 
-  const handlePayNow = () => {
-    if (isPendingPayment && order.saleId) {
-      if (activePaymentProvider === "MERCADOPAGO") {
-        payNowMercadoPago({ saleId: order.saleId, companyId });
-      } else if (activePaymentProvider === "INFINITYPAY") {
-        payNowInfinity({ saleId: order.saleId, companyId });
-      }
+  const handleIndividualPay = () => {
+    if (activePaymentProvider === "MERCADOPAGO") {
+      payNowMercadoPago({ orderIds: [order.id], companyId });
     } else {
       toast.error("Erro interno: não foi possível identificar o pedido.");
     }
@@ -460,11 +441,11 @@ export const OrderCard = ({
           {showIndividualPayButton && (
             <div className="pt-4">
               <Button
-                onClick={handlePayNow}
-                disabled={isExecutingIndividualCheckout}
+                onClick={handleIndividualPay}
+                disabled={isGeneratingCheckout}
                 className="h-14 w-full rounded-2xl bg-emerald-500 text-sm font-black uppercase tracking-widest text-white shadow-xl shadow-emerald-500/20 hover:bg-emerald-600"
               >
-                {isExecutingIndividualCheckout ? (
+                {isGeneratingCheckout ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   <>Pagar Agora</>
