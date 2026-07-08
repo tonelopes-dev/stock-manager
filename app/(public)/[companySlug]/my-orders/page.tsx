@@ -22,11 +22,11 @@ export default async function MyOrdersPage({ params }: MyOrdersPageProps) {
   // Verifica se a empresa tem o Mercado Pago conectado E se a flag de checkout está ativa
   const company = await db.company.findUnique({
     where: { id: menuData.id },
-    select: { mpMarketplaceToken: true, mpCheckoutEnabled: true },
+    select: { mpMarketplaceToken: true, mpMarketplacePublicKey: true, mpCheckoutEnabled: true },
   });
 
   const paymentGatewayConfig = (company?.mpMarketplaceToken && company?.mpCheckoutEnabled) 
-    ? { provider: "MERCADOPAGO" as IntegrationProvider } 
+    ? { provider: "MERCADOPAGO" as IntegrationProvider, publicKey: company.mpMarketplacePublicKey || undefined } 
     : null;
 
   return (

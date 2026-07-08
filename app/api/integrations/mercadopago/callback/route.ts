@@ -65,6 +65,7 @@ export async function GET(req: NextRequest) {
       where: { id: companyId },
       data: {
         mpMarketplaceToken: data.access_token,
+        mpMarketplacePublicKey: data.public_key,
         mpMarketplaceAccountId: data.user_id.toString(),
       },
     });

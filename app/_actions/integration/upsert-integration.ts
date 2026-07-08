@@ -1,7 +1,7 @@
 "use server";
 
 import { actionClient } from "@/app/_lib/safe-action";
-import { upsertInfinityPaySchema, upsertMercadoPagoSchema } from "./schema";
+import { upsertMercadoPagoSchema } from "./schema";
 import { db } from "@/app/_lib/prisma";
 import { assertRole } from "@/app/_lib/rbac";
 import { EncryptedCredentials } from "@/app/_data-access/integration/types";
@@ -11,7 +11,7 @@ import { IntegrationProvider } from "@prisma/client";
 
 // Helper function to disable other payment gateways
 async function disableOtherPaymentGateways(companyId: string, currentProvider: IntegrationProvider) {
-  const paymentProviders = [IntegrationProvider.INFINITYPAY, IntegrationProvider.MERCADOPAGO];
+  const paymentProviders = [IntegrationProvider.MERCADOPAGO];
   const otherProviders = paymentProviders.filter(p => p !== currentProvider);
 
   await db.companyIntegration.updateMany({
@@ -26,45 +26,6 @@ async function disableOtherPaymentGateways(companyId: string, currentProvider: I
   });
 }
 
-export const upsertInfinityPayIntegration = actionClient
-  .schema(upsertInfinityPaySchema)
-  .action(async ({ parsedInput: { provider, companyId, merchantId, isEnabled } }) => {
-    await assertRole(["OWNER", "ADMIN"]);
-    
-    const currentCompanyId = await getCurrentCompanyId();
-    if (currentCompanyId !== companyId) {
-      throw new Error("Unauthorized tenant access");
-    }
-
-    const credentials: EncryptedCredentials = {
-      merchantId,
-    };
-
-    await db.$transaction(async (tx) => {
-      await tx.companyIntegration.upsert({
-        where: {
-          companyId_provider: { companyId, provider },
-        },
-        update: {
-          isEnabled,
-          credentials: credentials as any,
-        },
-        create: {
-          companyId,
-          provider,
-          isEnabled,
-          credentials: credentials as any,
-        },
-      });
-
-      if (isEnabled) {
-        await disableOtherPaymentGateways(companyId, provider);
-      }
-    });
-
-    revalidatePath("/integracoes");
-    return { success: true };
-  });
 
 export const upsertMercadoPagoIntegration = actionClient
   .schema(upsertMercadoPagoSchema)

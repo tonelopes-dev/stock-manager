@@ -3,8 +3,6 @@
 import { actionClient } from "@/app/_lib/safe-action";
 import { z } from "zod";
 import { db } from "@/app/_lib/prisma";
-import { getIntegrationRawData } from "@/app/_data-access/integration/get-integration-raw";
-import { IntegrationProvider } from "@prisma/client";
 import { createMercadoPagoPreference } from "@/app/_lib/mercadopago";
 
 const generateCheckoutSchema = z.object({
@@ -19,14 +17,17 @@ export const generateMercadoPagoCheckout = actionClient
   .schema(generateCheckoutSchema)
   .action(async ({ parsedInput: { orderIds, saleId, companyId } }) => {
     // 1. Verificar integração ativa
-    const integration = await getIntegrationRawData(companyId, "MERCADOPAGO" as IntegrationProvider);
+    const company = await db.company.findUnique({
+      where: { id: companyId },
+      select: { slug: true, mpMarketplaceToken: true, mpCheckoutEnabled: true },
+    });
     
-    if (!integration || !integration.isEnabled) {
-      throw new Error("O lojista não possui a integração Mercado Pago ativada no momento.");
+    if (!company) {
+      throw new Error("Empresa não encontrada.");
     }
 
-    if (!integration.credentials || !integration.credentials.accessToken) {
-      throw new Error("Integração Mercado Pago configurada incorretamente (Access Token faltando).");
+    if (!company.mpMarketplaceToken || !company.mpCheckoutEnabled) {
+      throw new Error("O lojista não possui a integração Mercado Pago ativada no momento.");
     }
 
     // 2. Resolver qual ID usar
@@ -119,12 +120,7 @@ export const generateMercadoPagoCheckout = actionClient
     // Remove any accidental quotes or trailing slashes
     appUrl = appUrl.replace(/['"]/g, '').replace(/\/$/, '').trim();
 
-    const company = await db.company.findUnique({
-      where: { id: companyId },
-      select: { slug: true },
-    });
-    
-    const returnUrl = `${appUrl}/${company?.slug}/my-orders`;
+    const returnUrl = `${appUrl}/${company.slug}/my-orders`;
     console.log("[MercadoPago] URLs configuradas:", { appUrl, returnUrl });
 
     // 3.5. Criar o PaymentIntent antes de chamar o MP para ter o ID
@@ -138,7 +134,7 @@ export const generateMercadoPagoCheckout = actionClient
     });
 
     const preferenceResult = await createMercadoPagoPreference({
-      accessToken: integration.credentials.accessToken,
+      accessToken: company.mpMarketplaceToken,
       items: [
         {
           id: resolvedId!,
