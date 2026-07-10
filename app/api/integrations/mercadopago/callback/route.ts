@@ -24,7 +24,10 @@ export async function GET(req: NextRequest) {
 
   const clientId = process.env.MP_MASTER_CLIENT_ID;
   const clientSecret = process.env.MP_MASTER_CLIENT_SECRET;
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/integrations/mercadopago/callback`;
+  
+  let appUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+  appUrl = appUrl.replace(/\/$/, ""); // Remove trailing slash se houver
+  const redirectUri = `${appUrl}/api/integrations/mercadopago/callback`;
 
   if (!clientId || !clientSecret) {
     return NextResponse.json(
@@ -71,7 +74,9 @@ export async function GET(req: NextRequest) {
     });
 
     // Redireciona de volta para o dashboard
-    const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL}/integracoes?success=mp_connected`;
+    let dashUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+    dashUrl = dashUrl.replace(/\/$/, "");
+    const dashboardUrl = `${dashUrl}/integracoes?success=mp_connected`;
     return NextResponse.redirect(dashboardUrl);
   } catch (error) {
     console.error("Error during Mercado Pago OAuth callback:", error);

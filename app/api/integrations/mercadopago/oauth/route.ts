@@ -21,7 +21,9 @@ export async function GET(req: NextRequest) {
   }
 
   // A URL de callback do nosso app
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/integrations/mercadopago/callback`;
+  let appUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+  appUrl = appUrl.replace(/\/$/, ""); // Remove trailing slash if present
+  const redirectUri = `${appUrl}/api/integrations/mercadopago/callback`;
 
   // Monta a URL de autorização oficial do MP
   const authUrl = `https://auth.mercadopago.com/authorization?client_id=${clientId}&response_type=code&platform_id=mp&state=${companyId}___${companySlug}&redirect_uri=${redirectUri}`;
