@@ -1,6 +1,6 @@
 import "server-only";
 import { NextResponse } from "next/server";
-import { IntegrationProvider, AuditEventType } from "@prisma/client";
+import { AuditEventType } from "@prisma/client";
 import { db } from "@/app/_lib/prisma";
 import { broadcastEvent } from "@/app/_lib/broadcast";
 import { broadcastKdsEvent } from "@/app/_lib/kds-broadcast";
@@ -129,7 +129,7 @@ export async function handleTenantPaymentWebhook(
       }
 
       await _recordAudit({ type: "SALE_UPDATED", companyId, customerId: existingSale.customerId, transactionNsu, paymentStatus, saleId: existingSale.id });
-      await PaymentEventService.markAsProcessed({ id: paymentId, companyId, provider: IntegrationProvider.MERCADOPAGO, eventType: "payment.approved", payload: body as any });
+      await PaymentEventService.markAsProcessed({ id: paymentId, companyId, provider: "MERCADOPAGO", eventType: "payment.approved", payload: body as any });
       console.log(`${LOG} ─────────────────────────────────────────`);
       return new NextResponse("OK", { status: 200 });
     }
@@ -201,13 +201,13 @@ export async function handleTenantPaymentWebhook(
     console.log(`${LOG} ✅ ${orders.length} order(s) broadcast as PAID.`);
 
     await _recordAudit({ type: "SALE_CREATED", companyId, customerId: orders[0].customerId, transactionNsu, paymentStatus, saleId: newSale.id });
-    await PaymentEventService.markAsProcessed({ id: paymentId, companyId, provider: IntegrationProvider.MERCADOPAGO, eventType: "payment.approved", payload: body as any });
+    await PaymentEventService.markAsProcessed({ id: paymentId, companyId, provider: "MERCADOPAGO", eventType: "payment.approved", payload: body as any });
     console.log(`${LOG} ─────────────────────────────────────────`);
 
     return new NextResponse("OK", { status: 200 });
   } catch (error) {
     console.error(`${LOG} ❌ Unhandled error:`, error);
-    await PaymentEventService.markAsFailed({ id: paymentId, companyId, provider: IntegrationProvider.MERCADOPAGO, eventType: "payment.approved", payload: body as any });
+    await PaymentEventService.markAsFailed({ id: paymentId, companyId, provider: "MERCADOPAGO", eventType: "payment.approved", payload: body as any });
     throw error;
   }
 }

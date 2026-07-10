@@ -5,7 +5,6 @@
  * No business logic here — pure type definitions only.
  */
 
-import { IntegrationProvider } from "@prisma/client";
 
 // ─────────────────────────────────────────────
 // Webhook Payloads
@@ -101,7 +100,7 @@ export interface IPaymentGateway {
 export interface IPaymentEventRecord {
   id: string;
   companyId: string;
-  provider: IntegrationProvider;
+  provider: string;
   eventType: string;
   status: "processed" | "failed";
   payload: Record<string, unknown>;

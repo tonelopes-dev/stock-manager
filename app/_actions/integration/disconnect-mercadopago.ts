@@ -29,7 +29,8 @@ export const disconnectMercadoPagoAction = actionClient
       data: {
         mpMarketplaceToken: null,
         mpMarketplaceAccountId: null,
-        // Mantemos kipoMarketplaceFeeRate caso precise depois, ou podemos nullificar também.
+        mpMarketplacePublicKey: null,
+        mpCheckoutEnabled: false,
       },
     });
 

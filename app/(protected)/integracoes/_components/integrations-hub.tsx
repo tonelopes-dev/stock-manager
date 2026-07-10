@@ -1,14 +1,9 @@
 "use client";
 
-import { CompanyIntegrationDto } from "@/app/_data-access/integration/types";
-import { IntegrationProvider } from "@prisma/client";
 import { IntegrationCard } from "./integration-card";
-import { MercadoPagoConfigSheet } from "./mercadopago-config-sheet";
-import { useState } from "react";
-import { CreditCard, MessageSquare, Utensils, SmartphoneNfc } from "lucide-react";
+import { CreditCard } from "lucide-react";
 
 interface IntegrationsHubProps {
-  initialIntegrations: CompanyIntegrationDto[];
   companyId: string;
   companySlug: string;
   mpMarketplaceToken: string | null;
@@ -18,9 +13,9 @@ interface IntegrationsHubProps {
 // Configuração estática dos provedores suportados no sistema
 const SUPPORTED_PROVIDERS = [
   {
-    provider: "MERCADOPAGO" as IntegrationProvider,
+    provider: "MERCADOPAGO",
     name: "Mercado Pago Checkout",
-    description: "Receba pagamentos das suas comandas de forma ágil e segura através do Checkout Pro do Mercado Pago.",
+    description: "Receba pagamentos das suas comandas de forma ágil e segura através do Checkout Transparente do Mercado Pago.",
     logoUrl: "/logos/mercado-pago-logo-png_seeklogo-653482.png",
     color: "bg-white",
     textColor: "text-blue-500",
@@ -28,7 +23,7 @@ const SUPPORTED_PROVIDERS = [
     isComingSoon: false,
   },
   {
-    provider: IntegrationProvider.IFOOD,
+    provider: "IFOOD",
     name: "iFood (Em Breve)",
     description: "Sincronize seu cardápio, receba e gerencie pedidos do iFood direto no KDS do KIPO.",
     logoUrl: "/logos/logo-ifood-smile-512x512.png",
@@ -38,7 +33,7 @@ const SUPPORTED_PROVIDERS = [
     isComingSoon: true,
   },
   {
-    provider: IntegrationProvider.WHATSAPP_BUSINESS,
+    provider: "WHATSAPP_BUSINESS",
     name: "WhatsApp Business (Em Breve)",
     description: "Notifique clientes sobre o status dos pedidos e envie campanhas de marketing automaticamente.",
     logoUrl: "/logos/WhatsApp_Business_icon.png",
@@ -49,44 +44,19 @@ const SUPPORTED_PROVIDERS = [
   },
 ];
 
-export function IntegrationsHub({ initialIntegrations, companyId, companySlug, mpMarketplaceToken, mpCheckoutEnabled }: IntegrationsHubProps) {
-  const [selectedProvider, setSelectedProvider] = useState<IntegrationProvider | null>(null);
-
-  const handleConfigure = (provider: IntegrationProvider) => {
-    setSelectedProvider(provider);
-  };
-
+export function IntegrationsHub({ companyId, companySlug, mpMarketplaceToken, mpCheckoutEnabled }: IntegrationsHubProps) {
   return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {SUPPORTED_PROVIDERS.map((config) => {
-          // Busca se o usuário já tem essa integração configurada no banco
-          const activeIntegration = initialIntegrations.find(
-            (i) => i.provider === config.provider
-          );
-
-          return (
-            <IntegrationCard
-              key={config.provider}
-              config={config as any} // workaround para tipagem do MERCADOPAGO se prisma não estiver atualizado localmente
-              integration={activeIntegration}
-              companyId={companyId}
-              companySlug={companySlug}
-              mpMarketplaceToken={config.provider === "MERCADOPAGO" ? mpMarketplaceToken : null}
-              mpCheckoutEnabled={config.provider === "MERCADOPAGO" ? mpCheckoutEnabled : false}
-              onConfigure={() => handleConfigure(config.provider as IntegrationProvider)}
-            />
-          );
-        })}
-      </div>
-
-      {/* Sheets de Configuração Específicas */}
-      <MercadoPagoConfigSheet
-        open={selectedProvider === "MERCADOPAGO"}
-        onOpenChange={(open) => !open && setSelectedProvider(null)}
-        companyId={companyId}
-        integration={initialIntegrations.find((i) => i.provider === "MERCADOPAGO")}
-      />
-    </>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {SUPPORTED_PROVIDERS.map((config) => (
+        <IntegrationCard
+          key={config.provider}
+          config={config}
+          companyId={companyId}
+          companySlug={companySlug}
+          mpMarketplaceToken={config.provider === "MERCADOPAGO" ? mpMarketplaceToken : null}
+          mpCheckoutEnabled={config.provider === "MERCADOPAGO" ? mpCheckoutEnabled : false}
+        />
+      ))}
+    </div>
   );
 }

@@ -1,10 +1,9 @@
 import { Metadata } from "next";
 import { IntegrationsHub } from "./_components/integrations-hub";
-import { getCompanyIntegrations } from "@/app/_data-access/integration/get-company-integrations";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { assertRole } from "@/app/_lib/rbac";
 import { db } from "@/app/_lib/prisma";
-import { AlertCircle, Zap } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import {
   Alert,
   AlertDescription,
@@ -22,8 +21,6 @@ export default async function IntegrationsPage() {
 
   // Apenas donos e admins podem acessar esta página
   await assertRole(["OWNER", "ADMIN"]);
-
-  const integrations = await getCompanyIntegrations(companyId);
 
   const company = await db.company.findUnique({
     where: { id: companyId },
@@ -51,14 +48,12 @@ export default async function IntegrationsPage() {
         <AlertCircle className="h-4 w-4 stroke-current" />
         <AlertTitle>Como funcionam as integrações?</AlertTitle>
         <AlertDescription>
-          Ao ativar uma integração, o KIPO passa a se comunicar automaticamente
-          com a plataforma conectada. O Mercado Pago, por exemplo, permite que
-          seus clientes paguem a comanda direto no celular deles através do PIX ou Cartão.
+          Ao conectar o Mercado Pago via OAuth, o KIPO passa a se comunicar automaticamente
+          com a plataforma. Seus clientes poderão pagar a comanda direto no celular via PIX ou Cartão.
         </AlertDescription>
       </Alert>
 
       <IntegrationsHub
-        initialIntegrations={integrations}
         companyId={companyId}
         companySlug={company.slug}
         mpMarketplaceToken={company.mpMarketplaceToken}

@@ -270,7 +270,6 @@ model Company {
   requireSelfieOnCheckout Boolean            @default(false)
   enableServiceTax        Boolean            @default(true)
 
-  integrations           CompanyIntegration[]
 
   @@index([deletedAt])
 }
@@ -774,29 +773,6 @@ model PushSubscription {
   @@index([customerId, companyId])
 }
 
-model CompanyIntegration {
-  id          String              @id @default(cuid())
-  companyId   String
-  provider    IntegrationProvider
-  isEnabled   Boolean             @default(false)
-  
-  // Armazena credenciais e chaves específicas de cada integração em formato JSON
-  credentials Json
-  
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-  
-  company     Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
-  @@unique([companyId, provider])
-  @@index([companyId])
-}
-
-enum IntegrationProvider {
-  IFOOD
-  WHATSAPP_BUSINESS
-  MERCADOPAGO
-}
 
 enum PaymentIntentStatus {
   PENDING
@@ -813,7 +789,7 @@ model PaymentIntent {
   orderIds    String[]            // All order IDs included in this checkout session
   amount      Decimal             @db.Decimal(10, 2)
   status      PaymentIntentStatus @default(PENDING)
-  provider    IntegrationProvider
+  provider    String              // e.g. 'MERCADOPAGO'
   externalId  String?             // The ID returned by the payment provider (e.g. MP preference ID)
   checkoutUrl String?             // The redirect URL for Checkout Pro (to be removed after Bricks migration)
   createdAt   DateTime            @default(now())
@@ -827,7 +803,7 @@ model PaymentIntent {
 model PaymentEvent {
   id          String   @id // The provider's own event/payment ID (e.g. MP payment ID)
   companyId   String
-  provider    IntegrationProvider
+  provider    String   // e.g. 'MERCADOPAGO'
   eventType   String   // e.g. 'payment.approved', 'payment.rejected'
   status      String   // 'processed' | 'failed'
   payload     Json     // Raw body from the webhook for auditing

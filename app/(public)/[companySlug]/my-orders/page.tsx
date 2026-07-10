@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { getMenuDataBySlug } from "@/app/_data-access/menu/get-menu-data";
 import { MyOrdersClient } from "./_components/my-orders-client";
-import { IntegrationProvider } from "@prisma/client";
 import { db } from "@/app/_lib/prisma";
 
 interface MyOrdersPageProps {
@@ -26,7 +25,7 @@ export default async function MyOrdersPage({ params }: MyOrdersPageProps) {
   });
 
   const paymentGatewayConfig = (company?.mpMarketplaceToken && company?.mpCheckoutEnabled) 
-    ? { provider: "MERCADOPAGO" as IntegrationProvider, publicKey: company.mpMarketplacePublicKey || undefined } 
+    ? { provider: "MERCADOPAGO", publicKey: company.mpMarketplacePublicKey || undefined } 
     : null;
 
   return (
