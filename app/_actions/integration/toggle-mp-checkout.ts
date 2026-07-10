@@ -3,9 +3,14 @@
 import { actionClient } from "@/app/_lib/safe-action";
 import { db } from "@/app/_lib/prisma";
 import { revalidatePath } from "next/cache";
-import { toggleMpCheckoutSchema } from "./schema";
+import { z } from "zod";
 import { assertRole } from "@/app/_lib/rbac";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+
+const toggleMpCheckoutSchema = z.object({
+  companyId: z.string().min(1),
+  isEnabled: z.boolean(),
+});
 
 export const toggleMpCheckoutAction = actionClient
   .schema(toggleMpCheckoutSchema)
