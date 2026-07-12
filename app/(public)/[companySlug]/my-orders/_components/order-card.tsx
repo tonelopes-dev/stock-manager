@@ -19,8 +19,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/app/_lib/utils";
 import { Button } from "@/app/_components/ui/button";
+
 import { useAction } from "next-safe-action/hooks";
-import { generateMercadoPagoCheckout } from "@/app/_actions/integration/generate-mercadopago-checkout";
 import { rateOrderAction } from "@/app/_actions/order/rate-order";
 import { toast } from "sonner";
 import { useCartStore } from "../../_store/use-cart-store";
@@ -128,11 +128,15 @@ export const OrderCard = ({
   companyId,
   companySlug,
   activePaymentProvider,
+  onPay,
+  isGeneratingPayment,
 }: {
   order: OrderStatusDto;
   companyId: string;
   companySlug: string;
   activePaymentProvider?: "MERCADOPAGO" | null;
+  onPay?: () => void;
+  isGeneratingPayment?: boolean;
 }) => {
   const router = useRouter();
   const currentStatus = statusConfig[order.status];
@@ -173,26 +177,11 @@ export const OrderCard = ({
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
 
 
-  const { execute: payNowMercadoPago, isExecuting: isExecutingMercadoPago } =
-    useAction(generateMercadoPagoCheckout, {
-      onSuccess: ({ data }) => {
-        if (data?.url) {
-          window.location.href = data.url;
-        }
-      },
-      onError: ({ error }) => {
-        toast.error(
-          error.serverError ||
-            "Não foi possível gerar o link de pagamento (Mercado Pago).",
-        );
-      },
-    });
-
-  const isGeneratingCheckout = isExecutingMercadoPago;
+  const isGeneratingCheckout = isGeneratingPayment ?? false;
 
   const handleIndividualPay = () => {
-    if (activePaymentProvider === "MERCADOPAGO") {
-      payNowMercadoPago({ orderIds: [order.id], companyId });
+    if (activePaymentProvider === "MERCADOPAGO" && onPay) {
+      onPay();
     } else {
       toast.error("Erro interno: não foi possível identificar o pedido.");
     }

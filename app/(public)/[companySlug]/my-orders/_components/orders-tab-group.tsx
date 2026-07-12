@@ -37,6 +37,7 @@ export function OrdersTabGroup({ orders, companyId, companySlug, paymentGatewayC
 
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [mercadoPagoPreferenceId, setMercadoPagoPreferenceId] = useState<string | null>(null);
+  const [checkoutAmount, setCheckoutAmount] = useState(0);
 
 
   const { execute: payNowMercadoPago, isExecuting: isGeneratingMercadoPago } = useAction(generateMercadoPagoCheckout, {
@@ -61,8 +62,16 @@ export function OrdersTabGroup({ orders, companyId, companySlug, paymentGatewayC
     const activeOrderIds = groupedOrders.active.map(o => o.id);
     if (activeOrderIds.length > 0) {
       if (paymentGatewayConfig?.provider === "MERCADOPAGO") {
+        setCheckoutAmount(activeOrdersTotal);
         payNowMercadoPago({ orderIds: activeOrderIds, companyId });
       }
+    }
+  };
+
+  const handlePayIndividual = (order: OrderStatusDto) => {
+    if (paymentGatewayConfig?.provider === "MERCADOPAGO") {
+      setCheckoutAmount(Number(order.totalAmount));
+      payNowMercadoPago({ orderIds: [order.id], companyId });
     }
   };
 
@@ -180,7 +189,15 @@ export function OrdersTabGroup({ orders, companyId, companySlug, paymentGatewayC
           </p>
         ) : (
           groupedOrders.pendingPayment.map((order) => (
-            <OrderCard key={order.id} order={order} companyId={companyId} companySlug={companySlug} activePaymentProvider={paymentGatewayConfig?.provider as any} />
+            <OrderCard 
+              key={order.id} 
+              order={order} 
+              companyId={companyId} 
+              companySlug={companySlug} 
+              activePaymentProvider={paymentGatewayConfig?.provider as any}
+              onPay={() => handlePayIndividual(order)}
+              isGeneratingPayment={isGeneratingMercadoPago}
+            />
           ))
         )}
       </TabsContent>
@@ -204,7 +221,7 @@ export function OrdersTabGroup({ orders, companyId, companySlug, paymentGatewayC
           companyId={companyId}
           preferenceId={mercadoPagoPreferenceId}
           publicKey={paymentGatewayConfig.publicKey}
-          amount={activeOrdersTotal}
+        amount={checkoutAmount}
           onPaymentSuccess={(paymentId, status) => {
             if (status === "pending" || status === "in_process") {
               // Se for PIX ou boleto, deixamos o modal aberto com o StatusScreen
