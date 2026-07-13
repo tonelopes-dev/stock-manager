@@ -33,7 +33,12 @@ export async function handleTenantPaymentWebhook(
     return new NextResponse("OK", { status: 200 });
   }
 
-  const paymentId = body.data?.id ?? body.id;
+  let resourceId = body.resource;
+  if (typeof resourceId === 'string' && resourceId.includes('/')) {
+    resourceId = resourceId.split('/').pop();
+  }
+  
+  const paymentId = body.data?.id ?? body.id ?? resourceId;
   console.log(`${LOG} ─────────────────────────────────────────`);
   console.log(`${LOG} Received payment event. paymentId=${paymentId} companyId=${companyId}`);
 

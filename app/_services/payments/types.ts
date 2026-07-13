@@ -14,6 +14,7 @@ export interface IMercadoPagoWebhookBody {
   type?: string;
   topic?: string;
   id?: string;
+  resource?: string;
   data?: {
     id?: string;
   };
