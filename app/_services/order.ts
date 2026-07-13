@@ -7,6 +7,49 @@ import { AuditService } from "./audit";
 import { nowBRT } from "@/app/_utils/date";
 import { broadcastEvent } from "@/app/_lib/broadcast";
 
+/**
+ * Input for converting one or more Orders into a Sale.
+ * Replaces the old 12-positional-parameter signature for type safety.
+ */
+export interface ConvertToSaleInput {
+  orderIds: string[];
+  companyId: string;
+  userId: string | null;
+  paymentMethod: PaymentMethod | null;
+  tipAmount?: number;
+  discountAmount?: number;
+  extraAmount?: number;
+  adjustmentReason?: string;
+  isEmployeeSale?: boolean;
+  status?: SaleStatus;
+  dueDate?: Date | null;
+  customerId?: string | null;
+  // ── Split / Take Rate (future-ready, not persisted yet) ──
+  platformFeeRate?: number;
+  platformFeeAmount?: number;
+  netAmount?: number;
+  externalPaymentId?: string;
+  paymentProvider?: string;
+}
+
+/**
+ * Input for converting specific OrderItems into a Sale (partial payment).
+ */
+export interface ConvertItemsToSaleInput {
+  itemIds: string[];
+  companyId: string;
+  userId: string | null;
+  paymentMethod: PaymentMethod | null;
+  tipAmount?: number;
+  discountAmount?: number;
+  extraAmount?: number;
+  adjustmentReason?: string;
+  isEmployeeSale?: boolean;
+  status?: SaleStatus;
+  dueDate?: Date | null;
+  customerId?: string | null;
+}
+
 interface CreateOrderParams {
   companyId: string;
   customerId?: string;
@@ -248,7 +291,14 @@ export const OrderService = {
     }
   },
 
-  async convertToSale(orderIds: string[], companyId: string, userId: string | null, paymentMethod: PaymentMethod | null, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false, status?: SaleStatus, dueDate?: Date | null, customerId?: string | null) {
+  async convertToSale(input: ConvertToSaleInput) {
+    const {
+      orderIds, companyId, userId, paymentMethod,
+      tipAmount = 0, discountAmount = 0, extraAmount = 0,
+      adjustmentReason, isEmployeeSale = false, status, dueDate: dueDateInput, customerId,
+      platformFeeRate, platformFeeAmount, netAmount, externalPaymentId, paymentProvider,
+    } = input;
+    let dueDate = dueDateInput ?? null;
     try {
       // 1. Idempotency check: if any order is already linked to a Sale via the new 1:N relation, return it
       const existingSaleViaNewRelation = await db.order.findFirst({
@@ -333,6 +383,11 @@ export const OrderService = {
             createdAt: new Date(),
             updatedAt: new Date(),
             status: status || "ACTIVE",
+            platformFeeRate,
+            platformFeeAmount,
+            netAmount,
+            externalPaymentId,
+            paymentProvider,
             // Connect all orders to this sale via the 1:N relation
             orders: {
               connect: orderIds.map((id) => ({ id })),
@@ -417,7 +472,13 @@ export const OrderService = {
     }
   },
 
-  async convertItemsToSale(itemIds: string[], companyId: string, userId: string | null, paymentMethod: PaymentMethod | null, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false, status?: SaleStatus, dueDate?: Date | null, customerId?: string | null) {
+  async convertItemsToSale(input: ConvertItemsToSaleInput) {
+    const {
+      itemIds, companyId, userId, paymentMethod,
+      tipAmount = 0, discountAmount = 0, extraAmount = 0,
+      adjustmentReason, isEmployeeSale = false, status, customerId,
+    } = input;
+    let dueDate = input.dueDate ?? null;
     try {
       const { sale } = await db.$transaction(async (trx) => {
         const items = await trx.orderItem.findMany({
