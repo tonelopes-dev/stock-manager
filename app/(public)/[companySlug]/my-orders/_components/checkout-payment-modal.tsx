@@ -46,9 +46,9 @@ export function CheckoutPaymentModal({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[95vh] sm:h-[85vh] rounded-t-3xl p-0 sm:max-w-[500px] sm:mx-auto">
-        <SheetHeader className="p-6 pb-2 text-left bg-emerald-500/10 rounded-t-3xl">
-          <SheetTitle className="text-2xl font-black">Pagamento</SheetTitle>
+      <SheetContent side="bottom" className="h-[95dvh] sm:h-[85dvh] rounded-t-3xl p-0 sm:max-w-[500px] sm:mx-auto flex flex-col">
+        <SheetHeader className="p-6 pb-4 text-left bg-emerald-500/10 rounded-t-3xl shrink-0 relative">
+          <SheetTitle className="text-2xl font-black pr-8">Pagamento</SheetTitle>
           <SheetDescription className="text-gray-600 font-medium">
             Escolha como prefere pagar sua comanda de{" "}
             <span className="font-bold text-gray-900">
@@ -57,7 +57,7 @@ export function CheckoutPaymentModal({
           </SheetDescription>
         </SheetHeader>
         
-        <div className="p-6 overflow-y-auto h-[calc(100%-120px)] hide-scrollbar">
+        <div className="p-6 overflow-y-auto flex-1 hide-scrollbar">
           {!completedPaymentId ? (
             <MercadoPagoBricksForm
               publicKey={publicKey}
