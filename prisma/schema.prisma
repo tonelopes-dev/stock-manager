@@ -96,6 +96,14 @@ model Sale {
   totalCost      Decimal         @default(0) @db.Decimal(10, 2)
   customerId     String?
   paymentMethod  PaymentMethod?
+  
+  // ── Split / Take Rate ──
+  platformFeeRate    Decimal?  @db.Decimal(5, 4)
+  platformFeeAmount  Decimal?  @db.Decimal(10, 2)
+  netAmount          Decimal?  @db.Decimal(10, 2)
+  paymentProvider    String?
+  externalPaymentId  String?
+
   company        Company         @relation(fields: [companyId], references: [id])
   customer       Customer?       @relation(fields: [customerId], references: [id])
   orders         Order[]         @relation("SaleOrders") // New 1:N relation
