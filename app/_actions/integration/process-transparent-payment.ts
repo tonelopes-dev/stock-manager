@@ -121,11 +121,15 @@ export const processTransparentPayment = actionClient
         throw new Error("Valor de pagamento inconsistente. Por favor, recarregue a página e tente novamente.");
       }
 
+      let appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      appUrl = appUrl.replace(/['"]/g, '').replace(/\/$/, '').trim();
+
       const finalPayload = {
         ...innerFormData,
         // Usamos o transaction_amount do Bricks (vinculado ao token do cartão)
         external_reference: paymentIntent.id,
         description: "Pagamento de comanda",
+        notification_url: `${appUrl}/api/webhooks/mercadopago?companyId=${companyId}`,
       } as Record<string, unknown>;
 
       // A API Node do MercadoPago v2 espera que o issuer_id seja um Number,
