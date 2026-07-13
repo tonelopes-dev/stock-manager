@@ -4,7 +4,7 @@ import { AuditEventType } from "@prisma/client";
 import { db } from "@/app/_lib/prisma";
 import { broadcastEvent } from "@/app/_lib/broadcast";
 import { broadcastKdsEvent } from "@/app/_lib/kds-broadcast";
-import { OrderService } from "@/app/_services/order";
+import { PaymentCompletionService } from "@/app/_services/payments/payment-completion.service";
 import { MercadoPagoGateway } from "@/app/_services/payments/mercadopago-gateway";
 import { PaymentEventService } from "@/app/_services/payments/payment-event.service";
 import { IMercadoPagoWebhookBody } from "@/app/_services/payments/types";
@@ -52,7 +52,7 @@ export async function handleTenantPaymentWebhook(
   // 2. Fetch tenant integration credentials
   const company = await db.company.findUnique({
     where: { id: companyId },
-    select: { mpMarketplaceToken: true, mpCheckoutEnabled: true },
+    select: { mpMarketplaceToken: true, mpCheckoutEnabled: true, kipoMarketplaceFeeRate: true },
   });
   
   if (!company || !company.mpMarketplaceToken || !company.mpCheckoutEnabled) {
@@ -162,24 +162,30 @@ export async function handleTenantPaymentWebhook(
       return new NextResponse("OK", { status: 200 });
     }
 
-    // Calculate service tax (tip) per order
-    const tipAmount = orders.reduce((sum, order) => {
-      if (!order.hasServiceTax) return sum;
-      const subtotal = order.orderItems.reduce(
-        (s, item) => s + Number(item.unitPrice) * Number(item.quantity),
-        0
-      );
-      return sum + Math.round(subtotal * 0.1 * 100) / 100;
-    }, 0);
+    console.log(`${LOG} Delegating to PaymentCompletionService for ${orders.length} order(s)`);
 
-    console.log(`${LOG} Converting ${orders.length} order(s) to Sale. tipAmount=R$${tipAmount.toFixed(2)}`);
+    const platformFeeRate = Number(company.kipoMarketplaceFeeRate ?? 0.01);
+    const paymentAmount = Number(payment.transaction_amount || 0);
+    const platformFeeAmount = Math.round(paymentAmount * platformFeeRate * 100) / 100;
+    const netAmount = paymentAmount - platformFeeAmount;
 
-    const newSale = await OrderService.convertToSale(
-      orderIdsToProcess, companyId, null, "PIX",
-      tipAmount, 0, 0, undefined, false, "ACTIVE", null,
-      orders[0].customerId
-    );
-    console.log(`${LOG} ✅ Sale created: id=${newSale.id}`);
+    const newSale = await PaymentCompletionService.completeOnlinePayment({
+      orderIds: orderIdsToProcess,
+      companyId,
+      paymentMethod: "PIX",
+      customerId: orders[0].customerId,
+      orders: orders.map(o => ({
+        id: o.id,
+        customerId: o.customerId,
+        hasServiceTax: o.hasServiceTax,
+        orderItems: o.orderItems,
+      })),
+      platformFeeRate,
+      platformFeeAmount,
+      netAmount,
+      externalPaymentId: paymentId.toString(),
+      paymentProvider: "MERCADOPAGO",
+    });
 
     if (paymentIntent) {
       await db.paymentIntent.update({
@@ -188,17 +194,6 @@ export async function handleTenantPaymentWebhook(
       });
       console.log(`${LOG} ✅ PaymentIntent ${paymentIntent.id} marked as PAID.`);
     }
-
-    for (const order of orders) {
-      if (order.customerId) {
-        await broadcastEvent(`customer-${order.customerId}`, "order_status_update", {
-          orderId: order.id,
-          status: "PAID",
-        });
-      }
-      await broadcastKdsEvent(companyId, "update_order", { id: order.id, status: "PAID" });
-    }
-    console.log(`${LOG} ✅ ${orders.length} order(s) broadcast as PAID.`);
 
     await _recordAudit({ type: "SALE_CREATED", companyId, customerId: orders[0].customerId, transactionNsu, paymentStatus, saleId: newSale.id });
     await PaymentEventService.markAsProcessed({ id: paymentId, companyId, provider: "MERCADOPAGO", eventType: "payment.approved", payload: body as any });

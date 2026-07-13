@@ -5,9 +5,7 @@ import { z } from "zod";
 import { MercadoPagoGateway } from "@/app/_services/payments/mercadopago-gateway";
 
 import { db } from "@/app/_lib/prisma";
-import { OrderService } from "@/app/_services/order";
-import { broadcastEvent } from "@/app/_lib/broadcast";
-import { broadcastKdsEvent } from "@/app/_lib/kds-broadcast";
+import { PaymentCompletionService } from "@/app/_services/payments/payment-completion.service";
 
 const LOG = "[MP:Bricks]";
 
@@ -86,7 +84,7 @@ export const processTransparentPayment = actionClient
       // 1. Pega o Access Token do lojista
       const company = await db.company.findUnique({
         where: { id: companyId },
-        select: { mpMarketplaceToken: true, mpCheckoutEnabled: true },
+        select: { mpMarketplaceToken: true, mpCheckoutEnabled: true, kipoMarketplaceFeeRate: true },
       });
       if (!company || !company.mpMarketplaceToken || !company.mpCheckoutEnabled) {
         throw new Error("Integração do Mercado Pago não configurada para este estabelecimento.");
@@ -124,12 +122,17 @@ export const processTransparentPayment = actionClient
       let appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
       appUrl = appUrl.replace(/['"]/g, '').replace(/\/$/, '').trim();
 
+      const platformFeeRate = Number(company.kipoMarketplaceFeeRate ?? 0.01);
+      const platformFeeAmount = Math.round(bricksAmount * platformFeeRate * 100) / 100;
+      const netAmount = bricksAmount - platformFeeAmount;
+
       const finalPayload = {
         ...innerFormData,
         // Usamos o transaction_amount do Bricks (vinculado ao token do cartão)
         external_reference: paymentIntent.id,
         description: "Pagamento de comanda",
         notification_url: `${appUrl}/api/webhooks/mercadopago?companyId=${companyId}`,
+        application_fee: platformFeeAmount,
       } as Record<string, unknown>;
 
       // A API Node do MercadoPago v2 espera que o issuer_id seja um Number,
@@ -151,11 +154,8 @@ export const processTransparentPayment = actionClient
         throw new Error("Erro desconhecido ao processar pagamento.");
       }
 
-      // 4. Se aprovado na hora (cartão), converte a comanda instantaneamente!
-      // Não dependemos 100% do webhook para evitar que a UI fique presa se o webhook atrasar.
-      // O webhook é idempotente e ignorará caso chegue depois.
       if (paymentResponse.status === "approved" && paymentIntent.status !== "PAID") {
-        console.log(`${LOG} Payment approved — marking PaymentIntent ${paymentIntent.id} as PAID and converting orders`);
+        console.log(`${LOG} Payment approved — delegating to PaymentCompletionService`);
         
         await db.paymentIntent.update({
           where: { id: paymentIntent.id },
@@ -172,25 +172,24 @@ export const processTransparentPayment = actionClient
         });
 
         if (orders.length > 0 && orders[0].status !== "PAID") {
-          const tipAmount = orders.reduce((sum, order) => {
-            if (!order.hasServiceTax) return sum;
-            const subtotal = order.orderItems.reduce((s, item) => s + Number(item.unitPrice) * Number(item.quantity), 0);
-            return sum + Math.round(subtotal * 0.1 * 100) / 100;
-          }, 0);
-
-          await OrderService.convertToSale(
-            orderIdsToProcess, companyId, null, "CREDIT_CARD",
-            tipAmount, 0, 0, undefined, false, "ACTIVE", null,
-            orders[0].customerId
-          );
-
-          for (const order of orders) {
-            if (order.customerId) {
-              await broadcastEvent(`customer-${order.customerId}`, "order_status_update", { orderId: order.id, status: "PAID" });
-            }
-            await broadcastKdsEvent(companyId, "update_order", { id: order.id, status: "PAID" });
-          }
-          console.log(`${LOG} ✅ Orders converted to Sale synchronously.`);
+          await PaymentCompletionService.completeOnlinePayment({
+            orderIds: orderIdsToProcess,
+            companyId,
+            paymentMethod: "CREDIT_CARD",
+            customerId: orders[0].customerId,
+            orders: orders.map(o => ({
+              id: o.id,
+              customerId: o.customerId,
+              hasServiceTax: o.hasServiceTax,
+              orderItems: o.orderItems,
+            })),
+            platformFeeRate,
+            platformFeeAmount,
+            netAmount,
+            externalPaymentId: paymentResponse.id?.toString(),
+            paymentProvider: "MERCADOPAGO",
+          });
+          console.log(`${LOG} ✅ Orders converted to Sale via PaymentCompletionService.`);
         }
       } else if (paymentResponse.status === "pending" || paymentResponse.status === "in_process") {
         console.log(`${LOG} Payment pending/in_process — waiting for webhook to confirm.`);
