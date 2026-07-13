@@ -19,7 +19,7 @@ export const generateMercadoPagoCheckout = actionClient
     // 1. Verificar integração ativa
     const company = await db.company.findUnique({
       where: { id: companyId },
-      select: { slug: true, mpMarketplaceToken: true, mpCheckoutEnabled: true },
+      select: { slug: true, mpMarketplaceToken: true, mpCheckoutEnabled: true, kipoMarketplaceFeeRate: true },
     });
     
     if (!company) {
@@ -133,6 +133,10 @@ export const generateMercadoPagoCheckout = actionClient
       }
     });
 
+    const platformFeeRate = Number(company.kipoMarketplaceFeeRate ?? 0.01);
+    const platformFeeAmount = Math.round(paymentAmount * platformFeeRate * 100) / 100;
+    const netAmount = paymentAmount - platformFeeAmount;
+
     const preferenceResult = await createMercadoPagoPreference({
       accessToken: company.mpMarketplaceToken,
       items: [
@@ -152,6 +156,7 @@ export const generateMercadoPagoCheckout = actionClient
          failure: returnUrl,
       },
       payer: customerData,
+      marketplace_fee: platformFeeAmount,
     });
 
     // 4. Atualizar o PaymentIntent com o ID da preference para que a tela de pagamento consiga encontrá-lo

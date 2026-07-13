@@ -21,6 +21,7 @@ interface MercadoPagoCheckoutParams {
       number?: string;
     };
   };
+  marketplace_fee?: number;
 }
 
 export async function createMercadoPagoPreference(params: MercadoPagoCheckoutParams): Promise<{ url: string; id: string }> {
@@ -42,6 +43,9 @@ export async function createMercadoPagoPreference(params: MercadoPagoCheckoutPar
   
   if (params.payer) {
     body.payer = params.payer;
+  }
+  if (params.marketplace_fee !== undefined) {
+    body.marketplace_fee = params.marketplace_fee;
   }
 
   try {
