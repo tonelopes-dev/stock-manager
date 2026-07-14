@@ -6,10 +6,11 @@ import { XCircleIcon, ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 
 interface PageProps {
-  searchParams: { token?: string };
+  searchParams: Promise<{ token?: string }>;
 }
 
-export default async function AcceptInvitePage({ searchParams }: PageProps) {
+export default async function AcceptInvitePage(props: PageProps) {
+  const searchParams = await props.searchParams;
   const token = searchParams.token;
 
   if (!token) {
