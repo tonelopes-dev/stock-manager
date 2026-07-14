@@ -21,8 +21,13 @@ import Link from "next/link";
 import { DangerZone } from "./_components/danger-zone";
 import { UserRole } from "@prisma/client";
 import { ActivityTimeline } from "@/app/_components/activity-timeline";
+import { assertPageCapability } from "@/app/_lib/rbac";
+import { PERMISSIONS } from "@/app/_lib/permissions";
 
 export default async function CompanySettingsPage() {
+  // Guard: OWNER bypass | MEMBER/ADMIN precisa de COMPANY_SETTINGS_VIEW
+  await assertPageCapability(PERMISSIONS.COMPANY_SETTINGS_VIEW);
+
   const companyId = await getCurrentCompanyId();
 
   const company = await db.company.findUnique({

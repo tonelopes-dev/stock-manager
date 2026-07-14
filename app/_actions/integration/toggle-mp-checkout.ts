@@ -4,7 +4,8 @@ import { actionClient } from "@/app/_lib/safe-action";
 import { db } from "@/app/_lib/prisma";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { assertRole } from "@/app/_lib/rbac";
+import { assertActionCapability } from "@/app/_lib/rbac";
+import { PERMISSIONS } from "@/app/_lib/permissions";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
 const toggleMpCheckoutSchema = z.object({
@@ -15,8 +16,8 @@ const toggleMpCheckoutSchema = z.object({
 export const toggleMpCheckoutAction = actionClient
   .schema(toggleMpCheckoutSchema)
   .action(async ({ parsedInput: { companyId, isEnabled } }) => {
-    // Apenas admins podem configurar pagamentos
-    await assertRole(["OWNER", "ADMIN"]);
+    // Guard: OWNER bypass | requer INTEGRATIONS_MANAGE
+    await assertActionCapability(PERMISSIONS.INTEGRATIONS_MANAGE);
 
     const currentCompanyId = await getCurrentCompanyId();
     if (currentCompanyId !== companyId) {

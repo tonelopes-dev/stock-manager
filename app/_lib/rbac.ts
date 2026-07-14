@@ -2,6 +2,7 @@ import { auth } from "./auth";
 import { db } from "./prisma";
 import { UserRole } from "@prisma/client";
 import { getCurrentCompanyId } from "./get-current-company";
+import { redirect } from "next/navigation";
 
 /**
  * Retorna o papel e as permissões do usuário logado na empresa atual.
@@ -55,6 +56,9 @@ export async function assertRole(allowedRoles: UserRole[]) {
 /**
  * Garante que o usuário tem uma permissão específica (Capability).
  * Se o usuário for OWNER, ele tem permissão total automaticamente.
+ *
+ * ⚠️  Uso: em Server Actions — lança erro capturado pelo handleServerError
+ *           do safe-action e retornado como { serverError } para o cliente.
  */
 export async function assertCapability(permission: string) {
   const authData = await getCurrentUserAuth();
@@ -63,21 +67,62 @@ export async function assertCapability(permission: string) {
     throw new Error("Não autenticado.");
   }
 
-  // 1. Superuser Check (OWNER pode tudo)
+  // OWNER tem bypass total
   if (authData.role === UserRole.OWNER) {
     return authData;
   }
 
-  // 2. Granular Check
+  // Verificação granular
   if (!authData.permissions.includes(permission)) {
-    throw new Error("Ação não permitida: nível de permissão insuficiente.");
+    console.warn(`[RBAC] Unauthorized action attempt: permission="${permission}" userId="${authData.userId}"`);
+    throw new Error("Acesso negado: você não tem permissão para realizar esta ação.");
   }
 
   return authData;
 }
+
+/**
+ * Alias semântico de assertCapability para uso explícito em Server Actions.
+ *
+ * Mesma implementação — o nome diferente serve como sinal de leitura:
+ * - assertActionCapability → dentro de Server Actions
+ * - assertPageCapability   → dentro de Server Component pages/layouts (usa redirect)
+ *
+ * Em caso de acesso negado: lança Error → capturado pelo safe-action como serverError.
+ * NÃO faz redirect (comportamento correto para actions: o cliente trata o erro).
+ */
+export const assertActionCapability = assertCapability;
 
 // Helpers rápidos para legibilidade
 export const OWNER_ONLY = [UserRole.OWNER];
 export const ADMIN_AND_OWNER = [UserRole.OWNER, UserRole.ADMIN];
 export const ALL_ROLES = [UserRole.OWNER, UserRole.ADMIN, UserRole.MEMBER];
 
+/**
+ * Variante de assertCapability para uso em Server Component pages/layouts.
+ * Em vez de lançar um erro (que causaria um ErrorBoundary), faz redirect
+ * para /nao-autorizado quando a permissão é negada.
+ *
+ * OWNER sempre passa — sem consulta adicional ao banco.
+ *
+ * @param permission - A capability exigida (ex: PERMISSIONS.BILLING_VIEW)
+ */
+export async function assertPageCapability(permission: string) {
+  const authData = await getCurrentUserAuth();
+
+  if (!authData) {
+    redirect("/login");
+  }
+
+  // OWNER tem acesso total — bypass imediato
+  if (authData.role === UserRole.OWNER) {
+    return authData;
+  }
+
+  // Verifica permissão granular
+  if (!authData.permissions.includes(permission)) {
+    redirect("/nao-autorizado");
+  }
+
+  return authData;
+}

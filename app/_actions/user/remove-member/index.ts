@@ -5,7 +5,8 @@ import { revalidatePath } from "next/cache";
 import { actionClient } from "@/app/_lib/safe-action";
 import { z } from "zod";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { assertRole, ADMIN_AND_OWNER } from "@/app/_lib/rbac";
+import { assertActionCapability } from "@/app/_lib/rbac";
+import { PERMISSIONS } from "@/app/_lib/permissions";
 import { UserRole, AuditEventType, AuditSeverity } from "@prisma/client";
 import { AuditService } from "@/app/_services/audit";
 
@@ -19,7 +20,8 @@ export const removeMember = actionClient
   .schema(removeMemberSchema)
   .action(async ({ parsedInput: { userCompanyId } }) => {
     const companyId = await getCurrentCompanyId();
-    const { role: requesterRole } = await assertRole(ADMIN_AND_OWNER);
+    // Guard: OWNER bypass | requer TEAM_MANAGE
+    const { role: requesterRole } = await assertActionCapability(PERMISSIONS.TEAM_MANAGE);
 
     const memberToDelete = await db.userCompany.findUnique({
       where: { id: userCompanyId, companyId },

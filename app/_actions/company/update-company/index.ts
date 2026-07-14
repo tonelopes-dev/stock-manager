@@ -5,7 +5,8 @@ import { revalidatePath } from "next/cache";
 import { updateCompanySchema } from "./schema";
 import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { assertRole, OWNER_ONLY } from "@/app/_lib/rbac";
+import { assertActionCapability } from "@/app/_lib/rbac";
+import { PERMISSIONS } from "@/app/_lib/permissions";
 import { deleteOldImage } from "@/app/_lib/storage";
 
 export const updateCompany = actionClient
@@ -27,8 +28,8 @@ export const updateCompany = actionClient
   } }) => {
     const companyId = await getCurrentCompanyId();
     
-    // Layer 2: Action Guard
-    await assertRole(OWNER_ONLY);
+    // Guard: OWNER bypass | requer COMPANY_SETTINGS_UPDATE
+    await assertActionCapability(PERMISSIONS.COMPANY_SETTINGS_UPDATE);
 
     // Fetch current urls for cleanup
     const currentCompany = await db.company.findUnique({

@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  BeakerIcon,
   CreditCardIcon,
   LayoutGridIcon,
   PackageIcon,
@@ -16,16 +15,17 @@ import {
   Utensils,
   Boxes,
   Monitor,
-  HousePlugIcon,
   PlugIcon,
 } from "lucide-react";
 import SidebarButton from "./sidebar-button";
 import LogoutButton from "./logout-button";
 import { useAppMode } from "@/app/_providers/app-mode-provider";
+import { hasCapability, PERMISSIONS } from "@/app/_lib/permissions";
+import { UserRole } from "@prisma/client";
 
 interface SidebarNavProps {
-  isOwner: boolean;
-  isAdminOrOwner: boolean;
+  role: UserRole;
+  permissions: string[];
 }
 
 const gestaoItems = [
@@ -45,10 +45,17 @@ const operacaoItems = [
   { href: "/cardapio", icon: Utensils, label: "Cardápio" },
 ];
 
-export const SidebarNav = ({ isOwner, isAdminOrOwner }: SidebarNavProps) => {
+export const SidebarNav = ({ role, permissions }: SidebarNavProps) => {
   const { mode } = useAppMode();
 
   const navItems = mode === "gestao" ? gestaoItems : operacaoItems;
+
+  // Resolução das capabilities (pura, sem I/O)
+  const canViewBilling = hasCapability(permissions, role, PERMISSIONS.BILLING_VIEW);
+  const canViewSettings = hasCapability(permissions, role, PERMISSIONS.SETTINGS_VIEW);
+  const canViewAudit = hasCapability(permissions, role, PERMISSIONS.AUDIT_VIEW);
+  const canManageTeam = hasCapability(permissions, role, PERMISSIONS.TEAM_MANAGE);
+  const canViewIntegrations = hasCapability(permissions, role, PERMISSIONS.INTEGRATIONS_VIEW);
 
   return (
     <div className="flex h-full flex-col">
@@ -70,8 +77,8 @@ export const SidebarNav = ({ isOwner, isAdminOrOwner }: SidebarNavProps) => {
 
       <div className="my-2 border-t border-border" />
 
-      {/* Settings (always visible) */}
-      {isAdminOrOwner && (
+      {/* Links sensíveis — gateados por hasCapability */}
+      {canManageTeam && (
         <SidebarButton href="/settings/team">
           <UsersIcon size={18} className="shrink-0" />
           <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
@@ -80,7 +87,7 @@ export const SidebarNav = ({ isOwner, isAdminOrOwner }: SidebarNavProps) => {
         </SidebarButton>
       )}
 
-      {isOwner && (
+      {canViewBilling && (
         <SidebarButton href="/plans">
           <CreditCardIcon size={18} className="shrink-0" />
           <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
@@ -89,7 +96,7 @@ export const SidebarNav = ({ isOwner, isAdminOrOwner }: SidebarNavProps) => {
         </SidebarButton>
       )}
 
-      {isAdminOrOwner && (
+      {canViewAudit && (
         <SidebarButton href="/audit">
           <HistoryIcon size={18} className="shrink-0" />
           <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
@@ -97,7 +104,8 @@ export const SidebarNav = ({ isOwner, isAdminOrOwner }: SidebarNavProps) => {
           </span>
         </SidebarButton>
       )}
-      {isAdminOrOwner && (
+
+      {canViewIntegrations && (
         <SidebarButton href="/integracoes">
           <PlugIcon size={18} className="shrink-0" />
           <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
@@ -105,7 +113,8 @@ export const SidebarNav = ({ isOwner, isAdminOrOwner }: SidebarNavProps) => {
           </span>
         </SidebarButton>
       )}
-      {isOwner && (
+
+      {canViewSettings && (
         <SidebarButton href="/settings/company">
           <SettingsIcon size={18} className="shrink-0" />
           <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">

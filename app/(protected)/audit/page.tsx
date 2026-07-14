@@ -12,9 +12,8 @@ import { Suspense } from "react";
 import { Skeleton } from "../../_components/ui/skeleton";
 import { getStockMovements } from "@/app/_data-access/stock-movement/get-stock-movements";
 import { stockMovementTableColumns } from "./_components/table-columns";
-import { getCurrentUserRole } from "@/app/_lib/rbac";
-import { UserRole } from "@prisma/client";
-import { redirect } from "next/navigation";
+import { assertPageCapability } from "@/app/_lib/rbac";
+import { PERMISSIONS } from "@/app/_lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -27,11 +26,8 @@ interface AuditPageProps {
 
 const AuditPage = async ({ searchParams }: AuditPageProps) => {
   const resolvedSearchParams = await searchParams;
-  // 1. Role Guard - Enterprise Style (Server Side)
-  const role = await getCurrentUserRole();
-  if (!role || (role !== UserRole.OWNER && role !== UserRole.ADMIN)) {
-    redirect("/dashboard");
-  }
+  // Guard: OWNER bypass | MEMBER/ADMIN precisa de AUDIT_VIEW
+  await assertPageCapability(PERMISSIONS.AUDIT_VIEW);
 
   const page = Number(resolvedSearchParams.page) || 1;
   const pageSize = Number(resolvedSearchParams.pageSize) || 10;
