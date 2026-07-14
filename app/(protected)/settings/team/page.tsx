@@ -12,6 +12,7 @@ import MemberFormModal from "./_components/member-form-modal";
 import { assertPageCapability } from "@/app/_lib/rbac";
 import { auth } from "@/app/_lib/auth";
 import { UserRole } from "@prisma/client";
+import { PendingInviteActions } from "./_components/pending-invite-actions";
 import { MemberCardActions } from "./_components/member-card-actions";
 import { ActivityTimeline } from "@/app/_components/activity-timeline";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
@@ -120,13 +121,16 @@ export default async function TeamPage() {
                                     <div className="space-y-1">
                                         <p className="text-sm font-bold text-foreground">{invite.email}</p>
                                         <div className="flex items-center gap-2">
-                                            <Badge variant="outline" className="text-[9px] h-3.5 bg-background">{invite.role}</Badge>
+                                            <Badge variant="outline" className="text-[9px] h-3.5 bg-background uppercase font-bold">
+                                                {invite.role === UserRole.OWNER ? "Proprietário" : invite.role === UserRole.ADMIN ? "Administrador" : "Colaborador"}
+                                            </Badge>
                                             <span className="flex items-center gap-1 text-[10px] text-orange-500 font-bold uppercase tracking-tight">
                                                 <ClockIcon size={10} />
                                                 Pendente
                                             </span>
                                         </div>
                                     </div>
+                                    <PendingInviteActions inviteId={invite.id} token={invite.token} email={invite.email} />
                                 </CardContent>
                             </Card>
                         ))}
@@ -138,12 +142,12 @@ export default async function TeamPage() {
             <div className="rounded-2xl border border-primary/10 bg-primary/5 p-6 space-y-3">
                 <div className="flex items-center gap-2 text-primary">
                     <ShieldCheckIcon size={18} />
-                    <span className="text-sm font-bold">Segurança & Roles</span>
+                    <span className="text-sm font-bold">Níveis de Acesso</span>
                 </div>
                 <div className="text-[11px] text-muted-foreground leading-relaxed space-y-2">
-                    <p><strong className="text-primary font-black uppercase tracking-tighter">Owner:</strong> Controle total. Empresa e Faturamento.</p>
-                    <p><strong className="text-foreground font-black uppercase tracking-tighter">Admin:</strong> Gestão de equipe, produtos e vendas.</p>
-                    <p><strong className="text-muted-foreground font-black uppercase tracking-tighter">Membro:</strong> Operação de vendas e consulta de estoque.</p>
+                    <p><strong className="text-primary font-black uppercase tracking-tighter">Proprietário:</strong> Controle total. Empresa e Faturamento.</p>
+                    <p><strong className="text-foreground font-black uppercase tracking-tighter">Administrador:</strong> Gestão de equipe, produtos e vendas.</p>
+                    <p><strong className="text-muted-foreground font-black uppercase tracking-tighter">Colaborador:</strong> Operação de vendas e consulta de estoque.</p>
                 </div>
             </div>
 
