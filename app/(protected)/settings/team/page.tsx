@@ -64,9 +64,9 @@ export default async function TeamPage() {
                                 <p className="font-bold text-foreground truncate">{member.name}</p>
                                 <Badge 
                                     variant={member.role === UserRole.OWNER ? "default" : "secondary"}
-                                    className="text-[9px] h-4 px-1 leading-none font-bold"
+                                    className="text-[9px] h-4 px-1.5 leading-none font-bold uppercase"
                                 >
-                                    {member.role}
+                                    {member.role === UserRole.OWNER ? "Proprietário" : member.role === UserRole.ADMIN ? "Administrador" : "Colaborador"}
                                 </Badge>
                                 {member.userId === requesterId && (
                                    <Badge variant="outline" className="text-[9px] h-4 px-1 border-primary text-primary font-black uppercase">Você</Badge>

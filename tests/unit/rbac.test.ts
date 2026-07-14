@@ -115,7 +115,7 @@ describe("RBAC and Permissions - Unit Tests", () => {
     });
     
     it("should throw an Error when not authenticated (no session)", async () => {
-      vi.mocked(auth).mockResolvedValue(null);
+      vi.mocked(auth).mockResolvedValue(null as any);
       vi.mocked(getCurrentCompanyId).mockResolvedValue("comp-123");
       
       await expect(
