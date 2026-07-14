@@ -16,7 +16,7 @@ export const deleteInvitation = actionClient
   .schema(deleteInviteSchema)
   .action(async ({ parsedInput: { id } }) => {
     const companyId = await getCurrentCompanyId();
-    await assertActionCapability(PERMISSIONS.TEAM_SETTINGS_UPDATE);
+    await assertActionCapability(PERMISSIONS.TEAM_MANAGE);
 
     if (!companyId) {
       throw new Error("Não autorizado.");
