@@ -59,8 +59,8 @@ export const getDashboardAnalytics = async (
     };
 
     if (range === "custom" && customFrom && customTo) {
-        startOfCurrentDate = startOfDay(parseLocalDay(customFrom));
-        endOfCurrentDate = startOfDay(addDays(parseLocalDay(customTo), 1)); // Start of next day
+        startOfCurrentDate = new Date(customFrom + "T00:00:00.000Z");
+        endOfCurrentDate = new Date(customTo + "T23:59:59.999Z");
         daysCount = Math.ceil((endOfCurrentDate.getTime() - startOfCurrentDate.getTime()) / (1000 * 60 * 60 * 24));
     } else {
         endOfCurrentDate = startOfDay(addDays(now, 1)); // Start of tomorrow

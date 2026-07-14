@@ -36,13 +36,13 @@ export function QuickEnvironmentDialog({ open, onOpenChange }: QuickEnvironmentD
       if (result?.validationErrors || result?.serverError) {
         toast.error(result?.serverError || "Erro de validação");
       } else {
-        toast.success("Ambiente criado com sucesso!");
+        toast.success("Praça criada com sucesso!");
         setName("");
         onOpenChange(false);
         router.refresh();
       }
     } catch (error) {
-      toast.error("Erro ao criar ambiente");
+      toast.error("Erro ao criar praça");
     } finally {
       setIsPending(false);
     }
@@ -52,17 +52,17 @@ export function QuickEnvironmentDialog({ open, onOpenChange }: QuickEnvironmentD
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Novo Ambiente</DialogTitle>
+          <DialogTitle>Nova Praça</DialogTitle>
           <DialogDescription>
-            Crie um novo ambiente para organizar seus produtos.
+            Crie uma nova praça de produção (Ex: Cozinha Fria, Bar, Churrasqueira).
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="name">Nome do Ambiente</Label>
+            <Label htmlFor="name">Nome da Praça</Label>
             <Input
               id="name"
-              placeholder="Ex: Coworking, Bar, Bistrô..."
+              placeholder="Ex: Bar, Cozinha Quente..."
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={isPending}

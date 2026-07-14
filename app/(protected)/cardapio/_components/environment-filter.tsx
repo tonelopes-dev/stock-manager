@@ -50,11 +50,11 @@ export const EnvironmentFilter = ({ environments }: EnvironmentFilterProps) => {
       <SelectTrigger className="h-11 gap-2 bg-background shadow-sm border-none min-w-[180px] justify-between">
         <div className="flex items-center gap-2">
             <LayoutGridIcon className="w-4 h-4 text-muted-foreground" />
-            <SelectValue placeholder="Todos Ambientes" />
+            <SelectValue placeholder="Todas as Praças" />
         </div>
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="all">Todos Ambientes</SelectItem>
+        <SelectItem value="all">Todas as Praças</SelectItem>
         {environments.map((env) => (
           <SelectItem key={env.id} value={env.id}>
             {env.name}
@@ -67,7 +67,7 @@ export const EnvironmentFilter = ({ environments }: EnvironmentFilterProps) => {
         >
           <div className="flex items-center gap-2">
             <PlusIcon className="w-4 h-4" />
-            Criar novo ambiente
+            Criar nova praça
           </div>
         </SelectItem>
       </SelectContent>

@@ -15,6 +15,7 @@ export interface MenuManagementProduct {
   promoPrice: number | null;
   promoSchedule: any;
   isFeatured: boolean;
+  environmentId: string | null;
 }
 
 export interface MenuManagementCategory {
@@ -89,6 +90,7 @@ export const getMenuManagementData = async (): Promise<{
           promoPrice: true,
           promoSchedule: true,
           isFeatured: true,
+          environmentId: true,
         },
       },
     },
@@ -114,6 +116,7 @@ export const getMenuManagementData = async (): Promise<{
       promoPrice: true,
       promoSchedule: true,
       isFeatured: true,
+      environmentId: true,
     },
   });
 
@@ -130,6 +133,7 @@ export const getMenuManagementData = async (): Promise<{
       promoActive: p.promoActive,
       promoSchedule: p.promoSchedule,
       isFeatured: p.isFeatured,
+      environmentId: p.environmentId,
     })),
   }));
 
@@ -147,6 +151,7 @@ export const getMenuManagementData = async (): Promise<{
         promoActive: p.promoActive,
         promoSchedule: p.promoSchedule,
         isFeatured: p.isFeatured,
+        environmentId: p.environmentId,
       })),
     });
   }

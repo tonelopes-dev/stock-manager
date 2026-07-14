@@ -136,6 +136,25 @@ export const MenuProductCard = ({ product }: MenuProductCardProps) => {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-3">
+          {/* Environment Guardrail Link */}
+          {!product.environmentId && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <a
+                  href={`/cardapio/${product.id}`}
+                  className="mr-2 rounded-lg border border-orange-200 bg-orange-50 px-2.5 py-1 text-[10px] font-black uppercase text-orange-600 transition-colors hover:bg-orange-100"
+                >
+                  Configurar Praça
+                </a>
+              </TooltipTrigger>
+              <TooltipPortal>
+                <TooltipContent side="top" className="z-[100] border-none bg-orange-600 font-bold text-white">
+                  Sem praça de preparo
+                </TooltipContent>
+              </TooltipPortal>
+            </Tooltip>
+          )}
+
           {/* Toggle: Visible on Menu */}
           <div className="flex items-center gap-1.5">
             <Tooltip>
@@ -149,7 +168,7 @@ export const MenuProductCard = ({ product }: MenuProductCardProps) => {
                   <Switch
                     data-testid={`visibility-switch-${product.id}`}
                     checked={product.isVisibleOnMenu}
-                    disabled={isTogglingVisibility}
+                    disabled={isTogglingVisibility || !product.environmentId}
                     onCheckedChange={() =>
                       execToggleVisibility({ productId: product.id })
                     }
@@ -158,8 +177,12 @@ export const MenuProductCard = ({ product }: MenuProductCardProps) => {
                 </div>
               </TooltipTrigger>
               <TooltipPortal>
-                <TooltipContent side="top" className="bg-gray-900 text-white font-bold border-none z-[100]">
-                  {product.isVisibleOnMenu ? "Ocultar do Cardápio" : "Exibir no Cardápio"}
+                <TooltipContent side="top" className="z-[100] border-none bg-gray-900 font-bold text-white">
+                  {!product.environmentId 
+                    ? "Configure a praça de preparo antes de ativar no cardápio digital." 
+                    : product.isVisibleOnMenu 
+                      ? "Ocultar do Cardápio" 
+                      : "Exibir no Cardápio"}
                 </TooltipContent>
               </TooltipPortal>
             </Tooltip>

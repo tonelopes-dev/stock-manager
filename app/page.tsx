@@ -43,7 +43,10 @@ const LandingPage = () => {
       <nav className="fixed top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="transition-all hover:scale-[1.02]">
-            <KipoLogo showText className="origin-left scale-[0.6] sm:scale-75" />
+            <KipoLogo
+              showText
+              className="origin-left scale-[0.6] sm:scale-75"
+            />
           </Link>
 
           {/* Desktop Navigation */}

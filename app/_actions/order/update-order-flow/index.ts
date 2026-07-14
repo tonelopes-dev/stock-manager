@@ -13,7 +13,7 @@ const updateOrderFlowSchema = z.object({
   orderId: z.string(),
   status: z.nativeEnum(OrderStatus),
   companyId: z.string(),
-  environmentId: z.string().optional(),
+  environmentId: z.string().nullable().optional(),
 });
 
 export const updateOrderFlowAction = actionClient
@@ -31,7 +31,9 @@ export const updateOrderFlowAction = actionClient
         await trx.orderItem.updateMany({
           where: { 
             orderId: orderId,
-            ...(environmentId && environmentId !== "all" ? { product: { environmentId } } : {})
+            ...(environmentId !== undefined && environmentId !== "all" 
+              ? { product: { environmentId: environmentId } } 
+              : {})
           },
           data: { status },
         });

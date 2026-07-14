@@ -28,6 +28,7 @@ import { DatePicker } from "@/app/_components/ui/date-picker";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { ComandaTotals } from "./use-comanda-state";
+import { PixPaymentDisplay } from "./pix-payment-display";
 
 // ── Payment Method Config ────────────────────────────────────────────────
 
@@ -35,7 +36,8 @@ const paymentMethodLabels: Record<
   string,
   { label: string; icon: React.ReactNode }
 > = {
-  PIX: { label: "PIX", icon: <Smartphone className="h-3.5 w-3.5" /> },
+  PIX_API: { label: "PIX Integrado", icon: <Smartphone className="h-3.5 w-3.5 text-emerald-500" /> },
+  PIX: { label: "PIX Manual", icon: <Smartphone className="h-3.5 w-3.5 text-emerald-500" /> },
   CASH: { label: "Dinheiro", icon: <DollarSign className="h-3.5 w-3.5" /> },
   CREDIT_CARD: {
     label: "Crédito",
@@ -86,6 +88,10 @@ interface ComandaPaymentSectionProps {
   // Partial info
   selectedItemIds: Set<string>;
 
+  // Pix API
+  generatedPix: { qrCodeBase64: string; copyPasteCode: string; externalId: string } | null;
+  setGeneratedPix: (val: any) => void;
+
   // Action
   onPay: () => void;
 }
@@ -115,8 +121,27 @@ export const ComandaPaymentSection = ({
   setDueDate,
   customerOptions,
   selectedItemIds,
+  generatedPix,
+  setGeneratedPix,
   onPay,
 }: ComandaPaymentSectionProps) => {
+  if (generatedPix) {
+    return (
+      <div className="flex h-full w-full flex-col border-r border-border/40 bg-background/50 lg:w-[400px]">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-24">
+          <PixPaymentDisplay 
+            qrCodeBase64={generatedPix.qrCodeBase64}
+            copyPasteCode={generatedPix.copyPasteCode}
+            totalAmount={totals.totalWithTip}
+          />
+          <Button variant="ghost" className="w-full mt-4" onClick={() => setGeneratedPix(null)}>
+            Voltar (O pagamento continuará aguardando)
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex lg:min-h-0 flex-col border-r border-border bg-muted/30 order-2 lg:order-1 flex-none lg:flex-1 w-full lg:w-1/2 overflow-visible lg:overflow-y-auto pb-48 lg:pb-0">
       <div className="scrollbar-hide hover:scrollbar-default flex-none lg:flex-1 space-y-2 overflow-visible lg:overflow-y-auto p-2 transition-all">

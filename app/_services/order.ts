@@ -5,6 +5,50 @@ import { AuditEventType, OrderStatus, Prisma, SaleStatus, PaymentMethod } from "
 import { isPromotionActive } from "@/app/_utils/promotion";
 import { AuditService } from "./audit";
 import { nowBRT } from "@/app/_utils/date";
+import { broadcastEvent } from "@/app/_lib/broadcast";
+
+/**
+ * Input for converting one or more Orders into a Sale.
+ * Replaces the old 12-positional-parameter signature for type safety.
+ */
+export interface ConvertToSaleInput {
+  orderIds: string[];
+  companyId: string;
+  userId: string | null;
+  paymentMethod: PaymentMethod | null;
+  tipAmount?: number;
+  discountAmount?: number;
+  extraAmount?: number;
+  adjustmentReason?: string;
+  isEmployeeSale?: boolean;
+  status?: SaleStatus;
+  dueDate?: Date | null;
+  customerId?: string | null;
+  // ── Split / Take Rate (future-ready, not persisted yet) ──
+  platformFeeRate?: number;
+  platformFeeAmount?: number;
+  netAmount?: number;
+  externalPaymentId?: string;
+  paymentProvider?: string;
+}
+
+/**
+ * Input for converting specific OrderItems into a Sale (partial payment).
+ */
+export interface ConvertItemsToSaleInput {
+  itemIds: string[];
+  companyId: string;
+  userId: string | null;
+  paymentMethod: PaymentMethod | null;
+  tipAmount?: number;
+  discountAmount?: number;
+  extraAmount?: number;
+  adjustmentReason?: string;
+  isEmployeeSale?: boolean;
+  status?: SaleStatus;
+  dueDate?: Date | null;
+  customerId?: string | null;
+}
 
 interface CreateOrderParams {
   companyId: string;
@@ -81,8 +125,8 @@ export const OrderService = {
             isEmployeeSale: isEmployeeSale || false,
             hasServiceTax: hasServiceTax !== undefined ? hasServiceTax : true,
             status: OrderStatus.PENDING,
-            createdAt: nowBRT(),
-            updatedAt: nowBRT(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
             orderItems: {
               create: itemsWithPrices.map((item) => ({
                 productId: item.productId,
@@ -90,8 +134,8 @@ export const OrderService = {
                 unitPrice: item.unitPrice,
                 notes: item.notes,
                 status: OrderStatus.PENDING,
-                createdAt: nowBRT(),
-                updatedAt: nowBRT(),
+                createdAt: new Date(),
+                updatedAt: new Date(),
               })),
             },
           },
@@ -149,7 +193,7 @@ export const OrderService = {
 
         const updatedItem = await trx.orderItem.update({
           where: { id: itemId },
-          data: { status, updatedAt: nowBRT() },
+          data: { status, updatedAt: new Date() },
         });
 
         // 2. Sync order status based on all items
@@ -178,8 +222,15 @@ export const OrderService = {
 
         await trx.order.update({
           where: { id: item.orderId },
-          data: { status: newOrderStatus, updatedAt: nowBRT() },
+          data: { status: newOrderStatus, updatedAt: new Date() },
         });
+        
+        // Dispara o realtime para o cliente
+        const orderData = await trx.order.findUnique({ where: { id: item.orderId }, select: { customerId: true } });
+        if (orderData?.customerId) {
+          broadcastEvent(`customer-${orderData.customerId}`, "order_status_update", { orderId: item.orderId, status: newOrderStatus })
+            .catch(err => console.error("Failed to broadcast order status", err));
+        }
 
         return { updatedItem };
       });
@@ -220,8 +271,14 @@ export const OrderService = {
 
         const updatedOrder = await trx.order.update({
           where: { id: orderId },
-          data: { status, updatedAt: nowBRT() },
+          data: { status, updatedAt: new Date() },
         });
+
+        // Dispara o realtime para o cliente
+        if (order.customerId) {
+          broadcastEvent(`customer-${order.customerId}`, "order_status_update", { orderId: orderId, status })
+            .catch(err => console.error("Failed to broadcast order status", err));
+        }
 
         return updatedOrder;
       });
@@ -234,25 +291,35 @@ export const OrderService = {
     }
   },
 
-  async convertToSale(orderIds: string[], companyId: string, userId: string, paymentMethod: PaymentMethod | null, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false, status?: SaleStatus, dueDate?: Date | null, customerId?: string | null) {
+  async convertToSale(input: ConvertToSaleInput) {
+    const {
+      orderIds, companyId, userId, paymentMethod,
+      tipAmount = 0, discountAmount = 0, extraAmount = 0,
+      adjustmentReason, isEmployeeSale = false, status, dueDate: dueDateInput, customerId,
+      platformFeeRate, platformFeeAmount, netAmount, externalPaymentId, paymentProvider,
+    } = input;
+    let dueDate = dueDateInput ?? null;
     try {
-      // 1. Check for existing Sale (Idempotency) - Check if any of the orders already has a sale
-      const existingSale = await db.sale.findFirst({
-        where: { orderId: { in: orderIds } },
+      // 1. Idempotency check: if any order is already linked to a Sale via the new 1:N relation, return it
+      const existingSaleViaNewRelation = await db.order.findFirst({
+        where: { id: { in: orderIds }, saleId: { not: null } },
+        select: { saleId: true },
       });
-      
-      if (existingSale) {
-        console.warn(`Sale already exists for some of the orders: ${orderIds}. Returning existing sale.`);
-        // Ensure orders are marked as PAID to fix stuck comandas
-        await db.order.updateMany({
-          where: { id: { in: orderIds }, status: { not: OrderStatus.PAID } },
-          data: { status: OrderStatus.PAID },
-        });
-        await db.orderItem.updateMany({
-          where: { orderId: { in: orderIds }, status: { not: OrderStatus.PAID } },
-          data: { status: OrderStatus.PAID },
-        });
-        return existingSale;
+
+      if (existingSaleViaNewRelation?.saleId) {
+        const existingSale = await db.sale.findUnique({ where: { id: existingSaleViaNewRelation.saleId } });
+        if (existingSale) {
+          console.warn(`[convertToSale] Sale already exists for orders ${orderIds}. Returning existing sale.`);
+          await db.order.updateMany({
+            where: { id: { in: orderIds }, status: { not: OrderStatus.PAID } },
+            data: { status: OrderStatus.PAID },
+          });
+          await db.orderItem.updateMany({
+            where: { orderId: { in: orderIds }, status: { not: OrderStatus.PAID } },
+            data: { status: OrderStatus.PAID },
+          });
+          return existingSale;
+        }
       }
 
       const sale = await db.$transaction(async (trx) => {
@@ -298,14 +365,12 @@ export const OrderService = {
 
         const totalWithTip = Math.max(0, subtotal + tipAmount - discountAmount + extraAmount);
 
-        // We associate the sale with the first order ID for the 'orderId' unique field
-        // This is a limitation of the current schema but satisfies requirements for grouping.
+        // Create the Sale, connecting all orders via the new 1:N relation
         const sale = await trx.sale.create({
           data: {
             companyId,
             userId,
             customerId: effectiveCustomerId,
-            orderId: orders[0].id, 
             paymentMethod: status === "PENDING_PAYMENT" ? null : paymentMethod,
             totalAmount: totalWithTip,
             discountAmount,
@@ -315,9 +380,18 @@ export const OrderService = {
             tipAmount,
             date: nowBRT(),
             dueDate: dueDate || null,
-            createdAt: nowBRT(),
-            updatedAt: nowBRT(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
             status: status || "ACTIVE",
+            platformFeeRate,
+            platformFeeAmount,
+            netAmount,
+            externalPaymentId,
+            paymentProvider,
+            // Connect all orders to this sale via the 1:N relation
+            orders: {
+              connect: orderIds.map((id) => ({ id })),
+            },
           },
         });
 
@@ -333,15 +407,15 @@ export const OrderService = {
               quantity: item.quantity,
               unitPrice: unitPrice,
               baseCost: item.product.cost,
-              createdAt: nowBRT(),
-              updatedAt: nowBRT(),
+              createdAt: new Date(),
+              updatedAt: new Date(),
             };
           }),
         });
 
         await trx.stockMovement.updateMany({
           where: { orderId: { in: orderIds }, type: "ORDER" },
-          data: { saleId: sale.id, updatedAt: nowBRT() }
+          data: { saleId: sale.id, updatedAt: new Date() }
         });
 
         // 3. Mark Orders as PAID and complete with Concurrency Protection
@@ -371,9 +445,15 @@ export const OrderService = {
         (error instanceof Error && error.message === 'ORDER_ALREADY_PAID_CONCURRENCY')
       ) {
         console.warn(`[convertToSale] Race condition avoided for orders ${orderIds}`);
-        const existingSale = await db.sale.findFirst({ where: { orderId: { in: orderIds } } });
+        // Fallback: find sale via new 1:N relation
+        const raceOrder = await db.order.findFirst({
+          where: { id: { in: orderIds }, saleId: { not: null } },
+          select: { saleId: true },
+        });
+        const existingSale = raceOrder?.saleId
+          ? await db.sale.findUnique({ where: { id: raceOrder.saleId } })
+          : null;
         if (existingSale) {
-          // Ensure orders are marked as PAID to fix stuck comandas
           await db.order.updateMany({
             where: { id: { in: orderIds }, status: { not: OrderStatus.PAID } },
             data: { status: OrderStatus.PAID },
@@ -392,7 +472,13 @@ export const OrderService = {
     }
   },
 
-  async convertItemsToSale(itemIds: string[], companyId: string, userId: string, paymentMethod: PaymentMethod | null, tipAmount: number = 0, discountAmount: number = 0, extraAmount: number = 0, adjustmentReason?: string, isEmployeeSale: boolean = false, status?: SaleStatus, dueDate?: Date | null, customerId?: string | null) {
+  async convertItemsToSale(input: ConvertItemsToSaleInput) {
+    const {
+      itemIds, companyId, userId, paymentMethod,
+      tipAmount = 0, discountAmount = 0, extraAmount = 0,
+      adjustmentReason, isEmployeeSale = false, status, customerId,
+    } = input;
+    let dueDate = input.dueDate ?? null;
     try {
       const { sale } = await db.$transaction(async (trx) => {
         const items = await trx.orderItem.findMany({
@@ -445,10 +531,10 @@ export const OrderService = {
             extraAmount,
             adjustmentReason,
             isEmployeeSale,
-            date: nowBRT(),
+            date: nowBRT(),  // Sale.date é data de negócio → mantém nowBRT() para refletir o dia BRT correto
             dueDate: dueDate || null,
-            createdAt: nowBRT(),
-            updatedAt: nowBRT(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
             status: status || "ACTIVE",
           },
         });
@@ -465,14 +551,14 @@ export const OrderService = {
               quantity: item.quantity,
               unitPrice: unitPrice,
               baseCost: item.product.cost,
-              createdAt: nowBRT(),
-              updatedAt: nowBRT(),
+              createdAt: new Date(),
+              updatedAt: new Date(),
             },
           });
 
           await trx.stockMovement.updateMany({
             where: { orderId: item.orderId, productId: item.productId, type: "ORDER" },
-            data: { saleId: sale.id, updatedAt: nowBRT() },
+            data: { saleId: sale.id, updatedAt: new Date() },
           });
 
           await trx.orderItem.delete({ where: { id: item.id } });
@@ -490,7 +576,7 @@ export const OrderService = {
             
             await trx.order.update({
               where: { id: orderId },
-              data: { totalAmount: newTotal, updatedAt: nowBRT() },
+              data: { totalAmount: newTotal, updatedAt: new Date() },
             });
           }
         }

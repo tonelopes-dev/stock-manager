@@ -26,6 +26,11 @@ export const getMyOrdersAction = actionClient
             phone: true,
           },
         },
+        sale: {
+          select: {
+            id: true,
+          },
+        },
         orderItems: {
           include: {
             product: {
@@ -52,8 +57,12 @@ export const getMyOrdersAction = actionClient
       customerName: order.customer?.name,
       customerPhone: order.customer?.phone,
       createdAt: order.createdAt,
+      saleId: order.sale?.id,
+      rating: order.rating,
+      feedback: order.feedback,
       items: order.orderItems.map((item) => ({
         id: item.id,
+        productId: item.productId,
         name: item.product.name,
         quantity: Number(item.quantity),
         price: Number(item.unitPrice),

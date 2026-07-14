@@ -96,10 +96,17 @@ model Sale {
   totalCost      Decimal         @default(0) @db.Decimal(10, 2)
   customerId     String?
   paymentMethod  PaymentMethod?
-  orderId        String?         @unique
+  
+  // ── Split / Take Rate ──
+  platformFeeRate    Decimal?  @db.Decimal(5, 4)
+  platformFeeAmount  Decimal?  @db.Decimal(10, 2)
+  netAmount          Decimal?  @db.Decimal(10, 2)
+  paymentProvider    String?
+  externalPaymentId  String?
+
   company        Company         @relation(fields: [companyId], references: [id])
   customer       Customer?       @relation(fields: [customerId], references: [id])
-  order          Order?          @relation(fields: [orderId], references: [id])
+  orders         Order[]         @relation("SaleOrders") // New 1:N relation
   user           User?           @relation(fields: [userId], references: [id])
   saleItems      SaleItem[]
   stockMovements StockMovement[]
@@ -252,6 +259,13 @@ model Company {
   stockEntries           StockEntry[]
   pushSubscriptions      PushSubscription[]
 
+  // Identificadores para o Take Rate (Marketplace Split MP)
+  mpMarketplaceAccountId  String?   // OAuth user ID do lojista no Mercado Pago
+  mpMarketplaceToken      String?   // Access Token do lojista via marketplace flow
+  mpMarketplacePublicKey  String?   // Public Key do lojista (necessária para Checkout Transparente/Bricks)
+  mpCheckoutEnabled       Boolean   @default(false)
+  kipoMarketplaceFeeRate  Decimal?  @db.Decimal(5, 4) // Ex: 0.0150 para representar 1.5% de taxa
+
   // Branding & Menu Info
   bannerUrl              String?
   logoUrl                String?
@@ -263,6 +277,7 @@ model Company {
 
   requireSelfieOnCheckout Boolean            @default(false)
   enableServiceTax        Boolean            @default(true)
+
 
   @@index([deletedAt])
 }
@@ -435,28 +450,33 @@ model Goal {
 }
 
 model Order {
-  id            String          @id @default(cuid())
-  orderNumber   Int             @default(autoincrement())
-  status        OrderStatus     @default(PENDING)
-  companyId     String
-  customerId    String?
-  tableNumber   String?
-  notes         String?         @db.Text
-  totalAmount    Decimal         @default(0) @db.Decimal(10, 2)
-  discountAmount Decimal         @default(0) @db.Decimal(10, 2)
-  extraAmount    Decimal         @default(0) @db.Decimal(10, 2)
+  id               String          @id @default(cuid())
+  orderNumber      Int             @default(autoincrement())
+  status           OrderStatus     @default(PENDING)
+  companyId        String
+  customerId       String?
+  tableNumber      String?
+  notes            String?         @db.Text
+  totalAmount      Decimal         @default(0) @db.Decimal(10, 2)
+  discountAmount   Decimal         @default(0) @db.Decimal(10, 2)
+  extraAmount      Decimal         @default(0) @db.Decimal(10, 2)
   adjustmentReason String?
-  isEmployeeSale Boolean         @default(false)
-  hasServiceTax Boolean         @default(true)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  company       Company         @relation(fields: [companyId], references: [id])
-  customer      Customer?       @relation(fields: [customerId], references: [id])
-  orderItems    OrderItem[]
-  sale          Sale?
-  stockMovements StockMovement[]
+  isEmployeeSale   Boolean         @default(false)
+  hasServiceTax    Boolean         @default(true)
+  rating           Int?            @db.SmallInt // 1 a 5 estrelas
+  feedback         String?         @db.Text
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  // New 1:N relation: an Order now belongs to a Sale
+  saleId           String?
+  company          Company         @relation(fields: [companyId], references: [id])
+  customer         Customer?       @relation(fields: [customerId], references: [id])
+  sale             Sale?           @relation("SaleOrders", fields: [saleId], references: [id], onDelete: SetNull)
+  orderItems       OrderItem[]
+  stockMovements   StockMovement[]
 
   @@index([companyId, status])
+  @@index([saleId])
 }
 
 model OrderItem {
@@ -759,4 +779,43 @@ model PushSubscription {
   createdAt  DateTime @default(now())
 
   @@index([customerId, companyId])
+}
+
+
+enum PaymentIntentStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+}
+
+// Tracks grouped checkout sessions (replaces the adjustmentReason hack)
+model PaymentIntent {
+  id          String              @id @default(cuid())
+  companyId   String
+  customerId  String?
+  orderIds    String[]            // All order IDs included in this checkout session
+  amount      Decimal             @db.Decimal(10, 2)
+  status      PaymentIntentStatus @default(PENDING)
+  provider    String              // e.g. 'MERCADOPAGO'
+  externalId  String?             // The ID returned by the payment provider (e.g. MP preference ID)
+  checkoutUrl String?             // The redirect URL for Checkout Pro (to be removed after Bricks migration)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@index([companyId])
+  @@index([externalId])
+}
+
+// Ensures webhook events are processed only once (idempotency)
+model PaymentEvent {
+  id          String   @id // The provider's own event/payment ID (e.g. MP payment ID)
+  companyId   String
+  provider    String   // e.g. 'MERCADOPAGO'
+  eventType   String   // e.g. 'payment.approved', 'payment.rejected'
+  status      String   // 'processed' | 'failed'
+  payload     Json     // Raw body from the webhook for auditing
+  processedAt DateTime @default(now())
+
+  @@index([companyId])
 }

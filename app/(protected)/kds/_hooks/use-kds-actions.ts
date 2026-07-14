@@ -32,10 +32,13 @@ export const useKdsActions = ({
     pendingUpdates.current.add(orderId);
     setIsUpdatingIds((prev) => new Set(prev).add(orderId));
 
+    const isUnassigned = activeEnvId === "unassigned";
+    const derivedEnvId = isUnassigned ? null : activeEnvId;
+
     const itemsToUpdate =
       activeEnvId === "all"
         ? order.items
-        : order.items.filter((i) => i.environmentId === activeEnvId);
+        : order.items.filter((i) => i.environmentId === derivedEnvId);
 
     const previousOrders = [...orders];
 
@@ -47,7 +50,7 @@ export const useKdsActions = ({
           ...o,
           status: activeEnvId === "all" ? status : o.status,
           items: o.items.map((i) => {
-            const shouldUpdate = activeEnvId === "all" || i.environmentId === activeEnvId;
+            const shouldUpdate = activeEnvId === "all" || i.environmentId === derivedEnvId;
             return shouldUpdate ? { ...i, status } : i;
           }),
         };
@@ -59,7 +62,7 @@ export const useKdsActions = ({
         orderId, 
         status, 
         companyId, 
-        environmentId: activeEnvId 
+        environmentId: derivedEnvId 
       });
 
       toast.success(`Fluxo atualizado!`);

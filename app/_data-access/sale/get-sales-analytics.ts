@@ -66,8 +66,9 @@ export const getSalesAnalytics = async (
     // 1. Define Intervals for Metrics (Selected Period vs Previous Identical Period)
     const { from: defaultFrom, to: defaultTo } = getDefaultSalesRange();
 
-    const startOfSelected = from ? startOfDay(parseLocalDay(from)) : defaultFrom;
-    const endOfSelected = to ? startOfDay(addDays(parseLocalDay(to), 1)) : addDays(defaultTo, 1);
+    const startOfSelected = from ? new Date(from + "T00:00:00.000Z") : defaultFrom;
+    // Add 1 day to 'to' to make endOfSelected the exact start of the NEXT day
+    const endOfSelected = to ? new Date(new Date(to + "T00:00:00.000Z").getTime() + 86400000) : addDays(defaultTo, 1);
     
     const diff = endOfSelected.getTime() - startOfSelected.getTime();
     const startOfPrevious = new Date(startOfSelected.getTime() - diff);

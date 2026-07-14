@@ -17,20 +17,20 @@ export const convertItemsToSaleAction = actionClient
     const companyId = await getCurrentCompanyId();
 
     try {
-      const sale = await OrderService.convertItemsToSale(
+      const sale = await OrderService.convertItemsToSale({
         itemIds,
         companyId,
-        session.user.id,
-        (paymentMethod as PaymentMethod) || null,
+        userId: session.user.id,
+        paymentMethod: (paymentMethod as PaymentMethod) || null,
         tipAmount,
         discountAmount,
         extraAmount,
-        adjustmentReason || "",
+        adjustmentReason: adjustmentReason || "",
         isEmployeeSale,
-        status as SaleStatus,
+        status: status as SaleStatus,
         dueDate,
         customerId,
-      );
+      });
 
       revalidatePath(`/sales`, "page");
       revalidatePath(`/kds`, "page");

@@ -4,6 +4,8 @@ import { z } from "zod";
 import { actionClient } from "@/app/_lib/safe-action";
 import { OrderService } from "@/app/_services/order";
 import { revalidatePath } from "next/cache";
+import { getKDSOrders } from "@/app/_data-access/order/get-kds-orders";
+import { broadcastKdsEvent } from "@/app/_lib/kds-broadcast";
 
 const createOrderSchema = z.object({
   companyId: z.string(),
@@ -39,13 +41,28 @@ export const createOrderAction = actionClient
         isEmployeeSale,
       });
 
+      // Fetch the fully mapped DTO after commit so the broadcast payload matches
+      // exactly the same shape as the initial Server Component load.
+      // This eliminates any secondary SELECT from the browser (anon has no SELECT access).
+      const kdsOrders = await getKDSOrders(companyId);
+      const kdsOrder = kdsOrders.find((o) => o.id === order.id);
+
+      if (kdsOrder) {
+        // subscribe → send → removeChannel: waits for WS handshake before firing
+        await broadcastKdsEvent(companyId, "new_order", {
+          ...kdsOrder,
+          createdAt: kdsOrder.createdAt.toISOString(),
+        });
+      }
+
       revalidatePath(`/kds`, "page");
       revalidatePath(`/sales`, "page");
       revalidatePath(`/menu/${companyId}/my-orders`, "page");
-      
+
       return { success: true, orderId: order.id };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Falha ao processar pedido.";
       console.error("Order Action Error:", error);
-      throw new Error(error.message || "Falha ao processar pedido.");
+      throw new Error(message);
     }
   });

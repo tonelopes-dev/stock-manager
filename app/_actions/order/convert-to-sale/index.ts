@@ -28,20 +28,20 @@ export const convertOrderToSaleAction = actionClient
     if (!session?.user?.id) throw new Error("Não autorizado");
 
     try {
-      const sale = await OrderService.convertToSale(
+      const sale = await OrderService.convertToSale({
         orderIds,
         companyId,
-        session.user.id,
-        paymentMethod || null,
+        userId: session.user.id,
+        paymentMethod: paymentMethod || null,
         tipAmount,
         discountAmount,
         extraAmount,
-        adjustmentReason || undefined,
+        adjustmentReason: adjustmentReason || undefined,
         isEmployeeSale,
-        status as SaleStatus,
+        status: status as SaleStatus,
         dueDate,
         customerId,
-      );
+      });
 
       revalidatePath(`/sales`, "page");
       revalidatePath(`/kds`, "page");

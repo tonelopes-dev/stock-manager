@@ -117,10 +117,26 @@ export const KDSClient = ({
     activeEnvId,
   });
 
+  // Identifica se há itens sem praça (environmentId null)
+  const hasUnassignedItems = useMemo(() => {
+    return orders.some((order) => 
+      order.items.some((item) => item.environmentId === null)
+    );
+  }, [orders]);
+
+  // Constroi a lista final de ambientes, incluindo a virtual "Sem Praça" se necessário
+  const displayEnvironments = useMemo(() => {
+    if (!hasUnassignedItems) return environments;
+    return [
+      ...environments,
+      { id: "unassigned", name: "⚠️ SEM PRAÇA", orderIndex: 999 },
+    ];
+  }, [environments, hasUnassignedItems]);
+
   // Calcula a quantidade de pedidos pendentes para cada praça em tempo real
   const pendingCounts = useMemo(() => {
     const counts: Record<string, number> = { all: 0 };
-    environments.forEach((env) => { counts[env.id] = 0; });
+    displayEnvironments.forEach((env) => { counts[env.id] = 0; });
 
     orders.forEach((order) => {
       // Para Expedição (all)
@@ -129,28 +145,103 @@ export const KDSClient = ({
       }
 
       // Para cada praça específica
-      environments.forEach((env) => {
-        const hasItems = order.items.some(i => i.environmentId === env.id);
-        if (hasItems && getDerivedStatus(order, env.id) === OrderStatus.PENDING) {
+      displayEnvironments.forEach((env) => {
+        // Se for unassigned, a gente filtra por environmentId === null
+        const isUnassigned = env.id === "unassigned";
+        const hasItems = order.items.some(
+          i => (isUnassigned ? i.environmentId === null : i.environmentId === env.id)
+        );
+        
+        // Passar "null" se for unassigned para a função getDerivedStatus (precisaremos ajustar getDerivedStatus se ele não aceitar null, mas ele filtra `i.environmentId === activeEnvId`, então se passarmos "unassigned", a filtragem falharia se o id for null, precisamos passar null. Wait. The tab value is "unassigned".
+        // Vamos checar como getDerivedStatus filtra. Ele faz: i.environmentId === activeEnvId
+        // Se activeEnvId for "unassigned", nenhum item vai ter environmentId === "unassigned". Eles têm null.
+        // Precisamos ajustar lá no KDSColumn e getDerivedStatus, ou apenas tratar o "unassigned" convertendo para null onde aplicável.
+        const derivedEnvId = isUnassigned ? null : env.id;
+        
+        // Em vez de usar getDerivedStatus com "unassigned" aqui que vai falhar,
+        // Em vez de usar getDerivedStatus com "unassigned" aqui que vai falhar,
+        // vamos calcular o derived status manualmente para unassigned
+        let statusForEnv: OrderStatus = OrderStatus.PENDING;
+        
+        const itemsForThisView = order.items.filter(
+          (i) => i.environmentId === derivedEnvId
+        );
+
+        if (itemsForThisView.length > 0) {
+          if (order.status === OrderStatus.PAID) statusForEnv = OrderStatus.PAID;
+          else {
+            const allStationItemsDelivered = itemsForThisView.every(
+              (i) => i.status === OrderStatus.DELIVERED || i.status === OrderStatus.PAID
+            );
+            if (allStationItemsDelivered) statusForEnv = OrderStatus.DELIVERED;
+            else {
+              const allStationItemsReady = itemsForThisView.every(
+                (i) => i.status === OrderStatus.READY || i.status === OrderStatus.DELIVERED || i.status === OrderStatus.PAID
+              );
+              if (allStationItemsReady) statusForEnv = OrderStatus.READY;
+              else {
+                const hasStartedInStation = itemsForThisView.some(
+                  (i) => i.status !== OrderStatus.PENDING
+                );
+                statusForEnv = hasStartedInStation ? OrderStatus.PREPARING : OrderStatus.PENDING;
+              }
+            }
+          }
+        }
+
+        if (hasItems && statusForEnv === OrderStatus.PENDING) {
           counts[env.id]++;
         }
       });
     });
 
     return counts;
-  }, [orders, environments]);
+  }, [orders, displayEnvironments]);
 
   // Recalcula o estado derivado dos pedidos baseado na aba ativa
   const filteredOrders = useMemo(() => {
     return orders
       .map((order) => {
-        const displayStatus = getDerivedStatus(order, activeEnvId);
-        const stationSummary = activeEnvId === "all" ? getStationSummary(order) : [];
+        const isUnassigned = activeEnvId === "unassigned";
+        const derivedEnvId = isUnassigned ? null : activeEnvId;
+
         const itemsForThisView = activeEnvId === "all" 
           ? order.items 
-          : order.items.filter(i => i.environmentId === activeEnvId);
+          : order.items.filter(i => i.environmentId === derivedEnvId);
 
         if (itemsForThisView.length === 0) return null;
+
+        let displayStatus: OrderStatus = order.status;
+        
+        if (activeEnvId === "all") {
+          displayStatus = getDerivedStatus(order, "all");
+        } else {
+          // Manual derivation for specific environments (including unassigned)
+          if (order.status === OrderStatus.PAID) {
+            displayStatus = OrderStatus.PAID;
+          } else {
+            const allStationItemsDelivered = itemsForThisView.every(
+              (i) => i.status === OrderStatus.DELIVERED || i.status === OrderStatus.PAID
+            );
+            if (allStationItemsDelivered) {
+              displayStatus = OrderStatus.DELIVERED;
+            } else {
+              const allStationItemsReady = itemsForThisView.every(
+                (i) => i.status === OrderStatus.READY || i.status === OrderStatus.DELIVERED || i.status === OrderStatus.PAID
+              );
+              if (allStationItemsReady) {
+                displayStatus = OrderStatus.READY;
+              } else {
+                const hasStartedInStation = itemsForThisView.some(
+                  (i) => i.status !== OrderStatus.PENDING
+                );
+                displayStatus = hasStartedInStation ? OrderStatus.PREPARING : OrderStatus.PENDING;
+              }
+            }
+          }
+        }
+
+        const stationSummary = activeEnvId === "all" ? getStationSummary(order) : [];
 
         return {
           ...order,
@@ -256,7 +347,7 @@ export const KDSClient = ({
         <div className="flex md:hidden flex-1 justify-center px-2">
           <Select value={activeEnvId} onValueChange={handleStationChange}>
             <SelectTrigger className="h-9 w-full max-w-[200px] rounded-full border border-border bg-muted/50 px-3 text-[10px] font-black uppercase tracking-widest text-foreground shadow-inner focus:ring-0">
-              <SelectValue placeholder="Ambiente" />
+              <SelectValue placeholder="Praça" />
             </SelectTrigger>
             <SelectContent className="rounded-2xl border border-border bg-background shadow-lg">
               <SelectItem value="all" className="rounded-xl text-[10px] font-black uppercase tracking-widest">

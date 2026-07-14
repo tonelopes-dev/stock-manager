@@ -47,4 +47,5 @@ e2e/.auth/
 
 # Database Backups (Security Layer)
 /backups/
-*.sql
+*.sql
+!prisma/migrations/**/*.sql

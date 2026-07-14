@@ -13,8 +13,12 @@ export interface OrderStatusDto {
   customerName?: string | null;
   customerPhone?: string | null;
   createdAt: Date;
+  saleId?: string | null;
+  rating?: number | null;
+  feedback?: string | null;
   items: {
     id: string;
+    productId: string;
     name: string;
     quantity: number;
     price: number;
@@ -35,6 +39,11 @@ export const getOrderStatus = async (
         select: {
           name: true,
           phone: true,
+        },
+      },
+      sale: {
+        select: {
+          id: true,
         },
       },
       orderItems: {
@@ -62,8 +71,12 @@ export const getOrderStatus = async (
     customerName: order.customer?.name,
     customerPhone: order.customer?.phone,
     createdAt: order.createdAt,
+    saleId: order.sale?.id,
+    rating: order.rating,
+    feedback: order.feedback,
     items: order.orderItems.map((item) => ({
       id: item.id,
+      productId: item.productId,
       name: item.product.name,
       quantity: Number(item.quantity),
       price: Number(item.unitPrice),

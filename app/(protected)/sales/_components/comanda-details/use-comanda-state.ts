@@ -8,12 +8,15 @@ import {
   useTransition,
   useEffect,
   useMemo,
+  useRef,
 } from "react";
 import { toast } from "sonner";
 import { convertOrderToSaleAction } from "@/app/_actions/order/convert-to-sale";
 import { upsertOrderAction } from "@/app/_actions/order/upsert-order";
 import { convertItemsToSaleAction } from "@/app/_actions/order/convert-items-to-sale";
+import { generatePixPayment } from "@/app/_actions/integration/generate-pix-payment";
 import { deleteOrderItemAction } from "@/app/_actions/order/delete-order-item";
+import { usePaymentRealtime } from "../../_hooks/use-payment-realtime";
 import { useRouter } from "next/navigation";
 import { PaymentMethod, SaleStatus } from "@prisma/client";
 
@@ -63,6 +66,13 @@ export const useComandaState = ({
   products,
 }: UseComandaStateParams) => {
   const [isPending, startTransition] = useTransition();
+
+  const [generatedPix, setGeneratedPix] = useState<{
+    qrCodeBase64: string;
+    copyPasteCode: string;
+    externalId: string;
+  } | null>(null);
+
   const [paymentMethod, setPaymentMethod] = useState<string>("PIX");
   const [applyServiceCharge, setApplyServiceCharge] = useState<boolean>(true);
   const [discountAmount, setDiscountAmount] = useState<number>(0);
@@ -95,9 +105,17 @@ export const useComandaState = ({
 
   const router = useRouter();
 
+  const lastInitializedComandaId = useRef<string | null>(null);
+
   // Reset state when sheet opens/closes or comanda changes
   useEffect(() => {
-    if (isOpen && comanda) {
+    if (!isOpen) {
+      lastInitializedComandaId.current = null;
+      return;
+    }
+
+    if (isOpen && comanda && lastInitializedComandaId.current !== comanda.customerId) {
+      lastInitializedComandaId.current = comanda.customerId;
       setSelectedItemIds(new Set());
       setSelectedProductId("");
       setSelectedQuantity(1);
@@ -112,8 +130,20 @@ export const useComandaState = ({
       d.setDate(d.getDate() + 30);
       setDueDate(d);
       setPaymentMethod("PIX");
+      setGeneratedPix(null);
     }
   }, [isOpen, comanda]);
+
+  // Hook realtime para atualizar o status automaticamente quando o Pix for pago via webhook
+  usePaymentRealtime({
+    companyId,
+    orderIds: comanda ? comanda.orders.map((o) => o.id) : [],
+    enabled: !!generatedPix,
+    onPaymentSuccess: () => {
+      onClose();
+      toast.success(`Comanda de ${comanda?.customerName} paga com sucesso!`);
+    }
+  });
 
   // ── Computed Values ────────────────────────────────────────────────────
 
@@ -237,6 +267,55 @@ export const useComandaState = ({
 
     startTransition(async () => {
       try {
+        let saleIdForPix: string | undefined;
+
+        if (paymentMethod === "PIX_API") {
+          // 1. Cria a Sale com status PENDING_PAYMENT
+          if (selectedItemIds.size === 0) {
+            const result = await convertOrderToSaleAction({
+              orderIds: comanda.orders.map((o) => o.id),
+              companyId,
+              paymentMethod: null,
+              tipAmount: totals.serviceChargeAmount,
+              discountAmount: totals.effectiveDiscount,
+              extraAmount: totals.extraAmount,
+              adjustmentReason: adjustmentReason || undefined,
+              isEmployeeSale: isEmployeeSale,
+              status: "PENDING_PAYMENT",
+            });
+            if (result?.serverError) throw new Error(result.serverError);
+            saleIdForPix = result?.data?.saleId;
+          } else {
+            const result = await convertItemsToSaleAction({
+              itemIds: Array.from(selectedItemIds),
+              companyId,
+              paymentMethod: null,
+              tipAmount: totals.serviceChargeAmount,
+              discountAmount: totals.effectiveDiscount,
+              extraAmount: totals.extraAmount,
+              adjustmentReason: adjustmentReason || undefined,
+              isEmployeeSale,
+              status: "PENDING_PAYMENT",
+            });
+            if (result?.serverError) throw new Error(result.serverError);
+            saleIdForPix = result?.data?.saleId;
+          }
+
+          if (!saleIdForPix) throw new Error("Falha ao preparar a venda para PIX.");
+
+          // 2. Gera o PIX dinâmico
+          const pixResult = await generatePixPayment({
+            companyId,
+            saleId: saleIdForPix,
+          });
+
+          if (pixResult?.serverError) throw new Error(pixResult.serverError);
+          if (pixResult?.data) {
+            setGeneratedPix(pixResult.data);
+          }
+          return; // Para aqui, aguardando o webhook
+        }
+
         const actualStatus: SaleStatus = paymentMethod === "PENDING_PAYMENT" ? "PENDING_PAYMENT" : "ACTIVE";
         const actualPaymentMethod: PaymentMethod | null = paymentMethod === "PENDING_PAYMENT" ? null : (paymentMethod as PaymentMethod);
 
@@ -382,6 +461,8 @@ export const useComandaState = ({
     setSelectedCustomerId,
     dueDate,
     setDueDate,
+    generatedPix,
+    setGeneratedPix,
 
     // Computed
     totals,

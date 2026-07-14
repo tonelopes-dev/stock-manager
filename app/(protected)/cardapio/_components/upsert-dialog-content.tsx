@@ -417,7 +417,7 @@ const UpsertProductDialogContent = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-[11px] uppercase font-bold text-muted-foreground flex items-center gap-1.5">
-                      Ambiente
+                      Praça
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -434,7 +434,7 @@ const UpsertProductDialogContent = ({
                     <Select onValueChange={(val) => val === "create" ? setIsEnvironmentDialogOpen(true) : field.onChange(val === "none" ? null : val)} value={field.value || "none"}>
                       <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
                       <SelectContent>
-                        <SelectItem value="none">Padrão</SelectItem>
+                        <SelectItem value="none">Sem praça</SelectItem>
                         {environments.map(env => <SelectItem key={env.id} value={env.id}>{env.name}</SelectItem>)}
                         <SelectSeparator/><SelectItem value="create" className="text-primary font-bold">Novo...</SelectItem>
                       </SelectContent>

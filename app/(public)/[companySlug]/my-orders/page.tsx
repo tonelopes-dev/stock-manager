@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getMenuDataBySlug } from "@/app/_data-access/menu/get-menu-data";
 import { MyOrdersClient } from "./_components/my-orders-client";
+import { db } from "@/app/_lib/prisma";
 
 interface MyOrdersPageProps {
   params: Promise<{
@@ -17,9 +18,23 @@ export default async function MyOrdersPage({ params }: MyOrdersPageProps) {
     return notFound();
   }
 
+  // Verifica se a empresa tem o Mercado Pago conectado E se a flag de checkout está ativa
+  const company = await db.company.findUnique({
+    where: { id: menuData.id },
+    select: { mpMarketplaceToken: true, mpMarketplacePublicKey: true, mpCheckoutEnabled: true },
+  });
+
+  const paymentGatewayConfig = (company?.mpMarketplaceToken && company?.mpCheckoutEnabled) 
+    ? { provider: "MERCADOPAGO", publicKey: company.mpMarketplacePublicKey || undefined } 
+    : null;
+
   return (
     <div className="min-h-screen bg-muted">
-      <MyOrdersClient companyId={menuData.id} companySlug={menuData.slug} />
+      <MyOrdersClient
+        companyId={menuData.id}
+        companySlug={menuData.slug}
+        paymentGatewayConfig={paymentGatewayConfig}
+      />
     </div>
   );
 }
