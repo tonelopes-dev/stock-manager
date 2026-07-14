@@ -6,7 +6,8 @@ import { z } from "zod";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { revalidatePath } from "next/cache";
 import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
-import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { assertActionCapability } from "@/app/_lib/rbac";
+import { PERMISSIONS } from "@/app/_lib/permissions";
 import { AuditService } from "@/app/_services/audit";
 import { AuditEventType } from "@prisma/client";
 
@@ -19,7 +20,8 @@ export const inviteMember = actionClient
   .schema(inviteMemberSchema)
   .action(async ({ parsedInput: { email, role } }) => {
     const companyId = await getCurrentCompanyId();
-    const { userId } = await assertRole(ADMIN_AND_OWNER);
+    // Guard: OWNER bypass | requer TEAM_MANAGE
+    const { userId } = await assertActionCapability(PERMISSIONS.TEAM_MANAGE);
     await requireActiveSubscription(companyId);
 
     if (!userId) {

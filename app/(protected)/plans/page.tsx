@@ -17,8 +17,13 @@ import { SubscriptionStatus } from "./_components/subscription-status";
 import { getSubscriptionUIState } from "@/app/_lib/subscription-utils";
 import { CheckIcon, CalendarIcon, ShieldCheckIcon } from "lucide-react";
 import { Badge } from "@/app/_components/ui/badge";
+import { assertPageCapability } from "@/app/_lib/rbac";
+import { PERMISSIONS } from "@/app/_lib/permissions";
 
 const PlansPage = async () => {
+  // Protege a rota: somente OWNER (bypass) ou quem tem BILLING_VIEW acessa
+  await assertPageCapability(PERMISSIONS.BILLING_VIEW);
+
   const { subscriptionStatus, expiresAt, isBoletoPending } =
     await getCompanyPlan();
   const uiState = getSubscriptionUIState(subscriptionStatus, expiresAt);

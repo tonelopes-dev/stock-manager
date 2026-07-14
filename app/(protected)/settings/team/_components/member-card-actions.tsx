@@ -69,8 +69,9 @@ export const MemberCardActions = ({ member, requesterRole, isSelf }: MemberCardA
                 avatarUrl: member.avatarUrl ?? undefined
             }}
             trigger={
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">
-                    <Edit3Icon size={16} />
+                <Button variant="outline" size="sm" className="h-8 gap-1.5 text-muted-foreground hover:text-primary">
+                    <Edit3Icon size={14} />
+                    <span className="text-xs font-semibold">Editar</span>
                 </Button>
             }
         />
@@ -79,8 +80,9 @@ export const MemberCardActions = ({ member, requesterRole, isSelf }: MemberCardA
       {canRemove && (
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <AlertDialogTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-              <Trash2Icon size={16} />
+            <Button variant="outline" size="sm" className="h-8 gap-1.5 text-muted-foreground hover:text-destructive">
+              <Trash2Icon size={14} />
+              <span className="text-xs font-semibold">Remover</span>
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>

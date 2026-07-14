@@ -1,7 +1,8 @@
 import { Metadata } from "next";
 import { IntegrationsHub } from "./_components/integrations-hub";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { assertRole } from "@/app/_lib/rbac";
+import { assertPageCapability } from "@/app/_lib/rbac";
+import { PERMISSIONS } from "@/app/_lib/permissions";
 import { db } from "@/app/_lib/prisma";
 import { AlertCircle } from "lucide-react";
 import {
@@ -19,8 +20,8 @@ export const metadata: Metadata = {
 export default async function IntegrationsPage() {
   const companyId = await getCurrentCompanyId();
 
-  // Apenas donos e admins podem acessar esta página
-  await assertRole(["OWNER", "ADMIN"]);
+  // Guard: OWNER bypass | MEMBER/ADMIN precisa de INTEGRATIONS_VIEW
+  await assertPageCapability(PERMISSIONS.INTEGRATIONS_VIEW);
 
   const company = await db.company.findUnique({
     where: { id: companyId },

@@ -122,7 +122,11 @@ export const processTransparentPayment = actionClient
       let appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
       appUrl = appUrl.replace(/['"]/g, '').replace(/\/$/, '').trim();
 
-      const platformFeeRate = Number(company.kipoMarketplaceFeeRate ?? 0.01);
+      // O Mercado Pago não permite application_fee via API /v1/payments para PIX (Erro 2059).
+      // Apenas cartões suportam o Split Transparente na v1 nativa.
+      const isPix = innerFormData.payment_method_id === "pix" || innerFormData.payment_method_id === "bolso";
+      
+      const platformFeeRate = isPix ? 0 : Number(company.kipoMarketplaceFeeRate ?? 0.01);
       const platformFeeAmount = Math.round(bricksAmount * platformFeeRate * 100) / 100;
       const netAmount = bricksAmount - platformFeeAmount;
 
@@ -132,8 +136,11 @@ export const processTransparentPayment = actionClient
         external_reference: paymentIntent.id,
         description: "Pagamento de comanda",
         notification_url: `${appUrl}/api/webhooks/mercadopago?companyId=${companyId}`,
-        application_fee: platformFeeAmount,
       } as Record<string, unknown>;
+
+      if (!isPix && platformFeeAmount > 0) {
+        finalPayload.application_fee = platformFeeAmount;
+      }
 
       // A API Node do MercadoPago v2 espera que o issuer_id seja um Number,
       // mas o Bricks envia como String. Isso causa o erro 2131 de inferência.

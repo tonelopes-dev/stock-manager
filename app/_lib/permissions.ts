@@ -1,3 +1,4 @@
+import { UserRole } from "@prisma/client";
 
 /**
  * Constantes de Permissões (Capabilities)
@@ -26,6 +27,18 @@ export const PERMISSIONS = {
   TEAM_MANAGE: "team:manage",
   AUDIT_VIEW: "audit:view",
   COMPANY_UPDATE: "company:update",
+
+  // Acesso a Áreas (Views)
+  BILLING_VIEW: "billing:view",
+  REPORTS_VIEW: "reports:view",
+  SETTINGS_VIEW: "settings:view",
+  INTEGRATIONS_VIEW: "integrations:view",
+  COMPANY_SETTINGS_VIEW: "settings:company:view",
+  TEAM_SETTINGS_VIEW: "settings:team:view",
+
+  // Mutações Administrativas (Write Capabilities)
+  COMPANY_SETTINGS_UPDATE: "settings:company:update",
+  INTEGRATIONS_MANAGE: "integrations:manage",
 } as const;
 
 export type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];
@@ -47,6 +60,14 @@ export const PERMISSION_LABELS: Record<keyof typeof PERMISSIONS, string> = {
   TEAM_MANAGE: "Gerenciar Equipe",
   AUDIT_VIEW: "Ver Logs de Auditoria",
   COMPANY_UPDATE: "Editar Dados da Empresa",
+  BILLING_VIEW: "Ver Faturamento",
+  REPORTS_VIEW: "Ver Relatórios",
+  SETTINGS_VIEW: "Ver Configurações",
+  INTEGRATIONS_VIEW: "Ver Integrações",
+  COMPANY_SETTINGS_VIEW: "Ver Configurações da Empresa",
+  TEAM_SETTINGS_VIEW: "Ver Configurações de Equipe",
+  COMPANY_SETTINGS_UPDATE: "Editar Configurações da Empresa",
+  INTEGRATIONS_MANAGE: "Gerenciar Integrações",
 };
 
 /**
@@ -66,6 +87,14 @@ export const PERMISSION_DESCRIPTIONS: Record<keyof typeof PERMISSIONS, string> =
   TEAM_MANAGE: "Permite convidar novos colaboradores ou gerenciar a equipe.",
   AUDIT_VIEW: "Permite ver o histórico de quem realizou cada ação no sistema.",
   COMPANY_UPDATE: "Permite editar as configurações principais da sua empresa.",
+  BILLING_VIEW: "Permite visualizar planos e informações de faturamento.",
+  REPORTS_VIEW: "Permite acessar relatórios gerenciais e de desempenho.",
+  SETTINGS_VIEW: "Permite acessar as configurações gerais da empresa.",
+  INTEGRATIONS_VIEW: "Permite acessar e gerenciar integrações externas.",
+  COMPANY_SETTINGS_VIEW: "Permite visualizar e editar as configurações gerais da empresa.",
+  TEAM_SETTINGS_VIEW: "Permite visualizar e gerenciar os membros da equipe.",
+  COMPANY_SETTINGS_UPDATE: "Permite salvar alterações nas configurações da empresa.",
+  INTEGRATIONS_MANAGE: "Permite ativar, desativar e configurar integrações externas.",
 };
 
 /**
@@ -84,3 +113,24 @@ export const PERMISSION_PRESETS = {
   ],
   GERENCIA: Object.values(PERMISSIONS),
 };
+
+/**
+ * Função utilitária pura (sem I/O, sem DB) para verificar capabilities.
+ * Pode ser usada tanto em Server Components quanto em Client Components.
+ *
+ * Regras:
+ * - OWNER tem bypass total (retorna true independente da permissão)
+ * - Para demais roles, verifica se a permissão existe no array de userPermissions
+ *
+ * @param userPermissions - Array de permissões do UserCompany
+ * @param userRole - Role do usuário na empresa
+ * @param requiredCapability - A permissão que se deseja verificar
+ */
+export function hasCapability(
+  userPermissions: string[],
+  userRole: UserRole,
+  requiredCapability: string,
+): boolean {
+  if (userRole === UserRole.OWNER) return true;
+  return userPermissions.includes(requiredCapability);
+}

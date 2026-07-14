@@ -9,23 +9,25 @@ import { Card, CardContent } from "@/app/_components/ui/card";
 import { Badge } from "@/app/_components/ui/badge";
 import { UserIcon, MailIcon, ShieldCheckIcon, ClockIcon } from "lucide-react";
 import MemberFormModal from "./_components/member-form-modal";
-import { getCurrentUserRole } from "@/app/_lib/rbac";
+import { assertPageCapability } from "@/app/_lib/rbac";
 import { auth } from "@/app/_lib/auth";
 import { UserRole } from "@prisma/client";
 import { MemberCardActions } from "./_components/member-card-actions";
 import { ActivityTimeline } from "@/app/_components/activity-timeline";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { PERMISSION_LABELS } from "@/app/_lib/permissions";
+import { PERMISSIONS } from "@/app/_lib/permissions";
 
 
 export default async function TeamPage() {
+  // Guard: OWNER bypass | MEMBER/ADMIN precisa de TEAM_SETTINGS_VIEW
+  const authData = await assertPageCapability(PERMISSIONS.TEAM_SETTINGS_VIEW);
+
   const members = await getTeamMembers();
   const pendingInvitations = await getPendingInvitations();
-  const requesterRole = await getCurrentUserRole();
+  const requesterRole = authData.role; // Reaproveitamos o role sem nova query
   const session = await auth();
   const requesterId = session?.user?.id;
-
-  if (!requesterRole) return null;
 
   const isManagement = requesterRole === UserRole.OWNER || requesterRole === UserRole.ADMIN;
 
@@ -62,9 +64,9 @@ export default async function TeamPage() {
                                 <p className="font-bold text-foreground truncate">{member.name}</p>
                                 <Badge 
                                     variant={member.role === UserRole.OWNER ? "default" : "secondary"}
-                                    className="text-[9px] h-4 px-1 leading-none font-bold"
+                                    className="text-[9px] h-4 px-1.5 leading-none font-bold uppercase"
                                 >
-                                    {member.role}
+                                    {member.role === UserRole.OWNER ? "Proprietário" : member.role === UserRole.ADMIN ? "Administrador" : "Colaborador"}
                                 </Badge>
                                 {member.userId === requesterId && (
                                    <Badge variant="outline" className="text-[9px] h-4 px-1 border-primary text-primary font-black uppercase">Você</Badge>

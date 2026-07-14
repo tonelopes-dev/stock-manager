@@ -44,7 +44,18 @@ export async function ActivityTimeline({
               <p className="text-center text-sm text-muted-foreground py-8">Nenhuma atividade recente.</p>
             ) : (
               logs.map((log) => {
-                const mapped = AuditMapper.map(log.type, log.metadata, log.actorName || log.actor?.name || log.actor?.email || "Unknown");
+                const rawName = log.actorName || log.actor?.name || log.actor?.email;
+                let displayName = "Sistema (Integração)";
+                
+                if (rawName && rawName !== "Unknown" && !rawName.includes("Mercado Pago System")) {
+                    displayName = rawName;
+                } else if (!log.actorId && (!rawName || rawName === "Unknown")) {
+                    displayName = "Cliente (Autoatendimento)";
+                } else if (rawName?.includes("Mercado Pago")) {
+                    displayName = "Sistema (Integração)";
+                }
+
+                const mapped = AuditMapper.map(log.type, log.metadata, displayName);
                 
                 return (
                   <div key={log.id} className="relative flex items-start gap-3 pl-8">
@@ -83,7 +94,7 @@ export async function ActivityTimeline({
                         </div>
 
                         <span className="text-[10px] text-muted-foreground">
-                          {log.actorName || log.actor?.name || "Usuário Sistema"}
+                          {displayName}
                         </span>
                       </div>
                     </div>

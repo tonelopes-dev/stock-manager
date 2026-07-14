@@ -148,7 +148,27 @@ const MemberFormModal = ({ mode, initialData, trigger }: MemberFormModalProps) =
   };
 
   const applyPreset = (preset: keyof typeof PERMISSION_PRESETS) => {
-    form.setValue("permissions", PERMISSION_PRESETS[preset]);
+    const currentPermissions = form.getValues("permissions") || [];
+    const presetPermissions = PERMISSION_PRESETS[preset];
+    
+    // Verifica se TODAS as permissões do preset já estão no array
+    const hasAll = presetPermissions.length > 0 && presetPermissions.every(p => currentPermissions.includes(p));
+    
+    if (hasAll) {
+        // Remove as permissões do preset
+        const newPermissions = currentPermissions.filter(p => !(presetPermissions as readonly string[]).includes(p));
+        form.setValue("permissions", newPermissions, { shouldDirty: true });
+    } else {
+        // Adiciona as permissões do preset que faltam
+        const newPermissions = Array.from(new Set([...currentPermissions, ...presetPermissions]));
+        form.setValue("permissions", newPermissions, { shouldDirty: true });
+    }
+  };
+
+  const currentPermissions = form.watch("permissions") || [];
+  const isPresetActive = (preset: keyof typeof PERMISSION_PRESETS) => {
+    const presetPermissions = PERMISSION_PRESETS[preset];
+    return presetPermissions.length > 0 && presetPermissions.every(p => currentPermissions.includes(p));
   };
 
   const isPending = inviteAction.isPending || updateAction.isPending;
@@ -166,28 +186,30 @@ const MemberFormModal = ({ mode, initialData, trigger }: MemberFormModalProps) =
             </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[1200px] max-h-[90vh] overflow-y-auto">
         {!invitationResult ? (
           <>
-            <DialogHeader>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
+            <DialogHeader className="flex flex-row items-center justify-start gap-4 space-y-0 pb-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                 {mode === "invite" ? <UserPlusIcon size={24} /> : <Edit3Icon size={24} />}
               </div>
-              <DialogTitle className="text-2xl font-black">
-                {mode === "invite" ? "Convidar para a equipe" : "Editar Membro"}
-              </DialogTitle>
-              <DialogDescription>
-                {mode === "invite" 
-                    ? "Informe os dados do colaborador e defina as permissões de acesso."
-                    : "Atualize o papel e as capacidades deste colaborador na empresa."}
-              </DialogDescription>
+              <div className="space-y-1.5 text-left">
+                  <DialogTitle className="text-2xl font-black">
+                    {mode === "invite" ? "Convidar para a equipe" : "Editar Membro"}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {mode === "invite" 
+                        ? "Informe os dados do colaborador e defina as permissões de acesso."
+                        : "Atualize o papel e as capacidades deste colaborador na empresa."}
+                  </DialogDescription>
+              </div>
             </DialogHeader>
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="pt-4">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     {/* Coluna da Esquerda: Dados */}
-                    <div className="space-y-4">
+                    <div className="space-y-4 lg:col-span-4">
                         <div className="flex items-center gap-2 mb-2">
                              <UserPlusIcon size={20} className="text-primary" />
                              <h3 className="font-black text-lg">Dados do Colaborador</h3>
@@ -238,7 +260,7 @@ const MemberFormModal = ({ mode, initialData, trigger }: MemberFormModalProps) =
                         name="role"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel className="font-bold">Papel Base</FormLabel>
+                            <FormLabel className="font-bold">Nível de Acesso</FormLabel>
                             <Select 
                                 onValueChange={field.onChange} 
                                 defaultValue={field.value}
@@ -301,16 +323,16 @@ const MemberFormModal = ({ mode, initialData, trigger }: MemberFormModalProps) =
                     </div>
 
                     {/* Coluna da Direita: Permissões */}
-                    <div className="space-y-4 lg:border-l lg:pl-8">
+                    <div className="space-y-4 lg:col-span-8 lg:border-l lg:pl-8">
                         <div className="flex items-center gap-2 mb-2">
                             <ShieldCheckIcon size={20} className="text-primary" />
-                            <h3 className="font-black text-lg">Capacidades (RBAC)</h3>
+                            <h3 className="font-black text-lg">Permissões Personalizadas</h3>
                         </div>
 
                         <div className="flex flex-wrap gap-2">
                             <Button 
                                 type="button" 
-                                variant="outline" 
+                                variant={isPresetActive("COZINHA") ? "default" : "outline"}
                                 size="sm" 
                                 className="text-[10px] font-bold rounded-full h-7"
                                 onClick={() => applyPreset("COZINHA")}
@@ -319,7 +341,7 @@ const MemberFormModal = ({ mode, initialData, trigger }: MemberFormModalProps) =
                             </Button>
                             <Button 
                                 type="button" 
-                                variant="outline" 
+                                variant={isPresetActive("ATENDIMENTO") ? "default" : "outline"}
                                 size="sm" 
                                 className="text-[10px] font-bold rounded-full h-7"
                                 onClick={() => applyPreset("ATENDIMENTO")}
@@ -328,7 +350,7 @@ const MemberFormModal = ({ mode, initialData, trigger }: MemberFormModalProps) =
                             </Button>
                             <Button 
                                 type="button" 
-                                variant="outline" 
+                                variant={isPresetActive("GERENCIA") ? "default" : "outline"}
                                 size="sm" 
                                 className="text-[10px] font-bold rounded-full h-7"
                                 onClick={() => applyPreset("GERENCIA")}
@@ -337,7 +359,7 @@ const MemberFormModal = ({ mode, initialData, trigger }: MemberFormModalProps) =
                             </Button>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-y-2.5 p-4 bg-muted/30 rounded-xl border max-h-[350px] overflow-y-auto">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4 p-4 bg-muted/30 rounded-xl border">
                             {Object.entries(PERMISSIONS).map(([key, value]) => (
                                 <FormField
                                     key={key}
@@ -361,7 +383,7 @@ const MemberFormModal = ({ mode, initialData, trigger }: MemberFormModalProps) =
                                                     />
                                                 </FormControl>
                                                 <div className="flex items-center gap-1.5">
-                                                    <FormLabel className="text-sm font-medium leading-none cursor-pointer">
+                                                    <FormLabel className="text-sm font-medium leading-none cursor-pointer whitespace-nowrap">
                                                         {PERMISSION_LABELS[key as keyof typeof PERMISSION_LABELS]}
                                                     </FormLabel>
                                                     <TooltipProvider>
