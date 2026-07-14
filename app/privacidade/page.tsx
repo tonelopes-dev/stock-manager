@@ -98,6 +98,21 @@ export default function PrivacyPage() {
             </ul>
           </section>
 
+          <section className="space-y-4">
+            <h2 className="text-2xl font-bold text-slate-900 underline decoration-orange-500/30 decoration-4 underline-offset-4">
+              5. Papel no Tratamento de Dados de Terceiros (Consumidores Finais)
+            </h2>
+            <p><strong>5.1. Operador de Dados:</strong> Na relação com os clientes finais do Restaurante (consumidores), o Kipo atua estritamente como <strong>Operador</strong> dos dados pessoais, processando as informações exclusivamente em nome e sob as diretrizes do Restaurante, que atua como <strong>Controlador</strong> (conforme art. 5º da LGPD). O Restaurante é o único responsável por garantir a base legal para coletar os dados de seus consumidores.</p>
+            <p><strong>5.2. Segurança de Pagamentos:</strong> O Kipo não armazena números completos de cartões de crédito (PAN) ou códigos de segurança (CVV) em seus bancos de dados. Os dados sensíveis de pagamento são tokenizados e transmitidos de ponta-a-ponta, em ambiente criptografado, diretamente para a instituição de pagamento parceira (Mercado Pago), que detém as certificações PCI-DSS obrigatórias.</p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-2xl font-bold text-slate-900 underline decoration-orange-500/30 decoration-4 underline-offset-4">
+              6. Retenção Regulatória (Bacen e PLD)
+            </h2>
+            <p><strong>6.1.</strong> Sem prejuízo ao direito de exclusão previsto na LGPD, o Kipo e seus parceiros financeiros manterão armazenados os registros de acesso, logs de transações financeiras e dados de identificação pelo prazo mínimo de <strong>5 (cinco) anos</strong>, em estrito cumprimento de obrigações legais e regulatórias do Banco Central do Brasil, bem como para fins de Prevenção à Lavagem de Dinheiro (PLD) e Combate ao Financiamento do Terrorismo (CFT).</p>
+          </section>
+
           <section className="space-y-4 border-t border-slate-200 pt-10">
             <p className="text-xs italic text-muted-foreground">
               Dúvidas sobre privacidade? Entre em contato com nosso Encarregado
