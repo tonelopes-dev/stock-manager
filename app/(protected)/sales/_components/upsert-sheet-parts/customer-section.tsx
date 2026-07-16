@@ -39,15 +39,15 @@ export const CustomerSection = ({
           </label>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col xl:flex-row gap-2">
           {/* ... existing combobox and badge ... */}
-          <div className="flex-1">
+          <div className="flex-1 w-full">
             <Combobox
               options={customerOptions}
               value={customerId || ""}
               onChange={(val) => setValue("customerId", val)}
               placeholder="Selecione o Cliente..."
-              className="h-10 text-xs font-bold"
+              className="h-10 text-xs font-bold w-full"
               disabled={isReadOnly}
             />
           </div>
@@ -55,7 +55,7 @@ export const CustomerSection = ({
           <Badge
             variant={customerId ? "outline" : "secondary"}
             className={cn(
-              "h-10 gap-1.5 whitespace-nowrap px-2.5 py-1 text-[10px] font-black uppercase tracking-tight transition-all active:scale-95",
+              "flex justify-center w-full xl:w-auto h-10 gap-1.5 whitespace-nowrap px-2.5 py-1 text-[10px] font-black uppercase tracking-tight transition-all active:scale-95",
               !customerId
                 ? "border-emerald-500/20 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-600"
                 : "border-border/50 bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground",
