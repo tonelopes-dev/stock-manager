@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Dispatch, SetStateAction } from "react";
 import { SheetHeader, SheetTitle } from "@/app/_components/ui/sheet";
 import { ShoppingCartIcon, ChevronRight, ChevronLeft, CheckCircle2, PlusIcon, MinusIcon, Trash2Icon, XIcon } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
@@ -24,6 +24,7 @@ interface MobileSaleWizardProps {
   customerOptions: ComboboxOption[];
   categories: { id: string; name: string }[];
   stages: { id: string; name: string }[];
+  setSheetIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 const MobileSaleWizard = ({
@@ -36,6 +37,7 @@ const MobileSaleWizard = ({
   customerOptions,
   categories,
   stages,
+  setSheetIsOpen,
 }: MobileSaleWizardProps) => {
   const [step, setStep] = useState<1 | 2>(1);
   const { form, totals, isPending, isOrderPending, isUpsertPending } = controller;
@@ -77,7 +79,7 @@ const MobileSaleWizard = ({
           variant="ghost" 
           size="icon" 
           className="text-orange-500 hover:text-orange-600 hover:bg-orange-50 mt-1"
-          onClick={() => props.setSheetIsOpen(false)}
+          onClick={() => setSheetIsOpen(false)}
         >
           <XIcon size={28} />
         </Button>
