@@ -2,6 +2,8 @@ import Sidebar from "@/app/_components/sidebar";
 import { auth } from "@/app/_lib/auth";
 import { redirect } from "next/navigation";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { getCurrentUserAuth } from "@/app/_lib/rbac";
+import { UserRole } from "@prisma/client";
 
 import { getUserSecurityStatus } from "@/app/_data-access/user/get-user-security-status";
 import { PasswordResetModal } from "./_components/password-reset-modal";
@@ -30,6 +32,10 @@ export default async function ProtectedLayout({
 
   // Ensure company exists for the user
   await getCurrentCompanyId();
+
+  const userAuth = await getCurrentUserAuth();
+  const role = userAuth?.role ?? UserRole.MEMBER;
+  const permissions = userAuth?.permissions ?? [];
 
   // Check security status
   const { needsPasswordChange } = await getUserSecurityStatus();
@@ -73,6 +79,8 @@ export default async function ProtectedLayout({
               header={<GlobalHeader />}
               banner={<SubscriptionBanner />}
               pathname={pathname}
+              role={role}
+              permissions={permissions}
             >
               {children}
             </LayoutContentWrapper>
