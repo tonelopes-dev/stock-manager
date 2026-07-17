@@ -231,6 +231,8 @@ export const processTransparentPayment = actionClient
         paymentId: paymentResponse.id.toString(),
         statusDetail: paymentResponse.status_detail,
         message: mappedMessage,
+        pixBase64: paymentResponse.point_of_interaction?.transaction_data?.qr_code_base64,
+        pixCopyPaste: paymentResponse.point_of_interaction?.transaction_data?.qr_code,
       };
     } catch (error: unknown) {
       console.error(`${LOG} ❌ Error:`, error);
