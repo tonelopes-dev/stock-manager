@@ -13,8 +13,8 @@
  *
  * Never import this in Client Components or files imported by them.
  */
-import "server-only";
 import { createClient } from "@supabase/supabase-js";
+import "server-only";
 
 export const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

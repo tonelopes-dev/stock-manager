@@ -1,9 +1,9 @@
 import "server-only";
 
-import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { startOfDay, subDays, format } from "date-fns";
+import { db } from "@/app/_lib/prisma";
 import { AuditEventType } from "@prisma/client";
+import { format, startOfDay, subDays } from "date-fns";
 
 export interface JourneyAnalytics {
   completedToday: number;

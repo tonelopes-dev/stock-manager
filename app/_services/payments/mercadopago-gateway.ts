@@ -1,12 +1,12 @@
-import "server-only";
 import { randomUUID } from "crypto";
-import { MercadoPagoConfig, Preference, Payment } from "mercadopago";
+import { MercadoPagoConfig, Payment, Preference } from "mercadopago";
+import "server-only";
 import {
-  IPaymentGateway,
-  ICreateCheckoutInput,
   ICheckoutResult,
-  IPixResult,
+  ICreateCheckoutInput,
   IInPersonPaymentResult,
+  IPaymentGateway,
+  IPixResult,
 } from "./types";
 
 /**

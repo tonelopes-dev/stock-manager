@@ -1,6 +1,6 @@
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
 import { Prisma } from "@prisma/client";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
 export const getLowStockProducts = async () => {
   const companyId = await getCurrentCompanyId();

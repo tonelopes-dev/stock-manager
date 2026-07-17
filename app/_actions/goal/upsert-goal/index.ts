@@ -1,12 +1,12 @@
 "use server";
 
-import { db } from "@/app/_lib/prisma";
-import { actionClient } from "@/app/_lib/safe-action";
-import { upsertGoalSchema } from "./schema";
-import { revalidatePath } from "next/cache";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { db } from "@/app/_lib/prisma";
 import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { actionClient } from "@/app/_lib/safe-action";
 import { Prisma } from "@prisma/client";
+import { revalidatePath } from "next/cache";
+import { upsertGoalSchema } from "./schema";
 
 export const upsertGoal = actionClient
   .schema(upsertGoalSchema)

@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { PaymentMethod } from "@prisma/client";
+import { z } from "zod";
 
 export const settleReceivableSchema = z.object({
   saleId: z.string().min(1, "O ID da venda é obrigatório."),

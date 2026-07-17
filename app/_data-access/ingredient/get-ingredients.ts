@@ -1,9 +1,9 @@
 import "server-only";
 
-import { db } from "@/app/_lib/prisma";
-import { Product, ProductType, UnitType, Prisma } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { db } from "@/app/_lib/prisma";
 import { sanitizeUUID } from "@/app/_lib/uuid";
+import { Prisma, ProductType, UnitType } from "@prisma/client";
 
 export type IngredientStatusDto = "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
 

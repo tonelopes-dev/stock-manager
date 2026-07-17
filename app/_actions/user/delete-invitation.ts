@@ -1,12 +1,12 @@
 "use server";
 
-import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { z } from "zod";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { db } from "@/app/_lib/prisma";
+import { assertActionCapability } from "@/app/_lib/rbac";
 import { actionClient } from "@/app/_lib/safe-action";
 import { revalidatePath } from "next/cache";
-import { assertActionCapability } from "@/app/_lib/rbac";
-import { PERMISSIONS } from "@/app/_lib/permissions";
+import { z } from "zod";
 
 const deleteInviteSchema = z.object({
   id: z.string(),

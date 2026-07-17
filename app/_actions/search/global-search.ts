@@ -1,7 +1,7 @@
 "use server";
 
-import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { db } from "@/app/_lib/prisma";
 
 export interface SearchResult {
   id: string;

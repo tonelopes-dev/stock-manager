@@ -2,8 +2,8 @@ import { UnitType } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import { UNIT_CONFIG, isUnitCompatible } from "./units-shared";
 
-export { isUnitCompatible, UNIT_CONFIG };
 export type { UnitFamily, UnitInfo } from "./units-shared";
+export { UNIT_CONFIG, isUnitCompatible };
 
 /**
  * Normalizes a quantity to its base unit (G, ML, or UN)

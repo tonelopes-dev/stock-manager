@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/_lib/prisma";
-import { format, addDays, startOfDay, endOfDay } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { sendEmail } from "@/app/_services/email.service";
 import { subscriptionReminderTemplate } from "@/app/_services/email/templates";
+import { addDays, endOfDay, format, startOfDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 

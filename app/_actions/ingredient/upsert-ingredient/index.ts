@@ -1,16 +1,16 @@
 "use server";
 
-import { db } from "@/app/_lib/prisma";
-import { revalidatePath } from "next/cache";
-import { upsertIngredientSchema } from "./schema";
-import { actionClient } from "@/app/_lib/safe-action";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { auth } from "@/app/_lib/auth";
-import { IngredientService } from "@/app/_services/ingredient";
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { db } from "@/app/_lib/prisma";
+import { actionClient } from "@/app/_lib/safe-action";
 import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
-import { redirect } from "next/navigation";
 import { AuditService } from "@/app/_services/audit";
+import { IngredientService } from "@/app/_services/ingredient";
 import { AuditEventType } from "@prisma/client";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { upsertIngredientSchema } from "./schema";
 
 export const upsertIngredient = actionClient
   .schema(upsertIngredientSchema)

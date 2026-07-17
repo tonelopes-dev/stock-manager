@@ -1,4 +1,4 @@
-import { GoalType, GoalPeriod } from "@prisma/client";
+import { GoalPeriod, GoalType } from "@prisma/client";
 import { z } from "zod";
 
 export const upsertGoalSchema = z.object({

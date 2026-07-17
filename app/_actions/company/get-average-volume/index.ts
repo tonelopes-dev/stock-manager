@@ -1,10 +1,10 @@
 "use server";
 
-import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { subDays } from "date-fns";
+import { db } from "@/app/_lib/prisma";
 import { actionClient } from "@/app/_lib/safe-action";
 import { SaleStatus } from "@prisma/client";
+import { subDays } from "date-fns";
 
 export const getAverageMonthlyVolume = actionClient
   .action(async () => {

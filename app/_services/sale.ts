@@ -1,8 +1,8 @@
-import { db } from "@/app/_lib/prisma";
-import { recordStockMovement, processRecursiveStockMovement } from "@/app/_utils/stock";
 import { BusinessError } from "@/app/_lib/errors";
-import { PaymentMethod, Prisma, SaleStatus } from "@prisma/client";
+import { db } from "@/app/_lib/prisma";
 import { nowBRT } from "@/app/_utils/date";
+import { processRecursiveStockMovement } from "@/app/_utils/stock";
+import { PaymentMethod, Prisma, SaleStatus } from "@prisma/client";
 
 interface UpsertSaleParams {
   id?: string;

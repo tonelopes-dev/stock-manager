@@ -1,14 +1,14 @@
 
 "use server";
 
-import { db } from "@/app/_lib/prisma";
-import { actionClient } from "@/app/_lib/safe-action";
-import { z } from "zod";
-import { UserRole } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { assertRole, assertCapability, ADMIN_AND_OWNER } from "@/app/_lib/rbac";
 import { PERMISSIONS } from "@/app/_lib/permissions";
+import { db } from "@/app/_lib/prisma";
+import { ADMIN_AND_OWNER, assertCapability, assertRole } from "@/app/_lib/rbac";
+import { actionClient } from "@/app/_lib/safe-action";
+import { UserRole } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 const updateMemberSchema = z.object({
   userCompanyId: z.string(), // ID da relação UserCompany

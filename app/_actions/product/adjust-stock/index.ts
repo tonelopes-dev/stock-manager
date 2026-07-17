@@ -1,15 +1,15 @@
 "use server";
 
-import { db } from "@/app/_lib/prisma";
-import { revalidatePath } from "next/cache";
-import { adjustStockSchema } from "./schema";
-import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { recordStockMovement } from "@/app/_utils/stock";
-import { assertRole, ADMIN_AND_OWNER } from "@/app/_lib/rbac";
+import { db } from "@/app/_lib/prisma";
+import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { actionClient } from "@/app/_lib/safe-action";
 import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
 import { AuditService } from "@/app/_services/audit";
+import { recordStockMovement } from "@/app/_utils/stock";
 import { AuditEventType } from "@prisma/client";
+import { revalidatePath } from "next/cache";
+import { adjustStockSchema } from "./schema";
 
 export const adjustStock = actionClient
   .schema(adjustStockSchema)

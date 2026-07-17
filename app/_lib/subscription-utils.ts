@@ -1,5 +1,5 @@
-import { SubscriptionStatus as DBStatus } from "@prisma/client";
 import { getSubscriptionStatus } from "@/lib/subscription";
+import { SubscriptionStatus as DBStatus } from "@prisma/client";
 import { addMonths, format, isAfter } from "date-fns";
 import { ptBR } from "date-fns/locale";
 

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/_lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;

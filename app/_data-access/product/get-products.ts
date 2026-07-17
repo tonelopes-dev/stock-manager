@@ -1,11 +1,11 @@
 import "server-only";
 
-import { db } from "@/app/_lib/prisma";
-import { Product, Prisma, ProductType } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { calculateMargin } from "@/app/_utils/pricing";
-import { subDays } from "date-fns";
+import { db } from "@/app/_lib/prisma";
 import { sanitizeUUID } from "@/app/_lib/uuid";
+import { calculateMargin } from "@/app/_utils/pricing";
+import { Prisma, Product, ProductType } from "@prisma/client";
+import { subDays } from "date-fns";
 import { calculateProductAvailability } from "./calculate-product-availability";
 
 export type ProductStatusDto = "IN_STOCK" | "OUT_OF_STOCK" | "LOW_STOCK" | "SLOW_MOVING";

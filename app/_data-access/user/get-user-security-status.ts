@@ -1,6 +1,6 @@
-import "server-only";
 import { auth } from "@/app/_lib/auth";
 import { db } from "@/app/_lib/prisma";
+import "server-only";
 
 export const getUserSecurityStatus = async () => {
   const session = await auth();

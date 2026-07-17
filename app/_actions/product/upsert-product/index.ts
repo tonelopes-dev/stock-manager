@@ -1,16 +1,16 @@
 "use server";
 
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
+import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { actionClient } from "@/app/_lib/safe-action";
+import { deleteOldImage } from "@/app/_lib/storage";
+import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
+import { AuditService } from "@/app/_services/audit";
+import { recordStockMovement } from "@/app/_utils/stock";
+import { AuditEventType, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { upsertProductSchema } from "./schema";
-import { actionClient } from "@/app/_lib/safe-action";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { recordStockMovement } from "@/app/_utils/stock";
-import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
-import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
-import { AuditService } from "@/app/_services/audit";
-import { AuditEventType, Prisma } from "@prisma/client";
-import { deleteOldImage } from "@/app/_lib/storage";
 
 /**
  * Re-calculates the cost of a product based on its composition (recursive).

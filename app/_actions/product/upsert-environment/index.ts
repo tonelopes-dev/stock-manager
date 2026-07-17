@@ -1,10 +1,10 @@
 "use server";
 
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
+import { actionClient } from "@/app/_lib/safe-action";
 import { revalidatePath } from "next/cache";
 import { upsertEnvironmentSchema } from "./schema";
-import { actionClient } from "@/app/_lib/safe-action";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
 export const upsertEnvironment = actionClient
   .schema(upsertEnvironmentSchema)

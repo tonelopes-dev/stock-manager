@@ -1,11 +1,11 @@
 "use server";
 
-import { db } from "@/app/_lib/prisma";
-import { actionClient } from "@/app/_lib/safe-action";
-import { z } from "zod";
-import { revalidatePath } from "next/cache";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { db } from "@/app/_lib/prisma";
 import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { actionClient } from "@/app/_lib/safe-action";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 const deleteGoalSchema = z.object({
   id: z.string(),

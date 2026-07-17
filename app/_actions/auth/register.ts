@@ -1,10 +1,10 @@
 "use server";
 
 import { db } from "@/app/_lib/prisma";
-import bcrypt from "bcryptjs";
-import { z } from "zod";
 import { sendEmail } from "@/app/_services/email.service";
 import { welcomeTemplate } from "@/app/_services/email/templates";
+import bcrypt from "bcryptjs";
+import { z } from "zod";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),

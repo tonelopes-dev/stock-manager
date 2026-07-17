@@ -1,10 +1,10 @@
 "use server";
 
-import { db } from "@/app/_lib/prisma";
 import { auth } from "@/app/_lib/auth";
+import { db } from "@/app/_lib/prisma";
+import { actionClient } from "@/app/_lib/safe-action";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { actionClient } from "@/app/_lib/safe-action";
 
 const updateProfileSchema = z.object({
   name: z.string().min(3),

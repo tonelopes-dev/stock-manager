@@ -1,7 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
 import { SubscriptionLevel } from "@/lib/subscription";
+import React, { createContext, useContext, useState } from "react";
 
 interface SubscriptionContextType {
   isBannerVisible: boolean;

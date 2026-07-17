@@ -1,7 +1,6 @@
 "use server";
 
 import { db } from "@/app/_lib/prisma";
-import { revalidatePath } from "next/cache";
 import { deleteOldImage } from "@/app/_lib/storage";
 
 export const updateCustomerSelfie = async (customerId: string, imageUrl: string) => {

@@ -1,13 +1,13 @@
 "use server";
 
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { PERMISSIONS } from "@/app/_lib/permissions";
 import { db } from "@/app/_lib/prisma";
+import { assertActionCapability } from "@/app/_lib/rbac";
+import { actionClient } from "@/app/_lib/safe-action";
+import { deleteOldImage } from "@/app/_lib/storage";
 import { revalidatePath } from "next/cache";
 import { updateCompanySchema } from "./schema";
-import { actionClient } from "@/app/_lib/safe-action";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { assertActionCapability } from "@/app/_lib/rbac";
-import { PERMISSIONS } from "@/app/_lib/permissions";
-import { deleteOldImage } from "@/app/_lib/storage";
 
 export const updateCompany = actionClient
   .schema(updateCompanySchema)

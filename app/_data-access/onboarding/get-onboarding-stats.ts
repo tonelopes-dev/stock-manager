@@ -1,5 +1,5 @@
-import { db } from "@/app/_lib/prisma";
 import { auth } from "@/app/_lib/auth";
+import { db } from "@/app/_lib/prisma";
 
 export async function getOnboardingStats() {
   const session = await auth();

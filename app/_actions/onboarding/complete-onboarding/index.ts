@@ -1,12 +1,12 @@
 "use server";
 
+import { auth } from "@/app/_lib/auth";
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
+import { actionClient } from "@/app/_lib/safe-action";
+import { recordStockMovement } from "@/app/_utils/stock";
 import { revalidatePath } from "next/cache";
 import { completeOnboardingSchema } from "./schema";
-import { actionClient } from "@/app/_lib/safe-action";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { auth } from "@/app/_lib/auth";
-import { recordStockMovement } from "@/app/_utils/stock";
 
 export const completeOnboarding = actionClient
   .schema(completeOnboardingSchema)

@@ -1,7 +1,7 @@
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { db } from "@/app/_lib/prisma";
 import "server-only";
 import { ProductStatusDto } from "../product/get-products";
-import { db } from "@/app/_lib/prisma";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
 export interface MostSoldProductDto {
   productId: string;

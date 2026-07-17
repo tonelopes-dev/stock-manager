@@ -1,12 +1,12 @@
 "use server";
 
-import { db } from "@/app/_lib/prisma";
-import { revalidatePath } from "next/cache";
-import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { db } from "@/app/_lib/prisma";
 import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
-import { z } from "zod";
+import { actionClient } from "@/app/_lib/safe-action";
 import { deleteOldImage } from "@/app/_lib/storage";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 const deleteCustomerSchema = z.object({
   id: z.string().cuid(),

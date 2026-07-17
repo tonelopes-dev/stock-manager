@@ -1,9 +1,9 @@
 import "server-only";
 
-import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { db } from "@/app/_lib/prisma";
 import { Goal, Product } from "@prisma/client";
-import { startOfDay, endOfDay } from "date-fns";
+import { endOfDay, startOfDay } from "date-fns";
 
 export interface GoalDto extends Goal {
   product: Pick<Product, "name"> | null;

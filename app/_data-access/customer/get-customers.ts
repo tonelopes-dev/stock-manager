@@ -1,9 +1,9 @@
 import "server-only";
 
-import { db } from "@/app/_lib/prisma";
-import { CustomerCategory, Prisma } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { db } from "@/app/_lib/prisma";
 import { sanitizeUUID } from "@/app/_lib/uuid";
+import { Prisma } from "@prisma/client";
 
 export interface CustomerDto {
   id: string;

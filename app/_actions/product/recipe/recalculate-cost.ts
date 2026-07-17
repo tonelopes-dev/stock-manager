@@ -1,6 +1,6 @@
 import { db } from "@/app/_lib/prisma";
 import { calculateRealCost } from "@/app/_utils/units";
-import { UnitType, Prisma } from "@prisma/client";
+import { Prisma, UnitType } from "@prisma/client";
 
 /**
  * Recalculates a product's cost from its composition/recipe

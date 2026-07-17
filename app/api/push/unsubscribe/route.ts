@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/_lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 const unsubscribeSchema = z.object({

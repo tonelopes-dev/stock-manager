@@ -1,8 +1,8 @@
-import { auth } from "./auth";
-import { db } from "./prisma";
 import { UserRole } from "@prisma/client";
-import { getCurrentCompanyId } from "./get-current-company";
 import { redirect } from "next/navigation";
+import { auth } from "./auth";
+import { getCurrentCompanyId } from "./get-current-company";
+import { db } from "./prisma";
 
 /**
  * Retorna o papel e as permissões do usuário logado na empresa atual.

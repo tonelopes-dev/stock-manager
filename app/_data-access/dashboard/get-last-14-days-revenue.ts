@@ -1,8 +1,8 @@
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
 import { Decimal } from "@prisma/client/runtime/library";
 import dayjs from "dayjs";
 import "server-only";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 
 export interface DayTotalRevenueDto {
   day: string;

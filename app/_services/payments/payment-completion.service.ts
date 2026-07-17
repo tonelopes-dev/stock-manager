@@ -1,9 +1,8 @@
 import "server-only";
 
-import { db } from "@/app/_lib/prisma";
-import { OrderService, ConvertToSaleInput } from "@/app/_services/order";
 import { broadcastEvent } from "@/app/_lib/broadcast";
 import { broadcastKdsEvent } from "@/app/_lib/kds-broadcast";
+import { ConvertToSaleInput, OrderService } from "@/app/_services/order";
 import { PaymentMethod } from "@prisma/client";
 
 const LOG = "[PaymentCompletion]";

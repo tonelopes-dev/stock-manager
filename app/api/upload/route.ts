@@ -1,7 +1,7 @@
-import { put } from "@vercel/blob";
-import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/app/_lib/auth";
 import { db } from "@/app/_lib/prisma";
+import { put } from "@vercel/blob";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = request.nextUrl;

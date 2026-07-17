@@ -1,6 +1,6 @@
+import { BusinessError } from "@/app/_lib/errors";
 import { db } from "@/app/_lib/prisma";
 import { recordStockMovement } from "@/app/_utils/stock";
-import { BusinessError } from "@/app/_lib/errors";
 import { Prisma } from "@prisma/client";
 
 const Decimal = Prisma.Decimal;

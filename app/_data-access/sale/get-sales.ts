@@ -1,7 +1,7 @@
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { sanitizeUUID } from "@/app/_lib/uuid";
 import { db } from "@/app/_lib/prisma";
-import { SaleStatus, SaleItem, Product, Prisma, PaymentMethod } from "@prisma/client";
+import { sanitizeUUID } from "@/app/_lib/uuid";
+import { PaymentMethod, Prisma, SaleStatus } from "@prisma/client";
 
 export interface SaleItemDto {
   id: string;

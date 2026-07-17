@@ -1,11 +1,11 @@
 "use server";
 
-import { db } from "@/app/_lib/prisma";
-import { revalidatePath } from "next/cache";
-import { deleteRecipeIngredientSchema } from "./schema";
-import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { db } from "@/app/_lib/prisma";
+import { actionClient } from "@/app/_lib/safe-action";
+import { revalidatePath } from "next/cache";
 import { recalculateProductCostRecursive } from "./recalculate-cost";
+import { deleteRecipeIngredientSchema } from "./schema";
 
 export const deleteRecipeIngredient = actionClient
   .schema(deleteRecipeIngredientSchema)
