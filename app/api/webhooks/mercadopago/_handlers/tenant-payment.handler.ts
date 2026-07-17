@@ -85,8 +85,72 @@ export async function handleTenantPaymentWebhook(
     return new NextResponse("Missing external_reference", { status: 400 });
   }
 
+  if (paymentStatus === "charged_back" || paymentStatus === "refunded" || paymentStatus === "cancelled") {
+    console.log(`${LOG} ⚠️ Negative payment status detected: ${paymentStatus}. Initiating reversal.`);
+    
+    // 1. Encontrar a Venda (Sale) associada
+    const saleToReverse = await db.sale.findFirst({
+      where: { 
+        OR: [
+          { id: externalReference }, // Fluxo Pagar Depois (external_reference é a Sale)
+          { externalPaymentId: paymentId.toString() } // Fluxo Checkout (Sale é criada e recebe o ID do pagamento)
+        ],
+        companyId 
+      },
+      include: { orders: { select: { id: true, customerId: true } } }
+    });
+
+    if (!saleToReverse) {
+      console.warn(`${LOG} No Sale found to reverse for payment ${paymentId}. Skipping.`);
+      return new NextResponse("OK", { status: 200 });
+    }
+
+    // 2. Atualizar status no banco e zerar taxa da plataforma para não faturar o restaurante
+    await db.$transaction(async (tx) => {
+      await tx.sale.update({
+        where: { id: saleToReverse.id },
+        data: { 
+          status: "CANCELED",
+          platformFeeAmount: 0,
+          netAmount: 0
+        }
+      });
+
+      if (saleToReverse.orders.length > 0) {
+        await tx.order.updateMany({
+          where: { id: { in: saleToReverse.orders.map(o => o.id) } },
+          data: { status: "CANCELED" }
+        });
+      }
+    });
+
+    // 3. Trilha de Auditoria (Audit Trail) e Notificação em Tempo Real
+    await _recordAudit({ 
+      type: "SALE_CANCELED", 
+      companyId, 
+      customerId: saleToReverse.customerId, 
+      transactionNsu, 
+      paymentStatus, 
+      saleId: saleToReverse.id 
+    });
+
+    for (const order of saleToReverse.orders) {
+      if (order.customerId) {
+        await broadcastEvent(`customer-${order.customerId}`, "order_status_update", {
+          orderId: order.id,
+          status: "CANCELED",
+        });
+      }
+      await broadcastKdsEvent(companyId, "update_order", { id: order.id, status: "CANCELED" });
+    }
+
+    console.log(`${LOG} ✅ Reversal complete. Sale ${saleToReverse.id} marked as CANCELED. Events broadcast.`);
+    await PaymentEventService.markAsProcessed({ id: paymentId, companyId, provider: "MERCADOPAGO", eventType: `payment.${paymentStatus}`, payload: body as any });
+    return new NextResponse("OK", { status: 200 });
+  }
+
   if (paymentStatus !== "approved") {
-    console.log(`${LOG} Payment ${transactionNsu} status is '${paymentStatus}' — not approved, skipping.`);
+    console.log(`${LOG} Payment ${transactionNsu} status is '${paymentStatus}' — not approved or reversed, skipping.`);
     return new NextResponse("OK", { status: 200 });
   }
 
@@ -169,10 +233,14 @@ export async function handleTenantPaymentWebhook(
 
     console.log(`${LOG} Delegating to PaymentCompletionService for ${orders.length} order(s)`);
 
-    const platformFeeRate = Number(company.kipoMarketplaceFeeRate ?? 0.01);
-    const paymentAmount = Number(payment.transaction_amount || 0);
-    const platformFeeAmount = Math.round(paymentAmount * platformFeeRate * 100) / 100;
-    const netAmount = paymentAmount - platformFeeAmount;
+    const configuredFeeRate = Number(company.kipoMarketplaceFeeRate ?? 0.01);
+    const paymentAmountCents = Math.round(Number(payment.transaction_amount || 0) * 100);
+    
+    const expectedPlatformFeeCents = Math.round(paymentAmountCents * configuredFeeRate);
+    const expectedNetAmountCents = paymentAmountCents - expectedPlatformFeeCents;
+    
+    const expectedPlatformFeeAmount = expectedPlatformFeeCents / 100;
+    const expectedNetAmount = expectedNetAmountCents / 100;
 
     const newSale = await PaymentCompletionService.completeOnlinePayment({
       orderIds: orderIdsToProcess,
@@ -185,9 +253,9 @@ export async function handleTenantPaymentWebhook(
         hasServiceTax: o.hasServiceTax,
         orderItems: o.orderItems,
       })),
-      platformFeeRate,
-      platformFeeAmount,
-      netAmount,
+      platformFeeRate: configuredFeeRate,
+      platformFeeAmount: expectedPlatformFeeAmount, // Mantemos o registro para faturamento posterior
+      netAmount: expectedNetAmount,
       externalPaymentId: paymentId.toString(),
       paymentProvider: "MERCADOPAGO",
     });

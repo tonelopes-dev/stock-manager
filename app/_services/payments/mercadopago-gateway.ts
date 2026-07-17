@@ -1,4 +1,5 @@
 import "server-only";
+import { randomUUID } from "crypto";
 import { MercadoPagoConfig, Preference, Payment } from "mercadopago";
 import {
   IPaymentGateway,
@@ -58,6 +59,7 @@ export class MercadoPagoGateway implements IPaymentGateway {
           },
         }),
       },
+      requestOptions: { idempotencyKey: randomUUID() },
     });
 
     const checkoutUrl = response.sandbox_init_point ?? response.init_point;
@@ -88,6 +90,7 @@ export class MercadoPagoGateway implements IPaymentGateway {
           email: "pix@kipo.app",
         },
       },
+      requestOptions: { idempotencyKey: randomUUID() },
     });
 
     const qrCodeBase64 = response.point_of_interaction?.transaction_data?.qr_code_base64;
@@ -136,6 +139,7 @@ export class MercadoPagoGateway implements IPaymentGateway {
     
     const response = await payment.create({
       body: formData,
+      requestOptions: { idempotencyKey: randomUUID() },
     });
     
     return response;

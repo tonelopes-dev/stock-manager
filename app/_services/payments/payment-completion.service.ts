@@ -50,14 +50,20 @@ export const PaymentCompletionService = {
   calculateServiceTax(
     orders: { hasServiceTax: boolean; orderItems: { unitPrice: unknown; quantity: unknown }[] }[]
   ): number {
-    return orders.reduce((sum, order) => {
-      if (!order.hasServiceTax) return sum;
-      const subtotal = order.orderItems.reduce(
-        (s, item) => s + Number(item.unitPrice) * Number(item.quantity),
+    const tipCents = orders.reduce((sumCents, order) => {
+      if (!order.hasServiceTax) return sumCents;
+      
+      // Converte o subtotal rigorosamente para centavos antes de calcular a porcentagem
+      const subtotalCents = order.orderItems.reduce(
+        (sCents, item) => sCents + Math.round(Number(item.unitPrice) * Number(item.quantity) * 100),
         0
       );
-      return sum + Math.round(subtotal * 0.1 * 100) / 100;
+      
+      const orderTipCents = Math.round(subtotalCents * 0.1);
+      return sumCents + orderTipCents;
     }, 0);
+    
+    return tipCents / 100;
   },
 
   /**
