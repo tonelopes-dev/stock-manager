@@ -1,13 +1,12 @@
 "use client";
 
-import { TrendingUpIcon, TrendingDownIcon, DollarSignIcon, ShoppingCartIcon, TagIcon } from "lucide-react";
-import { formatCurrency } from "@/app/_lib/utils";
-import { cn } from "@/app/_lib/utils";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/app/_components/ui/popover";
+import { cn, formatCurrency } from "@/app/_lib/utils";
+import { DollarSignIcon, ShoppingCartIcon, TagIcon, TrendingDownIcon, TrendingUpIcon } from "lucide-react";
 
 interface MetricCardProps {
   title: string;

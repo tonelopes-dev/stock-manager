@@ -1,9 +1,9 @@
 "use client";
 
-import { useAction } from "next-safe-action/hooks";
 import { getInventoryAlerts } from "@/app/_actions/inventory/get-inventory-alerts";
 import { Button } from "@/app/_components/ui/button";
-import { ShoppingCart, Download, Loader2 } from "lucide-react";
+import { Loader2, ShoppingCart } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 
 export const DownloadShoppingListButton = () => {

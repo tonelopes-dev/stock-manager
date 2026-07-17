@@ -1,11 +1,11 @@
 "use client";
 
-import { useFormContext } from "react-hook-form";
-import { UsersIcon, CheckIcon } from "lucide-react";
-import { Combobox, ComboboxOption } from "@/app/_components/ui/combobox";
-import { Badge } from "@/app/_components/ui/badge";
-import { cn } from "@/app/_lib/utils";
 import { ExpandableAvatar } from "@/app/_components/expandable-avatar";
+import { Badge } from "@/app/_components/ui/badge";
+import { Combobox, ComboboxOption } from "@/app/_components/ui/combobox";
+import { cn } from "@/app/_lib/utils";
+import { CheckIcon } from "lucide-react";
+import { useFormContext } from "react-hook-form";
 
 interface CustomerSectionProps {
   customerOptions: ComboboxOption[];

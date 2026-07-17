@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -8,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/_components/ui/select";
+import { useRouter, useSearchParams } from "next/navigation";
 import { TransitionStartFunction } from "react";
 
 interface CustomerCategoryFilterProps {

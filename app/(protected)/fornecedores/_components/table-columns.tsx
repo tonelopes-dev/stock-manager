@@ -1,7 +1,7 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
 import { Supplier } from "@prisma/client";
+import { ColumnDef } from "@tanstack/react-table";
 import SupplierTableActions from "./table-actions";
 
 export const supplierTableColumns: ColumnDef<Supplier>[] = [

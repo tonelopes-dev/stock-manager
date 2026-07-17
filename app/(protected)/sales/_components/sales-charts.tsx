@@ -1,17 +1,17 @@
 "use client";
 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/_components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/app/_components/ui/chart";
+import { formatCurrency } from "@/app/_lib/utils";
 import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
+  ResponsiveContainer,
   XAxis,
   YAxis,
-  ResponsiveContainer,
-  Cell,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/_components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/app/_components/ui/chart";
-import { formatCurrency } from "@/app/_lib/utils";
 
 interface SalesChartsProps {
   comparison: {

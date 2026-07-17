@@ -1,18 +1,18 @@
 "use client";
 
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { FormProvider } from "react-hook-form";
-import { PaymentMethod } from "@prisma/client";
+import { ComboboxOption } from "@/app/_components/ui/combobox";
+import { Dialog } from "@/app/_components/ui/dialog";
 import { SheetContent } from "@/app/_components/ui/sheet";
 import { TooltipProvider } from "@/app/_components/ui/tooltip";
-import { Dialog } from "@/app/_components/ui/dialog";
 import { ProductDto } from "@/app/_data-access/product/get-products";
-import { ComboboxOption } from "@/app/_components/ui/combobox";
+import { PaymentMethod } from "@prisma/client";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { FormProvider } from "react-hook-form";
 import UpsertCustomerDialogContent from "../../customers/_components/upsert-dialog-content";
 
-import { useUpsertSaleController, SelectedProduct } from "./upsert-sheet-parts/use-upsert-sale-controller";
 import DesktopSaleView from "./desktop-sale-view";
 import MobileSaleWizard from "./mobile-sale-wizard";
+import { SelectedProduct, useUpsertSaleController } from "./upsert-sheet-parts/use-upsert-sale-controller";
 
 interface UpsertSheetContentProps {
   isOpen: boolean;

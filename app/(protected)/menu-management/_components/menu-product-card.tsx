@@ -1,26 +1,25 @@
 "use client";
 
-import Image from "next/image";
-import { useAction } from "next-safe-action/hooks";
 import { toggleMenuVisibility } from "@/app/_actions/product/toggle-menu-visibility";
-import { Switch } from "@/app/_components/ui/switch";
 import { Badge } from "@/app/_components/ui/badge";
-import { toast } from "sonner";
-import { cn } from "@/app/_lib/utils";
-import { Eye, EyeOff, PackageX, Utensils, Star, Tag } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
-import type { MenuManagementProduct } from "@/app/_data-access/menu/get-menu-management-data";
-import { 
-  Tooltip, 
-  TooltipContent, 
-  TooltipProvider, 
-  TooltipTrigger,
-  TooltipPortal
-} from "@/app/_components/ui/tooltip";
-import * as React from "react";
 import { Dialog } from "@/app/_components/ui/dialog";
+import { Switch } from "@/app/_components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipPortal,
+  TooltipProvider,
+  TooltipTrigger
+} from "@/app/_components/ui/tooltip";
+import type { MenuManagementProduct } from "@/app/_data-access/menu/get-menu-management-data";
+import { cn } from "@/app/_lib/utils";
+import { Eye, EyeOff, PackageX, Star, Tag, Utensils } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import Image from "next/image";
+import * as React from "react";
+import { toast } from "sonner";
 import { PromotionSettingsModal } from "./promotion-settings-modal";
-import { ProductDto } from "@/app/_data-access/product/get-products";
 
 interface MenuProductCardProps {
   product: MenuManagementProduct;

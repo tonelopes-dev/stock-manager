@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { completeOnboarding } from "@/app/_actions/onboarding/complete-onboarding";
+import { completeOnboardingSchema, CompleteOnboardingSchema } from "@/app/_actions/onboarding/complete-onboarding/schema";
+import { Button } from "@/app/_components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/app/_components/ui/dialog";
 import {
   Form,
@@ -20,12 +20,12 @@ import {
   FormMessage,
 } from "@/app/_components/ui/form";
 import { Input } from "@/app/_components/ui/input";
-import { Button } from "@/app/_components/ui/button";
-import { completeOnboardingSchema, CompleteOnboardingSchema } from "@/app/_actions/onboarding/complete-onboarding/schema";
-import { completeOnboarding } from "@/app/_actions/onboarding/complete-onboarding";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Building2Icon, CheckCircle2Icon, Loader2Icon, PackageIcon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Loader2Icon, CheckCircle2Icon, PackageIcon, Building2Icon } from "lucide-react";
 
 interface OnboardingModalProps {
   isOpen: boolean;

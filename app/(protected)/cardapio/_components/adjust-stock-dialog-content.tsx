@@ -15,21 +15,21 @@ import {
   DialogTitle,
 } from "@/app/_components/ui/dialog";
 import {
+  Form,
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
-  Form,
 } from "@/app/_components/ui/form";
 import { Input } from "@/app/_components/ui/input";
+import { formatQuantity } from "@/app/_utils/format-quantity";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { formatQuantity } from "@/app/_utils/format-quantity";
 
 import {
   Select,
@@ -38,7 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/_components/ui/select";
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 
 interface AdjustStockDialogContentProps {
   productId: string;

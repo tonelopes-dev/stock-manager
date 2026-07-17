@@ -1,7 +1,6 @@
 "use client";
 
 import { IntegrationCard } from "./integration-card";
-import { CreditCard } from "lucide-react";
 
 interface IntegrationsHubProps {
   companyId: string;

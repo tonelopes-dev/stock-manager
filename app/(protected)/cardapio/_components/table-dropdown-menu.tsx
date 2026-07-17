@@ -1,3 +1,4 @@
+import { toggleProductStatus } from "@/app/_actions/product/toggle-status";
 import { AlertDialog } from "@/app/_components/ui/alert-dialog";
 import { Button } from "@/app/_components/ui/button";
 import { Dialog } from "@/app/_components/ui/dialog";
@@ -15,27 +16,26 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/app/_components/ui/tooltip";
+import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
+import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
+import { ProductDto } from "@/app/_data-access/product/get-products";
+import { UserRole } from "@prisma/client";
 import {
-  MoreHorizontalIcon,
   EditIcon,
-  TrashIcon,
   ExternalLinkIcon,
+  MoreHorizontalIcon,
+  PackagePlusIcon,
   PowerIcon,
   PowerOffIcon,
-  PackagePlusIcon,
+  TrashIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import DeleteProductDialogContent from "./delete-dialog-content";
-import UpsertProductDialogContent from "./upsert-dialog-content";
-import ToggleStatusDialogContent from "./toggle-status-dialog-content";
 import AdjustStockDialogContent from "./adjust-stock-dialog-content";
-import { ProductDto } from "@/app/_data-access/product/get-products";
-import { toggleProductStatus } from "@/app/_actions/product/toggle-status";
-import Link from "next/link";
-import { UserRole } from "@prisma/client";
-import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
-import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
+import DeleteProductDialogContent from "./delete-dialog-content";
+import ToggleStatusDialogContent from "./toggle-status-dialog-content";
+import UpsertProductDialogContent from "./upsert-dialog-content";
 
 interface ProductTableDropdownMenuProps {
   product: ProductDto;

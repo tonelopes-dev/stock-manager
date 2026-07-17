@@ -1,17 +1,10 @@
 "use client";
 
-import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
 import { Button } from "@/app/_components/ui/button";
-import { formatCurrency } from "@/app/_utils/currency";
-import { ComboboxOption, Combobox } from "@/app/_components/ui/combobox";
-import {
-  Clock,
-  Smartphone,
-  CreditCard,
-  DollarSign,
-  Wallet,
-  CheckCircle2,
-} from "lucide-react";
+import { Combobox, ComboboxOption } from "@/app/_components/ui/combobox";
+import { DatePicker } from "@/app/_components/ui/date-picker";
+import { Input } from "@/app/_components/ui/input";
+import { Label } from "@/app/_components/ui/label";
 import {
   Select,
   SelectContent,
@@ -19,16 +12,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/_components/ui/select";
-import { cn } from "@/app/_lib/utils";
-import { Label } from "@/app/_components/ui/label";
-import { Input } from "@/app/_components/ui/input";
 import { Switch } from "@/app/_components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
-import { DatePicker } from "@/app/_components/ui/date-picker";
+import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
+import { cn } from "@/app/_lib/utils";
+import { formatCurrency } from "@/app/_utils/currency";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import type { ComandaTotals } from "./use-comanda-state";
+import {
+  CheckCircle2,
+  Clock,
+  CreditCard,
+  DollarSign,
+  Smartphone,
+  Wallet,
+} from "lucide-react";
 import { PixPaymentDisplay } from "./pix-payment-display";
+import type { ComandaTotals } from "./use-comanda-state";
 
 // ── Payment Method Config ────────────────────────────────────────────────
 

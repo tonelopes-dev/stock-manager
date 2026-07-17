@@ -12,6 +12,7 @@ import {
   AlertDialogTrigger,
 } from "@/app/_components/ui/alert-dialog";
 import { Button } from "@/app/_components/ui/button";
+import { ComboboxOption } from "@/app/_components/ui/combobox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,19 +22,18 @@ import {
   DropdownMenuTrigger,
 } from "@/app/_components/ui/dropdown-menu";
 import { Sheet, SheetTrigger } from "@/app/_components/ui/sheet";
+import { ProductDto } from "@/app/_data-access/product/get-products";
+import { SaleDto } from "@/app/_data-access/sale/get-sales";
 import {
-  MoreHorizontalIcon,
   ClipboardCopyIcon,
   EditIcon,
+  MoreHorizontalIcon,
   TrashIcon,
 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import { useState } from "react";
 import { toast } from "sonner";
 import UpsertSheetContent from "./upsert-sheet-content";
-import { useState } from "react";
-import { ComboboxOption } from "@/app/_components/ui/combobox";
-import { ProductDto } from "@/app/_data-access/product/get-products";
-import { SaleDto } from "@/app/_data-access/sale/get-sales";
 
 import { UserRole } from "@prisma/client";
 

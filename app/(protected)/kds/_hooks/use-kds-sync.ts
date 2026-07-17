@@ -12,10 +12,10 @@
  * a fully mapped KDSOrderDto payload emitted server-side by the Server Action after the
  * Prisma commit. No secondary SELECT is needed on the browser.
  */
-import { useState, useEffect, useRef } from "react";
-import { supabase } from "@/app/_lib/supabase";
 import { KDSOrderDto } from "@/app/_data-access/order/get-kds-orders";
+import { supabase } from "@/app/_lib/supabase";
 import { OrderStatus } from "@prisma/client";
+import { useEffect, useRef, useState } from "react";
 
 interface UseKdsSyncProps {
   initialOrders: KDSOrderDto[];

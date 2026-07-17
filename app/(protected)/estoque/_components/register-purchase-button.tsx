@@ -2,11 +2,11 @@
 
 import { Button } from "@/app/_components/ui/button";
 import { Dialog, DialogTrigger } from "@/app/_components/ui/dialog";
+import { IngredientDto } from "@/app/_data-access/ingredient/get-ingredients";
+import { Supplier } from "@prisma/client";
 import { ShoppingCartIcon } from "lucide-react";
 import { useState } from "react";
 import CreateStockEntryDialogContent from "./create-stock-entry-sheet-content";
-import { Supplier } from "@prisma/client";
-import { IngredientDto } from "@/app/_data-access/ingredient/get-ingredients";
 
 interface RegisterPurchaseButtonProps {
   suppliers: Supplier[];

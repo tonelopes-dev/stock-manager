@@ -1,13 +1,13 @@
 "use client";
 
-import { memo } from "react";
+import { Badge } from "@/app/_components/ui/badge";
+import { Card, CardContent } from "@/app/_components/ui/card";
+import { Progress } from "@/app/_components/ui/progress";
+import { formatCurrency } from "@/app/_lib/utils";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Card, CardContent } from "@/app/_components/ui/card";
-import { Badge } from "@/app/_components/ui/badge";
-import { formatCurrency } from "@/app/_lib/utils";
-import { Progress } from "@/app/_components/ui/progress";
 import { ListChecks } from "lucide-react";
+import { memo } from "react";
 
 interface KanbanCardProps {
   customer: {

@@ -1,8 +1,8 @@
 "use client";
 
 import { JourneyAnalytics } from "@/app/_data-access/crm/get-crm-analytics";
-import { JourneyKpiGrid } from "./journey-kpi-grid";
 import { JourneyActivityChart } from "./activity-chart";
+import { JourneyKpiGrid } from "./journey-kpi-grid";
 import { RecentActivityTable } from "./recent-activity-table";
 
 interface JourneyDashboardProps {

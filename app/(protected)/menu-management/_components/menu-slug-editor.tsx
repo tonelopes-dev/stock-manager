@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useAction } from "next-safe-action/hooks";
 import { updateCompanySlug } from "@/app/_actions/company/update-company-slug";
 import { Button } from "@/app/_components/ui/button";
 import { Input } from "@/app/_components/ui/input";
+import { CheckIcon, LinkIcon, Loader2Icon, PencilIcon, XIcon } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
-import { LinkIcon, Loader2Icon, CheckIcon, PencilIcon, XIcon } from "lucide-react";
 
 interface MenuSlugEditorProps {
   initialSlug: string;

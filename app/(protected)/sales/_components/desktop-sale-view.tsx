@@ -1,20 +1,20 @@
-import { SheetDescription, SheetHeader, SheetTitle } from "@/app/_components/ui/sheet";
-import { ShoppingCartIcon, PlusIcon } from "lucide-react";
-import { DatePicker } from "@/app/_components/ui/date-picker";
 import { Button } from "@/app/_components/ui/button";
-import { parseISO, format } from "date-fns";
+import { DatePicker } from "@/app/_components/ui/date-picker";
+import { SheetDescription, SheetHeader, SheetTitle } from "@/app/_components/ui/sheet";
+import { format, parseISO } from "date-fns";
+import { PlusIcon, ShoppingCartIcon } from "lucide-react";
 import { useFieldArray } from "react-hook-form";
 
-import { CustomerSection } from "./upsert-sheet-parts/customer-section";
-import { FinancialSummary } from "./upsert-sheet-parts/financial-summary";
-import { PaymentSelector } from "./upsert-sheet-parts/payment-selector";
 import { ActionFooter } from "./upsert-sheet-parts/action-footer";
 import { CartComposer } from "./upsert-sheet-parts/cart-composer";
 import { CartTable } from "./upsert-sheet-parts/cart-table";
+import { CustomerSection } from "./upsert-sheet-parts/customer-section";
+import { FinancialSummary } from "./upsert-sheet-parts/financial-summary";
+import { PaymentSelector } from "./upsert-sheet-parts/payment-selector";
 
-import { UpsertSaleController } from "./upsert-sheet-parts/use-upsert-sale-controller";
-import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
+import { ProductDto } from "@/app/_data-access/product/get-products";
+import { UpsertSaleController } from "./upsert-sheet-parts/use-upsert-sale-controller";
 
 interface DesktopSaleViewProps {
   controller: UpsertSaleController;

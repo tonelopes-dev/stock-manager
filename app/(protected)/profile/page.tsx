@@ -3,15 +3,15 @@ import Header, {
   HeaderSubtitle,
   HeaderTitle,
 } from "@/app/_components/header";
+import { Badge } from "@/app/_components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/_components/ui/card";
 import { auth } from "@/app/_lib/auth";
-import { getCurrentUserRole } from "@/app/_lib/rbac";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
+import { getCurrentUserRole } from "@/app/_lib/rbac";
+import { BuildingIcon, ShieldCheckIcon, UserIcon } from "lucide-react";
 import { ProfileForm } from "./_components/profile-form";
 import { SecurityForm } from "./_components/security-form";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/_components/ui/card";
-import { Badge } from "@/app/_components/ui/badge";
-import { UserIcon, ShieldCheckIcon, BuildingIcon } from "lucide-react";
 
 export default async function ProfilePage() {
   const session = await auth();

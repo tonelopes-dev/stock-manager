@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { User, Loader2 } from "lucide-react";
-import { Switch } from "@/app/_components/ui/switch";
-import { toast } from "sonner";
-import { useAction } from "next-safe-action/hooks";
 import { toggleSelfieRequirement } from "@/app/_actions/company/toggle-selfie-requirement";
+import { Switch } from "@/app/_components/ui/switch";
+import { Loader2, User } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface SelfieCheckoutCardProps {
   companyId: string;

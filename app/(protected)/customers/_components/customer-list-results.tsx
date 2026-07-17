@@ -1,15 +1,14 @@
 "use client";
 
-import { use, useEffect, useState, Suspense } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { CustomerDataTable } from "./customer-data-table";
-import { KanbanBoard } from "./kanban/kanban-board";
-import { JourneyDashboard } from "./journeys/journey-dashboard";
-import { CustomerDto } from "@/app/_data-access/customer/get-customers";
-import { JourneyAnalytics } from "@/app/_data-access/crm/get-crm-analytics";
-import { UserRole } from "@prisma/client";
 import { Dialog } from "@/app/_components/ui/dialog";
+import { JourneyAnalytics } from "@/app/_data-access/crm/get-crm-analytics";
+import { CustomerDto } from "@/app/_data-access/customer/get-customers";
+import { UserRole } from "@prisma/client";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, use, useEffect, useState } from "react";
 import { CustomerDetailsDialogContent } from "./details-dialog-content";
+import { JourneyDashboard } from "./journeys/journey-dashboard";
+import { KanbanBoard } from "./kanban/kanban-board";
 
 interface CustomerListResultsProps {
   categoryId: string;

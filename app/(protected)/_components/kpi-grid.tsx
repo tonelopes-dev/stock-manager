@@ -1,17 +1,17 @@
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/app/_components/ui/popover";
+import { AnalyticsMetric } from "@/app/_data-access/dashboard/get-dashboard-analytics";
+import { Clock, InfoIcon } from "lucide-react";
+import Link from "next/link";
+import {
   KpiCard,
   KpiCardSkeleton,
   formatCurrencyBR,
   formatPercent,
 } from "./kpi-card";
-import { AnalyticsMetric } from "@/app/_data-access/dashboard/get-dashboard-analytics";
-import Link from "next/link";
-import { Clock, InfoIcon } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/app/_components/ui/popover";
 
 interface KpiGridProps {
   revenue: AnalyticsMetric;

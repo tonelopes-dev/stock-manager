@@ -1,10 +1,9 @@
 "use client";
 
-import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
-import { ComboboxOption, Combobox } from "@/app/_components/ui/combobox";
-import { ProductDto } from "@/app/_data-access/product/get-products";
 import { Button } from "@/app/_components/ui/button";
+import { Combobox, ComboboxOption } from "@/app/_components/ui/combobox";
 import { QuantityStepper } from "@/app/_components/ui/quantity-stepper";
+import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ProductAvailabilityInfo } from "../shared/product-availability-info";
 
 interface ComandaAddItemProps {

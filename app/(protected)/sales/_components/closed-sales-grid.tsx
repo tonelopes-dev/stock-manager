@@ -1,21 +1,19 @@
 "use client";
 
-import { SaleDto } from "@/app/_data-access/sale/get-sales";
-import { ProductDto } from "@/app/_data-access/product/get-products";
-import { ComboboxOption } from "@/app/_components/ui/combobox";
-import { useState } from "react";
-import { Card } from "@/app/_components/ui/card";
 import { Badge } from "@/app/_components/ui/badge";
-import { Calendar, ShoppingBag, User, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Card } from "@/app/_components/ui/card";
+import { ComboboxOption } from "@/app/_components/ui/combobox";
+import { DataTablePagination } from "@/app/_components/ui/data-table-pagination";
+import { Sheet } from "@/app/_components/ui/sheet";
+import { ProductDto } from "@/app/_data-access/product/get-products";
+import { SaleDto } from "@/app/_data-access/sale/get-sales";
 import { formatCurrency } from "@/app/_utils/currency";
-import { cn } from "@/app/_lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Sheet } from "@/app/_components/ui/sheet";
-import UpsertSheetContent from "./upsert-sheet-content";
-import { Button } from "@/app/_components/ui/button";
+import { Calendar, CheckCircle2, ShoppingBag, User } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { DataTablePagination } from "@/app/_components/ui/data-table-pagination";
+import { useState } from "react";
+import UpsertSheetContent from "./upsert-sheet-content";
 
 interface ClosedSalesGridProps {
   sales: SaleDto[];

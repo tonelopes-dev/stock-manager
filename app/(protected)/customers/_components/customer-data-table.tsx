@@ -1,12 +1,12 @@
 "use client";
 
-import { useOptimistic } from "react";
-import { DataTable } from "@/app/_components/ui/data-table";
-import { customerTableColumns } from "./table-columns";
-import { CustomerDto } from "@/app/_data-access/customer/get-customers";
 import { EmptyState } from "@/app/_components/empty-state";
-import { UsersIcon } from "lucide-react";
+import { DataTable } from "@/app/_components/ui/data-table";
+import { CustomerDto } from "@/app/_data-access/customer/get-customers";
 import { UserRole } from "@prisma/client";
+import { UsersIcon } from "lucide-react";
+import { useOptimistic } from "react";
+import { customerTableColumns } from "./table-columns";
 
 interface CustomerDataTableProps {
   customers: CustomerDto[];

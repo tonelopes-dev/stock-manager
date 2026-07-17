@@ -1,6 +1,5 @@
 "use client";
 import { toggleProductStatus } from "@/app/_actions/product/toggle-status";
-import { Loader2Icon } from "lucide-react";
 import {
   AlertDialogAction,
   AlertDialogCancel,
@@ -10,6 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/app/_components/ui/alert-dialog";
+import { Loader2Icon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 

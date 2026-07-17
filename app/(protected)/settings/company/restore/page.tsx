@@ -1,7 +1,5 @@
 "use server";
 
-import { auth } from "@/app/_lib/auth";
-import { redirect } from "next/navigation";
 import { Button } from "@/app/_components/ui/button";
 import {
   Card,
@@ -11,7 +9,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/app/_components/ui/card";
+import { auth } from "@/app/_lib/auth";
 import { AlertCircle } from "lucide-react";
+import { redirect } from "next/navigation";
 import { RestoreButton } from "./_components/restore-button";
 
 export default async function RestoreCompanyPage() {

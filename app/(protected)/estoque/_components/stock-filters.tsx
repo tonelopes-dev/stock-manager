@@ -8,12 +8,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/_components/ui/select";
-import { SearchIcon, FilterIcon, XIcon } from "lucide-react";
+import { FilterIcon, SearchIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useTransition, useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useDebounce } from "use-debounce";
-import { Button } from "@/app/_components/ui/button";
-import { Label } from "@/app/_components/ui/label";
 
 interface StockFiltersProps {
   suppliers: { id: string; name: string }[];

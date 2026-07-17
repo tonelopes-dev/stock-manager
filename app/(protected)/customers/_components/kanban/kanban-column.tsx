@@ -1,12 +1,12 @@
-import { memo, useMemo, useRef, useEffect, useCallback } from "react";
+import { Badge } from "@/app/_components/ui/badge";
 import { useDroppable } from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { memo, useCallback, useMemo, useRef } from "react";
 import { List } from "react-window";
 import { KanbanCard } from "./kanban-card";
-import { Badge } from "@/app/_components/ui/badge";
 
 interface KanbanColumnProps {
   stage: {

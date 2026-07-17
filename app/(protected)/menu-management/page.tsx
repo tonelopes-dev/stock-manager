@@ -1,15 +1,15 @@
-import { getMenuManagementData } from "@/app/_data-access/menu/get-menu-management-data";
 import Header, {
   HeaderLeft,
   HeaderSubtitle,
   HeaderTitle,
 } from "@/app/_components/header";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
+import { getMenuManagementData } from "@/app/_data-access/menu/get-menu-management-data";
+import { Eye, Flame, LayoutGrid, Palette } from "lucide-react";
+import { MenuAppearanceSettings } from "./_components/menu-appearance-settings";
+import { MenuCategorySection } from "./_components/menu-category-section";
 import { MenuSharingHub } from "./_components/menu-sharing-hub";
 import { SelfieCheckoutCard } from "./_components/selfie-checkout-card";
-import { MenuCategorySection } from "./_components/menu-category-section";
-import { MenuAppearanceSettings } from "./_components/menu-appearance-settings";
-import { Eye, Flame, LayoutGrid, Palette } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 
 export const dynamic = "force-dynamic";
 

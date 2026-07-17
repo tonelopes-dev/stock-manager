@@ -11,13 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/app/_components/ui/dropdown-menu";
-import { MoreHorizontalIcon, EditIcon, TrashIcon, EyeIcon } from "lucide-react";
-import { useState } from "react";
-import DeleteCustomerDialogContent from "./delete-dialog-content";
-import UpsertCustomerDialogContent from "./upsert-dialog-content";
-import { CustomerDetailsDialogContent } from "./details-dialog-content";
 import { CustomerDto } from "@/app/_data-access/customer/get-customers";
 import { UserRole } from "@prisma/client";
+import { EditIcon, EyeIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
+import { useState } from "react";
+import DeleteCustomerDialogContent from "./delete-dialog-content";
+import { CustomerDetailsDialogContent } from "./details-dialog-content";
+import UpsertCustomerDialogContent from "./upsert-dialog-content";
 
 interface CustomerTableDropdownMenuProps {
   customer: CustomerDto;

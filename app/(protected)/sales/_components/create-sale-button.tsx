@@ -1,12 +1,12 @@
 "use client";
 
 import { Button } from "@/app/_components/ui/button";
-import { Sheet, SheetTrigger } from "@/app/_components/ui/sheet";
-import UpsertSheetContent from "./upsert-sheet-content";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
-import { useState } from "react";
-import { PlusIcon } from "lucide-react";
+import { Sheet, SheetTrigger } from "@/app/_components/ui/sheet";
 import { ProductDto } from "@/app/_data-access/product/get-products";
+import { PlusIcon } from "lucide-react";
+import { useState } from "react";
+import UpsertSheetContent from "./upsert-sheet-content";
 
 interface UpsertSaleButtonProps {
   products: ProductDto[];

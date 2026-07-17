@@ -1,5 +1,7 @@
 "use client";
 
+import { updateProductPromotion } from "@/app/_actions/product/update-product-promotion";
+import { PromotionSchedule, updateProductPromotionSchema, UpdateProductPromotionSchema } from "@/app/_actions/product/update-product-promotion/schema";
 import { Button } from "@/app/_components/ui/button";
 import {
   DialogContent,
@@ -16,19 +18,17 @@ import {
   FormLabel,
 } from "@/app/_components/ui/form";
 import { Input } from "@/app/_components/ui/input";
+import { Label } from "@/app/_components/ui/label";
 import { Switch } from "@/app/_components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
+import { ProductDto } from "@/app/_data-access/product/get-products";
+import { cn } from "@/app/_lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2Icon, TagIcon, Clock, CalendarDays } from "lucide-react";
+import { CalendarDays, Clock, Loader2Icon, TagIcon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
 import { NumericFormat } from "react-number-format";
 import { toast } from "sonner";
-import { updateProductPromotion } from "@/app/_actions/product/update-product-promotion";
-import { updateProductPromotionSchema, UpdateProductPromotionSchema, PromotionSchedule } from "@/app/_actions/product/update-product-promotion/schema";
-import { ProductDto } from "@/app/_data-access/product/get-products";
-import { Label } from "@/app/_components/ui/label";
-import { cn } from "@/app/_lib/utils";
 
 interface PromotionSettingsModalProps {
   product: ProductDto;

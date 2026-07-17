@@ -1,23 +1,22 @@
+import { ActivityTimeline } from "@/app/_components/activity-timeline";
 import Header, {
   HeaderLeft,
+  HeaderRight,
   HeaderSubtitle,
   HeaderTitle,
-  HeaderRight,
 } from "@/app/_components/header";
-import { getTeamMembers, getPendingInvitations } from "@/app/_data-access/user/get-team-members";
-import { Card, CardContent } from "@/app/_components/ui/card";
 import { Badge } from "@/app/_components/ui/badge";
-import { UserIcon, MailIcon, ShieldCheckIcon, ClockIcon } from "lucide-react";
-import MemberFormModal from "./_components/member-form-modal";
-import { assertPageCapability } from "@/app/_lib/rbac";
+import { Card, CardContent } from "@/app/_components/ui/card";
+import { getPendingInvitations, getTeamMembers } from "@/app/_data-access/user/get-team-members";
 import { auth } from "@/app/_lib/auth";
-import { UserRole } from "@prisma/client";
-import { PendingInviteActions } from "./_components/pending-invite-actions";
-import { MemberCardActions } from "./_components/member-card-actions";
-import { ActivityTimeline } from "@/app/_components/activity-timeline";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { PERMISSION_LABELS } from "@/app/_lib/permissions";
-import { PERMISSIONS } from "@/app/_lib/permissions";
+import { PERMISSION_LABELS, PERMISSIONS } from "@/app/_lib/permissions";
+import { assertPageCapability } from "@/app/_lib/rbac";
+import { UserRole } from "@prisma/client";
+import { ClockIcon, MailIcon, ShieldCheckIcon, UserIcon } from "lucide-react";
+import { MemberCardActions } from "./_components/member-card-actions";
+import MemberFormModal from "./_components/member-form-modal";
+import { PendingInviteActions } from "./_components/pending-invite-actions";
 
 
 export default async function TeamPage() {

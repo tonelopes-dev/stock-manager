@@ -9,8 +9,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/app/_components/ui/tooltip";
-import { formatCurrency } from "@/app/_utils/currency";
 import { cn } from "@/app/_lib/utils";
+import { formatCurrency } from "@/app/_utils/currency";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { useSaleTotals } from "./use-sale-totals";

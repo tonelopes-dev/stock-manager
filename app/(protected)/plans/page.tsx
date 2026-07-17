@@ -3,6 +3,7 @@ import Header, {
   HeaderSubtitle,
   HeaderTitle,
 } from "@/app/_components/header";
+import { Badge } from "@/app/_components/ui/badge";
 import {
   Card,
   CardContent,
@@ -12,13 +13,12 @@ import {
   CardTitle,
 } from "@/app/_components/ui/card";
 import { getCompanyPlan } from "@/app/_data-access/company/get-company-plan";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertPageCapability } from "@/app/_lib/rbac";
+import { getSubscriptionUIState } from "@/app/_lib/subscription-utils";
+import { CalendarIcon, CheckIcon, ShieldCheckIcon } from "lucide-react";
 import PlanActions from "./_components/plan-actions";
 import { SubscriptionStatus } from "./_components/subscription-status";
-import { getSubscriptionUIState } from "@/app/_lib/subscription-utils";
-import { CheckIcon, CalendarIcon, ShieldCheckIcon } from "lucide-react";
-import { Badge } from "@/app/_components/ui/badge";
-import { assertPageCapability } from "@/app/_lib/rbac";
-import { PERMISSIONS } from "@/app/_lib/permissions";
 
 const PlansPage = async () => {
   // Protege a rota: somente OWNER (bypass) ou quem tem BILLING_VIEW acessa

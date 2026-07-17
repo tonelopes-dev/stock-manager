@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
-import { CheckCircle2, Clock, AlertTriangle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock } from "lucide-react";
 
 interface JourneyKpiGridProps {
   completedToday: number;

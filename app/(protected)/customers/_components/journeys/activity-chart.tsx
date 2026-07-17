@@ -1,17 +1,17 @@
 "use client";
 
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import {
   Area,
   AreaChart,
   CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  TooltipProps,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  TooltipProps,
 } from "recharts";
-import { format, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 interface ActivityChartProps {
   data: { date: string; count: number }[];

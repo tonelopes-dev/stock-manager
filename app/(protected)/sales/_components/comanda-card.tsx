@@ -1,15 +1,15 @@
 "use client";
 
-import { Card } from "@/app/_components/ui/card";
-import { Badge } from "@/app/_components/ui/badge";
-import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
-import { formatDistanceToNow, differenceInHours } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { Clock, ShoppingBag, User } from "lucide-react";
-import { formatCurrency } from "@/app/_utils/currency";
-import { cn } from "@/app/_lib/utils";
-import { useEffect, useState } from "react";
 import { ExpandableAvatar } from "@/app/_components/expandable-avatar";
+import { Badge } from "@/app/_components/ui/badge";
+import { Card } from "@/app/_components/ui/card";
+import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
+import { cn } from "@/app/_lib/utils";
+import { formatCurrency } from "@/app/_utils/currency";
+import { differenceInHours, formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Clock, ShoppingBag } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface ComandaCardProps {
   comanda: ComandaDto;

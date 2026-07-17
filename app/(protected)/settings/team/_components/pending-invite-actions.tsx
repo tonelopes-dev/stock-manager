@@ -1,23 +1,21 @@
 "use client";
 
-import { Button } from "@/app/_components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/app/_components/ui/dropdown-menu";
-import { MoreHorizontalIcon, CopyIcon, TrashIcon } from "lucide-react";
-import { toast } from "sonner";
-import { useAction } from "next-safe-action/hooks";
 import { deleteInvitation } from "@/app/_actions/user/delete-invitation";
-import { useState } from "react";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialogTitle
 } from "@/app/_components/ui/alert-dialog";
-import { Loader2Icon } from "lucide-react";
+import { Button } from "@/app/_components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/app/_components/ui/dropdown-menu";
+import { CopyIcon, Loader2Icon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface PendingInviteActionsProps {
   inviteId: string;

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Supplier } from "@prisma/client";
 import { Button } from "@/app/_components/ui/button";
-import { EditIcon } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/app/_components/ui/dialog";
+import { Supplier } from "@prisma/client";
+import { EditIcon } from "lucide-react";
+import { useState } from "react";
 import UpsertSupplierDialogContent from "./upsert-dialog-content";
 
 interface SupplierTableActionsProps {

@@ -6,8 +6,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/app/_components/ui/chart";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { formatCurrency } from "@/app/_lib/utils";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 interface RevenueTrendChartProps {
   data: {

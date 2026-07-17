@@ -1,22 +1,21 @@
 import Sidebar from "@/app/_components/sidebar";
 import { auth } from "@/app/_lib/auth";
-import { redirect } from "next/navigation";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { getCurrentUserAuth } from "@/app/_lib/rbac";
 import { UserRole } from "@prisma/client";
+import { redirect } from "next/navigation";
 
-import { getUserSecurityStatus } from "@/app/_data-access/user/get-user-security-status";
-import { PasswordResetModal } from "./_components/password-reset-modal";
-import { getCompanyPlan } from "@/app/_data-access/company/get-company-plan";
-import { headers } from "next/headers";
-import { getSubscriptionStatus } from "@/lib/subscription";
 import { SubscriptionBanner } from "@/app/_components/SubscriptionBanner";
+import { AuthProvider } from "@/app/_components/auth/auth-provider";
 import { GlobalHeader } from "@/app/_components/global-header";
+import { TooltipProvider } from "@/app/_components/ui/tooltip";
+import { getCompanyPlan } from "@/app/_data-access/company/get-company-plan";
+import { getUserSecurityStatus } from "@/app/_data-access/user/get-user-security-status";
 import { AppModeProvider } from "@/app/_providers/app-mode-provider";
 import { SubscriptionProvider } from "@/app/_providers/subscription-context";
-import { AuthProvider } from "@/app/_components/auth/auth-provider";
-import { TooltipProvider } from "@/app/_components/ui/tooltip";
-import { cn } from "@/app/_lib/utils";
+import { getSubscriptionStatus } from "@/lib/subscription";
+import { headers } from "next/headers";
+import { PasswordResetModal } from "./_components/password-reset-modal";
 
 import { LayoutContentWrapper } from "./_components/layout-content-wrapper";
 

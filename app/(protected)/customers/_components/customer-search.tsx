@@ -1,10 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { Input } from "@/app/_components/ui/input";
-import { SearchIcon, XIcon, Users, ArrowRight, Loader2 } from "lucide-react";
-import { TransitionStartFunction, useEffect, useState, useCallback, ChangeEvent } from "react";
-import { useDebounce } from "use-debounce";
+import { globalSearch, SearchResult } from "@/app/_actions/search/global-search";
 import {
   Command,
   CommandEmpty,
@@ -12,12 +8,16 @@ import {
   CommandItem,
   CommandList,
 } from "@/app/_components/ui/command";
+import { Input } from "@/app/_components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/app/_components/ui/popover";
-import { globalSearch, SearchResult } from "@/app/_actions/search/global-search";
+import { ArrowRight, Loader2, SearchIcon, Users, XIcon } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ChangeEvent, TransitionStartFunction, useCallback, useEffect, useState } from "react";
+import { useDebounce } from "use-debounce";
 
 interface CustomerSearchProps {
   startTransition: TransitionStartFunction;

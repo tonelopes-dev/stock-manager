@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { DataTable } from "@/app/_components/ui/data-table";
-import { saleTableColumns } from "./table-columns";
-import { SaleDto } from "@/app/_data-access/sale/get-sales";
-import { ProductDto } from "@/app/_data-access/product/get-products";
-import { ComboboxOption } from "@/app/_components/ui/combobox";
 import { EmptyState } from "@/app/_components/empty-state";
-import { ShoppingCartIcon } from "lucide-react";
-import { UserRole } from "@prisma/client";
+import { ComboboxOption } from "@/app/_components/ui/combobox";
+import { DataTable } from "@/app/_components/ui/data-table";
 import { Sheet } from "@/app/_components/ui/sheet";
+import { ProductDto } from "@/app/_data-access/product/get-products";
+import { SaleDto } from "@/app/_data-access/sale/get-sales";
+import { UserRole } from "@prisma/client";
+import { ShoppingCartIcon } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { saleTableColumns } from "./table-columns";
 import UpsertSheetContent from "./upsert-sheet-content";
 
 interface SaleTableColumn extends SaleDto {

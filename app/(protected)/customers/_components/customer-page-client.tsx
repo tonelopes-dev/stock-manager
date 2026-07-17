@@ -1,21 +1,21 @@
 "use client";
 
-import { useTransition, Suspense, TransitionStartFunction } from "react";
 import Header, {
   HeaderLeft,
   HeaderRight,
   HeaderSubtitle,
   HeaderTitle,
 } from "@/app/_components/header";
-import { CustomerSearch } from "./customer-search";
-import { CustomerCategoryFilter } from "./category-filter";
-import { CustomerViewSwitcher } from "./view-switcher";
-import { CRMConfigModal } from "./crm-config-modal";
-import AddCustomerButton from "./create-customer-button";
-import { CustomerJourneyFilter } from "./journey-filter";
-import { UserRole } from "@prisma/client";
-import { CustomerTableSkeleton } from "./table-skeleton";
 import { cn } from "@/app/_lib/utils";
+import { UserRole } from "@prisma/client";
+import { Suspense, useTransition } from "react";
+import { CustomerCategoryFilter } from "./category-filter";
+import AddCustomerButton from "./create-customer-button";
+import { CRMConfigModal } from "./crm-config-modal";
+import { CustomerSearch } from "./customer-search";
+import { CustomerJourneyFilter } from "./journey-filter";
+import { CustomerTableSkeleton } from "./table-skeleton";
+import { CustomerViewSwitcher } from "./view-switcher";
 
 interface CustomerPageClientProps {
   categories: { id: string; name: string }[];

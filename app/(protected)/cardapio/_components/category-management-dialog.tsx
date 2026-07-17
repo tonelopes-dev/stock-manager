@@ -1,30 +1,7 @@
 "use client";
 
-import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/app/_components/ui/dialog";
-import { Button } from "@/app/_components/ui/button";
-import { Input } from "@/app/_components/ui/input";
-import {
-  Trash2Icon,
-  Settings2Icon,
-  SaveIcon,
-  XIcon,
-  Loader2Icon,
-  AlertTriangle,
-  ChevronLeft,
-} from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
 import { deleteCategory } from "@/app/_actions/product/delete-category";
 import { upsertCategory } from "@/app/_actions/product/upsert-category";
-import { useState } from "react";
-import { toast } from "sonner";
-import { Combobox } from "@/app/_components/ui/combobox";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +12,29 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/app/_components/ui/alert-dialog";
+import { Button } from "@/app/_components/ui/button";
+import { Combobox } from "@/app/_components/ui/combobox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/app/_components/ui/dialog";
+import { Input } from "@/app/_components/ui/input";
+import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
+import {
+  AlertTriangle,
+  ChevronLeft,
+  Loader2Icon,
+  SaveIcon,
+  Settings2Icon,
+  Trash2Icon,
+  XIcon,
+} from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface CategoryManagementDialogProps {
   categories: ProductCategoryOption[];

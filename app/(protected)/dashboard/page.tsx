@@ -1,16 +1,16 @@
-import {
-  getDashboardAnalytics,
-  DashboardRange,
-} from "@/app/_data-access/dashboard/get-dashboard-analytics";
-import { getAccountsReceivable } from "@/app/_data-access/dashboard/get-accounts-receivable";
 import { DateRangePicker } from "@/app/(protected)/_components/date-range-picker";
-import { KpiGrid } from "../_components/kpi-grid";
+import { getAccountsReceivable } from "@/app/_data-access/dashboard/get-accounts-receivable";
+import {
+  DashboardRange,
+  getDashboardAnalytics,
+} from "@/app/_data-access/dashboard/get-dashboard-analytics";
 import { Suspense } from "react";
-import { SalesChart } from "../_components/sales-chart";
-import { ProductRankingCard } from "../_components/product-ranking-card";
+import { KpiGrid } from "../_components/kpi-grid";
 import LowStockAlerts, {
   LowStockAlertsSkeleton,
 } from "../_components/low-stock-alerts";
+import { ProductRankingCard } from "../_components/product-ranking-card";
+import { SalesChart } from "../_components/sales-chart";
 import { GoalsSummary } from "./_components/goals-summary";
 
 export const dynamic = "force-dynamic";

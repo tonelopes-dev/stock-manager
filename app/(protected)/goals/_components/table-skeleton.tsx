@@ -1,5 +1,5 @@
-import { Skeleton } from "@/app/_components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/app/_components/ui/card";
+import { Skeleton } from "@/app/_components/ui/skeleton";
 
 export const GoalTableSkeleton = () => {
   return (

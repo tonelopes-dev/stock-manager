@@ -1,14 +1,14 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
-import { ProductDto } from "@/app/_data-access/product/get-products";
-import { ProductCard } from "./product-card";
-import { UserRole } from "@prisma/client";
-import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
-import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
 import { Badge } from "@/app/_components/ui/badge";
-import { SearchIcon, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
+import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
+import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
+import { ProductDto } from "@/app/_data-access/product/get-products";
+import { UserRole } from "@prisma/client";
+import { ArrowRight, ChevronLeft, ChevronRight, SearchIcon } from "lucide-react";
+import { use, useEffect, useState } from "react";
+import { ProductCard } from "./product-card";
 
 interface ProductGridProps {
   productsPromise: Promise<ProductDto[]>;

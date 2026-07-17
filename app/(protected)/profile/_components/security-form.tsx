@@ -1,21 +1,21 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Button } from "@/app/_components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/app/_components/ui/form";
 import { Input } from "@/app/_components/ui/input";
-import { Button } from "@/app/_components/ui/button";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { KeyIcon, Loader2Icon } from "lucide-react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Loader2Icon, KeyIcon } from "lucide-react";
+import { z } from "zod";
 
 import { changePassword } from "@/app/_actions/user/change-password";
 import { useAction } from "next-safe-action/hooks";

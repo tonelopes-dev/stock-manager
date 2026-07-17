@@ -1,28 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { upsertProduct } from "@/app/_actions/product/upsert-product";
+import { Badge } from "@/app/_components/ui/badge";
 import { Button } from "@/app/_components/ui/button";
 import { Input } from "@/app/_components/ui/input";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/app/_components/ui/select";
-import { Badge } from "@/app/_components/ui/badge";
-import { EditIcon, CheckIcon, XIcon, Loader2Icon, SettingsIcon } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/app/_components/ui/tooltip";
-import { useAction } from "next-safe-action/hooks";
-import { upsertProduct } from "@/app/_actions/product/upsert-product";
-import { toast } from "sonner";
-import { UnitType } from "@prisma/client";
 import { cn } from "@/app/_lib/utils";
+import { UnitType } from "@prisma/client";
+import { CheckIcon, Loader2Icon, SettingsIcon, XIcon } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface InlineProductHeaderProps {
   product: {

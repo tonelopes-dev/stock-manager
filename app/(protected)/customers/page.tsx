@@ -1,12 +1,12 @@
-import { getCustomerCategories } from "../../_data-access/customer/get-customer-categories";
-import { getCRMStages } from "../../_data-access/crm/get-crm-stages";
 import { getCurrentUserRole } from "@/app/_lib/rbac";
 import { UserRole } from "@prisma/client";
-import { CustomerPageClient } from "./_components/customer-page-client";
-import { CustomerListResults } from "./_components/customer-list-results";
 import { getChecklistTemplates } from "../../_data-access/checklist/get-checklist-templates";
-import { getCustomers } from "../../_data-access/customer/get-customers";
 import { getCRMAnalytics } from "../../_data-access/crm/get-crm-analytics";
+import { getCRMStages } from "../../_data-access/crm/get-crm-stages";
+import { getCustomerCategories } from "../../_data-access/customer/get-customer-categories";
+import { getCustomers } from "../../_data-access/customer/get-customers";
+import { CustomerListResults } from "./_components/customer-list-results";
+import { CustomerPageClient } from "./_components/customer-page-client";
 
 interface CustomersPageProps {
   searchParams: Promise<{

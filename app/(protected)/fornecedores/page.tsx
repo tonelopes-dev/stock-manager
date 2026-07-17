@@ -1,18 +1,18 @@
-import { DataTable } from "../../_components/ui/data-table";
-import { supplierTableColumns } from "./_components/table-columns";
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { TruckIcon } from "lucide-react";
+import { Suspense } from "react";
 import { getSuppliers } from "../../_actions/supplier/get-suppliers";
-import CreateSupplierButton from "./_components/create-supplier-button";
+import { EmptyState } from "../../_components/empty-state";
 import Header, {
   HeaderLeft,
   HeaderRight,
   HeaderSubtitle,
   HeaderTitle,
 } from "../../_components/header";
-import { TruckIcon } from "lucide-react";
-import { EmptyState } from "../../_components/empty-state";
-import { Suspense } from "react";
+import { DataTable } from "../../_components/ui/data-table";
 import { Skeleton } from "../../_components/ui/skeleton";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import CreateSupplierButton from "./_components/create-supplier-button";
+import { supplierTableColumns } from "./_components/table-columns";
 
 export const dynamic = "force-dynamic";
 

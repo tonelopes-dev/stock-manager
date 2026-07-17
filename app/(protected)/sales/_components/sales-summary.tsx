@@ -1,13 +1,13 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
-import { 
-  Popover, 
-  PopoverContent, 
-  PopoverTrigger 
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
 } from "@/app/_components/ui/popover";
-import { LucideIcon, DollarSignIcon, TrendingUpIcon, ShoppingBagIcon, ArrowUpRightIcon, ArrowDownRightIcon, ShoppingBasketIcon } from "lucide-react";
 import { cn } from "@/app/_lib/utils";
+import { ArrowDownRightIcon, ArrowUpRightIcon, DollarSignIcon, LucideIcon, ShoppingBagIcon, ShoppingBasketIcon, TrendingUpIcon } from "lucide-react";
 
 interface SummaryCardProps {
   title: string;

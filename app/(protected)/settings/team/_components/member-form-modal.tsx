@@ -1,12 +1,10 @@
 
 "use client";
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useAction } from "next-safe-action/hooks";
 import { inviteUserViaWhatsApp } from "@/app/_actions/user/invite-whatsapp";
 import { updateMemberAction } from "@/app/_actions/user/update-member";
+import { Button } from "@/app/_components/ui/button";
+import { Checkbox } from "@/app/_components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/app/_components/ui/form";
+import { ImagePicker } from "@/app/_components/ui/image-picker";
 import { Input } from "@/app/_components/ui/input";
 import {
   Select,
@@ -31,30 +30,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/_components/ui/select";
-import { Button } from "@/app/_components/ui/button";
-import { Checkbox } from "@/app/_components/ui/checkbox";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/app/_components/ui/tooltip";
-import { 
-    PlusIcon, 
-    Loader2Icon, 
-    UserPlusIcon, 
-    MessageCircleIcon, 
-    CheckCircle2Icon, 
-    ShieldCheckIcon, 
-    InfoIcon,
-    Edit3Icon 
-} from "lucide-react";
-import { toast } from "sonner";
-import { useState } from "react";
+import { PERMISSIONS, PERMISSION_DESCRIPTIONS, PERMISSION_LABELS, PERMISSION_PRESETS } from "@/app/_lib/permissions";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { UserRole } from "@prisma/client";
-import { PERMISSIONS, PERMISSION_PRESETS, PERMISSION_LABELS, PERMISSION_DESCRIPTIONS } from "@/app/_lib/permissions";
-import { ImagePicker } from "@/app/_components/ui/image-picker";
-import { PatternFormat, NumberFormatValues } from "react-number-format";
+import {
+  CheckCircle2Icon,
+  Edit3Icon,
+  InfoIcon,
+  Loader2Icon,
+  MessageCircleIcon,
+  PlusIcon,
+  ShieldCheckIcon,
+  UserPlusIcon
+} from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { NumberFormatValues, PatternFormat } from "react-number-format";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const formSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres").optional(),

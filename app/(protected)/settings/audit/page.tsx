@@ -1,9 +1,11 @@
-import { AuditService } from "@/app/_services/audit";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { assertRole, ADMIN_AND_OWNER } from "@/app/_lib/rbac";
-import { AuditMapper } from "@/app/_services/audit-mapper";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/app/_components/ui/avatar";
+import { Badge } from "@/app/_components/ui/badge";
+import { Button } from "@/app/_components/ui/button";
+import { Card, CardContent } from "@/app/_components/ui/card";
 import {
   Table,
   TableBody,
@@ -12,19 +14,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/app/_components/ui/table";
-import { Badge } from "@/app/_components/ui/badge";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/app/_components/ui/avatar";
-import { Card, CardContent } from "@/app/_components/ui/card";
-import { AuditFilters } from "./_components/audit-filters";
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
+import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { AuditService } from "@/app/_services/audit";
+import { AuditMapper } from "@/app/_services/audit-mapper";
 import { AuditEventType } from "@prisma/client";
-import { Button } from "@/app/_components/ui/button";
-import Link from "next/link";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { AuditFilters } from "./_components/audit-filters";
 
 interface AuditPageProps {
   searchParams: Promise<{

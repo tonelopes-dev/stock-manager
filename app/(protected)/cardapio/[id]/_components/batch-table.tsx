@@ -1,3 +1,4 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/_components/ui/card";
 import {
   Table,
   TableBody,
@@ -6,10 +7,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/app/_components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/_components/ui/card";
-import { BoxIcon, CalendarIcon, TruckIcon } from "lucide-react";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { BoxIcon, CalendarIcon, TruckIcon } from "lucide-react";
 
 interface BatchTableProps {
   stockEntries: any[];

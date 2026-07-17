@@ -1,10 +1,10 @@
 "use client";
 
+import { Badge } from "@/app/_components/ui/badge";
+import { IngredientDto } from "@/app/_data-access/ingredient/get-ingredients";
+import { formatQuantity } from "@/app/_utils/format-quantity";
 import { ColumnDef } from "@tanstack/react-table";
 import IngredientTableDropdownMenu from "./table-dropdown-menu";
-import { IngredientDto } from "@/app/_data-access/ingredient/get-ingredients";
-import { Badge } from "@/app/_components/ui/badge";
-import { formatQuantity } from "@/app/_utils/format-quantity";
 
 const STATUS_LABELS: Record<string, { label: string; variant: "default" | "destructive" | "outline" | "secondary" }> = {
   IN_STOCK: { label: "Em estoque", variant: "default" },

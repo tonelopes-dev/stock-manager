@@ -1,16 +1,16 @@
 "use client";
 
-import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
 import { Badge } from "@/app/_components/ui/badge";
-import { ShoppingCart } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/app/_components/ui/dialog";
 import {
+  SheetDescription as UISheetDescription,
   SheetHeader as UISheetHeader,
   SheetTitle as UISheetTitle,
-  SheetDescription as UISheetDescription,
 } from "@/app/_components/ui/sheet";
-import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/app/_components/ui/dialog";
-import Image from "next/image";
 import { WhatsAppButton } from "@/app/_components/whatsapp-button";
+import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
+import { ShoppingCart } from "lucide-react";
+import Image from "next/image";
 
 interface ComandaHeaderProps {
   comanda: ComandaDto;

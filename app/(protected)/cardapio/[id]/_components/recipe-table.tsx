@@ -1,27 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/app/_components/ui/table";
-import { UNIT_CONFIG } from "@/app/_utils/units-shared";
-import { UnitType } from "@prisma/client";
-import { RecipeIngredientDto } from "@/app/_data-access/product/get-product-by-id";
-import { Button } from "@/app/_components/ui/button";
-import { Input } from "@/app/_components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/app/_components/ui/select";
+import { deleteRecipeIngredient } from "@/app/_actions/product/recipe/delete-ingredient";
+import { updateRecipeIngredient } from "@/app/_actions/product/recipe/update-ingredient";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,17 +13,37 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/app/_components/ui/alert-dialog";
+import { Button } from "@/app/_components/ui/button";
+import { Input } from "@/app/_components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/_components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/app/_components/ui/table";
+import { RecipeIngredientDto } from "@/app/_data-access/product/get-product-by-id";
+import { UNIT_CONFIG } from "@/app/_utils/units-shared";
+import { UnitType } from "@prisma/client";
 import {
   BeakerIcon,
-  EditIcon,
-  TrashIcon,
   CheckIcon,
-  XIcon,
+  EditIcon,
   Loader2Icon,
+  TrashIcon,
+  XIcon,
 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { updateRecipeIngredient } from "@/app/_actions/product/recipe/update-ingredient";
-import { deleteRecipeIngredient } from "@/app/_actions/product/recipe/delete-ingredient";
+import { useState } from "react";
 import { toast } from "sonner";
 
 const UNIT_OPTIONS = [

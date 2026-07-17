@@ -1,5 +1,7 @@
 "use client";
 
+import { deleteIngredient } from "@/app/_actions/ingredient/delete-ingredient";
+import { toggleProductStatus } from "@/app/_actions/product/toggle-status";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,23 +22,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/app/_components/ui/dropdown-menu";
-import {
-  MoreHorizontalIcon,
-  EditIcon,
-  PackagePlusIcon,
-  TrashIcon,
-  ExternalLinkIcon,
-  RefreshCcwIcon,
-} from "lucide-react";
-import { useState } from "react";
-import { useAction } from "next-safe-action/hooks";
-import { toast } from "sonner";
-import Link from "next/link";
-import UpsertIngredientDialogContent from "./upsert-dialog-content";
-import AdjustStockDialogContent from "./adjust-stock-dialog-content";
 import { IngredientDto } from "@/app/_data-access/ingredient/get-ingredients";
-import { deleteIngredient } from "@/app/_actions/ingredient/delete-ingredient";
-import { toggleProductStatus } from "@/app/_actions/product/toggle-status";
+import {
+  EditIcon,
+  ExternalLinkIcon,
+  MoreHorizontalIcon,
+  PackagePlusIcon,
+  RefreshCcwIcon,
+  TrashIcon,
+} from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
+import AdjustStockDialogContent from "./adjust-stock-dialog-content";
+import UpsertIngredientDialogContent from "./upsert-dialog-content";
 
 interface IngredientTableDropdownMenuProps {
   ingredient: IngredientDto;

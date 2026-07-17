@@ -1,10 +1,10 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
-import { CustomerDto } from "@/app/_data-access/customer/get-customers";
 import { Badge } from "@/app/_components/ui/badge";
-import CustomerTableDropdownMenu from "./table-dropdown-menu";
+import { CustomerDto } from "@/app/_data-access/customer/get-customers";
 import { UserRole } from "@prisma/client";
+import { ColumnDef } from "@tanstack/react-table";
+import CustomerTableDropdownMenu from "./table-dropdown-menu";
 
 export const CUSTOMER_CATEGORY_LABELS: Record<
   string,

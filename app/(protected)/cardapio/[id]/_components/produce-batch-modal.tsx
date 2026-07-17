@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { produceProduct } from "@/app/_actions/product/produce";
+import { Badge } from "@/app/_components/ui/badge";
+import { Button } from "@/app/_components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +12,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/app/_components/ui/dialog";
-import { Button } from "@/app/_components/ui/button";
 import { Input } from "@/app/_components/ui/input";
 import { Label } from "@/app/_components/ui/label";
 import {
@@ -21,13 +22,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/app/_components/ui/table";
-import { Badge } from "@/app/_components/ui/badge";
-import { FactoryIcon, Loader2Icon, AlertTriangleIcon } from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
-import { produceProduct } from "@/app/_actions/product/produce";
-import { toast } from "sonner";
 import { RecipeIngredientDto } from "@/app/_data-access/product/get-product-by-id";
 import { formatQuantity } from "@/app/_utils/format-quantity";
+import { AlertTriangleIcon, FactoryIcon, Loader2Icon } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 const formatCurrency = (value: number) => {
   if (value === null || value === undefined || isNaN(value) || !isFinite(value)) {

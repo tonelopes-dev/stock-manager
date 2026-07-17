@@ -7,8 +7,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/app/_components/ui/dialog";
-import { SecurityForm } from "../profile/_components/security-form";
 import { ShieldAlertIcon } from "lucide-react";
+import { SecurityForm } from "../profile/_components/security-form";
 
 interface PasswordResetModalProps {
   isOpen: boolean;

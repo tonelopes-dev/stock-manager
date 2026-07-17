@@ -1,38 +1,16 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Checklist, ChecklistItem, ChecklistTemplate } from "@prisma/client";
-import { Progress } from "@/app/_components/ui/progress";
-import { Checkbox } from "@/app/_components/ui/checkbox";
-import { Button } from "@/app/_components/ui/button";
 import {
-  Plus,
-  Trash2,
-  ChevronDown,
-  ChevronUp,
-  ClipboardList,
-  Sparkles,
-  Pencil,
-  Check,
-  Loader2,
-  Bell,
-  Clock,
-  Info,
-  X,
-} from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/app/_components/ui/popover";
-import { DatePicker } from "@/app/_components/ui/date-picker";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/app/_components/ui/tooltip";
-import { format, setHours, setMinutes, isPast } from "date-fns";
+  applyChecklistTemplate,
+  createChecklist,
+  createChecklistItem,
+  deleteChecklist,
+  deleteChecklistItem,
+  toggleChecklistItem,
+  updateChecklistItemDueDate,
+  updateChecklistItemTitle,
+  updateChecklistTitle,
+} from "@/app/_actions/checklist";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,19 +21,41 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/app/_components/ui/alert-dialog";
-import {
-  toggleChecklistItem,
-  applyChecklistTemplate,
-  deleteChecklist,
-  createChecklist,
-  createChecklistItem,
-  updateChecklistItemTitle,
-  deleteChecklistItem,
-  updateChecklistTitle,
-  updateChecklistItemDueDate,
-} from "@/app/_actions/checklist";
+import { Button } from "@/app/_components/ui/button";
+import { Checkbox } from "@/app/_components/ui/checkbox";
+import { DatePicker } from "@/app/_components/ui/date-picker";
 import { Input } from "@/app/_components/ui/input";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/app/_components/ui/popover";
+import { Progress } from "@/app/_components/ui/progress";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/app/_components/ui/tooltip";
+import { Checklist, ChecklistItem, ChecklistTemplate } from "@prisma/client";
+import { format, isPast, setHours, setMinutes } from "date-fns";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  Bell,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  ClipboardList,
+  Clock,
+  Info,
+  Loader2,
+  Pencil,
+  Plus,
+  Sparkles,
+  Trash2,
+  X,
+} from "lucide-react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 interface CustomerChecklistProps {

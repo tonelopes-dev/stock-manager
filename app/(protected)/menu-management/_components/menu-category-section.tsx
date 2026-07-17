@@ -1,9 +1,9 @@
 "use client";
 
-import { MenuProductCard } from "./menu-product-card";
 import { Badge } from "@/app/_components/ui/badge";
-import { Layers } from "lucide-react";
 import type { MenuManagementCategory } from "@/app/_data-access/menu/get-menu-management-data";
+import { Layers } from "lucide-react";
+import { MenuProductCard } from "./menu-product-card";
 
 interface MenuCategorySectionProps {
   category: MenuManagementCategory;

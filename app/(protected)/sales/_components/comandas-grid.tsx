@@ -1,19 +1,17 @@
 "use client";
 
-import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
-import { ComandaCard } from "./comanda-card";
-import { useState, useEffect, useCallback, Suspense } from "react";
-import { RefreshCcw, Search, ShoppingBag } from "lucide-react";
-import { useSearchParams, usePathname } from "next/navigation";
-import { Input } from "@/app/_components/ui/input";
 import { Button } from "@/app/_components/ui/button";
-import { useRouter } from "next/navigation";
+import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
+import { RefreshCcw, ShoppingBag } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { ComandaCard } from "./comanda-card";
 import { ComandaDetailsSheet } from "./comanda-details-sheet";
 
-import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
-import { cn } from "@/app/_lib/utils";
+import { ProductDto } from "@/app/_data-access/product/get-products";
 import { supabase } from "@/app/_lib/supabase";
+import { cn } from "@/app/_lib/utils";
 
 
 interface ComandasGridProps {
