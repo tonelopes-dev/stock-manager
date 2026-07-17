@@ -39,7 +39,7 @@ const Header = ({
   className?: string;
 }) => {
   return (
-    <div className={cn("flex w-full items-center justify-between", className)}>
+    <div className={cn("flex w-full flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-0", className)}>
       {children}
     </div>
   );

@@ -4,6 +4,7 @@ import { ContextSwitcher } from "@/app/_components/context-switcher";
 import { QuickActions } from "@/app/_components/quick-actions";
 import { NotificationCenter } from "@/app/_components/notification-center";
 import { SubscriptionStatusIcon } from "@/app/_components/SubscriptionStatusIcon";
+import { HeaderMobileMenu } from "@/app/_components/header-mobile-menu";
 
 interface GlobalHeaderClientProps {
   companyId: string;
@@ -23,10 +24,13 @@ export const GlobalHeaderClient = ({
 
       {/* Right side actions */}
       <div className="ml-auto mr-4 flex items-center gap-2">
-        {userProfile}
+        <div className="hidden md:block">
+          {userProfile}
+        </div>
         <SubscriptionStatusIcon />
         <NotificationCenter companyId={companyId} />
         <QuickActions />
+        <HeaderMobileMenu userProfile={userProfile} />
       </div>
     </>
   );
