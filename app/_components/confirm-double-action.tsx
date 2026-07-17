@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -11,9 +10,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/app/_components/ui/alert-dialog";
+import { Button } from "@/app/_components/ui/button";
 import { Label } from "@/app/_components/ui/label";
 import { AlertTriangleIcon } from "lucide-react";
-import { Button } from "@/app/_components/ui/button";
+import { useState } from "react";
 
 interface ConfirmDoubleActionProps {
   trigger: React.ReactNode;

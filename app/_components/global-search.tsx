@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import {
+  globalSearch,
+  SearchResult,
+} from "@/app/_actions/search/global-search";
 import {
   CommandDialog,
   CommandEmpty,
@@ -12,16 +14,14 @@ import {
   CommandSeparator,
 } from "@/app/_components/ui/command";
 import {
-  Users,
+  ArrowRight,
   Package,
   ShoppingBasket,
-  ArrowRight,
   Sparkles,
+  Users,
 } from "lucide-react";
-import {
-  globalSearch,
-  SearchResult,
-} from "@/app/_actions/search/global-search";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 export const GlobalSearch = () => {
   const [open, setOpen] = useState(false);

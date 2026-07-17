@@ -1,22 +1,21 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { toast } from "sonner";
-import { Bell, Cake, Clock, Check, Loader2, AlertTriangle } from "lucide-react";
+import { getCRMAlertsAction } from "@/app/_actions/crm/get-alerts";
+import { getInventoryAlerts } from "@/app/_actions/inventory/get-inventory-alerts";
+import { Button } from "@/app/_components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/app/_components/ui/popover";
-import { Badge } from "@/app/_components/ui/badge";
-import { Button } from "@/app/_components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { getCRMAlertsAction } from "@/app/_actions/crm/get-alerts";
-import { getInventoryAlerts } from "@/app/_actions/inventory/get-inventory-alerts";
+import { AlertTriangle, Bell, Clock } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
-import Link from "next/link";
 import { supabase } from "@/app/_lib/supabase";
+import Link from "next/link";
 
 
 interface Notification {

@@ -1,6 +1,6 @@
 import { getUserProfile } from "@/app/_data-access/user/get-user-profile";
-import { Badge } from "./ui/badge";
 import Link from "next/link";
+import { Badge } from "./ui/badge";
 
 export const HeaderUserProfile = async () => {
   const profile = await getUserProfile();

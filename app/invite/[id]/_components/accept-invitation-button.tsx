@@ -1,11 +1,11 @@
 "use client";
 
-import { useAction } from "next-safe-action/hooks";
 import { acceptInvitation } from "@/app/_actions/user/accept-invitation";
 import { Button } from "@/app/_components/ui/button";
 import { Loader2Icon } from "lucide-react";
-import { toast } from "sonner";
+import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface AcceptInvitationButtonProps {
   invitationId: string;

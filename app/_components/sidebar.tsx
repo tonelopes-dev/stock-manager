@@ -1,7 +1,7 @@
 import { getCurrentUserAuth } from "@/app/_lib/rbac";
 import { UserRole } from "@prisma/client";
-import { SidebarNav } from "./sidebar-nav";
 import { KipoLogo } from "./logo";
+import { SidebarNav } from "./sidebar-nav";
 
 const Sidebar = async () => {
   const auth = await getCurrentUserAuth();

@@ -1,9 +1,9 @@
 "use client";
 
+import { AlertTriangleIcon, HomeIcon, RefreshCcwIcon } from "lucide-react";
+import Link from "next/link";
 import { useEffect } from "react";
 import { Button } from "./_components/ui/button";
-import { AlertTriangleIcon, RefreshCcwIcon, HomeIcon } from "lucide-react";
-import Link from "next/link";
 
 export default function GlobalError({
   error,

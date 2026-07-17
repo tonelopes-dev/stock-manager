@@ -1,7 +1,5 @@
 "use client";
 
-import { useSubscription } from "@/app/_providers/subscription-context";
-import { AlertCircle, AlertTriangle } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
 import {
   Tooltip,
@@ -9,6 +7,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/app/_components/ui/tooltip";
+import { useSubscription } from "@/app/_providers/subscription-context";
+import { AlertCircle, AlertTriangle } from "lucide-react";
 
 export const SubscriptionStatusIcon = () => {
   const { toggleBanner, subscriptionLevel, daysRemaining } = useSubscription();

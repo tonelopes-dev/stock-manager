@@ -1,23 +1,22 @@
 "use client";
 
+import { register, RegisterState } from "@/app/_actions/auth/register";
+import { KipoLogo } from "@/app/_components/logo";
 import { Button } from "@/app/_components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardFooter,
-  CardHeader,
-  CardTitle,
+  CardHeader
 } from "@/app/_components/ui/card";
 import { Input } from "@/app/_components/ui/input";
 import { Label } from "@/app/_components/ui/label";
+import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
-import { Eye, EyeOff } from "lucide-react";
-import { register, RegisterState } from "@/app/_actions/auth/register";
-import { KipoLogo } from "@/app/_components/logo";
 
 const initialState: RegisterState = {
   success: false,

@@ -1,16 +1,16 @@
-import { getInvitation } from "@/app/_data-access/user/get-invitation";
-import { auth } from "@/app/_lib/auth";
-import { redirect } from "next/navigation";
+import { Button } from "@/app/_components/ui/button";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
   CardDescription,
   CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/app/_components/ui/card";
-import { Button } from "@/app/_components/ui/button";
-import { Building2Icon, UserPlusIcon, CheckCircle2Icon } from "lucide-react";
+import { getInvitation } from "@/app/_data-access/user/get-invitation";
+import { auth } from "@/app/_lib/auth";
+import { Building2Icon, CheckCircle2Icon, UserPlusIcon } from "lucide-react";
+import { redirect } from "next/navigation";
 import AcceptInvitationButton from "./_components/accept-invitation-button";
 
 interface InvitationPageProps {

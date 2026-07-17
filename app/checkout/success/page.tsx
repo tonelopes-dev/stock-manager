@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { CheckCircle2Icon, ArrowRightIcon, SparklesIcon } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
+import { ArrowRightIcon, CheckCircle2Icon, SparklesIcon } from "lucide-react";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 

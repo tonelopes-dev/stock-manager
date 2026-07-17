@@ -9,6 +9,8 @@ import {
 
 import { cn } from "@/app/_lib/utils";
 
+import { DataTablePagination } from "./data-table-pagination";
+import { Skeleton } from "./skeleton";
 import {
   Table,
   TableBody,
@@ -17,8 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from "./table";
-import { Skeleton } from "./skeleton";
-import { DataTablePagination } from "./data-table-pagination";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

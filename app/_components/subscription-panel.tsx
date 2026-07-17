@@ -1,8 +1,8 @@
 import { getSubscriptionUIState } from "@/app/_lib/subscription-utils";
 import { SubscriptionStatus } from "@prisma/client";
-import { Button } from "./ui/button";
-import Link from "next/link";
 import { ArrowRightIcon, CrownIcon } from "lucide-react";
+import Link from "next/link";
+import { Button } from "./ui/button";
 
 interface SubscriptionPanelProps {
   status: SubscriptionStatus | null;

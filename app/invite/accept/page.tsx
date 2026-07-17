@@ -1,9 +1,9 @@
 
-import { InvitationService } from "@/app/_services/invitation.service";
-import { AcceptInviteForm } from "./_components/accept-invite-form";
 import { Button } from "@/app/_components/ui/button";
-import { XCircleIcon, ArrowLeftIcon } from "lucide-react";
+import { InvitationService } from "@/app/_services/invitation.service";
+import { ArrowLeftIcon, XCircleIcon } from "lucide-react";
 import Link from "next/link";
+import { AcceptInviteForm } from "./_components/accept-invite-form";
 
 interface PageProps {
   searchParams: Promise<{ token?: string }>;
