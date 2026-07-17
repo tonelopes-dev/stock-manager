@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/app/_components/ui/sheet";
-import { MercadoPagoBricksForm } from "./mercadopago-bricks-form";
-import { StatusScreen } from "@mercadopago/sdk-react";
-import { Copy, CheckCircle2 } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/app/_components/ui/button";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/app/_components/ui/sheet";
+import { StatusScreen } from "@mercadopago/sdk-react";
+import { CheckCircle2, Copy } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { MercadoPagoBricksForm } from "./mercadopago-bricks-form";
 
 interface CheckoutPaymentModalProps {
   open: boolean;

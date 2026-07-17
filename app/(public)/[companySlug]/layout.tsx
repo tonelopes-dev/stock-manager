@@ -1,5 +1,5 @@
-import { notFound } from "next/navigation";
 import { getMenuDataBySlug } from "@/app/_data-access/menu/get-menu-data";
+import { notFound } from "next/navigation";
 import { MenuConfigProvider } from "./_context/menu-config-context";
 
 interface CompanyLayoutProps {

@@ -1,57 +1,43 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { getWhatsAppUrl } from "@/app/_lib/utils";
+import {
+  Clock,
+  Instagram,
+  MapPin,
+  MessageCircle,
+  Phone,
+  Search,
+  Star,
+  Utensils
+} from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import {
-  Search,
-  ShoppingBag,
-  Plus,
-  Minus,
-  Utensils,
-  Loader2,
-  X,
-  Instagram,
-  Phone,
-  MessageCircle,
-  MapPin,
-  Clock,
-  Pencil,
-  User,
-  Mail,
-  Calendar,
-  Star,
-} from "lucide-react";
-import { format, parseISO } from "date-fns";
-import { getWhatsAppUrl } from "@/app/_lib/utils";
+import { useEffect, useMemo, useState } from "react";
 
-import { Input } from "@/app/_components/ui/input";
-import { Button } from "@/app/_components/ui/button";
-import { Badge } from "@/app/_components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-  DialogDescription,
+  DialogTitle
 } from "@/app/_components/ui/dialog";
+import { Input } from "@/app/_components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 import { toast } from "sonner";
-import { DatePicker } from "@/app/_components/ui/date-picker";
 
 import { createOrderAction } from "@/app/_actions/order/create-order";
-import { MenuHeader } from "./layout/menu-header";
-import { CategoryNav } from "./layout/category-nav";
-import { ProductSection } from "./product/product-section";
-import { ProductDetailsSheet } from "./product/product-details-sheet";
-import { FloatingCartButton } from "./cart/floating-cart-button";
-import { BottomNav } from "./layout/bottom-nav";
-import { IdentificationDialog } from "./checkout/identification-dialog";
-import { PromotionsModal } from "./promotions/promotions-modal";
-import { useCartStore } from "../_store/use-cart-store";
-import { useUIStore } from "../_store/use-ui-store";
 import { supabase } from "@/app/_lib/supabase";
 import { isPromotionActive } from "@/app/_utils/promotion";
+import { useCartStore } from "../_store/use-cart-store";
+import { useUIStore } from "../_store/use-ui-store";
+import { FloatingCartButton } from "./cart/floating-cart-button";
+import { IdentificationDialog } from "./checkout/identification-dialog";
+import { BottomNav } from "./layout/bottom-nav";
+import { CategoryNav } from "./layout/category-nav";
+import { MenuHeader } from "./layout/menu-header";
+import { ProductDetailsSheet } from "./product/product-details-sheet";
+import { ProductSection } from "./product/product-section";
+import { PromotionsModal } from "./promotions/promotions-modal";
 
 
 interface MenuClientProps {

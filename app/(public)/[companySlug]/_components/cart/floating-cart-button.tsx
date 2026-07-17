@@ -1,9 +1,9 @@
 "use client";
 
-import { useCartStore } from "../../_store/use-cart-store";
 import { ShoppingBag } from "lucide-react";
-import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useCartStore } from "../../_store/use-cart-store";
 import { CartCheckoutSheet } from "./cart-checkout-sheet";
 
 interface FloatingCartButtonProps {

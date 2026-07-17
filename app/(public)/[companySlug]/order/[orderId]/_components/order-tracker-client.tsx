@@ -1,25 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { 
-  CheckCircle2, 
-  Clock, 
-  ChefHat, 
-  Bike, 
-  PackageCheck,
+import {
+  ArrowLeft,
+  CheckCircle2,
+  ChefHat,
+  Clock,
   MapPin,
   MessageCircle,
-  Phone,
-  ArrowLeft
+  PackageCheck
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-import { toast } from "sonner";
 import { supabase } from "@/app/_lib/supabase";
+import { toast } from "sonner";
 
-import { Button } from "@/app/_components/ui/button";
 import { Badge } from "@/app/_components/ui/badge";
 import { Progress } from "@/app/_components/ui/progress";
 // import { Separator } from "@/app/_components/ui/separator"; // Caso não exista

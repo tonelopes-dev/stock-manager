@@ -1,6 +1,6 @@
-import { notFound } from "next/navigation";
 import { getOrderStatus } from "@/app/_data-access/order/get-order-status";
 import { db } from "@/app/_lib/prisma";
+import { notFound } from "next/navigation";
 import { OrderTrackerClient } from "./_components/order-tracker-client";
 
 interface OrderTrackerPageProps {

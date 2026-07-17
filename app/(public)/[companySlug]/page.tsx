@@ -1,7 +1,7 @@
-import { notFound } from "next/navigation";
 import { getMenuDataBySlug } from "@/app/_data-access/menu/get-menu-data";
-import { MenuClient } from "./_components/menu-client";
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { MenuClient } from "./_components/menu-client";
 
 interface MenuPageProps {
   params: Promise<{

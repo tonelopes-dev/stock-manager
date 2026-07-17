@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { ComponentProps } from "react";
+import { processTransparentPayment } from "@/app/_actions/integration/process-transparent-payment";
 import { initMercadoPago, Payment } from "@mercadopago/sdk-react";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import { useAction } from "next-safe-action/hooks";
-import { processTransparentPayment } from "@/app/_actions/integration/process-transparent-payment";
+import type { ComponentProps } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface MercadoPagoBricksFormProps {
   publicKey: string;

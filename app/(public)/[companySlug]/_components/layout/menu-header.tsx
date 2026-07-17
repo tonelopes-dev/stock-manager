@@ -1,8 +1,8 @@
-import Image from "next/image";
-import { Utensils, ShoppingBag, LogOut, MapPin } from "lucide-react";
-import { Button } from "@/app/_components/ui/button";
 import { Badge } from "@/app/_components/ui/badge";
+import { Button } from "@/app/_components/ui/button";
 import { MenuDataDto } from "@/app/_data-access/menu/get-menu-data";
+import { LogOut, MapPin, ShoppingBag, Utensils } from "lucide-react";
+import Image from "next/image";
 
 interface MenuHeaderProps {
   menuData: MenuDataDto;

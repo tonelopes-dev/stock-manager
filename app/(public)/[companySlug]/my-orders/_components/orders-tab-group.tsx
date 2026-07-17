@@ -1,17 +1,17 @@
 "use client";
 
-import { OrderStatusDto } from "@/app/_data-access/order/get-order-status";
-import { OrderCard } from "./order-card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
-import { Card } from "@/app/_components/ui/card";
-import { useMemo, useState, useEffect } from "react";
-import { Utensils, Zap, Loader2 } from "lucide-react";
-import { CheckoutPaymentModal } from "./checkout-payment-modal";
-import { Button } from "@/app/_components/ui/button";
-import Link from "next/link";
-import { useAction } from "next-safe-action/hooks";
 import { generateMercadoPagoCheckout } from "@/app/_actions/integration/generate-mercadopago-checkout";
+import { Button } from "@/app/_components/ui/button";
+import { Card } from "@/app/_components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
+import { OrderStatusDto } from "@/app/_data-access/order/get-order-status";
+import { Loader2, Utensils } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { CheckoutPaymentModal } from "./checkout-payment-modal";
+import { OrderCard } from "./order-card";
 
 interface OrdersTabGroupProps {
   orders: OrderStatusDto[];

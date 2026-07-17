@@ -1,38 +1,38 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter, useParams } from "next/navigation";
 import { usePushNotifications } from "@/app/_hooks/use-push-notifications";
-import Image from "next/image";
+import { cn } from "@/app/_lib/utils";
 import {
+  Check,
+  Loader2,
   Minus,
+  Phone,
   Plus,
   ShoppingBag,
   Trash2,
-  X,
   User,
-  Phone,
-  Loader2,
-  Check,
+  X,
 } from "lucide-react";
+import Image from "next/image";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { cn } from "@/app/_lib/utils";
 
+import { createOrderAction } from "@/app/_actions/order/create-order";
+import { Button } from "@/app/_components/ui/button";
+import { Input } from "@/app/_components/ui/input";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from "@/app/_components/ui/sheet";
-import { Button } from "@/app/_components/ui/button";
-import { Input } from "@/app/_components/ui/input";
-import { useCartStore, CartItem } from "../../_store/use-cart-store";
-import { createOrderAction } from "@/app/_actions/order/create-order";
-import { SelfieCamera } from "../checkout/selfie-camera";
-import { PatternFormat, NumberFormatValues } from "react-number-format";
+import { NumberFormatValues, PatternFormat } from "react-number-format";
 import { useMenuConfig } from "../../_context/menu-config-context";
 import { useCustomerSession } from "../../_hooks/use-customer-session";
 import { useSelfieUpload } from "../../_hooks/use-selfie-upload";
+import { CartItem, useCartStore } from "../../_store/use-cart-store";
+import { SelfieCamera } from "../checkout/selfie-camera";
 
 interface CartCheckoutSheetProps {
   isOpen: boolean;

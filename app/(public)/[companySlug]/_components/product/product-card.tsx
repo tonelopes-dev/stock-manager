@@ -1,9 +1,9 @@
-import Image from "next/image";
-import { Plus, Utensils } from "lucide-react";
 import { MenuProductDto } from "@/app/_data-access/menu/get-menu-data";
 import { cn } from "@/app/_lib/utils";
-import { useCartStore } from "../../_store/use-cart-store";
 import { isPromotionActive } from "@/app/_utils/promotion";
+import { Plus, Utensils } from "lucide-react";
+import Image from "next/image";
+import { useCartStore } from "../../_store/use-cart-store";
 
 interface ProductCardProps {
   product: MenuProductDto;

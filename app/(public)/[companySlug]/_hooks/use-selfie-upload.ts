@@ -1,8 +1,8 @@
 "use client";
 
+import { updateCustomerSelfie } from "@/app/_actions/customer/update-customer-selfie";
 import { useState } from "react";
 import { toast } from "sonner";
-import { updateCustomerSelfie } from "@/app/_actions/customer/update-customer-selfie";
 
 interface UseSelfieUploadProps {
   companyId: string;

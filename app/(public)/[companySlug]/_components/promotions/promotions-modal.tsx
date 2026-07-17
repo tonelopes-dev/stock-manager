@@ -1,19 +1,19 @@
 "use client";
 
+import { getPromotionsAction } from "@/app/_actions/menu/get-promotions";
+import { Badge } from "@/app/_components/ui/badge";
+import { Button } from "@/app/_components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/app/_components/ui/dialog";
-import { Badge } from "@/app/_components/ui/badge";
-import { Button } from "@/app/_components/ui/button";
-import { Tag, Plus, Loader2 } from "lucide-react";
-import Image from "next/image";
-import { useState, useEffect } from "react";
-import { getPromotionsAction } from "@/app/_actions/menu/get-promotions";
-import { useUIStore } from "../../_store/use-ui-store";
 import { isPromotionActive } from "@/app/_utils/promotion";
+import { Loader2, Plus, Tag } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import { useUIStore } from "../../_store/use-ui-store";
 
 interface PromotionsModalProps {
   companySlug: string;

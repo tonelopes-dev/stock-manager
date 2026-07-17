@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { formatPhoneNumber } from "@/app/_lib/utils";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export function useCustomerSession(companyId: string) {
