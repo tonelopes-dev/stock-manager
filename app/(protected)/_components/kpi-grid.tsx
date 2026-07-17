@@ -6,7 +6,7 @@ import {
 } from "./kpi-card";
 import { AnalyticsMetric } from "@/app/_data-access/dashboard/get-dashboard-analytics";
 import Link from "next/link";
-import { Clock, InfoIcon, Wallet } from "lucide-react";
+import { Clock, InfoIcon } from "lucide-react";
 import {
   Popover,
   PopoverContent,
