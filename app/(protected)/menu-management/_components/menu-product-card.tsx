@@ -53,12 +53,13 @@ export const MenuProductCard = ({ product }: MenuProductCardProps) => {
       <div
         data-testid={`menu-product-card-${product.id}`}
         className={cn(
-          "group relative flex items-center gap-4 rounded-xl border px-4 py-3 transition-all",
+          "group relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border px-4 py-3 transition-all",
           product.isVisibleOnMenu
             ? "border-border bg-background shadow-sm hover:shadow-md"
             : "border-dashed border-border bg-muted/50 opacity-70"
         )}
       >
+        <div className="flex items-center gap-4 w-full sm:w-auto min-w-0 flex-1">
         {/* Product Avatar */}
         <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-border bg-muted/50 shadow-sm">
           {product.imageUrl ? (
@@ -133,9 +134,10 @@ export const MenuProductCard = ({ product }: MenuProductCardProps) => {
             )}
           </div>
         </div>
+        </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-none border-border/50">
           {/* Environment Guardrail Link */}
           {!product.environmentId && (
             <Tooltip>

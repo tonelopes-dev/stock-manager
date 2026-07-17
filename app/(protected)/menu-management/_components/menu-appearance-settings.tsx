@@ -120,7 +120,7 @@ export const MenuAppearanceSettings = ({ initialData }: MenuAppearanceSettingsPr
 
   return (
     <Card className="border-none shadow-sm overflow-hidden">
-      <CardHeader className="bg-primary/5 pb-8">
+      <CardHeader className="bg-primary/5 p-4 pb-8 md:p-6 md:pb-8">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary text-white">
             <Store size={20} />
@@ -132,7 +132,7 @@ export const MenuAppearanceSettings = ({ initialData }: MenuAppearanceSettingsPr
         </div>
       </CardHeader>
       
-      <CardContent className="p-8 -mt-4 bg-background rounded-t-[2rem]">
+      <CardContent className="p-4 md:p-8 -mt-4 bg-background rounded-t-[2rem]">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit, onFormError)} className="space-y-8">
             
@@ -387,10 +387,10 @@ export const MenuAppearanceSettings = ({ initialData }: MenuAppearanceSettingsPr
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {DEFAULT_HOURS.map((dayItem, index) => (
-                  <div key={dayItem.day} className="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-gray-50/50">
-                    <div className="flex flex-col gap-2 flex-1">
+                  <div key={dayItem.day} className="flex items-center justify-between p-2 sm:p-3 rounded-xl border border-gray-100 bg-gray-50/50 gap-2">
+                    <div className="flex flex-col gap-1.5 sm:gap-2 flex-1 min-w-0">
                       <span className="text-xs font-bold text-gray-700">{dayItem.day}</span>
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
                         <FormField
                           control={form.control}
                           name={`operatingHours.${index}.open` as any}
@@ -399,7 +399,7 @@ export const MenuAppearanceSettings = ({ initialData }: MenuAppearanceSettingsPr
                               <FormControl>
                                 <Input 
                                   type="time" 
-                                  className="w-20 h-8 text-[10px] bg-white px-2" 
+                                  className="w-[68px] sm:w-20 h-8 text-[10px] bg-white px-1 sm:px-2" 
                                   {...field} 
                                   disabled={form.watch(`operatingHours.${index}.closed` as any)}
                                 />
@@ -416,7 +416,7 @@ export const MenuAppearanceSettings = ({ initialData }: MenuAppearanceSettingsPr
                               <FormControl>
                                 <Input 
                                   type="time" 
-                                  className="w-20 h-8 text-[10px] bg-white px-2" 
+                                  className="w-[68px] sm:w-20 h-8 text-[10px] bg-white px-1 sm:px-2" 
                                   {...field} 
                                   disabled={form.watch(`operatingHours.${index}.closed` as any)}
                                 />

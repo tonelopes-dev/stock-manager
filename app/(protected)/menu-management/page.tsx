@@ -30,7 +30,7 @@ const MenuManagementPage = async () => {
   );
 
   return (
-    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-background p-8">
+    <div className="p-4 mt-6 md:m-8 md:mt-8 space-y-8 overflow-auto rounded-lg bg-background md:p-8">
       <Header>
         <HeaderLeft>
           <HeaderSubtitle>Modo Operação</HeaderSubtitle>

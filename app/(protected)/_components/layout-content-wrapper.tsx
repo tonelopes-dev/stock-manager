@@ -3,6 +3,7 @@
 import { useAppMode } from "@/app/_providers/app-mode-provider";
 import { cn } from "@/app/_lib/utils";
 import { MobileBottomNav } from "@/app/_components/mobile-bottom-nav";
+import { UserRole } from "@prisma/client";
 
 interface LayoutContentWrapperProps {
   sidebar: React.ReactNode;
@@ -10,6 +11,8 @@ interface LayoutContentWrapperProps {
   banner: React.ReactNode;
   children: React.ReactNode;
   pathname: string;
+  role: UserRole;
+  permissions: string[];
 }
 
 export const LayoutContentWrapper = ({ 
@@ -17,7 +20,9 @@ export const LayoutContentWrapper = ({
   header, 
   banner, 
   children,
-  pathname 
+  pathname,
+  role,
+  permissions
 }: LayoutContentWrapperProps) => {
   const { isLiveMode } = useAppMode();
   const effectiveLiveMode = isLiveMode && pathname.startsWith("/kds");
@@ -37,7 +42,7 @@ export const LayoutContentWrapper = ({
           {children}
         </main>
 
-        {!effectiveLiveMode && <MobileBottomNav />}
+        {!effectiveLiveMode && <MobileBottomNav role={role} permissions={permissions} />}
       </div>
     </div>
   );

@@ -1,84 +1,18 @@
 "use client";
 
-import {
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/app/_components/ui/sheet";
-import { ShoppingCartIcon } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { useForm, FormProvider, UseFormWatch } from "react-hook-form";
-import { z } from "zod";
+import { FormProvider } from "react-hook-form";
 import { PaymentMethod } from "@prisma/client";
-import { upsertSale } from "@/app/_actions/sale/upsert-sale";
-import { createOrderAction } from "@/app/_actions/order/create-order";
-import { toast } from "sonner";
-import { useAction } from "next-safe-action/hooks";
-import { flattenValidationErrors } from "next-safe-action";
+import { SheetContent } from "@/app/_components/ui/sheet";
+import { TooltipProvider } from "@/app/_components/ui/tooltip";
+import { Dialog } from "@/app/_components/ui/dialog";
 import { ProductDto } from "@/app/_data-access/product/get-products";
-import {
-  TooltipProvider,
-} from "@/app/_components/ui/tooltip";
-import { CartComposer } from "./upsert-sheet-parts/cart-composer";
-import { CartTable } from "./upsert-sheet-parts/cart-table";
-import { CustomerSection } from "./upsert-sheet-parts/customer-section";
-import { FinancialSummary } from "./upsert-sheet-parts/financial-summary";
-import { PaymentSelector } from "./upsert-sheet-parts/payment-selector";
-import { ActionFooter } from "./upsert-sheet-parts/action-footer";
-import { useSaleTotals } from "./upsert-sheet-parts/use-sale-totals";
-import { format, parseISO } from "date-fns";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
-import { DatePicker } from "@/app/_components/ui/date-picker";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/app/_components/ui/dialog";
 import UpsertCustomerDialogContent from "../../customers/_components/upsert-dialog-content";
-import { UpsertCustomerSchema } from "@/app/_actions/customer/upsert-customer/schema";
-import { PlusIcon } from "lucide-react";
-import { Button } from "@/app/_components/ui/button";
-import { useFieldArray } from "react-hook-form";
 
-const itemSchema = z.object({
-  productId: z.string().uuid(),
-  name: z.string(),
-  price: z.coerce.number(),
-  cost: z.coerce.number(),
-  operationalCost: z.coerce.number(),
-  quantity: z.coerce.number().int().positive(),
-  stock: z.coerce.number(),
-  notes: z.string().optional(),
-});
-
-const formSchema = z.object({
-  customerId: z.string().uuid().optional().nullable(),
-  date: z.string(),
-  paymentMethod: z.nativeEnum(PaymentMethod).optional().nullable(),
-  items: z.array(itemSchema),
-  applyServiceCharge: z.boolean(),
-  isEmployeeSale: z.boolean(),
-  discountAmount: z.coerce.number().min(0),
-  extraAmount: z.coerce.number().min(0),
-  adjustmentReason: z.string().optional(),
-  tableNumber: z.string().optional(),
-  notes: z.string().optional(),
-});
-
-type FormSchema = z.infer<typeof formSchema>;
-
-interface SelectedProduct {
-  productId: string;
-  name: string;
-  price: number;
-  cost: number;
-  operationalCost: number;
-  quantity: number;
-  stock: number;
-}
+import { useUpsertSaleController, SelectedProduct } from "./upsert-sheet-parts/use-upsert-sale-controller";
+import DesktopSaleView from "./desktop-sale-view";
+import MobileSaleWizard from "./mobile-sale-wizard";
 
 interface UpsertSheetContentProps {
   isOpen: boolean;
@@ -104,272 +38,65 @@ interface UpsertSheetContentProps {
   isPendingSale?: boolean;
 }
 
-const UpsertSheetContent = ({
-  isOpen,
-  saleId,
-  saleDate,
-  customerId: defaultCustomerId,
-  products,
-  productOptions,
-  customerOptions,
-  setSheetIsOpen,
-  defaultSelectedProducts,
-  paymentMethod: defaultPaymentMethod,
-  tipAmount: defaultTipAmount,
-  defaultDiscountAmount = 0,
-  defaultExtraAmount = 0,
-  defaultAdjustmentReason = "",
-  defaultIsEmployeeSale = false,
-  companyId,
-  stages,
-  categories,
-  isReadOnly = false,
-  isPendingSale = false,
-}: UpsertSheetContentProps) => {
-  const [customerDialogOpen, setCustomerDialogOpen] = useState(false);
-  const [customerSearchValue, setCustomerSearchValue] = useState("");
-
-  const form = useForm<FormSchema>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      customerId: defaultCustomerId || undefined,
-      date: saleDate ? format(new Date(saleDate), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
-      paymentMethod: (defaultPaymentMethod as PaymentMethod) || undefined,
-      items: defaultSelectedProducts ?? [],
-      applyServiceCharge: defaultTipAmount === undefined ? true : Number(defaultTipAmount) > 0,
-      isEmployeeSale: defaultIsEmployeeSale,
-      discountAmount: defaultDiscountAmount,
-      extraAmount: defaultExtraAmount,
-      adjustmentReason: defaultAdjustmentReason,
-    },
+const UpsertSheetContent = (props: UpsertSheetContentProps) => {
+  const controller = useUpsertSaleController({
+    companyId: props.companyId,
+    saleId: props.saleId,
+    saleDate: props.saleDate,
+    defaultCustomerId: props.customerId,
+    defaultSelectedProducts: props.defaultSelectedProducts,
+    defaultPaymentMethod: props.paymentMethod,
+    defaultTipAmount: props.tipAmount,
+    defaultDiscountAmount: props.defaultDiscountAmount,
+    defaultExtraAmount: props.defaultExtraAmount,
+    defaultAdjustmentReason: props.defaultAdjustmentReason,
+    defaultIsEmployeeSale: props.defaultIsEmployeeSale,
+    isPendingSale: props.isPendingSale,
+    setSheetIsOpen: props.setSheetIsOpen,
   });
 
   const [isReady, setIsReady] = useState(false);
   
   useEffect(() => {
-    // Small delay to ensure Radix/Next hydration is settled
-    const timer = setTimeout(() => setIsReady(true), 150); // Slightly longer for complex sales sheet
+    const timer = setTimeout(() => setIsReady(true), 150);
     return () => clearTimeout(timer);
   }, []);
 
-  const { fields, append, remove, update } = useFieldArray({
-    control: form.control,
-    name: "items",
-  });
-
-  const {
-    execute: executeUpsertSale,
-    isPending: isUpsertPending,
-    reset: resetUpsertSale,
-  } = useAction(upsertSale, {
-    onError: ({ error: { validationErrors, serverError } }) => {
-      const flattenedErrors = flattenValidationErrors(validationErrors);
-      toast.error(serverError ?? flattenedErrors.formErrors[0]);
-    },
-    onSuccess: () => {
-      toast.success("Venda atualizada com sucesso.");
-      setSheetIsOpen(false);
-    },
-  });
-
-  const {
-    execute: executeCreateOrder,
-    isPending: isOrderPending,
-    reset: resetCreateOrder,
-  } = useAction(createOrderAction, {
-    onError: ({ error: { serverError } }) => {
-      toast.error(serverError || "Erro ao criar comanda.");
-    },
-    onSuccess: () => {
-      toast.success("Comanda (Pedido) criada com sucesso! 📝");
-      setSheetIsOpen(false);
-    },
-  });
-
-  const isPending = isUpsertPending || isOrderPending;
-
   useEffect(() => {
-    if (!isOpen) {
-      form.reset();
-      resetUpsertSale();
-      resetCreateOrder();
+    if (!props.isOpen) {
+      controller.resetAll();
     }
-  }, [form, isOpen, resetUpsertSale, resetCreateOrder]);
-
-  // Hook for totals (used in handlers)
-  const totals = useSaleTotals(form.watch as UseFormWatch<FormSchema>);
-
-  const handleOpenOrder = () => {
-    const values = form.getValues();
-    if (values.items.length === 0) return;
-
-    if (!values.customerId) {
-      toast.error("Para abrir uma comanda, selecione um cliente.");
-      return;
-    }
-
-    executeCreateOrder({
-      companyId,
-      customerId: values.customerId,
-      notes: values.notes || "Venda ERP",
-      tableNumber: values.tableNumber || undefined,
-      hasServiceTax: values.applyServiceCharge,
-      discountAmount: totals.effectiveDiscount,
-      extraAmount: totals.extraAmount,
-      adjustmentReason: values.adjustmentReason || undefined,
-      isEmployeeSale: values.isEmployeeSale,
-      items: values.items.map((p) => ({
-        productId: p.productId,
-        quantity: p.quantity,
-        notes: p.notes,
-      })),
-    });
-  };
-
-  const handleFinalizeSale = () => {
-    const values = form.getValues();
-    if (values.items.length === 0) return;
-
-    if (!isPendingSale && !values.paymentMethod) {
-      toast.error("Selecione uma forma de pagamento.");
-      return;
-    }
-
-    executeUpsertSale({
-      id: saleId,
-      date: values.date ? new Date(values.date + "T12:00:00.000Z") : undefined,
-      customerId: values.customerId || undefined,
-      paymentMethod: values.paymentMethod || null,
-      tipAmount: totals.serviceChargeAmount,
-      discountAmount: totals.effectiveDiscount,
-      extraAmount: totals.extraAmount,
-      adjustmentReason: values.adjustmentReason || undefined,
-      isEmployeeSale: values.isEmployeeSale,
-      status: isPendingSale ? "PENDING_PAYMENT" : "ACTIVE",
-      products: values.items.map((p) => ({
-        id: p.productId,
-        quantity: p.quantity,
-      })),
-    });
-  };
-
-  const handleCustomerSuccess = (customer: { id: string }) => {
-    form.setValue("customerId", customer.id);
-    setCustomerDialogOpen(false);
-    setCustomerSearchValue("");
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.isOpen]);
 
   return (
     <TooltipProvider>
-      <FormProvider {...form}>
-        <SheetContent data-testid="upsert-sale-sheet" data-ready={isReady} className="flex h-full !max-w-full flex-col border-none p-0 lg:!max-w-5xl">
-          <div className="flex h-full flex-col">
-            <div className="sticky top-0 z-10 border-b border-border bg-background p-3">
-              <div className="flex items-center justify-between gap-4">
-                <SheetHeader className="text-left">
-                  <div className="flex items-center gap-2">
-                    <div className="rounded-lg bg-primary/10 p-1.5 text-primary">
-                      <ShoppingCartIcon size={18} />
-                    </div>
-                    <SheetTitle className="whitespace-nowrap text-lg font-black uppercase italic tracking-tighter">
-                      {isReadOnly ? "Visualizar Venda" : isPendingSale ? "Editar Comanda Pendente" : saleId ? "Editar Venda" : "Nova Venda"}
-                    </SheetTitle>
-                  </div>
-                  <SheetDescription className="text-[10px] font-semibold uppercase tracking-tight text-muted-foreground">
-                    {isReadOnly ? "Venda finalizada (Somente Leitura)" : isPendingSale ? "Ajuste de itens aguardando pagamento" : "Processamento em tempo real"}
-                  </SheetDescription>
-                </SheetHeader>
+      <FormProvider {...controller.form}>
+        <SheetContent 
+          data-testid="upsert-sale-sheet" 
+          data-ready={isReady} 
+          className="flex h-full w-full !max-w-full flex-col border-none p-0 lg:!max-w-5xl [&>button.absolute]:hidden md:[&>button.absolute]:flex"
+        >
+          {/* Mobile Wizard (Visível apenas em telas menores) */}
+          <div className="flex h-full flex-col md:hidden">
+            <MobileSaleWizard controller={controller} {...props} />
+          </div>
 
-                {!isReadOnly && (
-                  <div className="flex items-center gap-2">
-                    <DatePicker
-                      value={form.watch("date") ? parseISO(form.watch("date")) : undefined}
-                      onChange={(newDate) =>
-                        form.setValue("date", newDate ? format(newDate, "yyyy-MM-dd") : "")
-                      }
-                      className="h-9 w-[130px] border-border text-[10px] font-bold"
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      type="button"
-                      onClick={() => setCustomerDialogOpen(true)}
-                      className="h-9 gap-1.5 px-3 text-[10px] font-black uppercase tracking-tight text-muted-foreground transition-all hover:bg-muted"
-                    >
-                      <PlusIcon size={14} />
-                      Novo Cliente
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="grid flex-1 grid-cols-1 overflow-hidden lg:grid-cols-2">
-              <div className="flex min-h-0 flex-col border-r border-border bg-muted/30">
-                <div className="scrollbar-hide hover:scrollbar-default flex-1 space-y-2 overflow-y-auto p-2 transition-all">
-                  <CustomerSection
-                    customerOptions={customerOptions}
-                    categories={categories}
-                    stages={stages}
-                    isReadOnly={isReadOnly}
-                  />
-                </div>
-
-                <div className="mt-auto border-t border-border bg-background px-3 py-2">
-                  <FinancialSummary isReadOnly={isReadOnly} />
-                  <PaymentSelector isReadOnly={isReadOnly} />
-                  <ActionFooter
-                    onSaveOrder={handleOpenOrder}
-                    onFinalizeSale={handleFinalizeSale}
-                    isPending={isPending}
-                    isOrderPending={isOrderPending}
-                    isUpsertPending={isUpsertPending}
-                    saleId={saleId}
-                    isReadOnly={isReadOnly}
-                    isPendingSale={isPendingSale}
-                  />
-                </div>
-              </div>
-
-              <div className="flex min-h-0 flex-col bg-background p-2">
-                <div className="mb-4 flex items-center justify-between">
-                  <h4 className="text-sm font-bold uppercase italic tracking-tighter text-foreground">
-                    Itens da Venda
-                  </h4>
-                  <p className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {form.watch("items")?.length || 0} produtos
-                  </p>
-                </div>
-
-                <div className="scrollbar-hide hover:scrollbar-default flex-1 overflow-y-auto pr-1 transition-all">
-                  <CartComposer 
-                    products={products} 
-                    productOptions={productOptions} 
-                    fields={fields}
-                    append={append}
-                    isReadOnly={isReadOnly}
-                  />
-                  <CartTable 
-                    fields={fields}
-                    remove={remove}
-                    update={update}
-                    isReadOnly={isReadOnly}
-                  />
-                </div>
-              </div>
-            </div>
+          {/* Desktop View (Visível apenas em telas médias e maiores) */}
+          <div className="hidden h-full flex-col md:flex">
+            <DesktopSaleView controller={controller} {...props} />
           </div>
         </SheetContent>
 
         {/* Global Quick Customer Dialog */}
-        <Dialog open={customerDialogOpen} onOpenChange={setCustomerDialogOpen}>
+        <Dialog open={controller.customerDialogOpen} onOpenChange={controller.setCustomerDialogOpen}>
           <UpsertCustomerDialogContent
-            setDialogIsOpen={setCustomerDialogOpen}
-            categories={categories}
-            stages={stages}
-            onSuccess={handleCustomerSuccess}
+            setDialogIsOpen={controller.setCustomerDialogOpen}
+            categories={props.categories}
+            stages={props.stages}
+            onSuccess={controller.handleCustomerSuccess}
             defaultValues={{
-              name: customerSearchValue,
+              name: controller.customerSearchValue,
               phoneNumber: "",
               categoryIds: [],
               stageId: "",

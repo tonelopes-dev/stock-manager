@@ -113,7 +113,7 @@ export const CategoryManagementDialog = ({
           className="h-11 gap-2 bg-background shadow-sm border-none"
         >
           <Settings2Icon className="w-4 h-4 text-muted-foreground" />
-          <span className="text-foreground hidden md:inline">Gerenciar Categorias</span>
+          <span className="text-foreground text-sm font-medium">Gerenciar</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">

@@ -22,7 +22,7 @@ export const HeaderUserProfile = async () => {
       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary shadow-sm ring-2 ring-white transition-colors group-hover:bg-primary group-hover:text-background">
         {initials}
       </div>
-      <div className="hidden flex-col sm:flex">
+      <div className="flex flex-col">
         <span className="text-xs font-bold leading-tight text-foreground transition-colors group-hover:text-primary">
           {profile.name.split(" ")[0]}
         </span>

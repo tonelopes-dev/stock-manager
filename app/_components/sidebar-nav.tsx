@@ -1,72 +1,55 @@
 "use client";
 
-import {
-  CreditCardIcon,
-  LayoutGridIcon,
-  PackageIcon,
-  ShoppingBasketIcon,
-  UsersIcon,
-  HistoryIcon,
-  SettingsIcon,
-  TargetIcon,
-  ChefHat,
-  QrCode,
-  Truck,
-  Utensils,
-  Boxes,
-  Monitor,
-  PlugIcon,
-} from "lucide-react";
 import SidebarButton from "./sidebar-button";
 import LogoutButton from "./logout-button";
 import { useAppMode } from "@/app/_providers/app-mode-provider";
-import { hasCapability, PERMISSIONS } from "@/app/_lib/permissions";
+import { hasCapability } from "@/app/_lib/permissions";
 import { UserRole } from "@prisma/client";
+import { NAVIGATION_ITEMS } from "@/app/_config/navigation";
 
 interface SidebarNavProps {
   role: UserRole;
   permissions: string[];
 }
 
-const gestaoItems = [
-  { href: "/sales", icon: ShoppingBasketIcon, label: "PDV / Vendas" },
-  { href: "/customers", icon: UsersIcon, label: "CRM" },
-  { href: "/cardapio", icon: Utensils, label: "Cardápio" },
-  { href: "/estoque", icon: Boxes, label: "Estoque" },
-  { href: "/fornecedores", icon: Truck, label: "Fornecedores" },
-  { href: "/goals", icon: TargetIcon, label: "Metas" },
-  { href: "/dashboard", icon: LayoutGridIcon, label: "Dashboard" },
-];
-
-const operacaoItems = [
-  { href: "/sales", icon: ShoppingBasketIcon, label: "PDV / Vendas" },
-  { href: "/kds", icon: Monitor, label: "Monitores" },
-  { href: "/menu-management", icon: QrCode, label: "Cardápio Digital" },
-  { href: "/cardapio", icon: Utensils, label: "Cardápio" },
-];
-
 export const SidebarNav = ({ role, permissions }: SidebarNavProps) => {
   const { mode } = useAppMode();
 
-  const navItems = mode === "gestao" ? gestaoItems : operacaoItems;
+  // Filtragem dinâmica dos itens core baseada no AppMode e RBAC
+  const coreItems = NAVIGATION_ITEMS.filter((item) => {
+    if (item.isSensitive) return false;
+    
+    const matchMode = item.mode === "both" || item.mode === mode;
+    if (!matchMode) return false;
+    
+    if (item.requiredCapability && !hasCapability(permissions, role, item.requiredCapability)) {
+      return false;
+    }
+    
+    return true;
+  });
 
-  // Resolução das capabilities (pura, sem I/O)
-  const canViewBilling = hasCapability(permissions, role, PERMISSIONS.BILLING_VIEW);
-  const canViewSettings = hasCapability(permissions, role, PERMISSIONS.SETTINGS_VIEW);
-  const canViewAudit = hasCapability(permissions, role, PERMISSIONS.AUDIT_VIEW);
-  const canManageTeam = hasCapability(permissions, role, PERMISSIONS.TEAM_MANAGE);
-  const canViewIntegrations = hasCapability(permissions, role, PERMISSIONS.INTEGRATIONS_VIEW);
+  // Filtragem dinâmica dos itens sensíveis baseada no RBAC
+  const sensitiveItems = NAVIGATION_ITEMS.filter((item) => {
+    if (!item.isSensitive) return false;
+    
+    if (item.requiredCapability && !hasCapability(permissions, role, item.requiredCapability)) {
+      return false;
+    }
+    
+    return true;
+  });
 
   return (
     <div className="flex h-full flex-col">
-      {/* Navigation */}
+      {/* Navigation Core */}
       <div className="flex flex-1 flex-col gap-1 p-4 pt-4">
         <p className="mb-2 w-0 overflow-hidden px-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
           {mode === "gestao" ? "Gestão" : "Operação"}
         </p>
 
-        {navItems.map((item) => (
-          <SidebarButton key={`${mode}-${item.href}`} href={item.href}>
+        {coreItems.map((item) => (
+          <SidebarButton key={`core-${item.href}`} href={item.href}>
             <item.icon size={18} className="shrink-0" />
             <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
               {item.label}
@@ -75,53 +58,21 @@ export const SidebarNav = ({ role, permissions }: SidebarNavProps) => {
         ))}
       </div>
 
-      <div className="my-2 border-t border-border" />
-
-      {/* Links sensíveis — gateados por hasCapability */}
-      {canManageTeam && (
-        <SidebarButton href="/settings/team">
-          <UsersIcon size={18} className="shrink-0" />
-          <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
-            Equipe
-          </span>
-        </SidebarButton>
+      {sensitiveItems.length > 0 && (
+        <div className="my-2 border-t border-border" />
       )}
 
-      {canViewBilling && (
-        <SidebarButton href="/plans">
-          <CreditCardIcon size={18} className="shrink-0" />
-          <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
-            Assinatura
-          </span>
-        </SidebarButton>
-      )}
-
-      {canViewAudit && (
-        <SidebarButton href="/audit">
-          <HistoryIcon size={18} className="shrink-0" />
-          <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
-            Auditoria
-          </span>
-        </SidebarButton>
-      )}
-
-      {canViewIntegrations && (
-        <SidebarButton href="/integracoes">
-          <PlugIcon size={18} className="shrink-0" />
-          <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
-            Integrações
-          </span>
-        </SidebarButton>
-      )}
-
-      {canViewSettings && (
-        <SidebarButton href="/settings/company">
-          <SettingsIcon size={18} className="shrink-0" />
-          <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
-            Empresa
-          </span>
-        </SidebarButton>
-      )}
+      {/* Sensitive Links (Rodapé) */}
+      <div className="flex flex-col gap-1 px-4">
+        {sensitiveItems.map((item) => (
+          <SidebarButton key={`sensitive-${item.href}`} href={item.href}>
+            <item.icon size={18} className="shrink-0" />
+            <span className="w-0 overflow-hidden opacity-0 transition-all duration-300 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100">
+              {item.label}
+            </span>
+          </SidebarButton>
+        ))}
+      </div>
 
       {/* Logout */}
       <div className="mt-auto p-4">

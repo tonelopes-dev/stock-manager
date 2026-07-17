@@ -64,11 +64,11 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
 
   return (
     <Card 
-      className="overflow-hidden cursor-pointer hover:shadow-lg transition-all border-none bg-muted/50 flex flex-row h-[180px]"
+      className="overflow-hidden cursor-pointer hover:shadow-lg transition-all border-none bg-muted/50 flex flex-row h-auto min-h-[160px] md:h-[180px]"
       onClick={handleClick}
       data-testid="product-card"
     >
-      <div className="relative w-44 shrink-0 bg-muted flex items-center justify-center overflow-hidden border-r border-border/50">
+      <div className="relative w-28 md:w-44 shrink-0 bg-muted flex items-center justify-center overflow-hidden border-r border-border/50">
         {product.imageUrl && !hasError ? (
           <Image 
             src={product.imageUrl} 
@@ -88,15 +88,15 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
           </div>
         )}
         
-        <div className="absolute top-2 left-2 flex flex-col gap-1.5">
+        <div className="absolute bottom-0 left-0 w-full flex flex-col">
           <Badge 
             variant={typeConfig.variant as any} 
-            className="shadow-sm border border-border/50 backdrop-blur-md font-bold text-[9px] py-0 px-2 h-5 flex items-center justify-center uppercase tracking-tight"
+            className="w-full rounded-none border-x-0 border-b-0 backdrop-blur-md font-bold text-[8px] md:text-[9px] py-1 px-1 h-auto min-h-5 flex items-center justify-center uppercase tracking-tight text-center leading-[1.1] whitespace-nowrap"
           >
             {typeConfig.label}
           </Badge>
           {!product.isActive && (
-            <Badge variant="destructive" className="shadow-sm border-none backdrop-blur-md opacity-90 text-[10px] py-0 px-2 h-5">
+            <Badge variant="destructive" className="w-full rounded-none shadow-sm border-none backdrop-blur-md opacity-90 text-[8px] md:text-[10px] py-0 px-2 h-5 flex justify-center">
               Inativo
             </Badge>
           )}
@@ -129,7 +129,7 @@ export const ProductCard = ({ product, userRole, categories, environments, overh
             />
           </div>
         </div>
-               <div className="grid grid-cols-4 gap-2 py-2 border-y border-border/50">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 py-2 border-y border-border/50">
           <div className="space-y-0.5">
             <span className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-tight">Venda</span>
             <p className="font-bold text-xs text-foreground whitespace-nowrap">

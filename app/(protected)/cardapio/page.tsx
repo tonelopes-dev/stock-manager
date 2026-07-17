@@ -39,7 +39,7 @@ const CardapioPage = async ({ searchParams }: ProductsPageProps) => {
   const environmentId = resolvedSearchParams?.environmentId;
 
   return (
-    <div className="m-8 space-y-8 overflow-auto rounded-lg bg-background p-8">
+    <div className="p-4 md:m-8 space-y-8 overflow-auto rounded-lg bg-background md:p-8">
       {/* 
         The Suspense boundary was moved deeper into ProductVisualCatalog 
         to allow the Header and Toolbar to render immediately.

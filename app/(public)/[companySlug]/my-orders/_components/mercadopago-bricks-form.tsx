@@ -13,7 +13,7 @@ interface MercadoPagoBricksFormProps {
   preferenceId: string;
   amount: number;
   companyId: string;
-  onPaymentSuccess: (paymentId: string, status: string) => void;
+  onPaymentSuccess: (paymentId: string, status: string, pixBase64?: string, pixCopyPaste?: string) => void;
   onPaymentError: (error: string) => void;
 }
 
@@ -72,11 +72,11 @@ export function MercadoPagoBricksForm({
         });
 
         if (result?.data?.success) {
-          onPaymentSuccess(result.data.paymentId, "approved");
+          onPaymentSuccess(result.data.paymentId, "approved", result.data.pixBase64, result.data.pixCopyPaste);
           resolve();
         } else if (result?.data?.status === "pending" || result?.data?.status === "in_process") {
           toast.success("Aguardando confirmação do pagamento.");
-          onPaymentSuccess(result.data.paymentId, result.data.status); // Call success handler so parent can render StatusScreen
+          onPaymentSuccess(result.data.paymentId, result.data.status, result.data.pixBase64, result.data.pixCopyPaste); 
           resolve(); 
         } else {
           const errorMessage = result?.serverError || result?.data?.message || "Pagamento recusado.";

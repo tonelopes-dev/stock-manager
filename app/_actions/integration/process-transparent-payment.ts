@@ -126,9 +126,24 @@ export const processTransparentPayment = actionClient
       // Apenas cartões suportam o Split Transparente na v1 nativa.
       const isPix = innerFormData.payment_method_id === "pix" || innerFormData.payment_method_id === "bolso";
       
-      const platformFeeRate = isPix ? 0 : Number(company.kipoMarketplaceFeeRate ?? 0.01);
-      const platformFeeAmount = Math.round(bricksAmount * platformFeeRate * 100) / 100;
-      const netAmount = bricksAmount - platformFeeAmount;
+      const configuredFeeRate = Number(company.kipoMarketplaceFeeRate ?? 0.01);
+      
+      // 1. Converter o valor original estritamente para centavos (inteiro)
+      const bricksAmountCents = Math.round(bricksAmount * 100);
+      
+      // 2. Calcular a taxa em centavos (sem dizimas flutuantes)
+      const expectedPlatformFeeCents = Math.round(bricksAmountCents * configuredFeeRate);
+      const expectedNetAmountCents = bricksAmountCents - expectedPlatformFeeCents;
+      
+      // 3. Converter de volta para unidade decimal
+      const expectedPlatformFeeAmount = expectedPlatformFeeCents / 100;
+      const expectedNetAmount = expectedNetAmountCents / 100;
+
+      // TODO: Faturamento Mensal (O Gap do PIX)
+      // Como o split de Pix falha na v1 (não aceita application_fee), o dinheiro vai 100% para o estabelecimento.
+      // O 'expectedPlatformFeeAmount' deve ser registrado no banco para ser cobrado do sub-merchant na fatura
+      // de fechamento mensal via retenção de saldo ou cobrança avulsa (Boleto/Pix).
+      const appliedPlatformFeeAmount = isPix ? 0 : expectedPlatformFeeAmount;
 
       const finalPayload = {
         ...innerFormData,
@@ -138,8 +153,8 @@ export const processTransparentPayment = actionClient
         notification_url: `${appUrl}/api/webhooks/mercadopago?companyId=${companyId}`,
       } as Record<string, unknown>;
 
-      if (!isPix && platformFeeAmount > 0) {
-        finalPayload.application_fee = platformFeeAmount;
+      if (appliedPlatformFeeAmount > 0) {
+        finalPayload.application_fee = appliedPlatformFeeAmount;
       }
 
       // A API Node do MercadoPago v2 espera que o issuer_id seja um Number,
@@ -190,9 +205,10 @@ export const processTransparentPayment = actionClient
               hasServiceTax: o.hasServiceTax,
               orderItems: o.orderItems,
             })),
-            platformFeeRate,
-            platformFeeAmount,
-            netAmount,
+            platformFeeRate: configuredFeeRate,
+            platformFeeAmount: expectedPlatformFeeAmount, // Gravamos o que era devido, mesmo no PIX!
+            netAmount: expectedNetAmount,
+
             externalPaymentId: paymentResponse.id?.toString(),
             paymentProvider: "MERCADOPAGO",
           });
@@ -215,6 +231,8 @@ export const processTransparentPayment = actionClient
         paymentId: paymentResponse.id.toString(),
         statusDetail: paymentResponse.status_detail,
         message: mappedMessage,
+        pixBase64: paymentResponse.point_of_interaction?.transaction_data?.qr_code_base64,
+        pixCopyPaste: paymentResponse.point_of_interaction?.transaction_data?.qr_code,
       };
     } catch (error: unknown) {
       console.error(`${LOG} ❌ Error:`, error);
