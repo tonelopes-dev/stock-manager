@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { testDb } = vi.hoisted(() => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -10,9 +10,9 @@ vi.mock("@/app/_lib/prisma", () => ({
   db: testDb,
 }));
 
-import { SaleService } from "@/app/_services/sale";
-import { setTestDb, cleanDatabase, createSaleTestFixture } from "../helpers/test-db";
 import { BusinessError } from "@/app/_lib/errors";
+import { SaleService } from "@/app/_services/sale";
+import { cleanDatabase, createSaleTestFixture, setTestDb } from "../helpers/test-db";
 
 describe("Stock Logic — Negative Stock Constraints", () => {
   beforeAll(async () => {

@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { hasCapability, PERMISSIONS } from "@/app/_lib/permissions";
-import { assertActionCapability } from "@/app/_lib/rbac";
-import { UserRole } from "@prisma/client";
 import { auth } from "@/app/_lib/auth";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { hasCapability, PERMISSIONS } from "@/app/_lib/permissions";
 import { db } from "@/app/_lib/prisma";
+import { assertActionCapability } from "@/app/_lib/rbac";
+import { UserRole } from "@prisma/client";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock das dependências internas do getCurrentUserAuth
 vi.mock("@/app/_lib/auth", () => ({

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 // 1. Setup PrismaClient isolado
 const { testDb } = vi.hoisted(() => {
@@ -31,9 +31,9 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
-import { setTestDb, cleanDatabase, createSaleTestFixture } from "../helpers/test-db";
 import { createStockEntry } from "@/app/_actions/stock-entry/create-stock-entry";
 import { assertRole } from "@/app/_lib/rbac";
+import { cleanDatabase, createSaleTestFixture, setTestDb } from "../helpers/test-db";
 
 describe("Stock Entry — Supplier ID Handling", () => {
   let testData: any;

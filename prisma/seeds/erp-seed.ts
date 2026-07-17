@@ -1,4 +1,4 @@
-import { PrismaClient, ProductType, UnitType } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { addDays, subDays } from "date-fns";
 
 export async function seedERPData(prisma: PrismaClient, userId: string) {

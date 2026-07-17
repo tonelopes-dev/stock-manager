@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from "vitest";
 import { POST } from "@/app/api/customers/register/route";
-import { setTestDb, cleanDatabase } from "../helpers/test-db";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanDatabase, setTestDb } from "../helpers/test-db";
 
 const { testDb } = vi.hoisted(() => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports

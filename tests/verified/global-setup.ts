@@ -6,9 +6,9 @@
  * 3. Saves the auth state (cookies + localStorage) to a file.
  * Subsequent tests reuse this state, avoiding re-login every test.
  */
-import { test as setup, expect } from "@playwright/test";
+import { expect, test as setup } from "@playwright/test";
 import path from "path";
-import { seedE2EData, disconnect } from "../factories/db-factory";
+import { disconnect, seedE2EData } from "../factories/db-factory";
 
 const AUTH_FILE = path.join(__dirname, ".auth/user.json");
 

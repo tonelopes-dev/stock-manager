@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { cleanupE2EOrders, disconnect } from "../factories/db-factory";
 
 /**

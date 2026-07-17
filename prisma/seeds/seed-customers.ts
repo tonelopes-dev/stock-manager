@@ -1,5 +1,5 @@
-import { PrismaClient } from "@prisma/client";
 import { fakerPT_BR as faker } from "@faker-js/faker";
+import { PrismaClient } from "@prisma/client";
 
 export async function seedCustomers(prisma: PrismaClient, companyId: string) {
   console.log("👥 Seeding customers and CRM stages...");

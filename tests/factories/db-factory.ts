@@ -8,7 +8,7 @@
  * NOTE: This uses the SAME database as the dev server (not a test DB).
  * All factory-created data is prefixed with "e2e-" to avoid collisions.
  */
-import { PrismaClient, ProductType, UnitType, SubscriptionStatus, UserRole } from "@prisma/client";
+import { PrismaClient, ProductType, SubscriptionStatus, UnitType, UserRole } from "@prisma/client";
 import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();

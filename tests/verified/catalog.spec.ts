@@ -1,5 +1,5 @@
-import { test, expect } from "@playwright/test";
 import { fakerPT_BR as faker } from "@faker-js/faker";
+import { expect, test } from "@playwright/test";
 
 test.describe("Catalog & Technical Sheet", () => {
   test.beforeEach(async ({ page }) => {

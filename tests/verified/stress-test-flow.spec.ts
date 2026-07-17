@@ -1,5 +1,4 @@
-import { test, expect, type BrowserContext, type Page } from "@playwright/test";
-import { cleanupE2EOrders, disconnect } from "../factories/db-factory";
+import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 
 /**
  * Stress Test Flow — Multi-Persona Real-time Sincronização

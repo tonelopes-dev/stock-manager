@@ -1,6 +1,5 @@
-import { test, expect } from "@playwright/test";
-import { seedE2EData, disconnect } from "../factories/db-factory";
-import path from "path";
+import { expect, test } from "@playwright/test";
+import { disconnect, seedE2EData } from "../factories/db-factory";
 
 /**
  * Suite de testes para o Motor de Promoções

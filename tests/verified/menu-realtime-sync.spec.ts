@@ -1,6 +1,6 @@
-import { test, expect, BrowserContext, Page } from "@playwright/test";
-import { seedE2EData, disconnect } from "../factories/db-factory";
+import { BrowserContext, expect, Page, test } from "@playwright/test";
 import path from "path";
+import { disconnect, seedE2EData } from "../factories/db-factory";
 
 /**
  * Suite de testes para validação de Sincronização em Tempo Real (Supabase)

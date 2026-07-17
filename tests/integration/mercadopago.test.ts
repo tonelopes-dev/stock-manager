@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ──────────────────────────────────────────────
 // 1. Create PrismaClient in vi.hoisted
@@ -78,8 +78,8 @@ vi.mock("next-safe-action", async (importOriginal) => {
 
 import { generateMercadoPagoCheckout } from "@/app/_actions/integration/generate-mercadopago-checkout";
 import { POST } from "@/app/api/webhooks/mercadopago/route";
-import { setTestDb, cleanDatabase, createSaleTestFixture } from "../helpers/test-db";
 import { OrderStatus, SaleStatus } from "@prisma/client";
+import { cleanDatabase, createSaleTestFixture, setTestDb } from "../helpers/test-db";
 
 describe("Mercado Pago Integration", () => {
   beforeAll(async () => {
