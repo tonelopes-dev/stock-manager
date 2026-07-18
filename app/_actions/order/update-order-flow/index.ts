@@ -96,8 +96,11 @@ export const updateOrderFlowAction = actionClient
       }
 
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Update Order Flow Action Error:", error);
-      throw new Error(error.message || "Falha ao atualizar fluxo do pedido.");
+      if (error instanceof Error) {
+        throw new Error(error.message);
+      }
+      throw new Error("Falha ao atualizar fluxo do pedido.");
     }
   });

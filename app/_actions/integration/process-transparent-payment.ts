@@ -220,7 +220,7 @@ export const processTransparentPayment = actionClient
 
       let mappedMessage = paymentResponse.status_detail;
       if (paymentResponse.status === "rejected") {
-        mappedMessage = translateMercadoPagoError(paymentResponse.status_detail);
+        mappedMessage = translateMercadoPagoError(paymentResponse.status_detail || "");
       }
 
       console.log(`${LOG} ─────────────────────────────────────────`);

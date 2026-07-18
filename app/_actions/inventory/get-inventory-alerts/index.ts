@@ -84,7 +84,14 @@ export const getInventoryAlerts = actionClient
       orderBy: { expirationDate: "asc" }
     });
 
-    const expirationNotifications: any[] = [];
+    const expirationNotifications: Array<{
+      id: string;
+      type: "expired" | "expiring";
+      message: string;
+      timestamp: Date;
+      read: boolean;
+      href: string;
+    }> = [];
     const processedProducts = new Set<string>();
 
     for (const entry of stockEntries) {

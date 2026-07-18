@@ -81,11 +81,14 @@ export const createMercadoPagoPreference = actionClient.action(async () => {
     }
 
     return { url: response.init_point };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[MercadoPago] Error creating preference. Full Error Object:", JSON.stringify(error, null, 2));
-    if (error.response) {
+    if (error && typeof error === "object" && "response" in error) {
       console.error("[MercadoPago] Response error data:", JSON.stringify(error.response, null, 2));
     }
-    throw new Error(`Mercado Pago Error: ${error.message || "Unknown error"}`);
+    if (error instanceof Error) {
+      throw new Error(`Mercado Pago Error: ${error.message}`);
+    }
+    throw new Error("Mercado Pago Error: Unknown error");
   }
 });

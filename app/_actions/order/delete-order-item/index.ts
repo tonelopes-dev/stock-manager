@@ -20,8 +20,11 @@ export const deleteOrderItemAction = actionClient
       revalidatePath(`/menu/${companyId}/my-orders`, "page");
 
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Delete Order Item Error:", error);
-      throw new Error(error.message || "Falha ao cancelar item.");
+      if (error instanceof Error) {
+        throw new Error(error.message);
+      }
+      throw new Error("Falha ao cancelar item.");
     }
   });

@@ -27,8 +27,11 @@ export const updateOrderStatusAction = actionClient
       revalidatePath(`/menu/${companyId}/my-orders`, "page");
       
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Update Status Action Error:", error);
-      throw new Error(error.message || "Falha ao atualizar status do pedido.");
+      if (error instanceof Error) {
+        throw new Error(error.message);
+      }
+      throw new Error("Falha ao atualizar status do pedido.");
     }
   });
