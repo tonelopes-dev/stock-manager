@@ -1,6 +1,7 @@
 import "server-only";
 
 import { MercadoPagoConfig, Preference } from "mercadopago";
+import type { PreferenceRequest } from "mercadopago/dist/clients/preference/commonTypes";
 import { Items } from "mercadopago/dist/clients/commonTypes";
 
 interface MercadoPagoCheckoutParams {
@@ -32,7 +33,7 @@ export async function createMercadoPagoPreference(params: MercadoPagoCheckoutPar
 
   const preference = new Preference(client);
 
-  const body: any = {
+  const body: PreferenceRequest = {
     items: params.items,
     external_reference: params.external_reference,
     notification_url: params.notification_url,

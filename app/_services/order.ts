@@ -2,7 +2,7 @@ import { broadcastEvent } from "@/app/_lib/broadcast";
 import { BusinessError } from "@/app/_lib/errors";
 import { db } from "@/app/_lib/prisma";
 import { nowBRT } from "@/app/_utils/date";
-import { isPromotionActive } from "@/app/_utils/promotion";
+import { isPromotionActive, type ProductWithPromotion } from "@/app/_utils/promotion";
 import { getProductsWithFullTree, processBatchStockMovement, processRecursiveStockMovement } from "@/app/_utils/stock";
 import { AuditEventType, OrderStatus, PaymentMethod, Prisma, SaleStatus } from "@prisma/client";
 import { AuditService } from "./audit";
@@ -86,7 +86,7 @@ export const OrderService = {
             throw new BusinessError(`O produto ${product.name} está desativado.`);
           }
 
-          const promoActive = isPromotionActive(product);
+          const promoActive = isPromotionActive(product as unknown as ProductWithPromotion);
           
           const unitPrice = isEmployeeSale 
             ? Number(product.cost) + Number(product.operationalCost)
