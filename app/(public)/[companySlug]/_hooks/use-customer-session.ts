@@ -79,7 +79,7 @@ export function useCustomerSession(companyId: string) {
     }
   };
 
-  const setSessionData = useCallback((data: any) => {
+  const setSessionData = useCallback((data: { name?: string; phoneNumber?: string; customerId?: string; imageUrl?: string } | null) => {
     if (data) {
       setCustomerName(data.name || "");
       setPhoneNumber(formatPhoneNumber(data.phoneNumber || ""));

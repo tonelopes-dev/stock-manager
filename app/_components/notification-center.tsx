@@ -65,8 +65,9 @@ export const NotificationCenter = ({ companyId }: { companyId: string }) => {
       const inventoryResult = await getInventoryAlerts({});
       let inventoryNotifications: Notification[] = [];
       if (inventoryResult?.data) {
-        inventoryNotifications = inventoryResult.data.map((alert: any) => ({
+        inventoryNotifications = inventoryResult.data.map((alert) => ({
           ...alert,
+          type: alert.type as Notification["type"],
           timestamp: new Date(alert.timestamp),
         }));
       }

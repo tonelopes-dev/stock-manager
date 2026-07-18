@@ -5,6 +5,7 @@ import {
   flexRender,
   getCoreRowModel,
   useReactTable,
+  TableMeta,
 } from "@tanstack/react-table";
 
 import { cn } from "@/app/_lib/utils";
@@ -31,7 +32,7 @@ interface DataTableProps<TData, TValue> {
     pageSize: number;
   };
   getRowClassName?: (data: TData) => string;
-  meta?: any;
+  meta?: TableMeta<TData>;
 }
 
 export function DataTable<TData, TValue>({

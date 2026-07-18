@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/app/_components/ui/dialog";
-import { isPromotionActive } from "@/app/_utils/promotion";
+import { isPromotionActive, type ProductWithPromotion } from "@/app/_utils/promotion";
 import { Loader2, Plus, Tag } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -34,7 +34,7 @@ export function PromotionsModal({
       getPromotionsAction(companySlug).then((res) => {
         if (res.success) {
           // Filter products with active promotion schedule
-          const activePromotions = res.products.filter(p => isPromotionActive(p));
+          const activePromotions = res.products.filter(p => isPromotionActive(p as unknown as ProductWithPromotion));
           setProducts(activePromotions);
         }
         setLoading(false);

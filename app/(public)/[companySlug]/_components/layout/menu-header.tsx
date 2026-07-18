@@ -7,7 +7,7 @@ import Image from "next/image";
 interface MenuHeaderProps {
   menuData: MenuDataDto;
   status: { isOpen: boolean; label: string };
-  customer: any;
+  customer: { name?: string; phoneNumber?: string; customerId?: string; imageUrl?: string } | null;
   handleLogout: () => void;
   totalItems: number;
   setIsCartOpen: (open: boolean) => void;

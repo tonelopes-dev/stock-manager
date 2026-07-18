@@ -19,8 +19,12 @@ import { Badge } from "@/app/_components/ui/badge";
 import { Progress } from "@/app/_components/ui/progress";
 // import { Separator } from "@/app/_components/ui/separator"; // Caso não exista
 
+import { OrderStatusDto } from "@/app/_data-access/order/get-order-status";
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { Order } from "@prisma/client";
+
 interface OrderTrackerClientProps {
-  initialOrder: any;
+  initialOrder: OrderStatusDto;
   companyName: string;
   companyLogo: string | null;
   companySlug: string;
@@ -91,10 +95,11 @@ export const OrderTrackerClient = ({
           table: "Order",
           filter: `id=eq.${order.id}`,
         },
-        (payload: any) => {
+        (payload: RealtimePostgresChangesPayload<{ [key: string]: any }>) => {
+          if (payload.eventType !== "UPDATE") return;
           console.log("🔄 Order Tracker Realtime Event:", payload.eventType, payload.new?.status);
-          const newOrder = payload.new;
-          setOrder((prev: any) => ({
+          const newOrder = payload.new as unknown as Partial<OrderStatusDto>;
+          setOrder((prev) => ({
             ...prev,
             ...newOrder,
           }));
@@ -202,13 +207,13 @@ export const OrderTrackerClient = ({
         
         <div className="rounded-3xl bg-white p-6 shadow-md space-y-4">
           <div className="space-y-3">
-            {order.orderItems?.map((item: any) => (
+            {order.items?.map((item) => (
               <div key={item.id} className="flex justify-between items-center text-sm">
                 <div className="flex items-center gap-3">
                   <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-gray-100 text-[10px] font-black">
                     {item.quantity}x
                   </span>
-                  <span className="font-bold text-gray-700">{item.product.name}</span>
+                  <span className="font-bold text-gray-700">{item.name}</span>
                 </div>
                 <span className="font-black text-gray-900">
                   {formatPrice(Number(item.price) * item.quantity)}
@@ -222,7 +227,7 @@ export const OrderTrackerClient = ({
           <div className="flex justify-between items-center pt-2">
             <span className="text-sm font-bold text-gray-400">Total</span>
             <span className="text-xl font-black text-primary">
-              {formatPrice(order.orderItems?.reduce((acc: number, item: any) => acc + (Number(item.price) * item.quantity), 0) || 0)}
+              {formatPrice(order.totalAmount || 0)}
             </span>
           </div>
         </div>

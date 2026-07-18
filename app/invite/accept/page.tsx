@@ -39,8 +39,11 @@ export default async function AcceptInvitePage(props: PageProps) {
         </div>
       </main>
     );
-  } catch (error: any) {
-    return <ErrorState message={error.message || "O link expirou ou é inválido."} />;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return <ErrorState message={error.message} />;
+    }
+    return <ErrorState message="O link expirou ou é inválido." />;
   }
 }
 

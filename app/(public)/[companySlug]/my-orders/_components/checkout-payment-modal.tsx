@@ -56,13 +56,31 @@ export function CheckoutPaymentModal({
     // Não fechamos, apenas deixamos o usuário ver o erro ou tentar novamente
   };
 
-  const copyToClipboard = () => {
-    if (pixData?.copyPaste) {
-      navigator.clipboard.writeText(pixData.copyPaste);
+  const copyToClipboard = async () => {
+    if (!pixData?.copyPaste) return;
+    
+    try {
+      await navigator.clipboard.writeText(pixData.copyPaste);
       setHasCopied(true);
       toast.success("Código Pix copiado com sucesso!");
-      setTimeout(() => setHasCopied(false), 3000);
+    } catch (err) {
+      // Fallback para ambientes sem suporte a clipboard ou erro de permissão
+      console.error("Failed to copy:", err);
+      // Tentativa alternativa com elemento temporário
+      const textArea = document.createElement("textarea");
+      textArea.value = pixData.copyPaste;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand("copy");
+        setHasCopied(true);
+        toast.success("Código Pix copiado com sucesso!");
+      } catch (err2) {
+        toast.error("Não foi possível copiar. Selecione o código manualmente.");
+      }
+      document.body.removeChild(textArea);
     }
+    setTimeout(() => setHasCopied(false), 3000);
   };
 
   return (

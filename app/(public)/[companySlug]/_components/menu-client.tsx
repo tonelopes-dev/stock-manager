@@ -40,10 +40,12 @@ import { ProductSection } from "./product/product-section";
 import { PromotionsModal } from "./promotions/promotions-modal";
 
 
+import { MenuCategoryDto, MenuDataDto, MenuProductDto } from "@/app/_data-access/menu/get-menu-data";
+
 interface MenuClientProps {
   companyId: string;
-  menuData: any;
-  customerData?: any;
+  menuData: MenuDataDto;
+  customerData?: Record<string, unknown> | null;
   tableNumber: string | null;
 }
 
@@ -118,17 +120,17 @@ export function MenuClient({
           console.log("🔔 [MenuClient] Real-time event received:", payload.eventType, payload.new);
           
           if (payload.eventType === "UPDATE") {
-            const updatedProduct = payload.new as any;
+            const updatedProduct = payload.new as unknown as Partial<MenuProductDto>;
             
-            setCurrentMenuData((prev: any) => {
-              const newCategories = prev.categories.map((cat: any) => ({
+            setCurrentMenuData((prev) => {
+              const newCategories = prev.categories.map((cat) => ({
                 ...cat,
-                products: cat.products.map((p: any) => 
+                products: cat.products.map((p) => 
                   p.id === updatedProduct.id 
-                    ? { ...p, ...updatedProduct, price: Number(updatedProduct.price), promoPrice: updatedProduct.promoPrice ? Number(updatedProduct.promoPrice) : null } 
+                    ? { ...p, ...updatedProduct, price: Number(updatedProduct.price || p.price), promoPrice: updatedProduct.promoPrice ? Number(updatedProduct.promoPrice) : null } 
                     : p
-                ).filter((p: any) => p.isVisibleOnMenu && p.isActive) // Filter out if hidden
-              })).filter((cat: any) => cat.products.length > 0);
+                ).filter((p) => ((updatedProduct as any).id === p.id && (updatedProduct as any).isVisibleOnMenu === false) ? false : (p as any).isActive)
+              })).filter((cat) => cat.products.length > 0);
               
               return { ...prev, categories: newCategories };
             });
@@ -151,13 +153,29 @@ export function MenuClient({
 
   // Promotion refinement (Timezone aware)
   useEffect(() => {
+    if (companyId) {
+      setCurrentMenuData((prev) => {
+        if (!prev) return prev;
+        
+        const newCategories = prev.categories.map((cat) => ({
+          ...cat,
+          products: cat.products.map((p) => ({
+            ...p,
+            promoActive: isPromotionActive(p)
+          }))
+        }));
+        
+        return { ...prev, categories: newCategories };
+      });
+    }
+
     const refinePromotions = () => {
-      setCurrentMenuData((prev: any) => {
+      setCurrentMenuData((prev) => {
         if (!prev || !prev.categories) return prev;
         
-        const newCategories = prev.categories.map((cat: any) => ({
+        const newCategories = prev.categories.map((cat) => ({
           ...cat,
-          products: cat.products.map((p: any) => ({
+          products: cat.products.map((p) => ({
             ...p,
             promoActive: isPromotionActive(p)
           }))
@@ -173,7 +191,7 @@ export function MenuClient({
     // Then run every minute to keep it updated (in case a promotion starts/ends)
     const interval = setInterval(refinePromotions, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [companyId]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -186,21 +204,23 @@ export function MenuClient({
     if (!search) return currentMenuData.categories;
     const searchLower = search.toLowerCase();
     return currentMenuData.categories
-      .map((category: any) => ({
+      .map((category) => ({
         ...category,
         products: category.products.filter(
-          (product: any) =>
+          (product) =>
             product.name.toLowerCase().includes(searchLower) ||
-            product.description?.toLowerCase().includes(searchLower)
+            (product.description &&
+              product.description.toLowerCase().includes(searchLower)),
         ),
       }))
-      .filter((category: any) => category.products.length > 0);
-  }, [search, currentMenuData.categories]);
+      .filter((category) => category.products.length > 0);
+  }, [currentMenuData, search]);
 
   const highlights = useMemo(() => {
     return currentMenuData.categories
-      .flatMap((c: any) => c.products)
-      .filter((p: any) => p.isFeatured)
+      .flatMap((c) => c.products)
+      .filter((p) => p.isFeatured)
+      .sort((a, b) => (b.availability ? 1 : 0) - (a.availability ? 1 : 0))
       .slice(0, 8);
   }, [currentMenuData.categories]);
 
@@ -283,7 +303,6 @@ export function MenuClient({
     const items = useCartStore.getState().items;
     if (items.length === 0) return;
 
-    setIsSubmitting(true);
     try {
       const result = await createOrderAction({
         companyId,
@@ -306,29 +325,17 @@ export function MenuClient({
       }
     } catch {
       toast.error("Erro inesperado ao enviar pedido");
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   const handleIdentify = () => identifyStep === "PHONE" ? handleIdentifyPhone() : handleRegister();
-
-  const handleCheckout = async () => {
-    const items = useCartStore.getState().items;
-    if (items.length === 0) return;
-    if (!customer) {
-      setShowIdentifyDialog(true);
-      return;
-    }
-    await submitOrder(customer.customerId);
-  };
 
   return (
     <div className="relative mx-auto flex min-h-screen max-w-md flex-col bg-white font-sans shadow-2xl">
       <MenuHeader
         menuData={currentMenuData}
         status={status}
-        customer={customer}
+        customer={customerData || null}
         handleLogout={handleLogout}
         totalItems={useCartStore((state) => state.totalItems)}
         setIsCartOpen={useCartStore((state) => state.setIsCartOpen)} 
@@ -356,8 +363,8 @@ export function MenuClient({
             </h2>
           </div>
           <div className="flex gap-4 overflow-x-auto snap-x px-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            {highlights.map((product: any) => (
-              <div 
+            {highlights.map((product) => (
+              <div
                 key={product.id} 
                 className="w-72 shrink-0 snap-start"
                 onClick={() => setSelectedProduct(product)}
@@ -377,7 +384,7 @@ export function MenuClient({
                     <div className="flex items-center gap-2 mt-0.5">
                       {isPromotionActive(product) ? (
                         <>
-                          <p className="text-sm font-black text-primary">{formatPrice(product.promoPrice)}</p>
+                          <p className="text-sm font-black text-primary">{formatPrice(product.promoPrice || 0)}</p>
                           <p className="text-[10px] font-bold text-gray-400 line-through">{formatPrice(product.price)}</p>
                         </>
                       ) : (
@@ -405,7 +412,7 @@ export function MenuClient({
             <h3 className="mt-4 text-sm font-medium text-gray-400">Nenhum produto encontrado.</h3>
           </div>
         ) : (
-          filteredCategories.map((category: any) => (
+          filteredCategories.map((category) => (
             <ProductSection
               key={category.id}
               id={`category-${category.id}`}
@@ -417,27 +424,22 @@ export function MenuClient({
         )}
       </main>
 
-      {/* Product Details Sheet */}
       <ProductDetailsSheet
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}
       />
 
-      {/* Promotions Modal */}
       <PromotionsModal
         companySlug={currentMenuData.slug}
         onSelectProduct={setSelectedProduct}
       />
 
-      {/* Floating Cart Button */}
       <FloatingCartButton companyId={companyId} />
 
-      {/* Bottom Navigation Bar */}
       <BottomNav 
         companySlug={currentMenuData.slug} 
       />
 
-      {/* Customer Identification Dialog */}
       <IdentificationDialog
         open={showIdentifyDialog}
         onOpenChange={setShowIdentifyDialog}
@@ -449,7 +451,6 @@ export function MenuClient({
         onIdentify={handleIdentify}
       />
 
-      {/* Store Information Modal */}
       <Dialog open={isStoreInfoOpen} onOpenChange={setIsStoreInfoOpen}>
         <DialogContent className="max-w-md gap-0 p-0 overflow-hidden rounded-[2.5rem] border-none shadow-2xl">
           <DialogHeader className="p-6 bg-white border-b sticky top-0 z-10">
@@ -475,7 +476,6 @@ export function MenuClient({
             </TabsList>
 
             <TabsContent value="about" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              {/* Logo & Description */}
               <div className="flex flex-col items-center gap-6 text-center">
                 <div className="relative h-28 w-28 overflow-hidden rounded-[2rem] border-4 border-gray-50 bg-white shadow-xl">
                   <Image
@@ -490,7 +490,6 @@ export function MenuClient({
                 </p>
               </div>
 
-              {/* Instagram Link */}
               {currentMenuData.instagramUrl && (
                 <a 
                   href={`https://instagram.com/${currentMenuData.instagramUrl.replace('@', '')}`}
@@ -505,7 +504,6 @@ export function MenuClient({
                 </a>
               )}
 
-              {/* Contact Info */}
               <div className="space-y-4">
                 <h3 className="text-sm font-black uppercase tracking-wider text-gray-900">Contato</h3>
                 <div className="grid grid-cols-1 gap-3">
@@ -522,7 +520,6 @@ export function MenuClient({
                       <span className="text-sm font-black text-gray-900">{currentMenuData.whatsappNumber}</span>
                     </a>
                   )}
-                  {/* Phone */}
                   <div className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 bg-white group">
                     <div className="flex items-center gap-3">
                       <Phone className="text-gray-400" size={20} />
@@ -533,7 +530,6 @@ export function MenuClient({
                 </div>
               </div>
 
-              {/* Address Info */}
               <div className="space-y-4">
                 <h3 className="text-sm font-black uppercase tracking-wider text-gray-900">Endereço</h3>
                 <div className="flex gap-4 p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
@@ -554,7 +550,7 @@ export function MenuClient({
               </div>
 
               <div className="space-y-1">
-                {(currentMenuData.operatingHours || DEFAULT_HOURS).map((item: any) => {
+                {(currentMenuData.operatingHours || DEFAULT_HOURS).map((item) => {
                   const today = new Date().toLocaleDateString("pt-BR", { weekday: "long" }).toLowerCase();
                   const isToday = item.day.toLowerCase() === today;
                   
