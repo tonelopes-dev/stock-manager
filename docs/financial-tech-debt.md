@@ -98,9 +98,9 @@ Implementa `IPaymentGateway` corretamente. Separação de responsabilidade bem f
 
 ---
 
-## 2. Tipagem (TypeScript)
+## 2. Tipagem (TypeScript) - ✅ RESOLVIDO
 
-### 2.1 ❌ `any` explícito no payload do Bricks
+### 2.1 ✅ `any` explícito no payload do Bricks (Resolvido)
 
 ```typescript
 // process-transparent-payment.ts:17
@@ -118,7 +118,7 @@ const bricksPayloadSchema = z.object({
 });
 ```
 
-### 2.2 ❌ `any` nos retornos do Gateway
+### 2.2 ✅ `any` nos retornos do Gateway (Resolvido)
 
 ```typescript
 // mercadopago-gateway.ts:88
@@ -141,7 +141,7 @@ interface IMercadoPagoPaymentResponse {
 }
 ```
 
-### 2.3 ❌ `any` no body da Preference
+### 2.3 ✅ `any` no body da Preference (Resolvido)
 
 ```typescript
 // mercadopago.ts:34
@@ -150,7 +150,7 @@ const body: any = { items: params.items, ... };
 
 Deveria usar `PreferenceCreateData` do SDK do MP.
 
-### 2.4 ⚠️ `payload: body as any` no PaymentEventService
+### 2.4 ✅ `payload: body as any` no PaymentEventService (Resolvido)
 
 ```typescript
 // tenant-payment.handler.ts:132
@@ -159,7 +159,7 @@ await PaymentEventService.markAsProcessed({ ..., payload: body as any });
 
 O `body` já é `IMercadoPagoWebhookBody`, que é `Json`-compatible. O `as any` é desnecessário e esconde possíveis incompatibilidades.
 
-### 2.5 ⚠️ Raw SQL sem tipagem segura
+### 2.5 ✅ Raw SQL sem tipagem segura (Mitigado com DTOs)
 
 ```typescript
 // analytics.ts:66
