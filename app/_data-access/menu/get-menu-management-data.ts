@@ -2,6 +2,8 @@ import "server-only";
 
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
+import { type PromotionSchedule } from "@/app/_utils/promotion";
+import { type OperatingHoursDto } from "@/app/_data-access/company/types";
 
 export interface MenuManagementProduct {
   id: string;
@@ -13,7 +15,7 @@ export interface MenuManagementProduct {
   isActive: boolean;
   stock: number;
   promoPrice: number | null;
-  promoSchedule: any;
+  promoSchedule: PromotionSchedule | null;
   isFeatured: boolean;
   environmentId: string | null;
 }
@@ -35,7 +37,7 @@ export interface CompanyBranding {
   description: string | null;
   whatsappNumber: string | null;
   instagramUrl: string | null;
-  operatingHours: any;
+  operatingHours: OperatingHoursDto[] | null;
   requireSelfieOnCheckout: boolean;
   allowNegativeStock: boolean;
   estimatedMonthlyVolume: number;
@@ -131,7 +133,7 @@ export const getMenuManagementData = async (): Promise<{
       stock: p.stock.toNumber(),
       promoPrice: p.promoPrice ? p.promoPrice.toNumber() : null,
       promoActive: p.promoActive,
-      promoSchedule: p.promoSchedule,
+      promoSchedule: p.promoSchedule as PromotionSchedule | null,
       isFeatured: p.isFeatured,
       environmentId: p.environmentId,
     })),
@@ -149,12 +151,19 @@ export const getMenuManagementData = async (): Promise<{
         stock: p.stock.toNumber(),
         promoPrice: p.promoPrice ? p.promoPrice.toNumber() : null,
         promoActive: p.promoActive,
-        promoSchedule: p.promoSchedule,
+        promoSchedule: p.promoSchedule as PromotionSchedule | null,
         isFeatured: p.isFeatured,
         environmentId: p.environmentId,
       })),
     });
   }
 
-  return { categories: result, companyId, company };
+  return { 
+    categories: result, 
+    companyId, 
+    company: company ? {
+      ...company,
+      operatingHours: company.operatingHours as OperatingHoursDto[] | null
+    } : null 
+  };
 };

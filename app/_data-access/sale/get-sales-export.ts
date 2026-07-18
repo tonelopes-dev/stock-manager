@@ -11,24 +11,7 @@ export interface SalesExportParams {
 export const getSalesExport = async (params: SalesExportParams = {}) => {
   const companyId = await getCurrentCompanyId();
   
-  interface SaleWithItems {
-    id: string;
-    date: Date;
-    saleItems: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        unitPrice: any;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        baseCost: any;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        quantity: any;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        operationalCost: any;
-        product: { name: string; sku: string | null };
-    }[];
-    user?: { name: string | null; email: string | null } | null;
-  }
-
-  const rawSales = await db.sale.findMany({
+  const sales = await db.sale.findMany({
     where: {
       companyId,
       status: "ACTIVE",
@@ -37,7 +20,6 @@ export const getSalesExport = async (params: SalesExportParams = {}) => {
         lte: params.to,
       },
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     include: {
       user: {
           select: { name: true, email: true }
@@ -45,12 +27,9 @@ export const getSalesExport = async (params: SalesExportParams = {}) => {
       saleItems: {
         include: { product: true },
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any,
+    },
     orderBy: { date: "desc" },
   });
-
-  const sales = rawSales as unknown as SaleWithItems[];
 
   interface SalesExportRow {
     Data: string;

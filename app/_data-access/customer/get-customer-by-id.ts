@@ -64,12 +64,12 @@ export const getCustomerById = async (id: string): Promise<CustomerDto | null> =
   if (!customer) return null;
 
   const totalSpent = customer.sales?.reduce(
-    (acc: number, sale: any) => acc + Number(sale.totalAmount),
+    (acc: number, sale) => acc + Number(sale.totalAmount),
     0,
   ) || 0;
 
   const lastSaleDate =
-    customer.sales && customer.sales.length > 0 ? (customer.sales[0] as any).date : null;
+    customer.sales && customer.sales.length > 0 ? customer.sales[0].date : null;
 
   return {
     id: customer.id,
@@ -91,27 +91,27 @@ export const getCustomerById = async (id: string): Promise<CustomerDto | null> =
     totalSpent,
     lastSaleDate,
     sales: [
-      ...(customer.sales?.map((sale: any) => ({
+      ...(customer.sales?.map((sale) => ({
         id: sale.id,
         totalAmount: Number(sale.totalAmount),
         date: sale.date,
         status: "PAID",
-        products: sale.saleItems?.map((item: any) => ({
+        products: sale.saleItems?.map((item) => ({
           name: item.product.name,
           quantity: Number(item.quantity),
         })) || [],
       })) || []),
-      ...(customer.orders?.map((order: any) => ({
+      ...(customer.orders?.map((order) => ({
         id: order.id,
         totalAmount: Number(order.totalAmount),
         date: order.createdAt,
         status: order.status,
-        products: order.orderItems?.map((item: any) => ({
+        products: order.orderItems?.map((item) => ({
           name: item.product.name,
           quantity: Number(item.quantity),
         })) || [],
       })) || [])
     ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-    checklists: (customer as any).checklists || [],
+    checklists: customer.checklists || [],
   };
 };

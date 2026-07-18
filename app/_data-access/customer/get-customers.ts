@@ -162,7 +162,7 @@ export const getCustomers = async (
     salesAgg.map((s) => [s.customerId, Number(s._sum.totalAmount || 0)])
   );
 
-  const data = customers.map((customer: any) => {
+  const data = customers.map((customer) => {
     const totalSpent = totalSpentMap.get(customer.id) || 0;
     const lastSaleDate = customer.sales?.[0]?.date || null;
 

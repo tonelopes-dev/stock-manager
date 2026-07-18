@@ -59,7 +59,7 @@ export const getIngredients = async (
   const skip = (page - 1) * pageSize;
 
   // Build where clause
-  const where: any = {
+  const where: Prisma.ProductWhereInput = {
     companyId,
     type: types ? { in: types } : { in: ["INSUMO", "REVENDA"] },
   };
@@ -117,7 +117,7 @@ export const getIngredients = async (
 
   const mappedData = JSON.parse(
     JSON.stringify(
-      (ingredients as any[]).map((ingredient) => {
+      ingredients.map((ingredient) => {
         const stock = Number(ingredient.stock);
         const minStock = Number(ingredient.minStock);
 
