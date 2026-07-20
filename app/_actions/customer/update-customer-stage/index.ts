@@ -2,6 +2,8 @@
 
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
 import { actionClient } from "@/app/_lib/safe-action";
 import { revalidatePath } from "next/cache";
 import { updateCustomerStageSchema } from "./schema";
@@ -10,6 +12,7 @@ export const updateCustomerStage = actionClient
   .schema(updateCustomerStageSchema)
   .action(async ({ parsedInput: { customerId, stageId } }) => {
     const companyId = await getCurrentCompanyId();
+    await assertActionCapability(PERMISSIONS.CUSTOMER_MANAGE);
 
     const customer = await db.customer.findUnique({
       where: { id: customerId, companyId },

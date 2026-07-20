@@ -1,6 +1,8 @@
 "use server";
 
 import { db } from "@/app/_lib/prisma";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
 
 interface UpdateCustomerProfileInput {
   customerId: string;
@@ -13,6 +15,9 @@ interface UpdateCustomerProfileInput {
 
 export const updateCustomerProfile = async (input: UpdateCustomerProfileInput) => {
   const { customerId, name, email, phoneNumber, birthDate, companyId } = input;
+
+  // Guard: apenas usuários com CUSTOMER_MANAGE podem editar o perfil de clientes
+  await assertActionCapability(PERMISSIONS.CUSTOMER_MANAGE);
 
   try {
     // 1. Verify if the phone number is already taken by ANOTHER customer in the same company
