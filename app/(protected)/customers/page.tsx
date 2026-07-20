@@ -1,5 +1,6 @@
-import { getCurrentUserRole } from "@/app/_lib/rbac";
-import { UserRole } from "@prisma/client";
+import { PERMISSIONS, hasCapability } from "@/app/_lib/permissions";
+import { assertPageCapability } from "@/app/_lib/rbac";
+
 import { getChecklistTemplates } from "../../_data-access/checklist/get-checklist-templates";
 import { getCRMAnalytics } from "../../_data-access/crm/get-crm-analytics";
 import { getCRMStages } from "../../_data-access/crm/get-crm-stages";
@@ -22,6 +23,15 @@ interface CustomersPageProps {
 export const dynamic = "force-dynamic";
 
 const CustomersPage = async ({ searchParams }: CustomersPageProps) => {
+  // Guard: OWNER bypass | ADMIN/MEMBER precisa de CUSTOMER_VIEW
+  // Reutilizamos o retorno para derivar canManage sem nova query ao banco
+  const authData = await assertPageCapability(PERMISSIONS.CUSTOMER_VIEW);
+  const canManage = hasCapability(
+    authData.permissions,
+    authData.role,
+    PERMISSIONS.CUSTOMER_MANAGE,
+  );
+
   const resolvedSearchParams = await searchParams;
   const categoryId = resolvedSearchParams?.category || "ALL";
   const view = resolvedSearchParams?.view || "kanban";
@@ -31,10 +41,9 @@ const CustomersPage = async ({ searchParams }: CustomersPageProps) => {
   const journey = resolvedSearchParams?.journey || "all";
 
   // 1. Parallelize metadata fetching (Instant Shell)
-  const [categories, stages, role, templates, journeyData] = await Promise.all([
+  const [categories, stages, templates, journeyData] = await Promise.all([
     getCustomerCategories(),
     getCRMStages(),
-    getCurrentUserRole(),
     getChecklistTemplates(),
     getCRMAnalytics(),
   ]);
@@ -55,7 +64,7 @@ const CustomersPage = async ({ searchParams }: CustomersPageProps) => {
       <CustomerPageClient
         categories={categories}
         stages={stages}
-        userRole={role as UserRole}
+        canManage={canManage}
         checklistTemplates={templates}
       >
         <CustomerListResults
@@ -66,7 +75,7 @@ const CustomersPage = async ({ searchParams }: CustomersPageProps) => {
           pageSize={pageSize}
           checklistTemplates={templates}
           customersPromise={customersPromise}
-          role={role as UserRole}
+          canManage={canManage}
           categoriesData={categories}
           stagesData={stages}
           journeyData={journeyData}
