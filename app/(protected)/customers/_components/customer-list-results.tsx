@@ -3,7 +3,6 @@
 import { Dialog } from "@/app/_components/ui/dialog";
 import { JourneyAnalytics } from "@/app/_data-access/crm/get-crm-analytics";
 import { CustomerDto } from "@/app/_data-access/customer/get-customers";
-import { UserRole } from "@prisma/client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, use, useEffect, useState } from "react";
 import { CustomerDetailsDialogContent } from "./details-dialog-content";
@@ -18,7 +17,7 @@ interface CustomerListResultsProps {
   pageSize: number;
   checklistTemplates: any[];
   customersPromise: Promise<{ data: CustomerDto[]; total: number }>;
-  role: UserRole;
+  canManage: boolean;
   categoriesData: any[];
   stagesData: any[];
   journeyData: JourneyAnalytics;
@@ -32,7 +31,7 @@ export const CustomerListResults = ({
   pageSize,
   checklistTemplates,
   customersPromise,
-  role,
+  canManage,
   categoriesData,
   stagesData,
   journeyData,

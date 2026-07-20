@@ -3,14 +3,13 @@
 import { EmptyState } from "@/app/_components/empty-state";
 import { DataTable } from "@/app/_components/ui/data-table";
 import { CustomerDto } from "@/app/_data-access/customer/get-customers";
-import { UserRole } from "@prisma/client";
 import { UsersIcon } from "lucide-react";
 import { useOptimistic } from "react";
 import { customerTableColumns } from "./table-columns";
 
 interface CustomerDataTableProps {
   customers: CustomerDto[];
-  userRole: UserRole;
+  canManage: boolean;
   categories: { id: string; name: string }[];
   stages: { id: string; name: string }[];
   checklistTemplates: any[];
@@ -23,7 +22,7 @@ interface CustomerDataTableProps {
 
 export const CustomerDataTable = ({
   customers: initialCustomers,
-  userRole,
+  canManage,
   categories,
   stages,
   checklistTemplates,
@@ -55,7 +54,7 @@ export const CustomerDataTable = ({
         categories,
         stages,
         checklistTemplates,
-        userRole,
+        canManage,
         onDelete: handleDelete,
       }}
       emptyMessage={

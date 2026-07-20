@@ -7,7 +7,6 @@ import Header, {
   HeaderTitle,
 } from "@/app/_components/header";
 import { cn } from "@/app/_lib/utils";
-import { UserRole } from "@prisma/client";
 import { Suspense, useTransition } from "react";
 import { CustomerCategoryFilter } from "./category-filter";
 import AddCustomerButton from "./create-customer-button";
@@ -20,7 +19,7 @@ import { CustomerViewSwitcher } from "./view-switcher";
 interface CustomerPageClientProps {
   categories: { id: string; name: string }[];
   stages: { id: string; name: string; order: number }[];
-  userRole: UserRole;
+  canManage: boolean;
   checklistTemplates: any[];
   children: React.ReactNode;
 }
@@ -28,13 +27,11 @@ interface CustomerPageClientProps {
 export const CustomerPageClient = ({
   categories,
   stages,
-  userRole,
+  canManage,
   checklistTemplates,
   children,
 }: CustomerPageClientProps) => {
   const [isPending, startTransition] = useTransition();
-  const isManagement =
-    userRole === UserRole.OWNER || userRole === UserRole.ADMIN;
 
   return (
     <div className="space-y-4">
@@ -46,7 +43,9 @@ export const CustomerPageClient = ({
         <HeaderRight>
           <div className="flex gap-3">
             <CustomerViewSwitcher startTransition={startTransition} />
-            <CRMConfigModal categories={categories} stages={stages} />
+            {canManage && (
+              <CRMConfigModal categories={categories} stages={stages} />
+            )}
             <CustomerSearch
               startTransition={startTransition}
               isPending={isPending}
@@ -55,7 +54,7 @@ export const CustomerPageClient = ({
               categories={categories}
               startTransition={startTransition}
             />
-            {isManagement && (
+            {canManage && (
               <AddCustomerButton categories={categories} stages={stages} />
             )}
           </div>
