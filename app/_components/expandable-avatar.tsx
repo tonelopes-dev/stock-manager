@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/app/_components/ui/dialog";
-import Image from "next/image";
-import { User } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/app/_components/ui/dialog";
 import { cn } from "@/app/_lib/utils";
+import { User } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 
 interface ExpandableAvatarProps {
   imageUrl?: string | null;

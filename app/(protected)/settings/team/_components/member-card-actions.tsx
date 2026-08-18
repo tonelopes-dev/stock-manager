@@ -1,13 +1,12 @@
 "use client";
 
-import { useAction } from "next-safe-action/hooks";
 import { removeMember } from "@/app/_actions/user/remove-member";
-import { UserRole } from "@prisma/client";
 import { Button } from "@/app/_components/ui/button";
-import { Trash2Icon, Loader2Icon, Edit3Icon } from "lucide-react";
+import { UserRole } from "@prisma/client";
+import { Edit3Icon, Loader2Icon, Trash2Icon } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import MemberFormModal from "./member-form-modal";
 
-import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +19,7 @@ import {
   AlertDialogTrigger,
 } from "@/app/_components/ui/alert-dialog";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface MemberCardActionsProps {
   member: {

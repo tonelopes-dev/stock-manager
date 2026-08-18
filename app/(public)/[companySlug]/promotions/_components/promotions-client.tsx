@@ -1,17 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { ArrowLeft, Tag, ShoppingBag, Plus, Star } from "lucide-react";
-import { Button } from "@/app/_components/ui/button";
 import { Badge } from "@/app/_components/ui/badge";
+import { Button } from "@/app/_components/ui/button";
 import { MenuProductDto } from "@/app/_data-access/menu/get-menu-data";
-import { useCartStore } from "../../_store/use-cart-store";
-import { toast } from "sonner";
+import { ArrowLeft, Plus, Tag } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ProductDetailsSheet } from "../../_components/product/product-details-sheet";
 import { FloatingCartButton } from "../../_components/cart/floating-cart-button";
 import { BottomNav } from "../../_components/layout/bottom-nav";
+import { ProductDetailsSheet } from "../../_components/product/product-details-sheet";
 
 interface PromotionsClientProps {
   companySlug: string;

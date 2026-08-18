@@ -1,26 +1,25 @@
 "use server";
 
 import { db } from "@/app/_lib/prisma";
-import { revalidatePath } from "next/cache";
-import { adjustIngredientStockSchema } from "./schema";
-import { actionClient } from "../../../_lib/safe-action";
-import { getCurrentCompanyId } from "../../../_lib/get-current-company";
-import { ADMIN_AND_OWNER, assertRole } from "../../../_lib/rbac";
-import { IngredientService } from "../../../_services/ingredient";
 import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
 import { AuditService } from "@/app/_services/audit";
 import { AuditEventType } from "@prisma/client";
+import { revalidatePath } from "next/cache";
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
+import { actionClient } from "@/app/_lib/safe-action";
+import { IngredientService } from "@/app/_services/ingredient";
+import { adjustIngredientStockSchema } from "./schema";
 
 
 export const adjustIngredientStock = actionClient
   .schema(adjustIngredientStockSchema)
   .action(async ({ parsedInput: { id, quantity, reason } }) => {
-    console.log("[INGREDIENT_STOCK_ADJUST] Requisição recebida:", { ingredientId: id, quantity, reason });
-
-    try {
+  try {
       const companyId = await getCurrentCompanyId();
       await requireActiveSubscription(companyId);
-      const { userId } = await assertRole(ADMIN_AND_OWNER);
+      const { userId } = await assertActionCapability(PERMISSIONS.STOCK_ADJUST);
 
       if (!userId) {
         throw new Error("User not authenticated");

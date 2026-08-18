@@ -2,13 +2,13 @@
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/app/_components/ui/sheet";
 import { NAVIGATION_ITEMS } from "@/app/_config/navigation";
-import { useAppMode } from "@/app/_providers/app-mode-provider";
 import { hasCapability } from "@/app/_lib/permissions";
+import { cn } from "@/app/_lib/utils";
+import { useAppMode } from "@/app/_providers/app-mode-provider";
 import { UserRole } from "@prisma/client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/app/_lib/utils";
-import LogoutButton from "./logout-button"; 
+import LogoutButton from "./logout-button";
 
 interface MobileMenuSheetProps {
   isOpen: boolean;

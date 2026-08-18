@@ -3,26 +3,26 @@ import Header, {
   HeaderSubtitle,
   HeaderTitle,
 } from "@/app/_components/header";
-import { db } from "@/app/_lib/prisma";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { CompanyForm } from "./_components/company-form";
-import { OperationalCostsSection } from "./_components/operational-costs-section";
+import { Badge } from "@/app/_components/ui/badge";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/app/_components/ui/card";
-import { Badge } from "@/app/_components/ui/badge";
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { db } from "@/app/_lib/prisma";
 import { Building2Icon, CreditCardIcon } from "lucide-react";
 import Link from "next/link";
+import { CompanyForm } from "./_components/company-form";
+import { OperationalCostsSection } from "./_components/operational-costs-section";
 
-import { DangerZone } from "./_components/danger-zone";
-import { UserRole } from "@prisma/client";
 import { ActivityTimeline } from "@/app/_components/activity-timeline";
-import { assertPageCapability } from "@/app/_lib/rbac";
 import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertPageCapability } from "@/app/_lib/rbac";
+import { UserRole } from "@prisma/client";
+import { DangerZone } from "./_components/danger-zone";
 
 export default async function CompanySettingsPage() {
   // Guard: OWNER bypass | MEMBER/ADMIN precisa de COMPANY_SETTINGS_VIEW

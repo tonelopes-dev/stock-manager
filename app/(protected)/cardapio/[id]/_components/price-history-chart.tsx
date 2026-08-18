@@ -1,19 +1,19 @@
 "use client";
 
-import { useMemo } from "react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/_components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/_components/ui/card";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { TrendingUpIcon, DollarSignIcon } from "lucide-react";
+import { DollarSignIcon, TrendingUpIcon } from "lucide-react";
+import { useMemo } from "react";
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 interface PriceHistoryChartProps {
   stockEntries: any[];

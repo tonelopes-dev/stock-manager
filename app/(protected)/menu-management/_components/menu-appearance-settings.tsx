@@ -1,23 +1,22 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Clock, ImagePlus, Instagram, Loader2, MapPin, MessageCircle, Save, Store, Trash2 } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { useAction } from "next-safe-action/hooks";
-import { ImageIcon, Loader2, MapPin, MessageCircle, Instagram, Store, Save, Clock, ImagePlus, Trash2, User } from "lucide-react";
-import Image from "next/image";
 
 import { updateCompany } from "@/app/_actions/company/update-company";
 import { updateCompanySchema, UpdateCompanySchema } from "@/app/_actions/company/update-company/schema";
 import { Button } from "@/app/_components/ui/button";
-import { Input } from "@/app/_components/ui/input";
-import { Label } from "@/app/_components/ui/label";
-import { Textarea } from "@/app/_components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/_components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/_components/ui/form";
-import { CompanyBranding } from "@/app/_data-access/menu/get-menu-management-data";
+import { Input } from "@/app/_components/ui/input";
 import { Switch } from "@/app/_components/ui/switch";
+import { Textarea } from "@/app/_components/ui/textarea";
+import { CompanyBranding } from "@/app/_data-access/menu/get-menu-management-data";
 
 interface MenuAppearanceSettingsProps {
   initialData: CompanyBranding;

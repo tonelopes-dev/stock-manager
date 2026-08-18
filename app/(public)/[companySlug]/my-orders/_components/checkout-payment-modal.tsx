@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/app/_components/ui/sheet";
-import { MercadoPagoBricksForm } from "./mercadopago-bricks-form";
-import { StatusScreen } from "@mercadopago/sdk-react";
-import { Copy, CheckCircle2 } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/app/_components/ui/button";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/app/_components/ui/sheet";
+import { StatusScreen } from "@mercadopago/sdk-react";
+import { CheckCircle2, Copy } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { MercadoPagoBricksForm } from "./mercadopago-bricks-form";
 
 interface CheckoutPaymentModalProps {
   open: boolean;
@@ -56,13 +56,31 @@ export function CheckoutPaymentModal({
     // Não fechamos, apenas deixamos o usuário ver o erro ou tentar novamente
   };
 
-  const copyToClipboard = () => {
-    if (pixData?.copyPaste) {
-      navigator.clipboard.writeText(pixData.copyPaste);
+  const copyToClipboard = async () => {
+    if (!pixData?.copyPaste) return;
+    
+    try {
+      await navigator.clipboard.writeText(pixData.copyPaste);
       setHasCopied(true);
       toast.success("Código Pix copiado com sucesso!");
-      setTimeout(() => setHasCopied(false), 3000);
+    } catch (err) {
+      // Fallback para ambientes sem suporte a clipboard ou erro de permissão
+      console.error("Failed to copy:", err);
+      // Tentativa alternativa com elemento temporário
+      const textArea = document.createElement("textarea");
+      textArea.value = pixData.copyPaste;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand("copy");
+        setHasCopied(true);
+        toast.success("Código Pix copiado com sucesso!");
+      } catch (err2) {
+        toast.error("Não foi possível copiar. Selecione o código manualmente.");
+      }
+      document.body.removeChild(textArea);
     }
+    setTimeout(() => setHasCopied(false), 3000);
   };
 
   return (

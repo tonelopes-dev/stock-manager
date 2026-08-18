@@ -1,12 +1,12 @@
 "use server";
 
-import { db } from "@/app/_lib/prisma";
-import { revalidatePath } from "next/cache";
-import { actionClient } from "@/app/_lib/safe-action";
-import { updateProductPromotionSchema } from "./schema";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { db } from "@/app/_lib/prisma";
+import { actionClient } from "@/app/_lib/safe-action";
 import { AuditService } from "@/app/_services/audit";
 import { AuditEventType } from "@prisma/client";
+import { revalidatePath } from "next/cache";
+import { updateProductPromotionSchema } from "./schema";
 
 export const updateProductPromotion = actionClient
   .schema(updateProductPromotionSchema)

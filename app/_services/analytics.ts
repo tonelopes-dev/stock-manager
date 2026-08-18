@@ -1,7 +1,6 @@
 import { db } from "@/app/_lib/prisma";
-import { startOfDay } from "date-fns/startOfDay";
-import { format } from "date-fns/format";
 import { addDays } from "date-fns/addDays";
+import { startOfDay } from "date-fns/startOfDay";
 
 export interface DateRange {
   startDate: Date;

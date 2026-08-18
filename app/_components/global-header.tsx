@@ -1,8 +1,8 @@
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { GlobalHeaderClient } from "./global-header-client";
 import { GlobalSearch } from "./global-search";
-import { KipoLogo } from "./logo";
 import { HeaderUserProfile } from "./header-user-profile";
+import { KipoLogo } from "./logo";
 
 export const GlobalHeader = async () => {
   const companyId = await getCurrentCompanyId();

@@ -1,19 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
-import { Input } from "@/app/_components/ui/input";
-import { Search } from "lucide-react";
 import { PeriodFilter } from "@/app/_components/period-filter";
-import { ComandasGrid } from "./comandas-grid";
-import { ClosedSalesGrid } from "./closed-sales-grid";
-import { ReceivablesTable } from "./receivables-table";
-import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
-import { SaleDto } from "@/app/_data-access/sale/get-sales";
-import { ReceivableDto } from "@/app/_data-access/sale/get-pending-receivables";
-import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
+import { Input } from "@/app/_components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
+import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
+import { ProductDto } from "@/app/_data-access/product/get-products";
+import { ReceivableDto } from "@/app/_data-access/sale/get-pending-receivables";
+import { SaleDto } from "@/app/_data-access/sale/get-sales";
+import { Search } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { ClosedSalesGrid } from "./closed-sales-grid";
+import { ComandasGrid } from "./comandas-grid";
+import { ReceivablesTable } from "./receivables-table";
 
 interface GestaoTabsProps {
   initialComandas: ComandaDto[];

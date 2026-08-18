@@ -1,3 +1,4 @@
+import { Badge } from "@/app/_components/ui/badge";
 import {
   Table,
   TableBody,
@@ -6,10 +7,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/app/_components/ui/table";
-import { Badge } from "@/app/_components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CheckCircle2, MoveRight, User, Calendar } from "lucide-react";
+import { Calendar, CheckCircle2, MoveRight, User } from "lucide-react";
 import Link from "next/link";
 
 interface RecentActivityTableProps {

@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { UnitType } from "@prisma/client";
+import { z } from "zod";
 
 export const upsertIngredientSchema = z.object({
   id: z.string().uuid("ID de insumo inválido").optional().or(z.literal("")),

@@ -1,21 +1,22 @@
 "use server";
 
-import { actionClient } from "@/app/_lib/safe-action";
-import { deleteSaleSchema } from "./schema";
-import { db } from "@/app/_lib/prisma";
-import { revalidatePath } from "next/cache";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { recordStockMovement } from "@/app/_utils/stock";
-import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { db } from "@/app/_lib/prisma";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
+import { actionClient } from "@/app/_lib/safe-action";
 import { AuditService } from "@/app/_services/audit";
+import { recordStockMovement } from "@/app/_utils/stock";
 import { AuditEventType, AuditSeverity } from "@prisma/client";
+import { revalidatePath } from "next/cache";
+import { deleteSaleSchema } from "./schema";
 
 
 export const deleteSale = actionClient
   .schema(deleteSaleSchema)
   .action(async ({ parsedInput: { id } }) => {
     const companyId = await getCurrentCompanyId();
-    const { userId } = await assertRole(ADMIN_AND_OWNER);
+    const { userId } = await assertActionCapability(PERMISSIONS.SALE_CANCEL);
 
 
     await db.$transaction(async (trx) => {

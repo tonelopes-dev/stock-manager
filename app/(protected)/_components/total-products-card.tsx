@@ -1,6 +1,6 @@
 import { getTotalProducts } from "@/app/_data-access/dashboard/get-total-products";
-import { SummaryCard } from "./summary-card";
 import { BoxIcon } from "lucide-react";
+import { SummaryCard } from "./summary-card";
 
 const TotalProductsCard = async () => {
   const totalProducts = await getTotalProducts();

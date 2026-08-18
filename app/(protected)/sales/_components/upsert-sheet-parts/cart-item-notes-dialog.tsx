@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { StickyNoteIcon, MessageSquareQuoteIcon } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
 import {
   Popover,
@@ -9,6 +7,8 @@ import {
   PopoverTrigger,
 } from "@/app/_components/ui/popover";
 import { Textarea } from "@/app/_components/ui/textarea";
+import { MessageSquareQuoteIcon, StickyNoteIcon } from "lucide-react";
+import { useState } from "react";
 
 interface CartItemNotesDialogProps {
   notes?: string;

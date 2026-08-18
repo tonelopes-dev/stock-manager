@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { formatPhoneNumber } from "@/app/_lib/utils";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export function useCustomerSession(companyId: string) {
@@ -79,7 +79,7 @@ export function useCustomerSession(companyId: string) {
     }
   };
 
-  const setSessionData = useCallback((data: any) => {
+  const setSessionData = useCallback((data: { name?: string; phoneNumber?: string; customerId?: string; imageUrl?: string } | null) => {
     if (data) {
       setCustomerName(data.name || "");
       setPhoneNumber(formatPhoneNumber(data.phoneNumber || ""));

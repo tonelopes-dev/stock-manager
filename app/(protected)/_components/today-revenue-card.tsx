@@ -1,6 +1,6 @@
 import { getTodayRevenue } from "@/app/_data-access/dashboard/get-today-revenue";
-import { SummaryCard } from "./summary-card";
 import { CalendarIcon } from "lucide-react";
+import { SummaryCard } from "./summary-card";
 
 const TodayRevenueCard = async () => {
   const todayRevenue = await getTodayRevenue();

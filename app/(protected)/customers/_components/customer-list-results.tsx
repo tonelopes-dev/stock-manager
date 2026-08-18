@@ -1,15 +1,13 @@
 "use client";
 
-import { use, useEffect, useState, Suspense } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { CustomerDataTable } from "./customer-data-table";
-import { KanbanBoard } from "./kanban/kanban-board";
-import { JourneyDashboard } from "./journeys/journey-dashboard";
-import { CustomerDto } from "@/app/_data-access/customer/get-customers";
-import { JourneyAnalytics } from "@/app/_data-access/crm/get-crm-analytics";
-import { UserRole } from "@prisma/client";
 import { Dialog } from "@/app/_components/ui/dialog";
+import { JourneyAnalytics } from "@/app/_data-access/crm/get-crm-analytics";
+import { CustomerDto } from "@/app/_data-access/customer/get-customers";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, use, useEffect, useState } from "react";
 import { CustomerDetailsDialogContent } from "./details-dialog-content";
+import { JourneyDashboard } from "./journeys/journey-dashboard";
+import { KanbanBoard } from "./kanban/kanban-board";
 
 interface CustomerListResultsProps {
   categoryId: string;
@@ -19,7 +17,7 @@ interface CustomerListResultsProps {
   pageSize: number;
   checklistTemplates: any[];
   customersPromise: Promise<{ data: CustomerDto[]; total: number }>;
-  role: UserRole;
+  canManage: boolean;
   categoriesData: any[];
   stagesData: any[];
   journeyData: JourneyAnalytics;
@@ -33,7 +31,7 @@ export const CustomerListResults = ({
   pageSize,
   checklistTemplates,
   customersPromise,
-  role,
+  canManage,
   categoriesData,
   stagesData,
   journeyData,

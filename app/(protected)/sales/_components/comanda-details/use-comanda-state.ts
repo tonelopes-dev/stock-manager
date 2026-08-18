@@ -1,24 +1,24 @@
 "use client";
 
+import { generatePixPayment } from "@/app/_actions/integration/generate-pix-payment";
+import { convertItemsToSaleAction } from "@/app/_actions/order/convert-items-to-sale";
+import { convertOrderToSaleAction } from "@/app/_actions/order/convert-to-sale";
+import { deleteOrderItemAction } from "@/app/_actions/order/delete-order-item";
+import { upsertOrderAction } from "@/app/_actions/order/upsert-order";
+import { ComboboxOption } from "@/app/_components/ui/combobox";
 import { ComandaDto } from "@/app/_data-access/order/get-active-comandas";
 import { ProductDto } from "@/app/_data-access/product/get-products";
-import { ComboboxOption } from "@/app/_components/ui/combobox";
+import { PaymentMethod, SaleStatus } from "@prisma/client";
+import { useRouter } from "next/navigation";
 import {
-  useState,
-  useTransition,
   useEffect,
   useMemo,
   useRef,
+  useState,
+  useTransition,
 } from "react";
 import { toast } from "sonner";
-import { convertOrderToSaleAction } from "@/app/_actions/order/convert-to-sale";
-import { upsertOrderAction } from "@/app/_actions/order/upsert-order";
-import { convertItemsToSaleAction } from "@/app/_actions/order/convert-items-to-sale";
-import { generatePixPayment } from "@/app/_actions/integration/generate-pix-payment";
-import { deleteOrderItemAction } from "@/app/_actions/order/delete-order-item";
 import { usePaymentRealtime } from "../../_hooks/use-payment-realtime";
-import { useRouter } from "next/navigation";
-import { PaymentMethod, SaleStatus } from "@prisma/client";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

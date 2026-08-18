@@ -1,7 +1,7 @@
-import { db } from "@/app/_lib/prisma";
-import { StockMovementType, Prisma, UnitType } from "@prisma/client";
 import { BusinessError } from "@/app/_lib/errors";
+import { db } from "@/app/_lib/prisma";
 import { nowBRT } from "@/app/_utils/date";
+import { Prisma, StockMovementType, UnitType } from "@prisma/client";
 
 type Decimal = Prisma.Decimal;
 const Decimal = Prisma.Decimal;
@@ -106,8 +106,15 @@ export const recordStockMovement = async (
  * Fetches products and their full composition tree using BFS to minimize database calls.
  * This is done BEFORE the transaction to avoid holding locks during the recursion logic.
  */
+type ProductWithCompositions = Prisma.ProductGetPayload<{
+  include: {
+    parentCompositions: true;
+    company: { select: { allowNegativeStock: true } };
+  };
+}>;
+
 export async function getProductsWithFullTree(productIds: string[], companyId: string) {
-  const allProducts = new Map<string, any>();
+  const allProducts = new Map<string, ProductWithCompositions>();
   let idsToFetch = Array.from(new Set(productIds));
 
   while (idsToFetch.length > 0) {
@@ -163,7 +170,7 @@ export async function processBatchStockMovement(
   companyId: string,
   userId: string | null,
   trx: Prisma.TransactionClient,
-  preFetchedProducts?: Map<string, any>
+  preFetchedProducts?: Map<string, ProductWithCompositions>
 ) {
   // 1. Ensure we have all involved products (if not pre-fetched)
   const productMap = preFetchedProducts || await getProductsWithFullTree(

@@ -1,36 +1,34 @@
 "use client";
 
+import { updateCustomerPosition } from "@/app/_actions/customer/update-customer-position";
+import { Dialog } from "@/app/_components/ui/dialog";
 import {
-  useState,
-  useTransition,
-  useEffect,
-  useRef,
-  useCallback,
-  memo,
-} from "react";
-import { useSearchParams } from "next/navigation";
-import {
-  DndContext,
-  DragOverlay,
   closestCorners,
-  closestCenter,
+  defaultDropAnimationSideEffects,
+  DndContext,
+  DragEndEvent,
+  DragOverEvent,
+  DragOverlay,
+  DragStartEvent,
+  DropAnimation,
   KeyboardSensor,
   PointerSensor,
   useSensor,
-  useSensors,
-  DragStartEvent,
-  DragOverEvent,
-  DragEndEvent,
-  defaultDropAnimationSideEffects,
-  DropAnimation,
+  useSensors
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { KanbanColumn } from "./kanban-column";
-import { KanbanCard } from "./kanban-card";
-import { updateCustomerPosition } from "@/app/_actions/customer/update-customer-position";
+import { useSearchParams } from "next/navigation";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useTransition
+} from "react";
 import { toast } from "sonner";
-import { Dialog } from "@/app/_components/ui/dialog";
 import { CustomerDetailsDialogContent } from "../details-dialog-content";
+import { KanbanCard } from "./kanban-card";
+import { KanbanColumn } from "./kanban-column";
 
 interface KanbanBoardProps {
   initialCustomers: any[];

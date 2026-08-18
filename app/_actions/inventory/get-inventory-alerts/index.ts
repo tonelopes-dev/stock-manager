@@ -1,11 +1,11 @@
 "use server";
 
-import { db } from "@/app/_lib/prisma";
-import { Prisma } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { db } from "@/app/_lib/prisma";
 import { actionClient } from "@/app/_lib/safe-action";
+import { Prisma } from "@prisma/client";
+import { addDays, isBefore, isPast } from "date-fns";
 import { z } from "zod";
-import { addDays, isPast, isBefore } from "date-fns";
 
 export const getInventoryAlerts = actionClient
   .schema(z.object({}))
@@ -84,7 +84,14 @@ export const getInventoryAlerts = actionClient
       orderBy: { expirationDate: "asc" }
     });
 
-    const expirationNotifications: any[] = [];
+    const expirationNotifications: Array<{
+      id: string;
+      type: "expired" | "expiring";
+      message: string;
+      timestamp: Date;
+      read: boolean;
+      href: string;
+    }> = [];
     const processedProducts = new Set<string>();
 
     for (const entry of stockEntries) {

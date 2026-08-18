@@ -1,9 +1,9 @@
-import { ArrowDownIcon, ArrowUpIcon, InfoIcon } from "lucide-react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/app/_components/ui/popover";
+import { ArrowDownIcon, ArrowUpIcon, InfoIcon } from "lucide-react";
 
 interface KpiCardProps {
   title: string;

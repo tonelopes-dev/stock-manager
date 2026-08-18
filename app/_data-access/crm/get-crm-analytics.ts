@@ -1,9 +1,9 @@
 import "server-only";
 
-import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { startOfDay, subDays, format } from "date-fns";
+import { db } from "@/app/_lib/prisma";
 import { AuditEventType } from "@prisma/client";
+import { format, startOfDay, subDays } from "date-fns";
 
 export interface JourneyAnalytics {
   completedToday: number;
@@ -127,16 +127,19 @@ export const getCRMAnalytics = async (): Promise<JourneyAnalytics> => {
       date: item.completedAt!,
       actorName: "Operador", // We don't track ACTOR in ChecklistItem yet, maybe we should?
     })),
-    ...recentStageMoves.map((log: any) => ({
-      id: log.id,
-      type: "MOVE" as const,
-      title: "Movimentação de Card",
-      description: `Moveu de "${log.metadata?.fromStage}" para "${log.metadata?.toStage}"`,
-      customerName: log.metadata?.customerName || "Cliente",
-      customerId: log.metadata?.customerId || "",
-      date: log.createdAt,
-      actorName: log.actorName || "Sistema",
-    })),
+    ...recentStageMoves.map((log) => {
+      const meta = log.metadata as any;
+      return {
+        id: log.id,
+        type: "MOVE" as const,
+        title: "Movimentação de Card",
+        description: `Moveu de "${meta?.fromStage}" para "${meta?.toStage}"`,
+        customerName: meta?.customerName || "Cliente",
+        customerId: meta?.customerId || "",
+        date: log.createdAt,
+        actorName: meta?.actorName || "Sistema",
+      };
+    }),
   ]
     .sort((a, b) => b.date.getTime() - a.date.getTime())
     .slice(0, 15);

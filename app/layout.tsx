@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import "./globals.css";
 import { Inter } from "next/font/google";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Kipo",
@@ -29,13 +29,13 @@ const inter = Inter({
   display: "auto",
 });
 
-import { Toaster } from "sonner";
 import { CookieBanner } from "@/components/cookie-banner";
-import { SessionClearHandler } from "./_components/auth/session-clear-handler";
-import { ServiceWorkerRegister } from "./_components/pwa/service-worker-register";
-import { PWAInstallBanner } from "./_components/pwa/pwa-install-banner";
-import { ScrollRestoration } from "./_components/scroll-restoration";
 import { Suspense } from "react";
+import { Toaster } from "sonner";
+import { SessionClearHandler } from "./_components/auth/session-clear-handler";
+import { PWAInstallBanner } from "./_components/pwa/pwa-install-banner";
+import { ServiceWorkerRegister } from "./_components/pwa/service-worker-register";
+import { ScrollRestoration } from "./_components/scroll-restoration";
 
 export default function RootLayout({
   children,

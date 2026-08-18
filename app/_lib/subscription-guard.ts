@@ -1,6 +1,6 @@
-import { db } from "./prisma";
-import { BusinessError } from "./errors";
 import { redirect } from "next/navigation";
+import { BusinessError } from "./errors";
+import { db } from "./prisma";
 
 /**
  * Verifies that a company has an active subscription based on the expiration date.

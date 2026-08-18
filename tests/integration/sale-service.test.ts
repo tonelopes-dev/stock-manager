@@ -12,7 +12,7 @@
  *     └── REVENDA (Refrigerante Lata 350ml)     → qty: 1
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ──────────────────────────────────────────────
 // 1. Create PrismaClient in vi.hoisted (runs before import hoisting)
@@ -35,7 +35,7 @@ vi.mock("@/app/_lib/prisma", () => ({
 // 3. Import service (uses the mocked db) and helpers
 // ──────────────────────────────────────────────
 import { SaleService } from "@/app/_services/sale";
-import { setTestDb, cleanDatabase, createSaleTestFixture } from "../helpers/test-db";
+import { cleanDatabase, createSaleTestFixture, setTestDb } from "../helpers/test-db";
 
 describe("SaleService — Recursive Stock Deduction", () => {
   beforeAll(async () => {

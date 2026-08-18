@@ -1,14 +1,15 @@
 "use server";
 
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
+import { actionClient } from "@/app/_lib/safe-action";
+import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
+import { AuditService } from "@/app/_services/audit";
+import { ProductionService } from "@/app/_services/production";
+import { AuditEventType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { produceProductSchema } from "./schema";
-import { actionClient } from "@/app/_lib/safe-action";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { ProductionService } from "@/app/_services/production";
-import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
-import { ALL_ROLES, assertRole } from "@/app/_lib/rbac";
-import { AuditService } from "@/app/_services/audit";
-import { AuditEventType } from "@prisma/client";
 
 
 
@@ -17,7 +18,7 @@ export const produceProduct = actionClient
   .action(async ({ parsedInput: { productId, quantity } }) => {
     const companyId = await getCurrentCompanyId();
     await requireActiveSubscription(companyId);
-    const { userId } = await assertRole(ALL_ROLES);
+    const { userId } = await assertActionCapability(PERMISSIONS.STOCK_ADJUST);
 
 
     const result = await ProductionService.produce({

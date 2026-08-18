@@ -1,9 +1,9 @@
 "use server";
 
+import { auth } from "@/app/_lib/auth";
 import { actionClient } from "@/app/_lib/safe-action";
 import { OrderService } from "@/app/_services/order";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/app/_lib/auth";
 import { deleteOrderItemSchema } from "./schema";
 
 export const deleteOrderItemAction = actionClient
@@ -20,8 +20,11 @@ export const deleteOrderItemAction = actionClient
       revalidatePath(`/menu/${companyId}/my-orders`, "page");
 
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Delete Order Item Error:", error);
-      throw new Error(error.message || "Falha ao cancelar item.");
+      if (error instanceof Error) {
+        throw new Error(error.message);
+      }
+      throw new Error("Falha ao cancelar item.");
     }
   });

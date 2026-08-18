@@ -1,4 +1,3 @@
-import { getGoals } from "@/app/_data-access/goal/get-goals";
 import {
   Card,
   CardContent,
@@ -6,9 +5,10 @@ import {
   CardTitle,
 } from "@/app/_components/ui/card";
 import { Progress } from "@/app/_components/ui/progress";
-import { TargetIcon, ChevronRightIcon } from "lucide-react";
-import Link from "next/link";
+import { getGoals } from "@/app/_data-access/goal/get-goals";
 import { formatCurrency } from "@/app/_utils/currency";
+import { ChevronRightIcon, TargetIcon } from "lucide-react";
+import Link from "next/link";
 
 export const GoalsSummary = async () => {
   const goals = await getGoals();

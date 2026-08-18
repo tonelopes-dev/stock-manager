@@ -1,15 +1,16 @@
 "use server";
 
-import { upsertSaleSchema } from "./schema";
-import { revalidatePath } from "next/cache";
-import { actionClient } from "@/app/_lib/safe-action";
-import { returnValidationErrors } from "next-safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { SaleService } from "@/app/_services/sale";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
+import { actionClient } from "@/app/_lib/safe-action";
 import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
-import { ADMIN_AND_OWNER, ALL_ROLES, assertRole } from "@/app/_lib/rbac";
 import { AuditService } from "@/app/_services/audit";
+import { SaleService } from "@/app/_services/sale";
 import { AuditEventType } from "@prisma/client";
+import { returnValidationErrors } from "next-safe-action";
+import { revalidatePath } from "next/cache";
+import { upsertSaleSchema } from "./schema";
 
 
 
@@ -19,8 +20,8 @@ export const upsertSale = actionClient
     const companyId = await getCurrentCompanyId();
     const isUpdate = Boolean(id);
     
-    // Role Guard: Only OWNER/ADMIN can edit. Anyone can create.
-    const { userId } = await (isUpdate ? assertRole(ADMIN_AND_OWNER) : assertRole(ALL_ROLES));
+    // Guard: qualquer colaborador com SALE_CREATE pode criar ou editar vendas
+    const { userId } = await assertActionCapability(PERMISSIONS.SALE_CREATE);
     
     await requireActiveSubscription(companyId);
 

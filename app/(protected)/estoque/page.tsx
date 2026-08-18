@@ -1,22 +1,22 @@
-import { DataTable } from "../../_components/ui/data-table";
-import { ingredientTableColumns } from "./_components/table-columns";
-import { getIngredients } from "../../_data-access/ingredient/get-ingredients";
-import CreateIngredientButton from "./_components/create-ingredient-button";
+import { Boxes } from "lucide-react";
+import { Suspense } from "react";
+import { EmptyState } from "../../_components/empty-state";
 import Header, {
   HeaderLeft,
   HeaderRight,
   HeaderSubtitle,
   HeaderTitle,
 } from "../../_components/header";
-import { Boxes } from "lucide-react";
-import { EmptyState } from "../../_components/empty-state";
-import { Suspense } from "react";
+import { DataTable } from "../../_components/ui/data-table";
 import { Skeleton } from "../../_components/ui/skeleton";
+import { getIngredients } from "../../_data-access/ingredient/get-ingredients";
+import CreateIngredientButton from "./_components/create-ingredient-button";
+import { ingredientTableColumns } from "./_components/table-columns";
 
-import { getSuppliers } from "../../_actions/supplier/get-suppliers";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import RegisterPurchaseButton from "./_components/register-purchase-button";
+import { getSuppliers } from "../../_actions/supplier/get-suppliers";
 import { DownloadShoppingListButton } from "./_components/download-shopping-list-button";
+import RegisterPurchaseButton from "./_components/register-purchase-button";
 import StockFilters from "./_components/stock-filters";
 import StockPagination from "./_components/stock-pagination";
 

@@ -1,23 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
-import { Button } from "@/app/_components/ui/button";
-import { Input } from "@/app/_components/ui/input";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/app/_components/ui/select";
-import { EditIcon, CheckIcon, XIcon, Loader2Icon, InfoIcon, TagIcon, LayersIcon, MapPinIcon, MonitorIcon } from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
 import { upsertProduct } from "@/app/_actions/product/upsert-product";
-import { toast } from "sonner";
-import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
+import { Button } from "@/app/_components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
+import { Input } from "@/app/_components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/app/_components/ui/select";
 import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
+import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
 import { cn } from "@/app/_lib/utils";
+import { CheckIcon, EditIcon, InfoIcon, LayersIcon, Loader2Icon, MonitorIcon, TagIcon, XIcon } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface InlineAdditionalInfoProps {
   product: {

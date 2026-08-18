@@ -1,23 +1,22 @@
 "use client";
 
-import { ProductDto } from "@/app/_data-access/product/get-products";
-import { Card, CardContent } from "@/app/_components/ui/card";
 import { Badge } from "@/app/_components/ui/badge";
-import { ImageIcon, InfoIcon, MoreHorizontal } from "lucide-react";
-import ProductStatusBadge from "@/app/_components/product-status-badge";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import ProductTableDropdownMenu from "./table-dropdown-menu";
-import { UserRole } from "@prisma/client";
-import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
-import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
-import * as React from "react";
+import { Card, CardContent } from "@/app/_components/ui/card";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/app/_components/ui/tooltip";
+import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
+import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
+import { ProductDto } from "@/app/_data-access/product/get-products";
+import { UserRole } from "@prisma/client";
+import { ImageIcon, InfoIcon } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import * as React from "react";
+import ProductTableDropdownMenu from "./table-dropdown-menu";
 
 interface ProductCardProps {
   product: ProductDto;

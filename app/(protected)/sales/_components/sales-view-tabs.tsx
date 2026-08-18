@@ -1,8 +1,8 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
-import { LayoutDashboardIcon, TableIcon, CoinsIcon } from "lucide-react";
+import { CoinsIcon, LayoutDashboardIcon, TableIcon } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export function SalesViewTabs() {
   const router = useRouter();

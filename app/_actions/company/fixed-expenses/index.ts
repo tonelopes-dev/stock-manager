@@ -1,17 +1,18 @@
 "use server";
 
-import { db } from "@/app/_lib/prisma";
-import { revalidatePath } from "next/cache";
-import { upsertFixedExpenseSchema, deleteFixedExpenseSchema } from "./schema";
-import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { assertRole, OWNER_ONLY, ADMIN_AND_OWNER } from "@/app/_lib/rbac";
+import { db } from "@/app/_lib/prisma";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
+import { actionClient } from "@/app/_lib/safe-action";
+import { revalidatePath } from "next/cache";
+import { deleteFixedExpenseSchema, upsertFixedExpenseSchema } from "./schema";
 
 export const upsertFixedExpense = actionClient
   .schema(upsertFixedExpenseSchema)
   .action(async ({ parsedInput: { id, name, value } }) => {
     const companyId = await getCurrentCompanyId();
-    const { userId } = await assertRole(ADMIN_AND_OWNER);
+    await assertActionCapability(PERMISSIONS.COMPANY_SETTINGS_UPDATE);
 
     if (id) {
       await db.fixedExpense.update({
@@ -36,7 +37,7 @@ export const deleteFixedExpense = actionClient
   .schema(deleteFixedExpenseSchema)
   .action(async ({ parsedInput: { id } }) => {
     const companyId = await getCurrentCompanyId();
-    const { userId } = await assertRole(ADMIN_AND_OWNER);
+    await assertActionCapability(PERMISSIONS.COMPANY_SETTINGS_UPDATE);
 
     await db.fixedExpense.delete({
       where: { id, companyId },

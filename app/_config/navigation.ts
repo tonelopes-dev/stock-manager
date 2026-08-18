@@ -1,20 +1,8 @@
-import { LucideIcon } from "lucide-react";
-import {
-  CreditCardIcon,
-  LayoutGridIcon,
-  ShoppingBasketIcon,
-  UsersIcon,
-  HistoryIcon,
-  SettingsIcon,
-  TargetIcon,
-  QrCode,
-  Truck,
-  Utensils,
-  Boxes,
-  Monitor,
-  PlugIcon,
-} from "lucide-react";
 import { PERMISSIONS } from "@/app/_lib/permissions";
+import {
+  Boxes, CreditCardIcon, HistoryIcon, LayoutGridIcon, LucideIcon, Monitor,
+  PlugIcon, QrCode, SettingsIcon, ShoppingBasketIcon, TargetIcon, Truck, UsersIcon, Utensils
+} from "lucide-react";
 
 export interface NavItem {
   label: string;

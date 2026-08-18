@@ -1,6 +1,6 @@
-import { PrismaClient, SaleStatus, StockMovementType, PaymentMethod, GoalType, User, Product, Customer } from "@prisma/client";
-import { subDays, addHours, isWeekend, startOfDay } from "date-fns";
 import { fakerPT_BR as faker } from "@faker-js/faker";
+import { Customer, GoalType, PaymentMethod, PrismaClient, Product, SaleStatus, StockMovementType, User } from "@prisma/client";
+import { addHours, isWeekend, startOfDay, subDays } from "date-fns";
 
 export async function seedOrders(
   prisma: PrismaClient,

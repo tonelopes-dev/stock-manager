@@ -1,7 +1,7 @@
-import Link from "next/link";
-import { Button } from "@/app/_components/ui/button";
-import { GhostIcon, ArrowLeftIcon } from "lucide-react";
 import { KipoLogo } from "@/app/_components/logo";
+import { Button } from "@/app/_components/ui/button";
+import { ArrowLeftIcon, GhostIcon } from "lucide-react";
+import Link from "next/link";
 
 export default function NotFound() {
   return (

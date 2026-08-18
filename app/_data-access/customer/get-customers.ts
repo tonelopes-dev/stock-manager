@@ -1,9 +1,9 @@
 import "server-only";
 
-import { db } from "@/app/_lib/prisma";
-import { CustomerCategory, Prisma } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { db } from "@/app/_lib/prisma";
 import { sanitizeUUID } from "@/app/_lib/uuid";
+import { Prisma } from "@prisma/client";
 
 export interface CustomerDto {
   id: string;
@@ -162,7 +162,7 @@ export const getCustomers = async (
     salesAgg.map((s) => [s.customerId, Number(s._sum.totalAmount || 0)])
   );
 
-  const data = customers.map((customer: any) => {
+  const data = customers.map((customer) => {
     const totalSpent = totalSpentMap.get(customer.id) || 0;
     const lastSaleDate = customer.sales?.[0]?.date || null;
 

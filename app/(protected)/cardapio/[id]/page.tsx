@@ -1,12 +1,4 @@
-import { notFound } from "next/navigation";
-import { getProductById } from "@/app/_data-access/product/get-product-by-id";
-import { getProductStockEntries } from "@/app/_data-access/stock-entry/get-product-stock-entries";
-import Header, {
-  HeaderLeft,
-  HeaderSubtitle,
-  HeaderTitle,
-} from "@/app/_components/header";
-import { Badge } from "@/app/_components/ui/badge";
+import { Button } from "@/app/_components/ui/button";
 import {
   Card,
   CardContent,
@@ -14,27 +6,29 @@ import {
   CardHeader,
   CardTitle,
 } from "@/app/_components/ui/card";
-import { Button } from "@/app/_components/ui/button";
+import { getOverheadSettings } from "@/app/_data-access/company/get-overhead-settings";
+import { getIngredients } from "@/app/_data-access/ingredient/get-ingredients";
+import { getEnvironments } from "@/app/_data-access/product/get-environments";
+import { getProductById } from "@/app/_data-access/product/get-product-by-id";
+import { getProductCategories } from "@/app/_data-access/product/get-product-categories";
+import { getProductStockEntries } from "@/app/_data-access/stock-entry/get-product-stock-entries";
 import {
   ArrowLeftIcon,
-  PackageIcon,
   BeakerIcon,
+  PackageIcon,
 } from "lucide-react";
 import Link from "next/link";
-import RecipeTable from "./_components/recipe-table";
+import { notFound } from "next/navigation";
 import AddIngredientForm from "./_components/add-ingredient-form";
-import ProduceBatchModal from "./_components/produce-batch-modal";
 import BatchTable from "./_components/batch-table";
-import PriceHistoryChart from "./_components/price-history-chart";
-import InlineFinancialSummary from "./_components/inline-financial-summary";
-import InlineStockStatus from "./_components/inline-stock-status";
 import InlineAdditionalInfo from "./_components/inline-additional-info";
+import InlineFinancialSummary from "./_components/inline-financial-summary";
 import InlineProductHeader from "./_components/inline-product-header";
 import InlineProductImage from "./_components/inline-product-image";
-import { getIngredients } from "@/app/_data-access/ingredient/get-ingredients";
-import { getProductCategories } from "@/app/_data-access/product/get-product-categories";
-import { getEnvironments } from "@/app/_data-access/product/get-environments";
-import { getOverheadSettings } from "@/app/_data-access/company/get-overhead-settings";
+import InlineStockStatus from "./_components/inline-stock-status";
+import PriceHistoryChart from "./_components/price-history-chart";
+import ProduceBatchModal from "./_components/produce-batch-modal";
+import RecipeTable from "./_components/recipe-table";
 
 const formatCurrency = (value: number) =>
   Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(

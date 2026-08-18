@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
-import { Camera, RefreshCw, Check, User, ShieldCheck, Loader2 } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
 import { cn } from "@/app/_lib/utils";
+import { Camera, Check, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 interface SelfieCameraProps {
   onCapture: (blob: Blob) => void;

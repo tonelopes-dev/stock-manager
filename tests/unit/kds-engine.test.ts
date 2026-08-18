@@ -1,7 +1,7 @@
-import { describe, it, expect } from "vitest";
-import { OrderStatus } from "@prisma/client";
 import { getDerivedStatus, isUrgent } from "@/app/(protected)/kds/_hooks/kds-engine";
 import { KDSOrderDto } from "@/app/_data-access/order/get-kds-orders";
+import { OrderStatus } from "@prisma/client";
+import { describe, expect, it } from "vitest";
 
 // --- FACTORIES LOCAIS ---
 const createItemMock = (id: string, envId: string, status: OrderStatus) => ({

@@ -1,28 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
+import { upsertProduct } from "@/app/_actions/product/upsert-product";
 import { Button } from "@/app/_components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
 import { Input } from "@/app/_components/ui/input";
-import { 
-  EditIcon, 
-  CheckIcon, 
-  XIcon, 
-  Loader2Icon, 
+import { cn } from "@/app/_lib/utils";
+import { calculateMargin } from "@/app/_utils/pricing";
+import {
+  CalculatorIcon,
+  CheckIcon,
+  CircleDollarSignIcon,
   DollarSignIcon,
+  EditIcon,
+  Loader2Icon,
+  ShoppingBagIcon,
   TrendingUpIcon,
   WalletIcon,
-  PiggyBankIcon,
-  CalculatorIcon,
-  ShoppingBagIcon,
-  CircleDollarSignIcon
+  XIcon
 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { upsertProduct } from "@/app/_actions/product/upsert-product";
-import { toast } from "sonner";
+import { useEffect, useState } from "react";
 import { NumericFormat } from "react-number-format";
-import { calculateMargin } from "@/app/_utils/pricing";
-import { cn } from "@/app/_lib/utils";
+import { toast } from "sonner";
 
 interface InlineFinancialSummaryProps {
   product: {

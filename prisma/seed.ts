@@ -1,9 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-import { seedUsers } from "./seeds/seed-users";
-import { seedProducts } from "./seeds/seed-products";
 import { seedCustomers } from "./seeds/seed-customers";
-import { seedOrders } from "./seeds/seed-orders";
 import { seedFinances } from "./seeds/seed-finances";
+import { seedOrders } from "./seeds/seed-orders";
+import { seedProducts } from "./seeds/seed-products";
+import { seedUsers } from "./seeds/seed-users";
 
 const prisma = new PrismaClient();
 

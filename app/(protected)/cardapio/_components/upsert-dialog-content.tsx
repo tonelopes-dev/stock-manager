@@ -1,75 +1,62 @@
 "use client";
 
+import { upsertCategory } from "@/app/_actions/product/upsert-category";
 import { upsertProduct } from "@/app/_actions/product/upsert-product";
 import {
   upsertProductSchema,
   UpsertProductSchema,
 } from "@/app/_actions/product/upsert-product/schema";
 import { Button } from "@/app/_components/ui/button";
-import { Badge } from "@/app/_components/ui/badge";
 import {
+  Dialog,
   DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogContent as SubDialogContent,
+  DialogFooter as SubDialogFooter,
+  DialogHeader as SubDialogHeader,
+  DialogTitle as SubDialogTitle,
 } from "@/app/_components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/app/_components/ui/form";
+import { Input } from "@/app/_components/ui/input";
+import { Label } from "@/app/_components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/_components/ui/select";
+import { Switch } from "@/app/_components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/app/_components/ui/tooltip";
-import {
-  Dialog,
-  DialogContent as SubDialogContent,
-  DialogHeader as SubDialogHeader,
-  DialogTitle as SubDialogTitle,
-  DialogFooter as SubDialogFooter,
-} from "@/app/_components/ui/dialog";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-  Form,
-} from "@/app/_components/ui/form";
-import { Input } from "@/app/_components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  SelectSeparator,
-} from "@/app/_components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/app/_components/ui/popover";
+import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
+import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2Icon, X, CalendarIcon, ImageIcon, PlusIcon, Trash2Icon, InfoIcon, Star } from "lucide-react";
+import { UnitType } from "@prisma/client";
+import { ImageIcon, InfoIcon, Loader2Icon, Star, X } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import * as React from "react";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import * as React from "react";
-import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
-import { UnitType } from "@prisma/client";
-import { Switch } from "@/app/_components/ui/switch";
-import { Label } from "@/app/_components/ui/label";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { cn } from "@/app/_lib/utils";
-import { Calendar } from "@/app/_components/ui/calendar";
-import { upsertCategory } from "@/app/_actions/product/upsert-category";
-import { QuickEnvironmentDialog } from "./quick-environment-dialog";
-import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
-import { ProductDto } from "@/app/_data-access/product/get-products";
 import { NumericFormat } from "react-number-format";
+import { toast } from "sonner";
+import { QuickEnvironmentDialog } from "./quick-environment-dialog";
 
 interface UpsertProductDialogContentProps {
   defaultValues?: UpsertProductSchema;

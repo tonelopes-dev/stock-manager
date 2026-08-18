@@ -4,11 +4,11 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  TooltipProps,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  TooltipProps,
 } from "recharts";
 import { formatCurrencyBR } from "./kpi-card";
 

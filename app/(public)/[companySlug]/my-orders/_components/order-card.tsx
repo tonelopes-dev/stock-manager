@@ -1,31 +1,30 @@
 "use client";
 
-import { useState } from "react";
-import { OrderStatusDto } from "@/app/_data-access/order/get-order-status";
-import { OrderStatus } from "@prisma/client";
-import { Card } from "@/app/_components/ui/card";
 import { Badge } from "@/app/_components/ui/badge";
-import {
-  CheckCircle2,
-  Clock,
-  ChefHat,
-  ShoppingBag,
-  PackageCheck,
-  Check,
-  Zap,
-  Loader2,
-  Star,
-  RotateCcw,
-} from "lucide-react";
-import { cn } from "@/app/_lib/utils";
 import { Button } from "@/app/_components/ui/button";
+import { Card } from "@/app/_components/ui/card";
+import { OrderStatusDto } from "@/app/_data-access/order/get-order-status";
+import { cn } from "@/app/_lib/utils";
+import { OrderStatus } from "@prisma/client";
+import {
+  Check,
+  CheckCircle2,
+  ChefHat,
+  Clock,
+  Loader2,
+  PackageCheck,
+  RotateCcw,
+  ShoppingBag,
+  Star
+} from "lucide-react";
+import { useState } from "react";
 
-import { useAction } from "next-safe-action/hooks";
 import { rateOrderAction } from "@/app/_actions/order/rate-order";
+import { Textarea } from "@/app/_components/ui/textarea";
+import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useCartStore } from "../../_store/use-cart-store";
-import { useRouter } from "next/navigation";
-import { Textarea } from "@/app/_components/ui/textarea";
 
 export const statusConfig: Record<
   OrderStatus,

@@ -1,10 +1,9 @@
 "use client";
 
-import { PendingOrderDto } from "@/app/_data-access/order/get-pending-orders";
-import { useState } from "react";
-import { Card } from "@/app/_components/ui/card";
+import { convertOrderToSaleAction } from "@/app/_actions/order/convert-to-sale";
 import { Badge } from "@/app/_components/ui/badge";
 import { Button } from "@/app/_components/ui/button";
+import { Card } from "@/app/_components/ui/card";
 import {
   Select,
   SelectContent,
@@ -12,8 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/_components/ui/select";
+import { PendingOrderDto } from "@/app/_data-access/order/get-pending-orders";
+import { PaymentMethod } from "@prisma/client";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import {
-  AlertCircle,
   ArrowRight,
   ChevronDown,
   ChevronUp,
@@ -21,13 +23,10 @@ import {
   CreditCard,
   DollarSign,
   Smartphone,
-  Wallet,
+  Wallet
 } from "lucide-react";
-import { convertOrderToSaleAction } from "@/app/_actions/order/convert-to-sale";
-import { PaymentMethod } from "@prisma/client";
+import { useState } from "react";
 import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 interface PendingOrdersBannerProps {
   orders: PendingOrderDto[];

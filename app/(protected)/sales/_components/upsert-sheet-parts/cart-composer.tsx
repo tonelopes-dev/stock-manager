@@ -1,10 +1,10 @@
 "use client";
 
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useMemo } from "react";
 import { PlusIcon } from "lucide-react";
+import { useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { Button } from "@/app/_components/ui/button";
 import { Combobox, ComboboxOption } from "@/app/_components/ui/combobox";
@@ -17,9 +17,8 @@ import {
   FormMessage,
 } from "@/app/_components/ui/form";
 import { QuantityStepper } from "@/app/_components/ui/quantity-stepper";
-import { formatCurrency } from "@/app/_utils/currency";
-import { cn } from "@/app/_lib/utils";
 import { ProductDto } from "@/app/_data-access/product/get-products";
+import { formatCurrency } from "@/app/_utils/currency";
 import { ProductAvailabilityInfo } from "../shared/product-availability-info";
 
 const composerSchema = z.object({

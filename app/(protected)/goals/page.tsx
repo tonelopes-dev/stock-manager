@@ -1,17 +1,17 @@
-import { Suspense } from "react";
 import Header, {
   HeaderLeft,
   HeaderRight,
   HeaderTitle,
 } from "@/app/_components/header";
 import { getGoals, GoalDto } from "@/app/_data-access/goal/get-goals";
-import { GoalCard } from "./_components/goal-card";
-import { CreateGoalButton } from "./_components/create-goal-button";
 import { getProducts } from "@/app/_data-access/product/get-products";
-import { GoalTableSkeleton } from "./_components/table-skeleton";
 import { getCurrentUserRole } from "@/app/_lib/rbac";
 import { UserRole } from "@prisma/client";
 import { TargetIcon } from "lucide-react";
+import { Suspense } from "react";
+import { CreateGoalButton } from "./_components/create-goal-button";
+import { GoalCard } from "./_components/goal-card";
+import { GoalTableSkeleton } from "./_components/table-skeleton";
 
 const GoalsPage = async () => {
   const role = await getCurrentUserRole();

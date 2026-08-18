@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { forgotPassword } from "@/app/_actions/auth/forgot-password";
+import { Button } from "@/app/_components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/app/_components/ui/card";
 import {
   Form,
   FormControl,
@@ -13,12 +12,13 @@ import {
   FormMessage,
 } from "@/app/_components/ui/form";
 import { Input } from "@/app/_components/ui/input";
-import { Button } from "@/app/_components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/app/_components/ui/card";
-import { toast } from "sonner";
-import { Loader2Icon, MailIcon, ArrowLeftIcon } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeftIcon, Loader2Icon, MailIcon } from "lucide-react";
 import Link from "next/link";
-import { forgotPassword } from "@/app/_actions/auth/forgot-password";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("E-mail inválido"),

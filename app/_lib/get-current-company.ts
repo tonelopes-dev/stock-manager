@@ -1,8 +1,8 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { auth } from "./auth";
 import { db } from "./prisma";
-import { redirect } from "next/navigation";
 
 export async function getCurrentCompanyId(): Promise<string> {
   const session = await auth();

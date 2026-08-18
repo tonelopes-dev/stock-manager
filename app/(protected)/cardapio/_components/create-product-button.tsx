@@ -4,10 +4,10 @@ import { Button } from "@/app/_components/ui/button";
 import { Dialog, DialogTrigger } from "@/app/_components/ui/dialog";
 import { PlusIcon } from "lucide-react";
 
+import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
+import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
 import { useState } from "react";
 import UpsertProductDialogContent from "./upsert-dialog-content";
-import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
-import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
 
 interface CreateProductButtonProps {
   hasProducts: boolean;

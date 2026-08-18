@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "./button";
-import { MinusIcon, PlusIcon } from "lucide-react";
 import { cn } from "@/app/_lib/utils";
+import { MinusIcon, PlusIcon } from "lucide-react";
+import { Button } from "./button";
 
 interface QuantityStepperProps {
   value: number;

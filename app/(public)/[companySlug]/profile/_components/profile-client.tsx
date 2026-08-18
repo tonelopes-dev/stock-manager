@@ -1,28 +1,28 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { ArrowLeft, User, Phone, Mail, Calendar, LogOut, Save, Loader2, Check, Camera } from "lucide-react";
+import { updateCustomerProfile } from "@/app/_actions/customer/update-customer-profile";
+import { updateCustomerSelfie } from "@/app/_actions/customer/update-customer-selfie";
 import { Button } from "@/app/_components/ui/button";
-import { Input } from "@/app/_components/ui/input";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/app/_components/ui/dialog";
-import { useState, useEffect } from "react";
+import { Input } from "@/app/_components/ui/input";
+import { formatPhoneNumber } from "@/app/_lib/utils";
+import { ArrowLeft, Calendar, Camera, Loader2, LogOut, Mail, Phone, Save, User } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { NumberFormatValues, PatternFormat } from "react-number-format";
 import { toast } from "sonner";
-import { BottomNav } from "../../_components/layout/bottom-nav";
-import { PromotionsModal } from "../../_components/promotions/promotions-modal";
-import { ProductDetailsSheet } from "../../_components/product/product-details-sheet";
 import { FloatingCartButton } from "../../_components/cart/floating-cart-button";
 import { SelfieCamera } from "../../_components/checkout/selfie-camera";
+import { BottomNav } from "../../_components/layout/bottom-nav";
+import { ProductDetailsSheet } from "../../_components/product/product-details-sheet";
+import { PromotionsModal } from "../../_components/promotions/promotions-modal";
 import { useUIStore } from "../../_store/use-ui-store";
-import { formatPhoneNumber } from "@/app/_lib/utils";
-import { updateCustomerSelfie } from "@/app/_actions/customer/update-customer-selfie";
-import { updateCustomerProfile } from "@/app/_actions/customer/update-customer-profile";
-import { PatternFormat, NumberFormatValues } from "react-number-format";
 
 interface ProfileClientProps {
   companySlug: string;

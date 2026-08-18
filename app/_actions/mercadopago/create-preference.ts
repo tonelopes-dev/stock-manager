@@ -1,12 +1,12 @@
 "use server";
 
 import { auth } from "@/app/_lib/auth";
-import { mpClient } from "@/app/_lib/mercadopago";
-import { Preference } from "mercadopago";
-import { db } from "@/app/_lib/prisma";
-import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { mpClient } from "@/app/_lib/mercadopago";
+import { db } from "@/app/_lib/prisma";
 import { assertRole, OWNER_ONLY } from "@/app/_lib/rbac";
+import { actionClient } from "@/app/_lib/safe-action";
+import { Preference } from "mercadopago";
 
 export const createMercadoPagoPreference = actionClient.action(async () => {
   const companyId = await getCurrentCompanyId();
@@ -81,11 +81,14 @@ export const createMercadoPagoPreference = actionClient.action(async () => {
     }
 
     return { url: response.init_point };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[MercadoPago] Error creating preference. Full Error Object:", JSON.stringify(error, null, 2));
-    if (error.response) {
+    if (error && typeof error === "object" && "response" in error) {
       console.error("[MercadoPago] Response error data:", JSON.stringify(error.response, null, 2));
     }
-    throw new Error(`Mercado Pago Error: ${error.message || "Unknown error"}`);
+    if (error instanceof Error) {
+      throw new Error(`Mercado Pago Error: ${error.message}`);
+    }
+    throw new Error("Mercado Pago Error: Unknown error");
   }
 });

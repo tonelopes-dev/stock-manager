@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/app/_components/ui/dropdown-menu";
 import { Product } from "@prisma/client";
-import { MoreHorizontalIcon, ClipboardCopyIcon, TrashIcon } from "lucide-react";
+import { ClipboardCopyIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
 
 interface UpsertSaleTableDropdownMenuProps {
   product: Pick<Product, "id">;

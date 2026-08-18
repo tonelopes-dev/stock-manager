@@ -39,6 +39,10 @@ export const PERMISSIONS = {
   // Mutações Administrativas (Write Capabilities)
   COMPANY_SETTINGS_UPDATE: "settings:company:update",
   INTEGRATIONS_MANAGE: "integrations:manage",
+
+  // CRM / Gestão de Clientes
+  CUSTOMER_VIEW: "customer:view",
+  CUSTOMER_MANAGE: "customer:manage",
 } as const;
 
 export type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];
@@ -68,6 +72,8 @@ export const PERMISSION_LABELS: Record<keyof typeof PERMISSIONS, string> = {
   TEAM_SETTINGS_VIEW: "Ver Configurações de Equipe",
   COMPANY_SETTINGS_UPDATE: "Editar Configurações da Empresa",
   INTEGRATIONS_MANAGE: "Gerenciar Integrações",
+  CUSTOMER_VIEW: "Visualizar Clientes",
+  CUSTOMER_MANAGE: "Gerenciar Clientes",
 };
 
 /**
@@ -95,6 +101,8 @@ export const PERMISSION_DESCRIPTIONS: Record<keyof typeof PERMISSIONS, string> =
   TEAM_SETTINGS_VIEW: "Permite visualizar e gerenciar os membros da equipe.",
   COMPANY_SETTINGS_UPDATE: "Permite salvar alterações nas configurações da empresa.",
   INTEGRATIONS_MANAGE: "Permite ativar, desativar e configurar integrações externas.",
+  CUSTOMER_VIEW: "Permite visualizar a lista de clientes e o funil de CRM.",
+  CUSTOMER_MANAGE: "Permite cadastrar, editar, excluir clientes e gerenciar o funil de jornada.",
 };
 
 /**

@@ -1,9 +1,9 @@
-import "server-only";
-import { NextRequest, NextResponse } from "next/server";
-import { handleTenantPaymentWebhook } from "./_handlers/tenant-payment.handler";
-import { handleSystemSubscriptionWebhook } from "./_handlers/system-subscription.handler";
 import { IMercadoPagoWebhookBody } from "@/app/_services/payments/types";
 import { createHmac } from "crypto";
+import { NextRequest, NextResponse } from "next/server";
+import "server-only";
+import { handleSystemSubscriptionWebhook } from "./_handlers/system-subscription.handler";
+import { handleTenantPaymentWebhook } from "./_handlers/tenant-payment.handler";
 
 export const dynamic = "force-dynamic";
 

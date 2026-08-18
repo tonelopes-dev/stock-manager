@@ -1,16 +1,16 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/app/_components/ui/card";
-import { Button } from "@/app/_components/ui/button";
-import { Switch } from "@/app/_components/ui/switch";
-import { Badge } from "@/app/_components/ui/badge";
-import { LucideIcon, Loader2 } from "lucide-react";
-import { cn } from "@/app/_lib/utils";
-import { useAction } from "next-safe-action/hooks";
-import { toast } from "sonner";
-import { toggleMpCheckoutAction } from "@/app/_actions/integration/toggle-mp-checkout";
 import { disconnectMercadoPagoAction } from "@/app/_actions/integration/disconnect-mercadopago";
+import { toggleMpCheckoutAction } from "@/app/_actions/integration/toggle-mp-checkout";
+import { Badge } from "@/app/_components/ui/badge";
+import { Button } from "@/app/_components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/app/_components/ui/card";
+import { Switch } from "@/app/_components/ui/switch";
+import { cn } from "@/app/_lib/utils";
+import { Loader2, LucideIcon } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface ProviderConfig {
   provider: string;
@@ -123,7 +123,7 @@ export function IntegrationCard({ config, companyId, companySlug, mpMarketplaceT
             <Button
               variant="destructive"
               className="w-full gap-2"
-              onClick={() => executeDisconnect({ companyId })}
+              onClick={() => executeDisconnect({})}
               disabled={isDisconnecting}
             >
               {isDisconnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Desconectar"}

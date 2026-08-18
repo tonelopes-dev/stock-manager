@@ -1,18 +1,18 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/app/_components/ui/select";
 import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
 import { LayoutGridIcon, PlusIcon } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { QuickEnvironmentDialog } from "./quick-environment-dialog";
-import { SelectSeparator } from "@/app/_components/ui/select";
 
 interface EnvironmentFilterProps {
   environments: EnvironmentOption[];

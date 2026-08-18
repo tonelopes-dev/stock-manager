@@ -1,3 +1,6 @@
+import type { PaymentCreateRequest } from "mercadopago/dist/clients/payment/create/types";
+import type { PaymentResponse } from "mercadopago/dist/clients/payment/commonTypes";
+
 /**
  * Payment Domain Types
  *
@@ -86,12 +89,12 @@ export interface IPaymentGateway {
     description: string
   ): Promise<IInPersonPaymentResult>;
 
-  getPayment(paymentId: string | number): Promise<any>;
+  getPayment(paymentId: string | number): Promise<PaymentResponse>;
 
   /**
    * Processes a direct payment (e.g. from Bricks or custom checkout)
    */
-  createPayment(formData: any): Promise<any>;
+  createPayment(formData: PaymentCreateRequest): Promise<PaymentResponse>;
 }
 
 // ─────────────────────────────────────────────

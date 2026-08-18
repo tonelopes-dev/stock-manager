@@ -1,8 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Button } from "@/app/_components/ui/button";
 import {
   Form,
   FormControl,
@@ -12,13 +10,15 @@ import {
   FormMessage,
 } from "@/app/_components/ui/form";
 import { Input } from "@/app/_components/ui/input";
-import { Button } from "@/app/_components/ui/button";
-import { toast } from "sonner";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon, SaveIcon } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 import { updateProfile } from "@/app/_actions/user/update-profile";
 import { useAction } from "next-safe-action/hooks";
-import { PatternFormat, NumberFormatValues } from "react-number-format";
+import { NumberFormatValues, PatternFormat } from "react-number-format";
 
 const profileSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),

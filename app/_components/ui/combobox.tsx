@@ -1,8 +1,9 @@
 "use client";
 
-import * as React from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
+import * as React from "react";
 
+import { cn } from "@/app/_lib/utils";
 import { Button } from "./button";
 import {
   Command,
@@ -13,7 +14,6 @@ import {
   CommandList,
 } from "./command";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
-import { cn } from "@/app/_lib/utils";
 
 export interface ComboboxOption {
   value: string;

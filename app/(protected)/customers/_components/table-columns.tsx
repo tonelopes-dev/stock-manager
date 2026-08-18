@@ -1,10 +1,9 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
-import { CustomerDto } from "@/app/_data-access/customer/get-customers";
 import { Badge } from "@/app/_components/ui/badge";
+import { CustomerDto } from "@/app/_data-access/customer/get-customers";
+import { ColumnDef } from "@tanstack/react-table";
 import CustomerTableDropdownMenu from "./table-dropdown-menu";
-import { UserRole } from "@prisma/client";
 
 export const CUSTOMER_CATEGORY_LABELS: Record<
   string,
@@ -20,7 +19,7 @@ export const CUSTOMER_CATEGORY_LABELS: Record<
 };
 
 export interface CustomerTableMeta {
-  userRole: UserRole;
+  canManage: boolean;
   categories: { id: string; name: string }[];
   stages: { id: string; name: string }[];
   checklistTemplates: any[];
@@ -128,13 +127,13 @@ export const customerTableColumns: ColumnDef<CustomerDto>[] = [
       const meta = table.options.meta as CustomerTableMeta;
       if (!meta) return null;
 
-      const { userRole, categories, stages, checklistTemplates, onDelete } =
+      const { canManage, categories, stages, checklistTemplates, onDelete } =
         meta;
 
       return (
         <CustomerTableDropdownMenu
           customer={row.original}
-          userRole={userRole}
+          canManage={canManage}
           categories={categories}
           stages={stages}
           checklistTemplates={checklistTemplates}

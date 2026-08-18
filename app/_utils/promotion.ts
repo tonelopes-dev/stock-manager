@@ -9,9 +9,9 @@ export interface PromotionSchedule {
 
 export interface ProductWithPromotion {
   promoActive: boolean;
-  promoSchedule?: any;
-  promoPrice?: number | any;
-  price: number | any;
+  promoSchedule?: PromotionSchedule | null;
+  promoPrice?: number | null;
+  price: number;
 }
 
 /**

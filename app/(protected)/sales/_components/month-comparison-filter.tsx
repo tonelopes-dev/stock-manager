@@ -1,8 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { format, startOfYear, eachMonthOfInterval, endOfYear } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { Label } from "@/app/_components/ui/label";
 import {
   Select,
   SelectContent,
@@ -10,7 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/_components/ui/select";
-import { Label } from "@/app/_components/ui/label";
+import { eachMonthOfInterval, endOfYear, format, startOfYear } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export function MonthComparisonFilter() {
   const router = useRouter();

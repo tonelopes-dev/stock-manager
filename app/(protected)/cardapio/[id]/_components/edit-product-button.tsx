@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/app/_components/ui/button";
 import { Dialog, DialogTrigger } from "@/app/_components/ui/dialog";
-import { EditIcon } from "lucide-react";
-import UpsertProductDialogContent from "../../_components/upsert-dialog-content";
-import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
 import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
 import { ProductDetailDto } from "@/app/_data-access/product/get-product-by-id";
+import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
+import { EditIcon } from "lucide-react";
+import { useState } from "react";
+import UpsertProductDialogContent from "../../_components/upsert-dialog-content";
 
 interface EditProductButtonProps {
   product: ProductDetailDto;

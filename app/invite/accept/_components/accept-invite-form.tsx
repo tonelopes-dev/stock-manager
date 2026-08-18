@@ -1,13 +1,10 @@
 
 "use client";
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useAction } from "next-safe-action/hooks";
 import { acceptInviteAction } from "@/app/_actions/company/invite/accept-invitation";
 import { acceptInviteSchema, type AcceptInviteSchema } from "@/app/_actions/company/invite/schema";
 import { Button } from "@/app/_components/ui/button";
-import { Input } from "@/app/_components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/_components/ui/card";
 import {
   Form,
   FormControl,
@@ -16,11 +13,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/app/_components/ui/form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/_components/ui/card";
-import { toast } from "sonner";
-import { Loader2Icon, LockIcon, MailIcon, CheckCircle2Icon } from "lucide-react";
-import { useState } from "react";
+import { Input } from "@/app/_components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle2Icon, Loader2Icon, LockIcon, MailIcon } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 interface AcceptInviteFormProps {
   token: string;

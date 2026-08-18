@@ -1,13 +1,8 @@
-import Header, {
-  HeaderLeft,
-  HeaderTitle,
-  HeaderSubtitle,
-} from "@/app/_components/header";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { getKDSOrders } from "@/app/_data-access/order/get-kds-orders";
 import { getEnvironments } from "@/app/_data-access/product/get-environments";
-import { KDSClient } from "./_components/kds-client";
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { redirect } from "next/navigation";
+import { KDSClient } from "./_components/kds-client";
 
 export const dynamic = "force-dynamic";
 

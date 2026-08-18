@@ -1,27 +1,19 @@
 "use client"; // Re-compile trigger
 
-import React from "react";
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { Button } from "@/app/_components/ui/button";
-import {
-  ArrowRight,
-  CheckCircle2,
-  Package2,
-  ShoppingCart,
-  Zap,
-  BarChart3,
-  Users,
-  Globe,
-  Smartphone,
-  Server,
-  Database,
-  Menu,
-  X,
-} from "lucide-react";
 import { KipoLogo } from "@/app/_components/logo";
+import { Button } from "@/app/_components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/app/_components/ui/sheet";
 import { clsx, type ClassValue } from "clsx";
+import { motion } from "framer-motion";
+import {
+  BarChart3,
+  CheckCircle2,
+  Globe,
+  Menu,
+  ShoppingCart,
+  Users
+} from "lucide-react";
+import Link from "next/link";
 import { twMerge } from "tailwind-merge";
 
 function cn(...inputs: ClassValue[]) {

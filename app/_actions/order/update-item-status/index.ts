@@ -1,11 +1,11 @@
 "use server";
 
-import { z } from "zod";
+import { auth } from "@/app/_lib/auth";
 import { actionClient } from "@/app/_lib/safe-action";
 import { OrderService } from "@/app/_services/order";
 import { OrderStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/app/_lib/auth";
+import { z } from "zod";
 
 const updateItemStatusSchema = z.object({
   itemId: z.string(),
@@ -27,8 +27,11 @@ export const updateItemStatusAction = actionClient
       revalidatePath(`/menu/${companyId}/my-orders`, "page");
       
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Update Item Status Action Error:", error);
-      throw new Error(error.message || "Falha ao atualizar status do item.");
+      if (error instanceof Error) {
+        throw new Error(error.message);
+      }
+      throw new Error("Falha ao atualizar status do item.");
     }
   });

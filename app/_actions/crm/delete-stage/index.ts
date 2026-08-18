@@ -1,15 +1,18 @@
 "use server";
 
-import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { revalidatePath } from "next/cache";
+import { db } from "@/app/_lib/prisma";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
 import { actionClient } from "@/app/_lib/safe-action";
+import { revalidatePath } from "next/cache";
 import { deleteCRMStageSchema } from "./schema";
 
 export const deleteCRMStage = actionClient
   .schema(deleteCRMStageSchema)
   .action(async ({ parsedInput: { id, destinationId } }) => {
     const companyId = await getCurrentCompanyId();
+    await assertActionCapability(PERMISSIONS.CUSTOMER_MANAGE);
 
     const customersCount = await db.customer.count({
       where: { stageId: id, companyId },

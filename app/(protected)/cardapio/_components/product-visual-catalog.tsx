@@ -1,23 +1,7 @@
 "use client";
 
-import { ProductDto } from "@/app/_data-access/product/get-products";
-import { UserRole } from "@prisma/client";
-import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
-import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
-import * as React from "react";
-import { useState, useMemo, useEffect, Suspense } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { Input } from "@/app/_components/ui/input";
-import { SearchIcon, ArrowDownWideNarrow, ChevronsUpDown, XIcon, FilterIcon } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/app/_components/ui/tooltip";
-import { Dialog } from "@/app/_components/ui/dialog";
-import UpsertProductDialogContent from "./upsert-dialog-content";
 import { Button } from "@/app/_components/ui/button";
+import { Dialog } from "@/app/_components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,13 +10,29 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/app/_components/ui/dropdown-menu";
+import { Input } from "@/app/_components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/app/_components/ui/tooltip";
+import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
+import { ProductCategoryOption } from "@/app/_data-access/product/get-product-categories";
+import { ProductDto } from "@/app/_data-access/product/get-products";
+import { UserRole } from "@prisma/client";
+import { ArrowDownWideNarrow, ChevronsUpDown, SearchIcon, XIcon } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import * as React from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import UpsertProductDialogContent from "./upsert-dialog-content";
 
-import { CategoryManagementDialog } from "./category-management-dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
+import { CategoryManagementDialog } from "./category-management-dialog";
 
+import { EnvironmentFilter } from "./environment-filter";
 import { ProductGrid } from "./product-grid";
 import { ProductGridSkeleton } from "./product-grid-skeleton";
-import { EnvironmentFilter } from "./environment-filter";
 
 interface ProductVisualCatalogProps {
   productsPromise: Promise<ProductDto[]>;

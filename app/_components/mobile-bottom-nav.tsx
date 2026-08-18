@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/app/_lib/utils";
 import { NAVIGATION_ITEMS } from "@/app/_config/navigation";
 import { hasCapability } from "@/app/_lib/permissions";
+import { cn } from "@/app/_lib/utils";
 import { UserRole } from "@prisma/client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface MobileBottomNavProps {
   role: UserRole;

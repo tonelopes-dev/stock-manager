@@ -1,10 +1,10 @@
 "use server";
 
-import { db } from "@/app/_lib/prisma";
 import { auth } from "@/app/_lib/auth";
-import { z } from "zod";
+import { db } from "@/app/_lib/prisma";
 import { actionClient } from "@/app/_lib/safe-action";
 import bcrypt from "bcryptjs";
+import { z } from "zod";
 
 const changePasswordSchema = z.object({
   currentPassword: z.string(),

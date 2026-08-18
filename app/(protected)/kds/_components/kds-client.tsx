@@ -1,41 +1,7 @@
 "use client";
 
-import { KDSOrderDto } from "@/app/_data-access/order/get-kds-orders";
-import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
-import { useState, useMemo, useEffect } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { OrderStatus } from "@prisma/client";
 import { Badge } from "@/app/_components/ui/badge";
-import {
-  Clock,
-  CheckCircle2,
-  Play,
-  Utensils,
-  Info,
-  Check,
-  AlertTriangle,
-  AlertCircle,
-  User,
-  Phone,
-  MapPin,
-  CreditCard,
-  MonitorPlay,
-  Tv,
-  Maximize,
-  Minimize,
-} from "lucide-react";
-import { formatDistanceToNow, differenceInMinutes, format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 import { Button } from "@/app/_components/ui/button";
-import { useAppMode } from "@/app/_providers/app-mode-provider";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/app/_components/ui/sheet";
 import {
   Select,
   SelectContent,
@@ -43,15 +9,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/_components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/app/_components/ui/sheet";
+import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
+import { KDSOrderDto } from "@/app/_data-access/order/get-kds-orders";
+import { EnvironmentOption } from "@/app/_data-access/product/get-environments";
 import { cn, getWhatsAppUrl } from "@/app/_lib/utils";
+import { useAppMode } from "@/app/_providers/app-mode-provider";
+import { OrderStatus } from "@prisma/client";
+import { format, formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  Info,
+  MapPin,
+  Minimize,
+  MonitorPlay,
+  Phone,
+  Play,
+  User,
+  Utensils
+} from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 
-import { useKdsSync } from "../_hooks/use-kds-sync";
-import { useKdsActions } from "../_hooks/use-kds-actions";
-import { 
-  getDerivedStatus, 
-  getStationSummary, 
-  getPreviousStatus 
+import {
+  getDerivedStatus,
+  getPreviousStatus,
+  getStationSummary
 } from "../_hooks/kds-engine";
+import { useKdsActions } from "../_hooks/use-kds-actions";
+import { useKdsSync } from "../_hooks/use-kds-sync";
 import { KDSColumn } from "./kds-column";
 
 const getStatusLabel = (status: OrderStatus) => {

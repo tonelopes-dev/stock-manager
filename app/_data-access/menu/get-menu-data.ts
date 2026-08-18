@@ -1,4 +1,7 @@
 import { db } from "@/app/_lib/prisma";
+import { Prisma } from "@prisma/client";
+import { type PromotionSchedule } from "@/app/_utils/promotion";
+import { type OperatingHoursDto } from "@/app/_data-access/company/types";
 
 export interface MenuProductDto {
   id: string;
@@ -8,7 +11,7 @@ export interface MenuProductDto {
   price: number;
   promoActive: boolean;
   promoPrice: number | null;
-  promoSchedule: any;
+  promoSchedule: PromotionSchedule | null;
   isFeatured: boolean;
   availability: number;
   isMadeToOrder: boolean;
@@ -31,12 +34,30 @@ export interface MenuDataDto {
   description: string | null;
   whatsappNumber: string | null;
   instagramUrl: string | null;
-  operatingHours: any;
+  operatingHours: OperatingHoursDto[] | null;
   requireSelfieOnCheckout: boolean;
   allowNegativeStock: boolean;
   enableServiceTax: boolean;
   categories: MenuCategoryDto[];
 }
+
+const companySelect = { 
+  id: true,
+  slug: true,
+  name: true,
+  bannerUrl: true,
+  logoUrl: true,
+  address: true,
+  description: true,
+  whatsappNumber: true,
+  instagramUrl: true,
+  operatingHours: true,
+  requireSelfieOnCheckout: true,
+  allowNegativeStock: true,
+  enableServiceTax: true,
+} satisfies Prisma.CompanySelect;
+
+type CompanyForMenu = Prisma.CompanyGetPayload<{ select: typeof companySelect }>;
 
 /**
  * Busca dados da empresa e delega a busca de produtos/categorias.
@@ -45,21 +66,7 @@ export interface MenuDataDto {
 export const getMenuData = async (companyId: string): Promise<MenuDataDto | null> => {
   const company = await db.company.findUnique({
     where: { id: companyId },
-    select: { 
-      id: true,
-      slug: true,
-      name: true,
-      bannerUrl: true,
-      logoUrl: true,
-      address: true,
-      description: true,
-      whatsappNumber: true,
-      instagramUrl: true,
-      operatingHours: true,
-      requireSelfieOnCheckout: true,
-      allowNegativeStock: true,
-      enableServiceTax: true,
-    },
+    select: companySelect,
   });
 
   if (!company) return null;
@@ -70,21 +77,7 @@ export const getMenuData = async (companyId: string): Promise<MenuDataDto | null
 export const getMenuDataBySlug = async (slug: string): Promise<MenuDataDto | null> => {
   const company = await db.company.findUnique({
     where: { slug },
-    select: { 
-      id: true,
-      slug: true,
-      name: true,
-      bannerUrl: true,
-      logoUrl: true,
-      address: true,
-      description: true,
-      whatsappNumber: true,
-      instagramUrl: true,
-      operatingHours: true,
-      requireSelfieOnCheckout: true,
-      allowNegativeStock: true,
-      enableServiceTax: true,
-    },
+    select: companySelect,
   });
 
   if (!company) return null;
@@ -96,7 +89,7 @@ export const getMenuDataBySlug = async (slug: string): Promise<MenuDataDto | nul
  * Centraliza a busca de categorias e produtos. 
  * Otimizado para reduzir latência removendo 'include' e usando 'select' aninhado.
  */
-const fetchMenuDetails = async (company: any): Promise<MenuDataDto> => {
+const fetchMenuDetails = async (company: CompanyForMenu): Promise<MenuDataDto> => {
   const companyId = company.id;
 
   // Busca categorias e produtos vinculados em uma única query otimizada
@@ -185,7 +178,7 @@ const fetchMenuDetails = async (company: any): Promise<MenuDataDto> => {
       products: cat.products.map((p) => {
         let availability = Number(p.stock);
         if (p.isMadeToOrder && p.parentCompositions.length > 0) {
-          const ingredientAvailabilities = p.parentCompositions.map((comp: any) => {
+          const ingredientAvailabilities = p.parentCompositions.map((comp) => {
             const childStock = Number(comp.child.stock);
             const qtyRequired = Number(comp.quantity);
             return qtyRequired > 0 ? Math.floor(childStock / qtyRequired) : Infinity;
@@ -201,7 +194,7 @@ const fetchMenuDetails = async (company: any): Promise<MenuDataDto> => {
           price: Number(p.price),
           promoActive: p.promoActive,
           promoPrice: p.promoPrice ? Number(p.promoPrice) : null,
-          promoSchedule: p.promoSchedule,
+          promoSchedule: p.promoSchedule as PromotionSchedule | null,
           isFeatured: p.isFeatured,
           isMadeToOrder: p.isMadeToOrder,
           availability: Math.max(0, availability),
@@ -219,7 +212,7 @@ const fetchMenuDetails = async (company: any): Promise<MenuDataDto> => {
       products: uncategorized.map((p) => {
         let availability = Number(p.stock);
         if (p.isMadeToOrder && p.parentCompositions.length > 0) {
-          const ingredientAvailabilities = p.parentCompositions.map((comp: any) => {
+          const ingredientAvailabilities = p.parentCompositions.map((comp) => {
             const childStock = Number(comp.child.stock);
             const qtyRequired = Number(comp.quantity);
             return qtyRequired > 0 ? Math.floor(childStock / qtyRequired) : Infinity;
@@ -235,7 +228,7 @@ const fetchMenuDetails = async (company: any): Promise<MenuDataDto> => {
           price: Number(p.price),
           promoActive: p.promoActive,
           promoPrice: p.promoPrice ? Number(p.promoPrice) : null,
-          promoSchedule: p.promoSchedule,
+          promoSchedule: p.promoSchedule as PromotionSchedule | null,
           isFeatured: p.isFeatured,
           isMadeToOrder: p.isMadeToOrder,
           availability: Math.max(0, availability),
@@ -254,7 +247,7 @@ const fetchMenuDetails = async (company: any): Promise<MenuDataDto> => {
     description: company.description,
     whatsappNumber: company.whatsappNumber,
     instagramUrl: company.instagramUrl,
-    operatingHours: company.operatingHours,
+    operatingHours: company.operatingHours as OperatingHoursDto[] | null,
     requireSelfieOnCheckout: company.requireSelfieOnCheckout,
     allowNegativeStock: company.allowNegativeStock,
     enableServiceTax: company.enableServiceTax,

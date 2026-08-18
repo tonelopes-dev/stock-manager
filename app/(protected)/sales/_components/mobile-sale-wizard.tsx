@@ -1,18 +1,18 @@
-import { useState, Dispatch, SetStateAction } from "react";
-import { SheetHeader, SheetTitle } from "@/app/_components/ui/sheet";
-import { ShoppingCartIcon, ChevronRight, ChevronLeft, CheckCircle2, PlusIcon, MinusIcon, Trash2Icon, XIcon } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
-import { useFieldArray } from "react-hook-form";
+import { SheetHeader, SheetTitle } from "@/app/_components/ui/sheet";
 import { formatCurrency } from "@/app/_utils/currency";
+import { CheckCircle2, ChevronLeft, ChevronRight, MinusIcon, PlusIcon, ShoppingCartIcon, Trash2Icon, XIcon } from "lucide-react";
+import { Dispatch, SetStateAction, useState } from "react";
+import { useFieldArray } from "react-hook-form";
 
+import { CartComposer } from "./upsert-sheet-parts/cart-composer";
 import { CustomerSection } from "./upsert-sheet-parts/customer-section";
 import { FinancialSummary } from "./upsert-sheet-parts/financial-summary";
 import { PaymentSelector } from "./upsert-sheet-parts/payment-selector";
-import { CartComposer } from "./upsert-sheet-parts/cart-composer";
 
-import { UpsertSaleController } from "./upsert-sheet-parts/use-upsert-sale-controller";
-import { ProductDto } from "@/app/_data-access/product/get-products";
 import { ComboboxOption } from "@/app/_components/ui/combobox";
+import { ProductDto } from "@/app/_data-access/product/get-products";
+import { UpsertSaleController } from "./upsert-sheet-parts/use-upsert-sale-controller";
 
 interface MobileSaleWizardProps {
   controller: UpsertSaleController;

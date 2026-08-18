@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { deleteCRMStage } from "@/app/_actions/crm/delete-stage";
+import { reorderCRMStages } from "@/app/_actions/crm/reorder-stages";
+import { upsertCRMStage } from "@/app/_actions/crm/upsert-stage";
+import { deleteCustomerCategory } from "@/app/_actions/customer/delete-category";
+import { upsertCustomerCategory } from "@/app/_actions/customer/upsert-category";
+import { Button } from "@/app/_components/ui/button";
+import { Combobox } from "@/app/_components/ui/combobox";
 import {
   Dialog,
   DialogContent,
@@ -8,48 +14,41 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/app/_components/ui/dialog";
-import { Button } from "@/app/_components/ui/button";
-import {
-  Settings2,
-  Plus,
-  Pencil,
-  Trash2,
-  GripVertical,
-  Loader2,
-} from "lucide-react";
+import { Input } from "@/app/_components/ui/input";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@/app/_components/ui/tabs";
-import { Input } from "@/app/_components/ui/input";
-import { toast } from "sonner";
-import { upsertCustomerCategory } from "@/app/_actions/customer/upsert-category";
-import { deleteCustomerCategory } from "@/app/_actions/customer/delete-category";
-import { upsertCRMStage } from "@/app/_actions/crm/upsert-stage";
-import { deleteCRMStage } from "@/app/_actions/crm/delete-stage";
-import { reorderCRMStages } from "@/app/_actions/crm/reorder-stages";
-import { Combobox } from "@/app/_components/ui/combobox";
-import { AlertTriangle } from "lucide-react";
 import {
-  DndContext,
   closestCenter,
+  DndContext,
+  DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
 } from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
   useSortable,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useEffect } from "react";
+import {
+  AlertTriangle,
+  GripVertical,
+  Loader2,
+  Pencil,
+  Plus,
+  Settings2,
+  Trash2,
+} from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 interface CRMConfigModalProps {
   categories: { id: string; name: string }[];

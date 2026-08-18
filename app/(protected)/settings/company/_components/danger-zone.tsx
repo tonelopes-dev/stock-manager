@@ -1,19 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { softDeleteCompany } from "@/app/_actions/company/delete-company";
+import { transferOwnership } from "@/app/_actions/company/transfer-ownership";
+import { Button } from "@/app/_components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/app/_components/ui/card";
-import { Button } from "@/app/_components/ui/button";
-import {
-  AlertTriangleIcon,
-  Trash2Icon,
-  UserPlusIcon,
-  Loader2Icon,
-} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +18,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/app/_components/ui/dialog";
+import { Input } from "@/app/_components/ui/input";
 import {
   Select,
   SelectContent,
@@ -30,14 +26,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/_components/ui/select";
-import { Input } from "@/app/_components/ui/input";
-import { toast } from "sonner";
+import {
+  AlertTriangleIcon,
+  Loader2Icon,
+  Trash2Icon,
+  UserPlusIcon,
+} from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { transferOwnership } from "@/app/_actions/company/transfer-ownership";
-import { softDeleteCompany } from "@/app/_actions/company/delete-company";
+import { useState } from "react";
+import { toast } from "sonner";
 
-import { signOut } from "next-auth/react";
 import { Label } from "@/app/_components/ui/label";
+import { signOut } from "next-auth/react";
 
 interface AdminUser {
   id: string;

@@ -1,81 +1,13 @@
 "use client";
 
-import { useState, useTransition, useEffect, useCallback } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogClose,
-  DialogTrigger,
-} from "@/app/_components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/app/_components/ui/dropdown-menu";
-import { Badge } from "@/app/_components/ui/badge";
-import {
-  User,
-  Mail,
-  Phone,
-  Calendar,
-  Tag,
-  Notebook,
-  ShoppingBag,
-  Pencil,
-  Save,
-  X,
-  Trash2,
-  ListChecks,
-  Loader2Icon,
-  Plus,
-  Sparkles,
-  Bell,
-  Clock,
-  Check,
-  Loader2,
-  Calendar as CalendarIcon,
-  XIcon,
-} from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/app/_components/ui/tooltip";
-import { SalesTimeline } from "./sales-timeline";
-import { CustomerChecklist } from "./customer-checklist";
-import { getCustomerAction } from "@/app/_actions/customer/get-customer";
-import { format } from "date-fns/format";
-import { MultiSelect } from "@/app/_components/ui/multi-select";
-import { ptBR } from "date-fns/locale";
-import { Button } from "@/app/_components/ui/button";
-import { Input } from "@/app/_components/ui/input";
-import { DatePicker } from "@/app/_components/ui/date-picker";
-import { parseISO } from "date-fns";
 import {
   applyChecklistTemplate,
   createChecklist,
 } from "@/app/_actions/checklist";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/app/_components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/app/_components/ui/popover";
 import { updateCustomerBirthdayReminder } from "@/app/_actions/crm/update-birthday-reminder";
-import { setHours, setMinutes, isPast } from "date-fns";
-import { toast } from "sonner";
+import { deleteCustomer } from "@/app/_actions/customer/delete-customer";
+import { getCustomerAction } from "@/app/_actions/customer/get-customer";
+import { upsertCustomer } from "@/app/_actions/customer/upsert-customer";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -86,11 +18,71 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/app/_components/ui/alert-dialog";
-import { upsertCustomer } from "@/app/_actions/customer/upsert-customer";
-import { deleteCustomer } from "@/app/_actions/customer/delete-customer";
+import { Badge } from "@/app/_components/ui/badge";
+import { Button } from "@/app/_components/ui/button";
+import { DatePicker } from "@/app/_components/ui/date-picker";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "@/app/_components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/app/_components/ui/dropdown-menu";
+import { Input } from "@/app/_components/ui/input";
+import { MultiSelect } from "@/app/_components/ui/multi-select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/app/_components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/_components/ui/select";
 import { Textarea } from "@/app/_components/ui/textarea";
-import { getWhatsAppUrl } from "@/app/_lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/app/_components/ui/tooltip";
 import { WhatsAppButton } from "@/app/_components/whatsapp-button";
+import { isPast, setHours, setMinutes } from "date-fns";
+import { format } from "date-fns/format";
+import { ptBR } from "date-fns/locale";
+import {
+  Bell,
+  Calendar,
+  ListChecks,
+  Loader2,
+  Loader2Icon,
+  Mail,
+  Notebook,
+  Pencil,
+  Plus,
+  Save,
+  ShoppingBag,
+  Sparkles,
+  Tag,
+  Trash2,
+  User,
+  X
+} from "lucide-react";
+import { useCallback, useEffect, useState, useTransition } from "react";
+import { toast } from "sonner";
+import { CustomerChecklist } from "./customer-checklist";
+import { SalesTimeline } from "./sales-timeline";
 
 // Helper to handle date strings/objects from Prisma/Server correctly in local time
 // avoiding the "one day off" bug due to UTC vs Local shifts (especially common in birthdays)

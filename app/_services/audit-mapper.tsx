@@ -1,17 +1,17 @@
 import { AuditEventType, Prisma } from "@prisma/client";
-import { 
-  UserPlus, 
-  UserMinus, 
-  Settings, 
-  ShieldAlert, 
-  Trash2, 
-  RefreshCcw, 
-  Package, 
-  ShoppingCart, 
-  CreditCard,
+import {
   AlertTriangle,
+  CreditCard,
   Info,
-  Tag
+  Package,
+  RefreshCcw,
+  Settings,
+  ShieldAlert,
+  ShoppingCart,
+  Tag,
+  Trash2,
+  UserMinus,
+  UserPlus
 } from "lucide-react";
 import { ReactNode } from "react";
 

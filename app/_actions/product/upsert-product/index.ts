@@ -1,16 +1,17 @@
 "use server";
 
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
+import { actionClient } from "@/app/_lib/safe-action";
+import { deleteOldImage } from "@/app/_lib/storage";
+import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
+import { AuditService } from "@/app/_services/audit";
+import { recordStockMovement } from "@/app/_utils/stock";
+import { AuditEventType, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { upsertProductSchema } from "./schema";
-import { actionClient } from "@/app/_lib/safe-action";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { recordStockMovement } from "@/app/_utils/stock";
-import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
-import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
-import { AuditService } from "@/app/_services/audit";
-import { AuditEventType, Prisma } from "@prisma/client";
-import { deleteOldImage } from "@/app/_lib/storage";
 
 /**
  * Re-calculates the cost of a product based on its composition (recursive).
@@ -64,7 +65,7 @@ export const upsertProduct = actionClient
   .schema(upsertProductSchema)
   .action(async ({ parsedInput: { id, ...data } }) => {
     const companyId = await getCurrentCompanyId();
-    const { userId } = await assertRole(ADMIN_AND_OWNER);
+    const { userId } = await assertActionCapability(id ? PERMISSIONS.PRODUCT_UPDATE : PERMISSIONS.PRODUCT_CREATE);
     await requireActiveSubscription(companyId);
 
     // Manual duplication check (Application Level)

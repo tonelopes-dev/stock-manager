@@ -1,20 +1,20 @@
 import "server-only";
 
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { startOfDay } from "date-fns/startOfDay";
-import { subDays } from "date-fns/subDays";
+import { db } from "@/app/_lib/prisma";
+import {
+  DailySalesData,
+  getDailySalesChart,
+  getFinancialOverview,
+  getTopProfitableProducts,
+  getWorstMarginProducts,
+  ProductRanking
+} from "@/app/_services/analytics";
+import { SaleStatus } from "@prisma/client";
 import { addDays } from "date-fns/addDays";
 import { format } from "date-fns/format";
-import { 
-    getFinancialOverview, 
-    getDailySalesChart, 
-    DailySalesData,
-    getTopProfitableProducts,
-    getWorstMarginProducts,
-    ProductRanking
-} from "@/app/_services/analytics";
-import { db } from "@/app/_lib/prisma";
-import { SaleStatus } from "@prisma/client";
+import { startOfDay } from "date-fns/startOfDay";
+import { subDays } from "date-fns/subDays";
 
 export type DashboardRange = "today" | "7d" | "14d" | "30d" | "month" | "custom";
 

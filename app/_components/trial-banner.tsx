@@ -1,11 +1,11 @@
-import Link from "next/link";
-import {
-  InfoIcon,
-  AlertTriangleIcon,
-  AlertCircleIcon,
-  ArrowRightIcon,
-} from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
+import {
+  AlertCircleIcon,
+  AlertTriangleIcon,
+  ArrowRightIcon,
+  InfoIcon,
+} from "lucide-react";
+import Link from "next/link";
 
 interface TrialBannerProps {
   subscriptionStatus: string | null;

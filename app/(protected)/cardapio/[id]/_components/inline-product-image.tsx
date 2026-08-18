@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
-import { Button } from "@/app/_components/ui/button";
-import { EditIcon, CheckIcon, XIcon, Loader2Icon, ImageIcon, Trash2Icon, CameraIcon } from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
 import { upsertProduct } from "@/app/_actions/product/upsert-product";
-import { toast } from "sonner";
+import { Button } from "@/app/_components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
 import { cn } from "@/app/_lib/utils";
+import { CameraIcon, CheckIcon, EditIcon, ImageIcon, Loader2Icon, Trash2Icon, XIcon } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface InlineProductImageProps {
   product: {

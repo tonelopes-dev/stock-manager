@@ -1,14 +1,14 @@
 "use client";
 
-import { ProductDto } from "@/app/_data-access/product/get-products";
 import { Badge } from "@/app/_components/ui/badge";
-import { cn } from "@/app/_lib/utils";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/app/_components/ui/tooltip";
+import { ProductDto } from "@/app/_data-access/product/get-products";
+import { cn } from "@/app/_lib/utils";
 
 interface ProductAvailabilityInfoProps {
   product?: ProductDto | null;

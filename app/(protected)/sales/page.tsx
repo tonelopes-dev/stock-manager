@@ -1,43 +1,35 @@
-import { getActiveComandas } from "@/app/_data-access/order/get-active-comandas";
-import { ComandasGrid } from "./_components/comandas-grid";
-import { GestaoTabs } from "./_components/gestao-tabs";
-import { Plus } from "lucide-react";
-import { HeaderSubtitle, HeaderTitle } from "../../_components/header";
-import { ComboboxOption } from "../../_components/ui/combobox";
-import {
-  getProductsForCombobox,
-  getProductsForSale,
-  ProductDto,
-} from "../../_data-access/product/get-products";
-import { getCustomers, getCustomersForCombobox } from "../../_data-access/customer/get-customers";
-import { getSales, getSaleById, getSalesForTips, SaleDto } from "../../_data-access/sale/get-sales";
+import { PeriodFilter } from "@/app/_components/period-filter";
+import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
 import { getCRMStages } from "@/app/_data-access/crm/get-crm-stages";
 import { getCustomerCategories } from "@/app/_data-access/customer/get-customer-categories";
-import UpsertSaleButton from "./_components/create-sale-button";
-import { SalesDataTable } from "./_components/sales-data-table";
-import { Suspense } from "react";
-import { SaleTableSkeleton } from "./_components/table-skeleton";
-import { PeriodFilter } from "@/app/_components/period-filter";
-import { getSalesAnalytics, SalesAnalyticsDto } from "@/app/_data-access/sale/get-sales-analytics";
-import { SalesSummary } from "./_components/sales-summary";
-import { SalesCharts } from "./_components/sales-charts";
-import { MonthComparisonFilter } from "./_components/month-comparison-filter";
-import { SalesViewTabs } from "./_components/sales-view-tabs";
-import { TipsReport } from "./_components/tips-report";
-import { ExportReportModal } from "./_components/export-report-modal";
-import { SalesComparisonMetrics } from "./_components/sales-comparison-metrics";
 import { getOnboardingStats } from "@/app/_data-access/onboarding/get-onboarding-stats";
-import { getCurrentUserRole } from "@/app/_lib/rbac";
-import { UserRole } from "@prisma/client";
-import { getPendingOrders } from "@/app/_data-access/order/get-pending-orders";
-import { PendingOrdersBanner } from "./_components/pending-orders-banner";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { getActiveComandas } from "@/app/_data-access/order/get-active-comandas";
 import { getAggregatedSales } from "@/app/_data-access/sale/get-aggregated-sales";
 import { getPendingReceivables } from "@/app/_data-access/sale/get-pending-receivables";
-import { ProductSalesChart } from "./_components/product-sales-chart";
-import { AggregatedSalesTable } from "./_components/aggregated-sales-table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
+import { getSalesAnalytics, SalesAnalyticsDto } from "@/app/_data-access/sale/get-sales-analytics";
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { getCurrentUserRole } from "@/app/_lib/rbac";
 import { todayBRT } from "@/app/_utils/date";
+import { UserRole } from "@prisma/client";
+import { Suspense } from "react";
+import { HeaderSubtitle, HeaderTitle } from "../../_components/header";
+import { ComboboxOption } from "../../_components/ui/combobox";
+import { getCustomersForCombobox } from "../../_data-access/customer/get-customers";
+import {
+  getProductsForSale,
+  ProductDto
+} from "../../_data-access/product/get-products";
+import { getSaleById, getSales, getSalesForTips, SaleDto } from "../../_data-access/sale/get-sales";
+import { AggregatedSalesTable } from "./_components/aggregated-sales-table";
+import UpsertSaleButton from "./_components/create-sale-button";
+import { ExportReportModal } from "./_components/export-report-modal";
+import { GestaoTabs } from "./_components/gestao-tabs";
+import { ProductSalesChart } from "./_components/product-sales-chart";
+import { SalesDataTable } from "./_components/sales-data-table";
+import { SalesSummary } from "./_components/sales-summary";
+import { SalesViewTabs } from "./_components/sales-view-tabs";
+import { SaleTableSkeleton } from "./_components/table-skeleton";
+import { TipsReport } from "./_components/tips-report";
 
 // Page requires session for company filtering
 export const dynamic = "force-dynamic";

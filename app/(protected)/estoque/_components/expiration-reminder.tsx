@@ -1,17 +1,17 @@
 "use client";
 
-import { Bell, Clock, X, Calendar as CalendarIcon } from "lucide-react";
-import { useState } from "react";
-import { format, setHours, setMinutes, isPast } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { Button } from "@/app/_components/ui/button";
+import { DatePicker } from "@/app/_components/ui/date-picker";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/app/_components/ui/popover";
-import { DatePicker } from "@/app/_components/ui/date-picker";
 import { cn } from "@/app/_lib/utils";
+import { format, isPast, setHours, setMinutes } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Bell, Calendar as CalendarIcon, Clock, X } from "lucide-react";
+import { useState } from "react";
 
 interface ExpirationReminderProps {
   value?: Date | null;

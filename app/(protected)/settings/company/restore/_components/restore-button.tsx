@@ -1,13 +1,13 @@
 "use client";
 
-import { useAction } from "next-safe-action/hooks";
 import { restoreCompany } from "@/app/_actions/company/delete-company";
 import { Button } from "@/app/_components/ui/button";
+import { useAction } from "next-safe-action/hooks";
 
 import { RotateCcw } from "lucide-react";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export function RestoreButton() {
   const router = useRouter();

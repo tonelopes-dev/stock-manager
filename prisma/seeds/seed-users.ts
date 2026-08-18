@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole, SubscriptionStatus } from "@prisma/client";
+import { PrismaClient, SubscriptionStatus, UserRole } from "@prisma/client";
 import { hash } from "bcryptjs";
 
 export async function seedUsers(prisma: PrismaClient) {

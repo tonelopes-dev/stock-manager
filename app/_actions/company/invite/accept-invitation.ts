@@ -3,10 +3,10 @@
 
 import { db } from "@/app/_lib/prisma";
 import { actionClient } from "@/app/_lib/safe-action";
-import { acceptInviteSchema } from "./schema";
 import { InvitationService } from "@/app/_services/invitation.service";
 import { hash } from "bcryptjs";
 import { revalidatePath } from "next/cache";
+import { acceptInviteSchema } from "./schema";
 
 /**
  * 🛡️ SERVER ACTION: Aceite de Convite Externo

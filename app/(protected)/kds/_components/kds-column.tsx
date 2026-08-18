@@ -1,13 +1,13 @@
 "use client";
 
-import { KDSOrderDto } from "@/app/_data-access/order/get-kds-orders";
-import { OrderStatus } from "@prisma/client";
 import { Badge } from "@/app/_components/ui/badge";
-import { Utensils } from "lucide-react";
-import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { KDSOrderDto } from "@/app/_data-access/order/get-kds-orders";
 import { cn } from "@/app/_lib/utils";
-import { KDSCard } from "./kds-card";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { OrderStatus } from "@prisma/client";
+import { Utensils } from "lucide-react";
 import { StationSummary } from "../_hooks/kds-engine";
+import { KDSCard } from "./kds-card";
 
 interface KDSColumnProps {
   title: string;

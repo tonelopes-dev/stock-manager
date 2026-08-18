@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { DatePicker } from "@/app/_components/ui/date-picker";
 import { format, parseISO } from "date-fns";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 export const DateRangePicker = () => {
   const router = useRouter();

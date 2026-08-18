@@ -1,5 +1,5 @@
-import { OrderStatus } from "@prisma/client";
 import { KDSOrderDto } from "@/app/_data-access/order/get-kds-orders";
+import { OrderStatus } from "@prisma/client";
 
 export interface StationSummary {
   name: string;

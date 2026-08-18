@@ -1,29 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { usePushNotifications } from "@/app/_hooks/use-push-notifications";
-import { OrderStatus } from "@prisma/client";
 import { supabase } from "@/app/_lib/supabase";
+import { OrderStatus } from "@prisma/client";
+import { useEffect, useState } from "react";
 
-import { Card } from "@/app/_components/ui/card";
 import { Badge } from "@/app/_components/ui/badge";
+import { Button } from "@/app/_components/ui/button";
+import { Card } from "@/app/_components/ui/card";
+import { OrderStatusDto } from "@/app/_data-access/order/get-order-status";
 import {
-  CheckCircle2,
-  Clock,
-  ChefHat,
-  ShoppingBag,
   ArrowLeft,
+  BellOff,
+  BellRing,
+  CheckCircle2,
+  ChefHat,
+  Clock,
   PackageCheck,
   Plus,
   Utensils,
-  X,
-  Bell,
-  BellOff,
-  BellRing,
+  X
 } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/app/_components/ui/button";
-import { OrderStatusDto } from "@/app/_data-access/order/get-order-status";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 

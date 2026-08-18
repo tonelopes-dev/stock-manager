@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Button } from "@/app/_components/ui/button";
-import Link from "next/link";
 import { CookieIcon } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export const CookieBanner = () => {
   const [isVisible, setIsVisible] = useState(false);

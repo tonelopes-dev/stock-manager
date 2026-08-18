@@ -1,9 +1,8 @@
 import "server-only";
 
-import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { startOfDay, endOfDay } from "date-fns";
-import { parseLocalDay, nowBRT, todayBRT } from "@/app/_utils/date";
+import { db } from "@/app/_lib/prisma";
+import { todayBRT } from "@/app/_utils/date";
 
 export interface AggregatedSaleDto {
   productId: string;
@@ -31,7 +30,7 @@ export const getAggregatedSales = async (
   const end = to ? new Date(to + "T23:59:59.999Z") : new Date(todayBRT() + "T23:59:59.999Z");
 
   // 1. Fetch Aggregated Sales by Product
-  const itemsRaw = await db.$queryRaw<any[]>`
+  const itemsRaw = await db.$queryRaw<AggregatedSaleDto[]>`
     SELECT 
         p.id as "productId",
         p.name as "productName",

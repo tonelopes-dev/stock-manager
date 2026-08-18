@@ -1,7 +1,7 @@
 "use client";
 
-import { Home, Tag, Receipt, User } from "lucide-react";
 import { cn } from "@/app/_lib/utils";
+import { Home, Receipt, Tag, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useUIStore } from "../../_store/use-ui-store";

@@ -1,11 +1,11 @@
-import { db } from "@/app/_lib/prisma";
-import { recordStockMovement, processRecursiveStockMovement, getProductsWithFullTree, processBatchStockMovement } from "@/app/_utils/stock";
-import { BusinessError } from "@/app/_lib/errors";
-import { AuditEventType, OrderStatus, Prisma, SaleStatus, PaymentMethod } from "@prisma/client";
-import { isPromotionActive } from "@/app/_utils/promotion";
-import { AuditService } from "./audit";
-import { nowBRT } from "@/app/_utils/date";
 import { broadcastEvent } from "@/app/_lib/broadcast";
+import { BusinessError } from "@/app/_lib/errors";
+import { db } from "@/app/_lib/prisma";
+import { nowBRT } from "@/app/_utils/date";
+import { isPromotionActive, type ProductWithPromotion } from "@/app/_utils/promotion";
+import { getProductsWithFullTree, processBatchStockMovement, processRecursiveStockMovement } from "@/app/_utils/stock";
+import { AuditEventType, OrderStatus, PaymentMethod, Prisma, SaleStatus } from "@prisma/client";
+import { AuditService } from "./audit";
 
 /**
  * Input for converting one or more Orders into a Sale.
@@ -86,7 +86,7 @@ export const OrderService = {
             throw new BusinessError(`O produto ${product.name} está desativado.`);
           }
 
-          const promoActive = isPromotionActive(product);
+          const promoActive = isPromotionActive(product as unknown as ProductWithPromotion);
           
           const unitPrice = isEmployeeSale 
             ? Number(product.cost) + Number(product.operationalCost)

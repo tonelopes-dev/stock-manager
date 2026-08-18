@@ -1,5 +1,5 @@
-import { notFound } from "next/navigation";
 import { getMenuDataBySlug } from "@/app/_data-access/menu/get-menu-data";
+import { notFound } from "next/navigation";
 import { PromotionsClient } from "./_components/promotions-client";
 
 interface PromotionsPageProps {

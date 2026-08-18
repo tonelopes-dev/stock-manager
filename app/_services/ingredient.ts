@@ -1,7 +1,7 @@
-import { db } from "@/app/_lib/prisma";
-import { Prisma } from "@prisma/client";
 import { BusinessError } from "@/app/_lib/errors";
+import { db } from "@/app/_lib/prisma";
 import { nowBRT } from "@/app/_utils/date";
+import { Prisma } from "@prisma/client";
 
 interface AdjustIngredientStockParams {
   ingredientId: string;

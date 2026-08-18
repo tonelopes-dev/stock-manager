@@ -1,8 +1,8 @@
-import { ShieldAlertIcon } from "lucide-react";
-import { BillingActions } from "./_components/billing-actions";
 import { auth } from "@/app/_lib/auth";
 import { db } from "@/app/_lib/prisma";
+import { ShieldAlertIcon } from "lucide-react";
 import { redirect } from "next/navigation";
+import { BillingActions } from "./_components/billing-actions";
 
 export const dynamic = "force-dynamic";
 

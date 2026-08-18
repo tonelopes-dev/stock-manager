@@ -1,9 +1,9 @@
 "use server";
 
+import { createMercadoPagoPreference } from "@/app/_lib/mercadopago";
+import { db } from "@/app/_lib/prisma";
 import { actionClient } from "@/app/_lib/safe-action";
 import { z } from "zod";
-import { db } from "@/app/_lib/prisma";
-import { createMercadoPagoPreference } from "@/app/_lib/mercadopago";
 
 const generateCheckoutSchema = z.object({
   orderIds: z.array(z.string()).optional(),

@@ -1,10 +1,14 @@
 "use server";
 
 import { db } from "@/app/_lib/prisma";
-import { revalidatePath } from "next/cache";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
 import { deleteOldImage } from "@/app/_lib/storage";
 
 export const updateCustomerSelfie = async (customerId: string, imageUrl: string) => {
+  // Guard: apenas usuários com CUSTOMER_MANAGE podem atualizar a foto de clientes
+  await assertActionCapability(PERMISSIONS.CUSTOMER_MANAGE);
+
   try {
     // Fetch current imageUrl for cleanup
     const currentCustomer = await db.customer.findUnique({

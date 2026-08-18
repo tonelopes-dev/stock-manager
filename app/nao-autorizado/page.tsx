@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { ShieldXIcon } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
+import { ShieldXIcon } from "lucide-react";
+import Link from "next/link";
 
 export default function NaoAutorizadoPage() {
   return (

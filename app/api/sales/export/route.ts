@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
 import { getSalesExport } from "@/app/_data-access/sale/get-sales-export";
 import { auth } from "@/app/_lib/auth";
 import { format } from "date-fns";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   const session = await auth();

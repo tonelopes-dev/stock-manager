@@ -1,25 +1,25 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import QRCode from "qrcode";
+import { Button } from "@/app/_components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/app/_components/ui/dialog";
-import { Button } from "@/app/_components/ui/button";
 import { Input } from "@/app/_components/ui/input";
 import {
-  Download,
-  Copy,
   Check,
+  Copy,
+  Download,
+  Loader2,
+  MessageCircle,
   QrCode,
   Share2,
-  MessageCircle,
-  Loader2,
 } from "lucide-react";
+import QRCode from "qrcode";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { MenuSlugEditor } from "./menu-slug-editor";
 

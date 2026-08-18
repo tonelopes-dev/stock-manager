@@ -1,5 +1,5 @@
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { testDb } = vi.hoisted(() => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -27,7 +27,7 @@ vi.mock("@/app/_lib/get-current-company", () => ({
   getCurrentCompanyId: vi.fn(async () => "test-company-id"),
 }));
 
-import { setTestDb, cleanDatabase } from "../helpers/test-db";
+import { cleanDatabase, setTestDb } from "../helpers/test-db";
 // @ts-ignore - assertCapability doesn't exist yet
 import { assertCapability } from "@/app/_lib/rbac";
 import { UserRole } from "@prisma/client";

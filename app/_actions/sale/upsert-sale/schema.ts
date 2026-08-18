@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { PaymentMethod, SaleStatus } from "@prisma/client";
+import { z } from "zod";
 
 export const upsertSaleSchema = z.object({
   id: z.string().uuid().optional(),

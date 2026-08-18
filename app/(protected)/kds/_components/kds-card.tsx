@@ -1,24 +1,24 @@
 "use client";
 
-import { KDSOrderDto } from "@/app/_data-access/order/get-kds-orders";
-import { OrderStatus } from "@prisma/client";
-import { Card } from "@/app/_components/ui/card";
 import { Badge } from "@/app/_components/ui/badge";
 import { Button } from "@/app/_components/ui/button";
-import {
-  Clock,
-  CheckCircle2,
-  Play,
-  Check,
-  User,
-  Phone,
-  AlertCircle,
-  RotateCcw,
-} from "lucide-react";
-import { differenceInMinutes } from "date-fns";
-import { useState, useEffect } from "react";
+import { Card } from "@/app/_components/ui/card";
+import { KDSOrderDto } from "@/app/_data-access/order/get-kds-orders";
 import { cn } from "@/app/_lib/utils";
+import { OrderStatus } from "@prisma/client";
+import { differenceInMinutes } from "date-fns";
+import {
+  AlertCircle,
+  Check,
+  CheckCircle2,
+  Clock,
+  Phone,
+  Play,
+  RotateCcw,
+  User,
+} from "lucide-react";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { StationSummary } from "../_hooks/kds-engine";
 
 type KDSOrderItem = KDSOrderDto["items"][number];

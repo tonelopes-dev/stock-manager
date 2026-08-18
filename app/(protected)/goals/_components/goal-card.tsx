@@ -1,35 +1,35 @@
 "use client";
 
+import { Button } from "@/app/_components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/app/_components/ui/card";
-import { GoalDto } from "@/app/_data-access/goal/get-goals";
-import { formatCurrency } from "@/app/_utils/currency";
-import {
-  TargetIcon,
-  TrendingUpIcon,
-  CalendarIcon,
-  PackageIcon,
-  MoreHorizontalIcon,
-  EditIcon,
-  TrashIcon,
-} from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale/pt-BR";
+import { Dialog } from "@/app/_components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/app/_components/ui/dropdown-menu";
-import { Button } from "@/app/_components/ui/button";
+import { GoalDto } from "@/app/_data-access/goal/get-goals";
+import { formatCurrency } from "@/app/_utils/currency";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale/pt-BR";
+import {
+  CalendarIcon,
+  EditIcon,
+  MoreHorizontalIcon,
+  PackageIcon,
+  TargetIcon,
+  TrashIcon,
+  TrendingUpIcon,
+} from "lucide-react";
 import { useState } from "react";
-import { UpsertGoalDialogContent } from "./upsert-goal-dialog-content";
 import { DeleteGoalDialogContent } from "./delete-goal-dialog-content";
-import { Dialog } from "@/app/_components/ui/dialog";
+import { UpsertGoalDialogContent } from "./upsert-goal-dialog-content";
 
 interface GoalCardProps {
   goal: GoalDto;

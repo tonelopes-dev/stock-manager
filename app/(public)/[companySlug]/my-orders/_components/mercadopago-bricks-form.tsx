@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { ComponentProps } from "react";
+import { processTransparentPayment } from "@/app/_actions/integration/process-transparent-payment";
 import { initMercadoPago, Payment } from "@mercadopago/sdk-react";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import { useAction } from "next-safe-action/hooks";
-import { processTransparentPayment } from "@/app/_actions/integration/process-transparent-payment";
+import type { ComponentProps } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface MercadoPagoBricksFormProps {
   publicKey: string;
@@ -72,11 +72,11 @@ export function MercadoPagoBricksForm({
         });
 
         if (result?.data?.success) {
-          onPaymentSuccess(result.data.paymentId, "approved", result.data.pixBase64, result.data.pixCopyPaste);
+          onPaymentSuccess(result.data.paymentId || "", "approved", result.data.pixBase64, result.data.pixCopyPaste);
           resolve();
         } else if (result?.data?.status === "pending" || result?.data?.status === "in_process") {
           toast.success("Aguardando confirmação do pagamento.");
-          onPaymentSuccess(result.data.paymentId, result.data.status, result.data.pixBase64, result.data.pixCopyPaste); 
+          onPaymentSuccess(result.data.paymentId || "", result.data.status, result.data.pixBase64, result.data.pixCopyPaste); 
           resolve(); 
         } else {
           const errorMessage = result?.serverError || result?.data?.message || "Pagamento recusado.";

@@ -2,20 +2,20 @@
 
 import { Button } from "@/app/_components/ui/button";
 import { Checkbox } from "@/app/_components/ui/checkbox";
-import { formatCurrency } from "@/app/_utils/currency";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/app/_components/ui/tooltip";
-import {
-  Trash2,
-  ListIcon,
-  LayoutGridIcon,
-} from "lucide-react";
 import { cn } from "@/app/_lib/utils";
+import { formatCurrency } from "@/app/_utils/currency";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  LayoutGridIcon,
+  ListIcon,
+  Trash2,
+} from "lucide-react";
 import { GroupedItem } from "./use-comanda-state";
 
 interface ComandaItemsListProps {

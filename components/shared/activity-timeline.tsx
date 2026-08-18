@@ -1,8 +1,8 @@
+import { cn } from "@/app/_lib/utils";
 import { AuditMapper } from "@/app/_services/audit-mapper";
+import { AuditEventType, Prisma } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { AuditEventType, Prisma } from "@prisma/client";
-import { cn } from "@/app/_lib/utils";
 
 interface AuditLogWithActor {
 

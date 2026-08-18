@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import { Copy, CheckCircle2, MessageCircle } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
-import { toast } from "sonner";
+import { CheckCircle2, Copy, MessageCircle } from "lucide-react";
+import Image from "next/image";
 import { QRCodeSVG } from "qrcode.react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface PixPaymentDisplayProps {
   qrCodeBase64: string;

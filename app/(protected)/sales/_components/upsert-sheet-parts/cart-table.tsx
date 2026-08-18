@@ -1,8 +1,7 @@
 "use client";
 
-import { TrashIcon, ShoppingCartIcon } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
-import { CartItemNotesDialog } from "./cart-item-notes-dialog";
+import { QuantityStepper } from "@/app/_components/ui/quantity-stepper";
 import {
   Table,
   TableBody,
@@ -11,8 +10,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/app/_components/ui/table";
-import { QuantityStepper } from "@/app/_components/ui/quantity-stepper";
 import { formatCurrency } from "@/app/_utils/currency";
+import { ShoppingCartIcon, TrashIcon } from "lucide-react";
+import { CartItemNotesDialog } from "./cart-item-notes-dialog";
 
 interface CartItem {
   id?: string;

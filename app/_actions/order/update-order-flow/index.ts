@@ -1,13 +1,12 @@
 "use server";
 
-import { z } from "zod";
+import { auth } from "@/app/_lib/auth";
+import { db } from "@/app/_lib/prisma";
+import { sendPushToCustomer } from "@/app/_lib/push-notifications";
 import { actionClient } from "@/app/_lib/safe-action";
 import { OrderStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/app/_lib/auth";
-import { db } from "@/app/_lib/prisma";
-import { BusinessError } from "@/app/_lib/errors";
-import { sendPushToCustomer } from "@/app/_lib/push-notifications";
+import { z } from "zod";
 
 const updateOrderFlowSchema = z.object({
   orderId: z.string(),
@@ -97,8 +96,11 @@ export const updateOrderFlowAction = actionClient
       }
 
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Update Order Flow Action Error:", error);
-      throw new Error(error.message || "Falha ao atualizar fluxo do pedido.");
+      if (error instanceof Error) {
+        throw new Error(error.message);
+      }
+      throw new Error("Falha ao atualizar fluxo do pedido.");
     }
   });

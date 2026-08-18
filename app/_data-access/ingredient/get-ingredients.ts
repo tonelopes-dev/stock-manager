@@ -1,9 +1,9 @@
 import "server-only";
 
-import { db } from "@/app/_lib/prisma";
-import { Product, ProductType, UnitType, Prisma } from "@prisma/client";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { db } from "@/app/_lib/prisma";
 import { sanitizeUUID } from "@/app/_lib/uuid";
+import { Prisma, ProductType, UnitType } from "@prisma/client";
 
 export type IngredientStatusDto = "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
 
@@ -59,7 +59,7 @@ export const getIngredients = async (
   const skip = (page - 1) * pageSize;
 
   // Build where clause
-  const where: any = {
+  const where: Prisma.ProductWhereInput = {
     companyId,
     type: types ? { in: types } : { in: ["INSUMO", "REVENDA"] },
   };
@@ -117,7 +117,7 @@ export const getIngredients = async (
 
   const mappedData = JSON.parse(
     JSON.stringify(
-      (ingredients as any[]).map((ingredient) => {
+      ingredients.map((ingredient) => {
         const stock = Number(ingredient.stock);
         const minStock = Number(ingredient.minStock);
 

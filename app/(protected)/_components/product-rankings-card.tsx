@@ -1,10 +1,10 @@
-import { 
-    ProductRanking,
-} from "@/app/_services/analytics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
 import { Skeleton } from "@/app/_components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 import { formatCurrency } from "@/app/_lib/utils";
+import {
+  ProductRanking,
+} from "@/app/_services/analytics";
 import { PackageIcon } from "lucide-react";
 
 interface RawProductRanking {

@@ -1,5 +1,5 @@
-import { test, expect, Locator } from "@playwright/test";
 import { fakerPT_BR as faker } from "@faker-js/faker";
+import { expect, Locator, test } from "@playwright/test";
 
 /**
  * Helper to fill masked inputs (react-number-format) reliably.

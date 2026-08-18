@@ -1,16 +1,16 @@
-import { Metadata } from "next";
-import { IntegrationsHub } from "./_components/integrations-hub";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { assertPageCapability } from "@/app/_lib/rbac";
-import { PERMISSIONS } from "@/app/_lib/permissions";
-import { db } from "@/app/_lib/prisma";
-import { AlertCircle } from "lucide-react";
 import {
   Alert,
   AlertDescription,
   AlertTitle,
 } from "@/app/_components/ui/alert";
 import { Separator } from "@/app/_components/ui/separator";
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { db } from "@/app/_lib/prisma";
+import { assertPageCapability } from "@/app/_lib/rbac";
+import { AlertCircle } from "lucide-react";
+import { Metadata } from "next";
+import { IntegrationsHub } from "./_components/integrations-hub";
 
 export const metadata: Metadata = {
   title: "Integrações | KIPO",

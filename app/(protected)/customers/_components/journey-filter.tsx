@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
+import { useRouter, useSearchParams } from "next/navigation";
 import { TransitionStartFunction } from "react";
 
 interface CustomerJourneyFilterProps {

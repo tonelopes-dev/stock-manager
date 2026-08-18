@@ -1,18 +1,18 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/app/_components/ui/button";
-import { CalendarIcon, ClockIcon } from "lucide-react";
-import { cn } from "@/app/_lib/utils";
-import { format, parseISO, startOfDay, endOfDay } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/app/_components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/app/_components/ui/popover";
-import { useState, useEffect } from "react";
+import { cn } from "@/app/_lib/utils";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { CalendarIcon, ClockIcon } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { DateRange } from "react-day-picker";
 
 const filters = [

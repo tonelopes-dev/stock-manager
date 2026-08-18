@@ -1,12 +1,14 @@
-import "server-only";
 import { randomUUID } from "crypto";
-import { MercadoPagoConfig, Preference, Payment } from "mercadopago";
+import { MercadoPagoConfig, Payment, Preference } from "mercadopago";
+import type { PaymentCreateRequest } from "mercadopago/dist/clients/payment/create/types";
+import type { PaymentResponse } from "mercadopago/dist/clients/payment/commonTypes";
+import "server-only";
 import {
-  IPaymentGateway,
-  ICreateCheckoutInput,
   ICheckoutResult,
-  IPixResult,
+  ICreateCheckoutInput,
   IInPersonPaymentResult,
+  IPaymentGateway,
+  IPixResult,
 } from "./types";
 
 /**
@@ -134,7 +136,7 @@ export class MercadoPagoGateway implements IPaymentGateway {
   /**
    * Processes a direct payment (from Mercado Pago Bricks token)
    */
-  async createPayment(formData: any): Promise<any> {
+  async createPayment(formData: PaymentCreateRequest): Promise<PaymentResponse> {
     const payment = new Payment(this.client);
     
     const response = await payment.create({

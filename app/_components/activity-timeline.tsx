@@ -1,9 +1,9 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/_components/ui/card";
 import { AuditService } from "@/app/_services/audit";
 import { AuditMapper } from "@/app/_services/audit-mapper";
+import { AuditEventType } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/_components/ui/card";
-import { AuditEventType } from "@prisma/client";
 import Image from "next/image";
 
 

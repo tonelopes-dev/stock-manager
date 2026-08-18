@@ -1,8 +1,8 @@
 import "server-only";
 
-import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { startOfDay, endOfDay } from "date-fns";
+import { db } from "@/app/_lib/prisma";
+import { endOfDay, startOfDay } from "date-fns";
 
 export interface DashboardMetricsDto {
   dailyRevenue: number;

@@ -1,17 +1,16 @@
 import "server-only";
 
-import { db } from "@/app/_lib/prisma";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { format } from "date-fns/format";
-import { eachDayOfInterval } from "date-fns/eachDayOfInterval";
-import { isSameDay } from "date-fns/isSameDay";
-import { startOfMonth } from "date-fns/startOfMonth";
-import { endOfMonth } from "date-fns/endOfMonth";
-import { subMonths } from "date-fns/subMonths";
+import { db } from "@/app/_lib/prisma";
+import { getDefaultSalesRange, nowBRT } from "@/app/_utils/date";
 import { addDays } from "date-fns/addDays";
-import { startOfDay } from "date-fns/startOfDay";
+import { eachDayOfInterval } from "date-fns/eachDayOfInterval";
+import { endOfMonth } from "date-fns/endOfMonth";
+import { format } from "date-fns/format";
 import { ptBR } from "date-fns/locale/pt-BR";
-import { parseLocalDay, getDefaultSalesRange, nowBRT } from "@/app/_utils/date";
+import { startOfDay } from "date-fns/startOfDay";
+import { startOfMonth } from "date-fns/startOfMonth";
+import { subMonths } from "date-fns/subMonths";
 
 export interface SalesAnalyticsDto {
     totalRevenue: {

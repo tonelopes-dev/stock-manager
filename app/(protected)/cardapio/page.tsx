@@ -1,22 +1,20 @@
-import { getProducts } from "../../_data-access/product/get-products";
-import AddProductButton from "./_components/create-product-button";
-import { ProductStatusFilter } from "./_components/status-filter";
-import { ProductVisualCatalog } from "./_components/product-visual-catalog";
+import { getEnvironments } from "@/app/_data-access/product/get-environments";
 import Header, {
   HeaderLeft,
   HeaderRight,
   HeaderSubtitle,
   HeaderTitle,
 } from "../../_components/header";
-import { getEnvironments } from "@/app/_data-access/product/get-environments";
+import { getProducts } from "../../_data-access/product/get-products";
+import AddProductButton from "./_components/create-product-button";
+import { ProductVisualCatalog } from "./_components/product-visual-catalog";
+import { ProductStatusFilter } from "./_components/status-filter";
 
-import { Suspense } from "react";
-import { ProductTableSkeleton } from "./_components/table-skeleton";
-import { getOnboardingStats } from "@/app/_data-access/onboarding/get-onboarding-stats";
-import { getCurrentUserRole } from "@/app/_lib/rbac";
-import { UserRole, ProductType } from "@prisma/client";
-import { getProductCategories } from "@/app/_data-access/product/get-product-categories";
 import { getOverheadSettings } from "@/app/_data-access/company/get-overhead-settings";
+import { getOnboardingStats } from "@/app/_data-access/onboarding/get-onboarding-stats";
+import { getProductCategories } from "@/app/_data-access/product/get-product-categories";
+import { getCurrentUserRole } from "@/app/_lib/rbac";
+import { ProductType, UserRole } from "@prisma/client";
 
 interface ProductsPageProps {
   searchParams: Promise<{

@@ -1,11 +1,11 @@
 "use client";
 
-import SidebarButton from "./sidebar-button";
-import LogoutButton from "./logout-button";
-import { useAppMode } from "@/app/_providers/app-mode-provider";
-import { hasCapability } from "@/app/_lib/permissions";
-import { UserRole } from "@prisma/client";
 import { NAVIGATION_ITEMS } from "@/app/_config/navigation";
+import { hasCapability } from "@/app/_lib/permissions";
+import { useAppMode } from "@/app/_providers/app-mode-provider";
+import { UserRole } from "@prisma/client";
+import LogoutButton from "./logout-button";
+import SidebarButton from "./sidebar-button";
 
 interface SidebarNavProps {
   role: UserRole;

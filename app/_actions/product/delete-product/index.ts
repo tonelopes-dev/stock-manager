@@ -1,20 +1,21 @@
 "use server";
 
-import { db } from "@/app/_lib/prisma";
-import { deleteProductSchema } from "./schema";
-import { revalidatePath } from "next/cache";
-import { actionClient } from "@/app/_lib/safe-action";
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { db } from "@/app/_lib/prisma";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
+import { actionClient } from "@/app/_lib/safe-action";
 import { AuditService } from "@/app/_services/audit";
 import { AuditEventType, AuditSeverity } from "@prisma/client";
+import { revalidatePath } from "next/cache";
+import { deleteProductSchema } from "./schema";
 
 
 export const deleteProduct = actionClient
   .schema(deleteProductSchema)
   .action(async ({ parsedInput: { id } }) => {
     const companyId = await getCurrentCompanyId();
-    await assertRole(ADMIN_AND_OWNER);
+    await assertActionCapability(PERMISSIONS.PRODUCT_DELETE);
 
 
 

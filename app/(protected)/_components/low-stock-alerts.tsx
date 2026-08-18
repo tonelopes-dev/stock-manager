@@ -1,9 +1,9 @@
-import { getLowStockProducts } from "@/app/_data-access/dashboard/get-low-stock-products";
+import { Button } from "@/app/_components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
 import { Skeleton } from "@/app/_components/ui/skeleton";
+import { getLowStockProducts } from "@/app/_data-access/dashboard/get-low-stock-products";
 import { AlertCircleIcon, ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/app/_components/ui/button";
 
 const LowStockAlerts = async () => {
   const lowStockProducts = await getLowStockProducts();

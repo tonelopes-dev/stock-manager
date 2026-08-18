@@ -1,6 +1,6 @@
 import { getTotalRevenue } from "@/app/_data-access/dashboard/get-total-revenue";
-import { SummaryCard } from "./summary-card";
 import { DollarSignIcon } from "lucide-react";
+import { SummaryCard } from "./summary-card";
 
 const TotalRevenueCard = async () => {
   const totalRevenue = await getTotalRevenue();

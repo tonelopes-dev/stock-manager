@@ -1,5 +1,7 @@
 "use client";
 
+import { Badge } from "@/app/_components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/_components/ui/card";
 import {
   Table,
   TableBody,
@@ -8,10 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/app/_components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/_components/ui/card";
-import { formatCurrency } from "@/app/_lib/utils";
 import { AggregatedSaleDto } from "@/app/_data-access/sale/get-aggregated-sales";
-import { Badge } from "@/app/_components/ui/badge";
+import { formatCurrency } from "@/app/_lib/utils";
 
 interface AggregatedSalesTableProps {
   data: AggregatedSaleDto[];

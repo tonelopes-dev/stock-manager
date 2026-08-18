@@ -1,5 +1,4 @@
-import { test, expect } from "@playwright/test";
-import { fakerPT_BR as faker } from "@faker-js/faker";
+import { test } from "@playwright/test";
 
 // Deliberate error removed: const syntax_error = ;
 

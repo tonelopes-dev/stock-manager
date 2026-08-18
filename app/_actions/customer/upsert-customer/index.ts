@@ -1,19 +1,20 @@
 "use server";
 
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
+import { actionClient } from "@/app/_lib/safe-action";
+import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
+import { returnValidationErrors } from "next-safe-action";
 import { revalidatePath } from "next/cache";
 import { upsertCustomerSchema } from "./schema";
-import { actionClient } from "@/app/_lib/safe-action";
-import { returnValidationErrors } from "next-safe-action";
-import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
-import { ALL_ROLES, assertRole } from "@/app/_lib/rbac";
 
 export const upsertCustomer = actionClient
   .schema(upsertCustomerSchema)
   .action(async ({ parsedInput: { id, birthDate, ...data } }) => {
     const companyId = await getCurrentCompanyId();
-    await assertRole(ALL_ROLES);
+    await assertActionCapability(PERMISSIONS.CUSTOMER_MANAGE);
     await requireActiveSubscription(companyId);
 
     const { categoryIds, ...otherData } = data;

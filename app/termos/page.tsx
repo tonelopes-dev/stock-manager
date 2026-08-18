@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { ArrowLeft, Scale } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
+import { ArrowLeft, Scale } from "lucide-react";
+import Link from "next/link";
 
 export default function TermsPage() {
   const currentYear = new Date().getFullYear();

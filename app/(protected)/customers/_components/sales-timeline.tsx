@@ -1,9 +1,9 @@
 "use client";
 
-import { ShoppingBag, Calendar, ArrowUpRight } from "lucide-react";
+import { formatCurrency } from "@/app/_lib/utils";
 import { format } from "date-fns/format";
 import { ptBR } from "date-fns/locale";
-import { formatCurrency } from "@/app/_lib/utils";
+import { Calendar, ShoppingBag } from "lucide-react";
 
 interface SalesTimelineProps {
   sales: {
