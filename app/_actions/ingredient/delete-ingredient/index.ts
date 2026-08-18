@@ -2,7 +2,8 @@
 
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
-import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
 import { actionClient } from "@/app/_lib/safe-action";
 import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
 import { AuditService } from "@/app/_services/audit";
@@ -16,7 +17,7 @@ export const deleteIngredient = actionClient
   .action(async ({ parsedInput: { id } }) => {
     const companyId = await getCurrentCompanyId();
     await requireActiveSubscription(companyId);
-    await assertRole(ADMIN_AND_OWNER);
+    await assertActionCapability(PERMISSIONS.PRODUCT_DELETE);
 
 
     const ingredient = await db.product.findFirst({

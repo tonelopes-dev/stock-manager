@@ -2,7 +2,8 @@
 
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
-import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
 import { actionClient } from "@/app/_lib/safe-action";
 import { AuditService } from "@/app/_services/audit";
 import { nowBRT } from "@/app/_utils/date";
@@ -60,9 +61,8 @@ export const createStockEntry = actionClient
   .schema(createStockEntrySchema)
   .action(async ({ parsedInput: data }) => {
     const companyId = await getCurrentCompanyId();
-    const { userId } = await assertRole(ADMIN_AND_OWNER);
+    const { userId } = await assertActionCapability(PERMISSIONS.STOCK_ADJUST);
 
-    console.log("[STOCK_ENTRY] Requisição recebida:", { productId: data.productId, quantity: data.quantity });
 
     try {
       const result = await db.$transaction(async (trx) => {

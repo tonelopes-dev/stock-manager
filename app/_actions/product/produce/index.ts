@@ -1,7 +1,8 @@
 "use server";
 
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
-import { ALL_ROLES, assertRole } from "@/app/_lib/rbac";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
 import { actionClient } from "@/app/_lib/safe-action";
 import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
 import { AuditService } from "@/app/_services/audit";
@@ -17,7 +18,7 @@ export const produceProduct = actionClient
   .action(async ({ parsedInput: { productId, quantity } }) => {
     const companyId = await getCurrentCompanyId();
     await requireActiveSubscription(companyId);
-    const { userId } = await assertRole(ALL_ROLES);
+    const { userId } = await assertActionCapability(PERMISSIONS.STOCK_ADJUST);
 
 
     const result = await ProductionService.produce({

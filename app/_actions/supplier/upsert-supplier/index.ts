@@ -2,7 +2,8 @@
 
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
-import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
 import { actionClient } from "@/app/_lib/safe-action";
 import { AuditService } from "@/app/_services/audit";
 import { AuditEventType } from "@prisma/client";
@@ -13,7 +14,7 @@ export const upsertSupplier = actionClient
   .schema(upsertSupplierSchema)
   .action(async ({ parsedInput: { id, ...data } }) => {
     const companyId = await getCurrentCompanyId();
-    await assertRole(ADMIN_AND_OWNER);
+    await assertActionCapability(PERMISSIONS.STOCK_ADJUST);
 
     const result = await db.supplier.upsert({
       where: {

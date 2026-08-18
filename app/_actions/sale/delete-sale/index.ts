@@ -2,7 +2,8 @@
 
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
-import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
 import { actionClient } from "@/app/_lib/safe-action";
 import { AuditService } from "@/app/_services/audit";
 import { recordStockMovement } from "@/app/_utils/stock";
@@ -15,7 +16,7 @@ export const deleteSale = actionClient
   .schema(deleteSaleSchema)
   .action(async ({ parsedInput: { id } }) => {
     const companyId = await getCurrentCompanyId();
-    const { userId } = await assertRole(ADMIN_AND_OWNER);
+    const { userId } = await assertActionCapability(PERMISSIONS.SALE_CANCEL);
 
 
     await db.$transaction(async (trx) => {

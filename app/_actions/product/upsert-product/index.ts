@@ -2,7 +2,8 @@
 
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
-import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
 import { actionClient } from "@/app/_lib/safe-action";
 import { deleteOldImage } from "@/app/_lib/storage";
 import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
@@ -64,7 +65,7 @@ export const upsertProduct = actionClient
   .schema(upsertProductSchema)
   .action(async ({ parsedInput: { id, ...data } }) => {
     const companyId = await getCurrentCompanyId();
-    const { userId } = await assertRole(ADMIN_AND_OWNER);
+    const { userId } = await assertActionCapability(id ? PERMISSIONS.PRODUCT_UPDATE : PERMISSIONS.PRODUCT_CREATE);
     await requireActiveSubscription(companyId);
 
     // Manual duplication check (Application Level)

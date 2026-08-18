@@ -1,28 +1,21 @@
 "use server";
 
+import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
-import { assertRole } from "@/app/_lib/rbac";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
 import { actionClient } from "@/app/_lib/safe-action";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-const disconnectMercadoPagoSchema = z.object({
-  companyId: z.string().min(1),
-});
+const disconnectMercadoPagoSchema = z.object({});
 
 export const disconnectMercadoPagoAction = actionClient
   .schema(disconnectMercadoPagoSchema)
-  .action(async ({ parsedInput: { companyId } }) => {
-    await assertRole(["OWNER", "ADMIN"]);
-    
-    // Check if company exists and user has access
-    const company = await db.company.findUnique({
-      where: { id: companyId },
-    });
-    
-    if (!company) {
-      throw new Error("Company not found");
-    }
+  .action(async () => {
+    // Segurança: companyId sempre vem da sessão, nunca do input do cliente
+    const companyId = await getCurrentCompanyId();
+    await assertActionCapability(PERMISSIONS.INTEGRATIONS_MANAGE);
 
     await db.company.update({
       where: { id: companyId },

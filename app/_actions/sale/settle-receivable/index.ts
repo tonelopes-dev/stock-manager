@@ -2,7 +2,8 @@
 
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
-import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
 import { actionClient } from "@/app/_lib/safe-action";
 import { requireActiveSubscription } from "@/app/_lib/subscription-guard";
 import { AuditService } from "@/app/_services/audit";
@@ -16,8 +17,8 @@ export const settleReceivableAction = actionClient
   .action(async ({ parsedInput: { saleId, paymentMethod } }) => {
     const companyId = await getCurrentCompanyId();
     
-    // Apenas ADMIN e OWNER podem dar baixa em pagamentos
-    const { userId } = await assertRole(ADMIN_AND_OWNER);
+    // Guard: requer capability SALE_CANCEL para dar baixa em pagamentos pendentes
+    const { userId } = await assertActionCapability(PERMISSIONS.SALE_CANCEL);
     
     await requireActiveSubscription(companyId);
 

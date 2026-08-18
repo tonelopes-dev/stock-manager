@@ -123,7 +123,7 @@ export function IntegrationCard({ config, companyId, companySlug, mpMarketplaceT
             <Button
               variant="destructive"
               className="w-full gap-2"
-              onClick={() => executeDisconnect({ companyId })}
+              onClick={() => executeDisconnect({})}
               disabled={isDisconnecting}
             >
               {isDisconnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Desconectar"}

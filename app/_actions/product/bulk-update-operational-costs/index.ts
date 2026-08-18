@@ -2,7 +2,8 @@
 
 import { getCurrentCompanyId } from "@/app/_lib/get-current-company";
 import { db } from "@/app/_lib/prisma";
-import { ADMIN_AND_OWNER, assertRole } from "@/app/_lib/rbac";
+import { PERMISSIONS } from "@/app/_lib/permissions";
+import { assertActionCapability } from "@/app/_lib/rbac";
 import { actionClient } from "@/app/_lib/safe-action";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -16,8 +17,8 @@ export const bulkUpdateOperationalCosts = actionClient
   .action(async ({ parsedInput: { newRate } }) => {
     const companyId = await getCurrentCompanyId();
     
-    // RBAC: Only Admin/Owner can perform bulk updates
-    await assertRole(ADMIN_AND_OWNER);
+    // RBAC: requer capability PRODUCT_UPDATE (OWNER tem bypass automático)
+    await assertActionCapability(PERMISSIONS.PRODUCT_UPDATE);
 
     const result = await db.product.updateMany({
       where: {
