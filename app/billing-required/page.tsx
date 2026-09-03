@@ -7,34 +7,53 @@ import { BillingActions } from "./_components/billing-actions";
 export const dynamic = "force-dynamic";
 
 const BillingRequiredPage = async () => {
-  // CRITICAL: Call the full auth() to refresh the JWT with fresh DB data.
-  // Without this, the JWT remains stale and the middleware keeps redirecting
-  // the user here even after a successful payment.
   const session = await auth();
+  const now = new Date();
 
-  // If we have a valid session, check the REAL subscription status from the DB
-  // (the auth() call above already refreshed the JWT, but let's double-check
-  // directly against the DB to avoid any edge case with JWT propagation)
+  // [DEBUG] Log full session state on every visit to /billing-required
+  console.log("[BillingRequired] ===== DEBUG =====");
+  console.log("[BillingRequired] session.user:", JSON.stringify({
+    id: session?.user?.id,
+    companyId: session?.user?.companyId,
+    subscriptionStatus: session?.user?.subscriptionStatus,
+    expiresAt: session?.user?.expiresAt,
+    role: session?.user?.role,
+  }, null, 2));
+  console.log("[BillingRequired] server now:", now.toISOString());
+
   if (session?.user?.companyId) {
     const company = await db.company.findUnique({
       where: { id: session.user.companyId },
-      select: { expiresAt: true, subscriptionStatus: true },
+      select: { expiresAt: true, subscriptionStatus: true, lastPaymentId: true, plan: true },
     });
 
-    const now = new Date();
-    const isActive = company?.subscriptionStatus === "ACTIVE" && 
-                     company?.expiresAt && 
+    // [DEBUG] Log raw DB state
+    console.log("[BillingRequired] DB company:", JSON.stringify({
+      subscriptionStatus: company?.subscriptionStatus,
+      expiresAt: company?.expiresAt?.toISOString(),
+      lastPaymentId: company?.lastPaymentId,
+      plan: company?.plan,
+      expiresAtGtNow: company?.expiresAt ? company.expiresAt > now : false,
+    }, null, 2));
+
+    const isActive = company?.subscriptionStatus === "ACTIVE" &&
+                     company?.expiresAt &&
                      company.expiresAt > now;
-    
-    const isTrialing = company?.subscriptionStatus === "TRIALING" && 
-                       company?.expiresAt && 
+
+    const isTrialing = company?.subscriptionStatus === "TRIALING" &&
+                       company?.expiresAt &&
                        company.expiresAt > now;
 
+    console.log("[BillingRequired] isActive:", isActive, "| isTrialing:", isTrialing);
+
     if (isActive || isTrialing) {
-      // Subscription is valid! The JWT was just refreshed by auth() above,
-      // so the middleware will now see the correct status on the next request.
+      console.log("[BillingRequired] ✅ Subscription valid — redirecting to /sales");
       redirect("/sales");
+    } else {
+      console.log("[BillingRequired] ❌ Subscription NOT valid — staying on billing-required");
     }
+  } else {
+    console.log("[BillingRequired] ⚠️ No companyId in session — user may not be logged in");
   }
 
   return (

@@ -141,7 +141,18 @@ export default auth(async (req) => {
      // was processed by the webhook. The full auth() callback in the layout
      // will correct the JWT on this request.
      const hasValidExpiry = jwtExpiresAt && new Date(jwtExpiresAt) > new Date();
-     
+
+     // [DEBUG] Log subscription guard state for every protected route
+     if (restrictedStatuses.includes(subscriptionStatus as string) || pathname === "/billing-required") {
+       console.log("[Middleware] ===== SUBSCRIPTION GUARD =====");
+       console.log("[Middleware] pathname:", pathname);
+       console.log("[Middleware] subscriptionStatus (JWT):", subscriptionStatus);
+       console.log("[Middleware] jwtExpiresAt (JWT):", jwtExpiresAt);
+       console.log("[Middleware] hasValidExpiry:", hasValidExpiry);
+       console.log("[Middleware] server now:", new Date().toISOString());
+       console.log("[Middleware] will block:", restrictedStatuses.includes(subscriptionStatus as string) && !hasValidExpiry);
+     }
+
      if (restrictedStatuses.includes(subscriptionStatus as string) && !hasValidExpiry && pathname !== "/billing-required" && !isPublicRoute) {
         return NextResponse.redirect(new URL("/billing-required", req.nextUrl.origin));
      }
