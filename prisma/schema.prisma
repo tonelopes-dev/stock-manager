@@ -278,6 +278,9 @@ model Company {
   requireSelfieOnCheckout Boolean            @default(false)
   enableServiceTax        Boolean            @default(true)
 
+  // Idempotency: last approved MercadoPago payment processed for this company's subscription.
+  // Prevents duplicate webhook deliveries from crediting extra months.
+  lastPaymentId          String?
 
   @@index([deletedAt])
 }

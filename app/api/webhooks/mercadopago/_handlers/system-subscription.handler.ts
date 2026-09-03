@@ -47,8 +47,17 @@ export async function handleSystemSubscriptionWebhook(
   if (status === "approved") {
     const companyBefore = await db.company.findUnique({
       where: { id: companyId },
-      select: { id: true, name: true, subscriptionStatus: true, expiresAt: true },
+      select: { id: true, name: true, subscriptionStatus: true, expiresAt: true, lastPaymentId: true },
     });
+
+    // Idempotency guard: if this exact payment was already processed, skip entirely.
+    // MercadoPago delivers the same webhook multiple times (status transitions + retries).
+    if (companyBefore?.lastPaymentId === paymentId.toString()) {
+      console.warn(
+        `[MercadoPago System Webhook] Payment ${paymentId} already processed for company ${companyId}. Skipping duplicate.`
+      );
+      return new NextResponse("OK", { status: 200 });
+    }
 
     const currentExpiresAt = companyBefore?.expiresAt;
     const now = new Date();
@@ -67,8 +76,20 @@ export async function handleSystemSubscriptionWebhook(
         expiresAt: newExpiresAt,
         plan: "PRO",
         isBoletoPending: false,
+        lastPaymentId: paymentId.toString(),
       },
     });
+
+    // Force the owner's JWT to be refreshed on the next request.
+    // The middleware reads subscriptionStatus from the JWT (Edge Runtime, no DB access).
+    // By incrementing sessionVersion, auth.ts detects the change and re-fetches fresh
+    // company data from the DB, so the user sees ACTIVE immediately without manual re-login.
+    if (owner?.userId) {
+      await db.user.update({
+        where: { id: owner.userId },
+        data: { sessionVersion: { increment: 1 } },
+      });
+    }
 
     if (owner?.user?.email) {
       try {
@@ -88,9 +109,11 @@ export async function handleSystemSubscriptionWebhook(
 
     try {
       if (owner?.userId) {
+        // Deterministic ID: prevents duplicate audit entries if the guard above ever
+        // fails (e.g., DB write succeeded but response timed out before returning 200).
         await db.auditEvent.create({
           data: {
-            id: `mp-sub-${paymentId}-${Date.now()}`,
+            id: `mp-sub-${paymentId}`,
             type: "SUBSCRIPTION_ACTIVATED",
             companyId: companyId,
             actorId: owner.userId,
